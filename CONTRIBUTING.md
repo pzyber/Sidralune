@@ -72,15 +72,16 @@ If the feature exists in another program, a link to its documentation is useful.
 
 ## Asking a question
 
-Check the [README](README.md) and the [wiki](Wiki/Home.md) first; the [Troubleshooting and FAQ](Wiki/Troubleshooting-and-FAQ.md) page covers common problems. If the answer is not there, open an issue with your question. A question that the documentation should have answered is also a documentation bug, so it is never wasted.
+Check the [README](README.md) and the [wiki](https://github.com/pzyber/Sidralune/wiki/Home) first; the [Troubleshooting and FAQ](https://github.com/pzyber/Sidralune/wiki/Troubleshooting-and-FAQ) page covers common problems. If the answer is not there, open an issue with your question. A question that the documentation should have answered is also a documentation bug, so it is never wasted.
 
 ## Improving the documentation
 
-The user manual is the `Wiki` folder, written in GitHub-flavoured Markdown. Corrections, clearer explanations and new examples are welcome as pull requests. Please:
+The user manual is the `Wiki` folder, written in GitHub-flavoured Markdown and published as the [GitHub wiki](https://github.com/pzyber/Sidralune/wiki). Corrections, clearer explanations and new examples are welcome as pull requests. Please:
 
 - Write for an amateur astronomer, not a programmer. Explain jargon the first time you use it.
 - Use the names exactly as they appear in the program, in bold, with arrows for navigation: **Settings → Data**.
-- Link between pages with relative links such as `[Sky chart](Sky-Chart.md)`.
+- Name each file after the page's title, with hyphens for spaces (`Sky-chart.md` becomes the page "Sky chart"). The wiki shows the file name as the page heading, so do not start a page with a `#` heading.
+- Link between pages by page name, without `.md`: `[Sky chart](Sky-chart)` or `[Printing](Sky-chart#printing-finder-charts)`. Add new pages to `_Sidebar.md` and `Home.md`.
 - Update the page when you change the behaviour it describes, in the same pull request.
 
 ## Contributing code
@@ -220,7 +221,7 @@ Sidralune\bin\Debug\Sidralune.exe --screenshot shot.png --view planner --night
 Sidralune\bin\Debug\Sidralune.exe --screenshot shot.png --view observatory --sim
 ```
 
-`--script file.cs` runs a C# script before the screenshot is taken. A script can call into views (through `MainForm.Instance`) to put them in a particular state. See [Command-line options](Wiki/Command-Line-Options.md).
+`--script file.cs` runs a C# script before the screenshot is taken. A script can call into views (through `MainForm.Instance`) to put them in a particular state. See [Command-line options](https://github.com/pzyber/Sidralune/wiki/Command-line-options).
 
 Please attach before and after screenshots to pull requests that change the interface.
 

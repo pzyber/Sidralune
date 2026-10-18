@@ -1,5 +1,3 @@
-# Spectroscopy
-
 The **Spectra** workspace reduces raw spectrum images into calibrated one-dimensional spectra and analyses them: measuring lines, radial velocities, temperatures and spectral classes, correcting for the instrument's response, and exporting to the BeSS database format. It suits slit spectrographs (Alpy, LHIRES, LISA and others) and slitless gratings (Star Analyser).
 
 It has two tabs: **Reduce 2D spectrum** and **Analyse spectrum**.
@@ -25,7 +23,7 @@ It has two tabs: **Reduce 2D spectrum** and **Analyse spectrum**.
 
 The raw image from a spectrograph is a stripe of light: the star's spectrum, spread out horizontally (the dispersion direction) and a few pixels high. Reduction turns it into a table of flux against wavelength.
 
-Calibrate the frames first (darks, flats, bias) in [Deep sky](Deep-Sky-Stacking.md) if you can, and orient them so the dispersion runs along X with blue on the left.
+Calibrate the frames first (darks, flats, bias) in [Deep sky](Deep-sky-stacking) if you can, and orient them so the dispersion runs along X with blue on the left.
 
 ### Extraction settings
 
@@ -120,4 +118,4 @@ The response is the smoothed ratio of observed to reference flux. It is applied 
 - Take lamp frames immediately before or after the star, without moving the telescope, so flexure does not shift the calibration.
 - Expose the star to at least 50% of full scale in the brightest part of the spectrum, but never saturate.
 - Use the telluric line list to identify the atmospheric bands near 6870 Å (O₂ B band) and 7600 Å (O₂ A band) rather than mistaking them for stellar lines.
-- For Be stars, measure the equivalent width of Hα regularly and submit spectra to BeSS; see [Databases and citizen science](Databases-and-Citizen-Science.md#amateur-science).
+- For Be stars, measure the equivalent width of Hα regularly and submit spectra to BeSS; see [Databases and citizen science](Databases-and-citizen-science#amateur-science).

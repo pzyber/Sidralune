@@ -1,5 +1,3 @@
-# Algorithms and accuracy
-
 Every calculation in Sidralune is based on published methods. This page lists them by area, with the accuracy you can expect and the references. It is meant for users who want to know how far to trust a number, and for contributors.
 
 ## Contents
@@ -240,4 +238,4 @@ The test suite (`Sidralune.Tests`) checks results against independent references
 - constellation identification of known stars,
 - autofocus and device behaviour with the simulators.
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md#scientific-correctness) for the rules new algorithms must follow.
+See [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#scientific-correctness) for the rules new algorithms must follow.

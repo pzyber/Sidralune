@@ -1,5 +1,3 @@
-# Settings
-
 The **Settings** workspace, at the bottom of the navigation rail, holds everything Sidralune needs to know about you, your sites and your equipment, plus the data manager. Settings are saved automatically to `%LOCALAPPDATA%\Sidralune\Settings\settings.json`.
 
 ## Contents
@@ -32,7 +30,7 @@ The list on the left shows your sites. **New site** adds one, **Delete** removes
 | **MPC observatory code** | Your Minor Planet Center station code | MPC reports |
 | **Horizon profile (az:alt, …)** | Pairs of azimuth and altitude in degrees, for example `0:10, 45:18, 90:25, 180:5, 270:15`. Values in between are interpolated | Sky chart ground, planner "up" times, best targets |
 
-> If you do not know your SQM value, the [Getting started](Getting-Started.md#step-1-set-your-observing-site) page has a table of typical values. Online light-pollution maps also give SQM estimates for any location.
+> If you do not know your SQM value, the [Getting started](Getting-started#step-1-set-your-observing-site) page has a table of typical values. Online light-pollution maps also give SQM estimates for any location.
 
 ## Equipment
 
@@ -94,7 +92,7 @@ Click **Save** to store the changes.
 | **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 
-A list of keyboard shortcuts is shown on this tab; see also [Keyboard shortcuts](Keyboard-Shortcuts.md).
+A list of keyboard shortcuts is shown on this tab; see also [Keyboard shortcuts](Keyboard-shortcuts).
 
 ## Data
 
@@ -117,7 +115,7 @@ The data manager lists the catalogues, orbit files and ephemerides you can downl
 | **Open data folder** | Opens `%LOCALAPPDATA%\Sidralune\Data` in Explorer |
 | **Reload catalogs** | Reloads every catalogue from disk, for example after copying files in by hand |
 
-The status line shows which ephemeris and catalogues are loaded. See [Data and catalogues](Data-and-Catalogs.md) for details of each dataset.
+The status line shows which ephemeris and catalogues are loaded. See [Data and catalogues](Data-and-catalogues) for details of each dataset.
 
 > If you have no internet access at the telescope, download the data at home; everything works offline afterwards. You can also copy the `Data` folder from another computer.
 

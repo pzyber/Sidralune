@@ -1,5 +1,3 @@
-# Scripting and data analysis
-
 The **Scripts** workspace lets you automate Sidralune and analyse data with C# scripts that have access to the whole program: catalogues, ephemerides, image processing, plate solving, photometry, devices and the user interface. It also has a **Data analysis** tab for quick plots and fits of tabular data without writing code.
 
 ## Contents
@@ -144,7 +142,7 @@ Print("Slewing to {0}", o.Name);
 
 ### Running scripts from the command line
 
-`Sidralune.exe --screenshot out.png --script myscript.cs` starts Sidralune, runs the script in the Scripts workspace and saves a screenshot when the wait time is over. See [Command-line options](Command-Line-Options.md).
+`Sidralune.exe --screenshot out.png --script myscript.cs` starts Sidralune, runs the script in the Scripts workspace and saves a screenshot when the wait time is over. See [Command-line options](Command-line-options).
 
 ## Data analysis
 
@@ -162,6 +160,6 @@ Right-click the plot to copy it, save it as PNG or export the data as CSV.
 
 ## Other automation
 
-- The [Sequencer](Sequencer.md) automates imaging nights without code; its **Run script** instruction can start external programs.
-- The [command palette](User-Interface.md#command-palette) runs any command by name.
+- The [Sequencer](Sequencer) automates imaging nights without code; its **Run script** instruction can start external programs.
+- The [command palette](The-user-interface#command-palette) runs any command by name.
 - Sequences are JSON files that scripts can generate.

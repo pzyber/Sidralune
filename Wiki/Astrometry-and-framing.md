@@ -1,5 +1,3 @@
-# Astrometry and framing
-
 The **Astrometry** workspace finds exactly where an image points on the sky (plate solving), labels the objects in it, plans the framing of a target or a mosaic before you image it, and estimates the exposure you need. It has three tabs: **Plate solving**, **Framing & mosaics** and **Exposure planner**.
 
 ## Contents
@@ -50,7 +48,7 @@ Hints make solving faster and more reliable:
 | **Scale ("/px, 0=auto)** | Image scale in arcseconds per pixel. Filled in from `FOCALLEN` and `XPIXSZ` when present. 0 means unknown |
 | **SIP order** | Distortion polynomial order: 0 (none) to 4. 2 suits most telescopes; use 3–4 for camera lenses and wide fields |
 
-Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by Sidralune's [Observatory](Observatory-and-Devices.md#fits-headers) already contain everything needed.
+Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by Sidralune's [Observatory](Observatory-and-devices#fits-headers) already contain everything needed.
 
 ### Solving an image
 
@@ -79,7 +77,7 @@ The list of objects in the field is also printed in the result panel.
 |---|---|
 | **Write WCS to FITS…** | Saves a copy of the image with the WCS keywords (`CTYPE`, `CRVAL`, `CRPIX`, `CD` matrix and SIP coefficients) in its header, readable by any astronomy program |
 | **Sync telescope to solution** | Tells the connected mount where it is really pointing, which corrects its pointing for the next slews |
-| **Show field in sky chart** | Opens the [Sky chart](Sky-Chart.md) in atlas mode centred on the image, with the image outline drawn |
+| **Show field in sky chart** | Opens the [Sky chart](Sky-chart) in atlas mode centred on the image, with the image outline drawn |
 
 The WCS is also stored in the image in memory, so other workspaces (photometry, colour calibration, MPC astrometry) can use it.
 
@@ -95,15 +93,15 @@ The WCS is also stored in the image in memory, so other workspaces (photometry, 
 
 The **Framing & mosaics** tab shows your camera's field of view on a sky chart, so you can compose the image before you take it, and plans mosaics of large targets.
 
-1. Type a target in **Target** and click **Update**, or use **Frame** in the [Sky chart](Sky-Chart.md#object-information-panel) or the right-click menu's **Frame with camera here**.
+1. Type a target in **Target** and click **Update**, or use **Frame** in the [Sky chart](Sky-chart#object-information-panel) or the right-click menu's **Frame with camera here**.
 2. The rectangle shows the field of the active telescope and camera from **Settings → Equipment**; **Camera / scope** shows the field size and image scale.
 3. Drag the chart to move the frame, and use the mouse wheel to zoom.
 4. Set **Rotation (°)** to turn the camera.
 5. For a mosaic, set **Mosaic columns**, **Mosaic rows** and **Overlap (%)** (15% is a safe minimum for stitching).
 
-The tile list gives the centre of every tile (row, column, RA and Dec). **Copy tile list** copies it to the clipboard, ready to paste into target containers in the [sequencer](Sequencer.md).
+The tile list gives the centre of every tile (row, column, RA and Dec). **Copy tile list** copies it to the clipboard, ready to paste into target containers in the [sequencer](Sequencer).
 
-Tiles are laid out on the tangent plane around the mosaic centre and rotated together, so the tiles stay aligned with each other even near the celestial pole. When stacking the tiles, use **Mode: Mosaic** in [Deep-sky stacking](Deep-Sky-Stacking.md#output-area).
+Tiles are laid out on the tangent plane around the mosaic centre and rotated together, so the tiles stay aligned with each other even near the celestial pole. When stacking the tiles, use **Mode: Mosaic** in [Deep-sky stacking](Deep-sky-stacking#output-area).
 
 ## Exposure planner
 

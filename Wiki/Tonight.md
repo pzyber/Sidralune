@@ -1,8 +1,6 @@
-# Tonight
-
 **Tonight** is the first workspace on the rail and the page Sidralune opens with. It answers the questions you ask before going outside: how dark will it get, where is the Moon, which planets are up, what is worth looking at, and what is coming up.
 
-Everything on the page is for the active site and the current (or simulated) time. It updates every minute, whenever you change the time, and fully recalculates when you change the site or install new catalogues or orbits. Double-click any row in its tables to show that object in the [Sky chart](Sky-Chart.md).
+Everything on the page is for the active site and the current (or simulated) time. It updates every minute, whenever you change the time, and fully recalculates when you change the site or install new catalogues or orbits. Double-click any row in its tables to show that object in the [Sky chart](Sky-chart).
 
 ## Contents
 
@@ -46,7 +44,7 @@ Sidralune ranks the brighter deep-sky objects (magnitude 11.5 and brighter) by h
 
 1. the object's altitude (it must be above 20° and above your horizon profile),
 2. the sky brightness at the object's position, including moonlight, twilight and your site's light pollution (Krisciunas-Schaefer model),
-3. the detection margin with the [visibility model](Observation-Planning.md#how-visibility-is-predicted): how far, in magnitudes, the object is above the threshold of visibility at the best magnification.
+3. the detection margin with the [visibility model](Observation-planning#how-visibility-is-predicted): how far, in magnitudes, the object is above the threshold of visibility at the best magnification.
 
 The 40 objects with the best margin are listed, with a small bonus for Messier objects. Columns:
 
@@ -70,7 +68,7 @@ The next 30 events over the coming weeks:
 - the next lunar and solar eclipses within about a year,
 - peaks of the major meteor showers within 90 days, with their ZHR.
 
-Times are local. For more detail on eclipses, occultations and meteors, see [Solar system](Solar-System.md).
+Times are local. For more detail on eclipses, occultations and meteors, see [Solar system](Solar-system).
 
 ## Jupiter's moons
 

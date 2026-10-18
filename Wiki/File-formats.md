@@ -1,5 +1,3 @@
-# File formats
-
 Sidralune reads and writes the standard formats of amateur and professional astronomy, all implemented in its own code without external libraries.
 
 ## Contents

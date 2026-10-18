@@ -1,10 +1,8 @@
-# Sequencer
-
 The sequencer, in **Observatory → Sequencer**, runs a whole imaging night automatically: cooling the camera, waiting for darkness, slewing and centring on targets, focusing, guiding, taking exposures through different filters, flipping at the meridian, reacting to bad weather, and parking at dawn.
 
 A sequence is a tree of instructions. Containers group instructions and can repeat them; triggers watch for conditions between exposures and step in when needed.
 
-> Test every new sequence with the [simulated observatory](Observatory-and-Devices.md#the-simulated-observatory) first, and stay with your equipment the first time you run it for real.
+> Test every new sequence with the [simulated observatory](Observatory-and-devices#the-simulated-observatory) first, and stay with your equipment the first time you run it for real.
 
 ## Contents
 
@@ -102,7 +100,7 @@ Triggers are checked between exposures. Tick the ones you want in the **Triggers
 | **Meridian flip 5 min after transit** | A German equatorial mount on the east side of the pier is tracking a target that passed the meridian 5 minutes ago | Stops guiding, re-slews to the target so the mount flips to the west side, re-centres by plate solving and resumes guiding |
 | **Autofocus when HFR rises 15%** | The median half-flux radius of the last 5 frames is 15% above the value measured at the last autofocus | Runs autofocus |
 
-The sequencing engine also provides **Autofocus after 1.5 °C change** (temperature-compensating refocus) and **Autofocus every 30 exposures**. They are available to [scripts](Scripting-and-Data-Analysis.md) through `Sidralune.Devices.Automation`.
+The sequencing engine also provides **Autofocus after 1.5 °C change** (temperature-compensating refocus) and **Autofocus every 30 exposures**. They are available to [scripts](Scripting-and-data-analysis) through `Sidralune.Devices.Automation`.
 
 ## Running a sequence
 
@@ -110,7 +108,7 @@ Click **Run sequence**. The sequence runs in the background: you can keep workin
 
 Click **Stop**, or run the `Observatory: abort all` command, to stop. The current exposure is aborted and the mount stops slewing; it does not park automatically, so park it yourself if you are ending the night.
 
-Frames are saved with the [file name pattern](Observatory-and-Devices.md#file-names) from the Imaging tab, under the image folder from **Settings → Observer & accounts**.
+Frames are saved with the [file name pattern](Observatory-and-devices#file-names) from the Imaging tab, under the image folder from **Settings → Observer & accounts**.
 
 ## Saving and loading
 

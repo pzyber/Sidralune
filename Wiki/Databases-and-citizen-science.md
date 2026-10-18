@@ -1,5 +1,3 @@
-# Databases and citizen science
-
 The **Databases** workspace searches the local catalogues with filters, queries the major online astronomical databases, and lists citizen-science projects where your observations are useful. It has three tabs: **Local catalogues**, **Online databases** and **Amateur science**.
 
 ## Contents
@@ -35,7 +33,7 @@ Click **Search**. Results (up to 5000) are sorted by brightness.
 | Stars | Star, constellation, RA, Dec, V magnitude, B−V, spectral type, parallax, variable type, current altitude |
 | Constellations | Abbreviation, name, genitive, label position, current altitude |
 
-Double-click a row to show it in the Sky chart. Select rows (Ctrl or Shift for several) and click **Add to plan** to add them to the active [observing list](Observation-Planning.md). **CSV…** exports the results.
+Double-click a row to show it in the Sky chart. Select rows (Ctrl or Shift for several) and click **Add to plan** to add them to the active [observing list](Observation-planning). **CSV…** exports the results.
 
 Examples:
 
@@ -100,16 +98,16 @@ The **Amateur science** tab lists 24 projects where amateur observations are use
 
 | Field | Projects | What Sidralune exports |
 |---|---|---|
-| Variable stars | AAVSO, BAA Variable Star Section | AAVSO Extended Format from [Photometry](Photometry-and-Exoplanets.md#exporting-results) |
+| Variable stars | AAVSO, BAA Variable Star Section | AAVSO Extended Format from [Photometry](Photometry-and-exoplanets#exporting-results) |
 | Exoplanets | NASA Exoplanet Watch, ExoClock (Ariel), Exoplanet Transit Database | Light curves (CSV) and transit fits |
-| Minor planets | Minor Planet Center, NEO Confirmation Page | MPC 80-column and ADES from [Solar system](Solar-System.md#mpc-astrometry) |
+| Minor planets | Minor Planet Center, NEO Confirmation Page | MPC 80-column and ADES from [Solar system](Solar-system#mpc-astrometry) |
 | Occultations | IOTA, IOTA/ES, Occult Watcher Cloud | Event predictions and timings |
-| Planets | ALPO, PVOL, JUPOS | Stacked and derotated images with WinJUPOS-compatible names from [Planetary](Planetary-Lunar-Solar.md) |
+| Planets | ALPO, PVOL, JUPOS | Stacked and derotated images with WinJUPOS-compatible names from [Planetary](Planetary,-lunar-and-solar-imaging) |
 | Sun | SIDC / SILSO sunspot number | |
 | Meteors | IMO, Global Meteor Network | Shower rate predictions |
-| Spectroscopy | BeSS, ARAS | BeSS FITS from [Spectroscopy](Spectroscopy.md#saving) |
+| Spectroscopy | BeSS, ARAS | BeSS FITS from [Spectroscopy](Spectroscopy#saving) |
 | Supernovae | Transient Name Server | |
-| Radio | Radio JOVE, Society of Amateur Radio Astronomers | Spectra and time series (CSV) from [Radio](Radio-Astronomy.md) |
+| Radio | Radio JOVE, Society of Amateur Radio Astronomers | Spectra and time series (CSV) from [Radio](Radio-astronomy) |
 | Online | Zooniverse space projects, Kilonova Seekers | |
 | Dark skies | Globe at Night | Your SQM readings |
 

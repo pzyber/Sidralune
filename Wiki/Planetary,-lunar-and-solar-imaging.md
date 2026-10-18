@@ -1,5 +1,3 @@
-# Planetary, lunar and solar imaging
-
 The **Planetary** workspace processes high-frame-rate videos of the planets, the Moon and the Sun using the "lucky imaging" technique: record thousands of short frames, keep the sharpest moments when the atmosphere is steady, align and stack them, then sharpen. Five tabs follow the workflow:
 
 | Tab | Does what |
@@ -132,4 +130,4 @@ WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM
 3. **Stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
 4. **Derotation**: add the five stacks, planet Jupiter, target time in the middle, **Derotate & stack to target time**, **Save result…**.
 5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, **Save…**.
-6. Optionally fine-tune colour and levels in [Process](Image-Processing.md).
+6. Optionally fine-tune colour and levels in [Process](Image-processing).

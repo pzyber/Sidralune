@@ -1,5 +1,3 @@
-# Radio astronomy
-
 The **Radio** workspace supports amateur radio astronomy with inexpensive software-defined radios (SDRs) such as the RTL-SDR, Airspy or HackRF: hydrogen-line spectroscopy of the Milky Way, a radio telescope calculator, predictions of Jupiter's decametric radio storms, and tools for drift scans, pulsars and solar flare detection.
 
 It has four tabs: **Hydrogen line / spectra**, **Radio telescope calculator**, **Jupiter & Sun** and **Time domain**.
@@ -121,4 +119,4 @@ A working hydrogen-line telescope can be built from:
 
 Point it at the Milky Way (Cygnus, Cassiopeia, or the galactic centre region in Sagittarius when it is up), record a few minutes ON and a few minutes OFF, and open both here. Even a small horn shows the hydrogen line clearly, and a series of pointings along the galactic plane traces the spiral arms.
 
-See [Databases and citizen science](Databases-and-Citizen-Science.md#amateur-science) for radio astronomy groups.
+See [Databases and citizen science](Databases-and-citizen-science#amateur-science) for radio astronomy groups.

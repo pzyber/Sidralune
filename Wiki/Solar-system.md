@@ -1,5 +1,3 @@
-# Solar system
-
 The **Solar sys.** workspace gathers everything about the Sun's family: ephemerides for any planet, comet or asteroid; a browser of minor bodies with an orbit diagram; planetary physical data and Jupiter's moons; asteroid and lunar occultations; meteor showers; satellite passes; and measuring and reporting asteroid and comet positions to the Minor Planet Center.
 
 ## Contents
@@ -129,7 +127,7 @@ Positions use the SGP4 model, the standard for two-line elements. Deep-space obj
 
 Report positions of asteroids and comets to the Minor Planet Center:
 
-1. Plate solve your images in [Astrometry](Astrometry-and-Framing.md) and save them with the WCS (**Write WCS to FITS…**), or use images already solved.
+1. Plate solve your images in [Astrometry](Astrometry-and-framing) and save them with the WCS (**Write WCS to FITS…**), or use images already solved.
 2. Click **Open image…**.
 3. Enter the object's **Designation**: a number for numbered asteroids (packed automatically, for example `433` → `00433`) or a provisional or temporary designation.
 4. Check your **Station code** (from **Settings**) and **Observer** name.

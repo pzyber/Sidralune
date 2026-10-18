@@ -1,5 +1,3 @@
-# Troubleshooting and FAQ
-
 ## Contents
 
 - [Installation and start-up](#installation-and-start-up)
@@ -38,7 +36,7 @@ Close Sidralune and delete or rename `%LOCALAPPDATA%\Sidralune\Settings\settings
 You are using the built-in catalogue. Download the recommended datasets in **Settings → Data**. The status bar's data pill shows what is loaded.
 
 **A download failed.**
-Check your internet connection and try again; the servers (JPL, MPC, GitHub, CelesTrak) are occasionally slow. Behind a proxy, set it in Windows' internet options, which Sidralune uses. You can also download the files elsewhere and copy them in; see [Data and catalogues](Data-and-Catalogs.md#adding-files-by-hand).
+Check your internet connection and try again; the servers (JPL, MPC, GitHub, CelesTrak) are occasionally slow. Behind a proxy, set it in Windows' internet options, which Sidralune uses. You can also download the files elsewhere and copy them in; see [Data and catalogues](Data-and-catalogues#adding-files-by-hand).
 
 **I cannot remove the DE440 ephemeris.**
 Sidralune releases the file before removing it. If removal still fails, another program (an antivirus scanner, a backup tool) may have it open; try again later.
@@ -75,7 +73,7 @@ At high latitudes in summer the Sun may not get far enough below the horizon. Th
 Printing always uses a black-on-white palette, whatever the screen theme. Use the print preview to check before printing.
 
 **The chart is mirrored compared with my eyepiece.**
-Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky chart](Sky-Chart.md#mirror-and-invert).
+Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky chart](Sky-chart#mirror-and-invert).
 
 ## Equipment
 
@@ -100,7 +98,7 @@ Each of the three frames must plate solve. Point at a part of the sky away from 
 ## Plate solving
 
 **Solving fails.**
-See [When solving fails](Astrometry-and-Framing.md#when-solving-fails). The most common causes are a wrong scale (focal length or pixel size), too few stars, and using the local catalogue for a narrow field.
+See [When solving fails](Astrometry-and-framing#when-solving-fails). The most common causes are a wrong scale (focal length or pixel size), too few stars, and using the local catalogue for a narrow field.
 
 **ASTAP is not found.**
 Install ASTAP in its default folder (`C:\Program Files\astap`) together with one of its star databases.
@@ -164,11 +162,11 @@ Only when you use an online feature, and only what that query needs (a name, coo
 ## Scripts
 
 **My script does not compile although it is valid C#.**
-Scripts are compiled as C# 5, so newer syntax such as string interpolation (`$"..."`), `?.` and `nameof` is not available. See [Language level](Scripting-and-Data-Analysis.md#language-level).
+Scripts are compiled as C# 5, so newer syntax such as string interpolation (`$"..."`), `?.` and `nameof` is not available. See [Language level](Scripting-and-data-analysis#language-level).
 
 **Changing a control from a script throws an exception.**
 Interface changes must run on the UI thread: wrap them in `MainForm.Instance.Invoke((Action)(() => { ... }))`.
 
 ## Getting help
 
-If your problem is not listed, open an issue on [GitHub](https://github.com/pzyber/Sidralune/issues) with the details described in [CONTRIBUTING.md](../CONTRIBUTING.md#reporting-a-bug).
+If your problem is not listed, open an issue on [GitHub](https://github.com/pzyber/Sidralune/issues) with the details described in [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#reporting-a-bug).

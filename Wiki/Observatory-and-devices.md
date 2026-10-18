@@ -1,8 +1,6 @@
-# Observatory and devices
-
 The **Observatory** workspace connects and controls your equipment: mount, camera, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, cover calibrator and guider. It takes images, focuses automatically, centres targets by plate solving, guides through PHD2, polar-aligns your mount and runs automated sequences.
 
-The sequencer has its own page: [Sequencer](Sequencer.md).
+The sequencer has its own page: [Sequencer](Sequencer).
 
 > Automation moves real equipment. Stay with your mount the first time you use slewing, parking, meridian flips or sequences, and set slew limits in the mount or driver so the telescope cannot hit the pier or tripod.
 
@@ -175,7 +173,7 @@ The **Focuser** section shows the position, whether it is moving and its tempera
 
 **Run autofocus** takes a series of exposures (**AF exposure** long, binned 2×2) at focuser positions **AF step** apart on both sides of the current position, measuring the stars' half-flux radius in each. The points are plotted as a V-curve, a hyperbola is fitted to them, and the focuser moves to the minimum, approaching from one direction with backlash overshoot. If the minimum lies at the edge of the sweep, the routine recentres the sweep and continues, so it also works when you start far from focus.
 
-Tips: use an exposure long enough to show 20 or more stars, choose a step that changes the HFR by roughly 10–20% per step near focus, and refocus when the temperature changes by a degree or two (the [sequencer](Sequencer.md#triggers) can do this automatically).
+Tips: use an exposure long enough to show 20 or more stars, choose a step that changes the HFR by roughly 10–20% per step near focus, and refocus when the temperature changes by a degree or two (the [sequencer](Sequencer#triggers) can do this automatically).
 
 ### Mount
 
@@ -190,7 +188,7 @@ Type an object name or coordinates in **Go to**, then:
 
 ### Centring by plate solving
 
-**Center** (and the sequencer's Center instruction) runs a closed loop: slew, take a short binned exposure, plate solve it, sync the mount to the solution, and slew again, until the target is within 1′ of the image centre or five attempts have been made. This removes pointing-model errors, and after a sync the mount's next slews are more accurate too. It needs a camera and the plate solver (see [Astrometry](Astrometry-and-Framing.md#plate-solving)).
+**Center** (and the sequencer's Center instruction) runs a closed loop: slew, take a short binned exposure, plate solve it, sync the mount to the solution, and slew again, until the target is within 1′ of the image centre or five attempts have been made. This removes pointing-model errors, and after a sync the mount's next slews are more accurate too. It needs a camera and the plate solver (see [Astrometry](Astrometry-and-framing#plate-solving)).
 
 ## Guiding tab
 
@@ -234,11 +232,11 @@ The calculation compares the axis with the refracted pole, so the result is corr
 | **Park** | Park the dome |
 | **Follow telescope** | Keeps the dome slit aligned with the telescope as it moves (slaving) |
 
-**Weather & safety** shows the readings of the weather station: temperature, humidity and dew point, cloud cover, wind speed, rain rate, sky quality and sky temperature, and the safety monitor's verdict (**SAFE** or **UNSAFE**). The [sequencer's safety trigger](Sequencer.md#triggers) uses this to stop imaging, park and close up when conditions turn bad.
+**Weather & safety** shows the readings of the weather station: temperature, humidity and dew point, cloud cover, wind speed, rain rate, sky quality and sky temperature, and the safety monitor's verdict (**SAFE** or **UNSAFE**). The [sequencer's safety trigger](Sequencer#triggers) uses this to stop imaging, park and close up when conditions turn bad.
 
 ## Meridian flips
 
-German equatorial mounts must flip from one side of the pier to the other after an object crosses the meridian. When an imaging target passes the meridian by a set number of minutes while the mount is on the east side of the pier, the [sequencer's meridian flip trigger](Sequencer.md#triggers) stops guiding, re-slews to the target (the mount then chooses the other pier side), re-centres by plate solving and resumes guiding.
+German equatorial mounts must flip from one side of the pier to the other after an object crosses the meridian. When an imaging target passes the meridian by a set number of minutes while the mount is on the east side of the pier, the [sequencer's meridian flip trigger](Sequencer#triggers) stops guiding, re-slews to the target (the mount then chooses the other pier side), re-centres by plate solving and resumes guiding.
 
 ## Commands
 

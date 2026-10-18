@@ -1,5 +1,3 @@
-# Glossary
-
 Terms used in Sidralune and this manual.
 
 | Term | Meaning |
