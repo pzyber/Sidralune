@@ -1,0 +1,124 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Sidralune.Imaging;
+using Sidralune.Imaging.IO;
+using Sidralune.Imaging.Planetary;
+using static Sidralune.Tests.Program;
+
+namespace Sidralune.Tests
+{
+    public static class PlanetaryTests
+    {
+        private static double Rmse(float[] a, float[] b, int w, int h, int border)
+        {
+            double s = 0; int n = 0;
+            for (int y = border; y < h - border; y++) for (int x = border; x < w - border; x++) { double d = a[y * w + x] - b[y * w + x]; s += d * d; n++; }
+            return Math.Sqrt(s / n);
+        }
+
+        public static void TestLuckyStacking()
+        {
+            int w = 160, h = 160;
+            var truth = Synthetic.Planet(w, h, 80, 80, 50, 0, 0, 0, 1);
+            string p = Path.Combine(Path.GetTempPath(), "SidraluneTests", "lucky.ser");
+            Directory.CreateDirectory(Path.GetDirectoryName(p));
+            var rng = new Random(9);
+            AstroImage single = null;
+            using (var wr = new SerWriter(p, w, h, 16, 1))
+                for (int i = 0; i < 60; i++)
+                {
+                    double blur = 0.8 + rng.NextDouble() * 2.5; // seeing varies
+                    var f = Synthetic.Planet(w, h, 80 + rng.NextDouble() * 6 - 3, 80 + rng.NextDouble() * 6 - 3, 50, 0, blur, 0.02, 100 + i);
+                    if (i == 0) single = f;
+                    wr.Write(f);
+                }
+            var st = new LuckyStacker();
+            st.Options.StackPercents = new[] { 25.0 };
+            st.Options.ApSize = 32;
+            using (var src = new SerReader(p))
+            {
+                var r = st.Run(src);
+                Info(r.Report);
+                var stack = r.Stacks[0];
+                // compare sharpness by quality metric on the disc
+                double qs = FrameQuality.Measure(single.Data[0], w, h, QualityMetric.Gradient, 30, 30, 100, 100);
+                double qk = FrameQuality.Measure(stack.Data[0], w, h, QualityMetric.Gradient, 30, 30, 100, 100);
+                double noiseSingle = Sidralune.Imaging.Analysis.ImageStatistics.MrsNoise(single.Data[0], w, h);
+                double noiseStack = Sidralune.Imaging.Analysis.ImageStatistics.MrsNoise(stack.Data[0], w, h);
+                Info(string.Format("noise single {0:0.0000} stack {1:0.0000}; APs {2}", noiseSingle, noiseStack, r.AlignmentPoints.Count));
+                CheckTrue("Lucky stack reduces noise > 2x", noiseSingle / noiseStack > 2.0);
+                var obj = ObjectDetection.Detect(stack.Data[0], w, h);
+                Check("Stack centred on reference X", obj.Cx, ObjectDetection.Detect(st.Options.ApSize > 0 ? r.Reference.Data[0] : stack.Data[0], w, h).Cx, 0.5);
+            }
+        }
+
+        public static void TestRotationEstimator()
+        {
+            int w = 200, h = 200;
+            var a = Synthetic.Planet(w, h, 100, 100, 70, 0, 1, 0.005, 3);
+            var b = FieldRotation.RotateAbout(a, 7.5, 100, 100);
+            double est = RotationEstimator.Estimate(a.Data[0], b.Data[0], w, h, 100, 100, 10, 65, 20);
+            Check("Estimated rotation (deg)", est, 7.5, 0.3);
+            // correcting with the negated estimate must restore the original
+            var back = FieldRotation.RotateAbout(b, -est, 100, 100);
+            CheckTrue("Rotation correction restores image", Rmse(a.Data[0], back.Data[0], w, h, 40) < 0.02);
+        }
+
+        public static void TestSphereDerotationRoundtrip()
+        {
+            int w = 200, h = 200;
+            var a = Synthetic.Planet(w, h, 100, 100, 80, 0, 0.5, 0, 1);
+            var g = new DiscGeometry { Cx = 100, Cy = 100, Radius = 80, Flattening = 0.935, PoleAngleDeg = 15, SubObserverLatDeg = 3 };
+            var f = SphereDerotation.Derotate(a, g, 600, 9.925);
+            var back = SphereDerotation.Derotate(f, g, -600, 9.925);
+            double err = Rmse(a.Data[0], back.Data[0], w, h, 45);
+            Info("roundtrip rmse " + err.ToString("0.0000"));
+            CheckTrue("Derotation +/- roundtrip", err < 0.02);
+            CheckTrue("Derotation changes image", Rmse(a.Data[0], f.Data[0], w, h, 45) > 0.003);
+        }
+
+        public static void TestDeconvolution()
+        {
+            int w = 128, h = 128;
+            var truth = Synthetic.Planet(w, h, 64, 64, 40, 0, 0, 0, 2);
+            var psf = Psf.Gaussian(3.0);
+            var conv = new FftConvolver(w, h, psf);
+            var blurred = conv.Convolve(truth.Data[0]);
+            var rng = new Random(1);
+            for (int i = 0; i < blurred.Length; i++) blurred[i] += (float)((rng.NextDouble() - 0.5) * 0.004);
+            double e0 = Rmse(truth.Data[0], blurred, w, h, 10);
+            foreach (var m in new[] { DeconvolutionMethod.RichardsonLucy, DeconvolutionMethod.RichardsonLucyTV, DeconvolutionMethod.Wiener })
+            {
+                var opt = new DeconvolutionOptions { Method = m, Iterations = 25, WienerK = 0.002 };
+                var r = Deconvolution.Run(blurred, w, h, psf, opt);
+                double e1 = Rmse(truth.Data[0], r, w, h, 10);
+                Info(string.Format("{0}: rmse blurred {1:0.0000} -> {2:0.0000}", m, e0, e1));
+                CheckTrue(m + " improves fidelity", e1 < e0 * 0.85);
+            }
+        }
+
+        public static void TestPreprocessor()
+        {
+            int w = 200, h = 160;
+            string p = Path.Combine(Path.GetTempPath(), "SidraluneTests", "pipp_in.ser");
+            using (var wr = new SerWriter(p, w, h, 16, 1))
+                for (int i = 0; i < 20; i++) wr.Write(Synthetic.Planet(w, h, 60 + i * 3, 70 + (i % 5), 30, 0, 1 + (i % 4) * 0.5, 0.01, i), new DateTime(2025, 3, 1, 22, 0, i, DateTimeKind.Utc));
+            var o = new PippOptions { OutputFolder = Path.Combine(Path.GetTempPath(), "SidraluneTests", "pipp_out"), Format = PippOutputFormat.Ser, KeepBestPercent = 50, Order = PippOutputOrder.Quality };
+            using (var src = new SerReader(p))
+            {
+                var r = Preprocessor.Run(src, o);
+                Info(r.Summary);
+                Check("PIPP frames kept", r.Written, 10, 0);
+                using (var outp = new SerReader(r.OutputFiles[0]))
+                {
+                    var f = outp.ReadFrame(0);
+                    var ob = ObjectDetection.Detect(f.Data[0], f.Width, f.Height);
+                    Check("PIPP centred X", ob.Cx, f.Width / 2.0, 1.0);
+                    Check("PIPP centred Y", ob.Cy, f.Height / 2.0, 1.0);
+                }
+            }
+        }
+    }
+}
