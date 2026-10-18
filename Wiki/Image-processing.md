@@ -1,5 +1,3 @@
-# Image processing
-
 The **Process** workspace turns a linear stacked image into a finished picture, and offers analysis tools for single images. It covers the whole processing chain: gradient removal, colour calibration, deconvolution, stretching, wavelet sharpening, noise reduction, star removal and reduction, narrowband combination and PixelMath, with unlimited undo.
 
 ## Contents
@@ -55,7 +53,7 @@ Every operation is recorded in the history list (in **Histogram & history**). **
 
 ## A typical workflow
 
-For a deep-sky image straight from [Deep-sky stacking](Deep-Sky-Stacking.md):
+For a deep-sky image straight from [Deep-sky stacking](Deep-sky-stacking):
 
 1. **Geometry → Crop edges** to remove the ragged stacking borders.
 2. **Background extraction → Extract background** to remove light-pollution gradients.
@@ -67,7 +65,7 @@ For a deep-sky image straight from [Deep-sky stacking](Deep-Sky-Stacking.md):
 8. **Colour → Remove green cast (SCNR)** and **Apply saturation**.
 9. Save as TIFF for further editing and JPEG or PNG for sharing.
 
-For planetary images, use the [Planetary](Planetary-Lunar-Solar.md) workspace, which has dedicated wavelet and derotation tools.
+For planetary images, use the [Planetary](Planetary,-lunar-and-solar-imaging) workspace, which has dedicated wavelet and derotation tools.
 
 ## Histogram & history
 
@@ -168,7 +166,7 @@ Typical deep-sky values: layer 1 = 0, layers 2–3 = 0.3–1. Click **Apply wave
 | **LRGB: apply luminance file…** | Replaces the luminance of the current colour image with a mono luminance file, keeping its colour |
 | **Narrowband combine (Ha, OIII, SII files)…** | Combines narrowband images with the chosen **Palette**: SHO (Hubble palette), HOO (bicolour), HSO, FORAXX (a dynamic palette that blends Ha and OIII by brightness) or Natural (approximate true colour). File names containing Ha, OIII or SII are recognised automatically |
 
-Combine registered, stretched or linear images of the same size. For mono imaging, stack each filter in [Deep sky](Deep-Sky-Stacking.md) with the same reference frame so they align.
+Combine registered, stretched or linear images of the same size. For mono imaging, stack each filter in [Deep sky](Deep-sky-stacking) with the same reference frame so they align.
 
 ## PixelMath
 
@@ -193,4 +191,4 @@ Examples:
 
 ## Statistics and plate solving
 
-**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** sends the image to [Astrometry](Astrometry-and-Framing.md#plate-solving) for plate solving; solved images can then be annotated, colour-calibrated photometrically and shown with a WCS grid.
+**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** sends the image to [Astrometry](Astrometry-and-framing#plate-solving) for plate solving; solved images can then be annotated, colour-calibrated photometrically and shown with a WCS grid.

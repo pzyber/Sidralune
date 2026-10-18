@@ -1,36 +1,36 @@
-**[Home](Home.md)**
+**[Home](Home)**
 
 **Getting going**
-- [Getting started](Getting-Started.md)
-- [The user interface](User-Interface.md)
-- [Settings](Settings.md)
-- [Data and catalogues](Data-and-Catalogs.md)
+- [Getting started](Getting-started)
+- [The user interface](The-user-interface)
+- [Settings](Settings)
+- [Data and catalogues](Data-and-catalogues)
 
 **Planning and observing**
-- [Tonight](Tonight.md)
-- [Sky chart](Sky-Chart.md)
-- [Observation planning](Observation-Planning.md)
-- [Observatory and devices](Observatory-and-Devices.md)
-- [Sequencer](Sequencer.md)
+- [Tonight](Tonight)
+- [Sky chart](Sky-chart)
+- [Observation planning](Observation-planning)
+- [Observatory and devices](Observatory-and-devices)
+- [Sequencer](Sequencer)
 
 **Imaging and processing**
-- [Deep-sky stacking](Deep-Sky-Stacking.md)
-- [Image processing](Image-Processing.md)
-- [Planetary, lunar and solar](Planetary-Lunar-Solar.md)
+- [Deep-sky stacking](Deep-sky-stacking)
+- [Image processing](Image-processing)
+- [Planetary, lunar and solar](Planetary,-lunar-and-solar-imaging)
 
 **Science**
-- [Astrometry and framing](Astrometry-and-Framing.md)
-- [Photometry and exoplanets](Photometry-and-Exoplanets.md)
-- [Spectroscopy](Spectroscopy.md)
-- [Solar system](Solar-System.md)
-- [Radio astronomy](Radio-Astronomy.md)
-- [Databases and citizen science](Databases-and-Citizen-Science.md)
-- [Scripting and data analysis](Scripting-and-Data-Analysis.md)
+- [Astrometry and framing](Astrometry-and-framing)
+- [Photometry and exoplanets](Photometry-and-exoplanets)
+- [Spectroscopy](Spectroscopy)
+- [Solar system](Solar-system)
+- [Radio astronomy](Radio-astronomy)
+- [Databases and citizen science](Databases-and-citizen-science)
+- [Scripting and data analysis](Scripting-and-data-analysis)
 
 **Reference**
-- [File formats](File-Formats.md)
-- [Command-line options](Command-Line-Options.md)
-- [Keyboard shortcuts](Keyboard-Shortcuts.md)
-- [Algorithms and accuracy](Algorithms-and-Accuracy.md)
-- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.md)
-- [Glossary](Glossary.md)
+- [File formats](File-formats)
+- [Command-line options](Command-line-options)
+- [Keyboard shortcuts](Keyboard-shortcuts)
+- [Algorithms and accuracy](Algorithms-and-accuracy)
+- [Troubleshooting and FAQ](Troubleshooting-and-FAQ)
+- [Glossary](Glossary)

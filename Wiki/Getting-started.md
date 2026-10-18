@@ -1,5 +1,3 @@
-# Getting started
-
 This page takes you from a fresh download to a working setup: building or running Sidralune, telling it where you observe, downloading the catalogues, describing your equipment and trying the simulated observatory.
 
 ## Contents
@@ -92,7 +90,7 @@ The SQM value drives the visibility predictions in the Sky chart and Planner. Bo
 3. Tick the optional ones if you want them: near-Earth asteroids, the full MPCORB file, and CelesTrak satellite elements.
 4. Click **Download selected**. Progress is shown in the status bar, and the catalogues are loaded as soon as the download finishes.
 
-Refresh comet and asteroid orbits every week or two with **Update installed**, because new comets are discovered constantly and orbits are improved as observations accumulate. See [Data and catalogues](Data-and-Catalogs.md) for what each dataset provides.
+Refresh comet and asteroid orbits every week or two with **Update installed**, because new comets are discovered constantly and orbits are improved as observations accumulate. See [Data and catalogues](Data-and-catalogues) for what each dataset provides.
 
 ## Step 3: describe your equipment
 
@@ -104,9 +102,9 @@ Open **Settings → Equipment**. There are three lists: **Telescopes**, **Eyepie
 
 The **Combination summary** shows the resulting magnification, true field, exit pupil and Dawes limit for visual use, and the image scale, field of view, focal ratio, optimal sub-exposure for your sky and the Nyquist focal ratio for planetary imaging. These values are used for:
 
-- the eyepiece and camera field-of-view rectangles on the [Sky chart](Sky-Chart.md),
-- the visibility predictions and best magnification in the [Planner](Observation-Planning.md),
-- the [framing and exposure planners](Astrometry-and-Framing.md),
+- the eyepiece and camera field-of-view rectangles on the [Sky chart](Sky-chart),
+- the visibility predictions and best magnification in the [Planner](Observation-planning),
+- the [framing and exposure planners](Astrometry-and-framing),
 - plate-solving hints.
 
 ## Step 4: find your way around
@@ -116,7 +114,7 @@ The **Combination summary** shows the resulting magnification, true field, exit 
 - The clock at the top shows the site, the date and time used for every calculation, and the local sidereal time. To look at another date, type it into the date field on the **Sky** toolbar or use the step buttons next to it. The clock turns amber while you are away from the present; click **Live** to return.
 - **Ctrl+Shift+N** switches to the red night-vision palette.
 
-[The user interface](User-Interface.md) explains all of this in detail.
+[The user interface](The-user-interface) explains all of this in detail.
 
 ## Step 5: try the simulated observatory
 
@@ -143,6 +141,6 @@ You can learn the observatory tools without any hardware:
 
 ## Next steps
 
-- [Tonight](Tonight.md) and [Sky chart](Sky-Chart.md) for planning.
-- [Observatory and devices](Observatory-and-Devices.md) to connect real equipment.
-- [Troubleshooting and FAQ](Troubleshooting-and-FAQ.md) if something does not work as expected.
+- [Tonight](Tonight) and [Sky chart](Sky-chart) for planning.
+- [Observatory and devices](Observatory-and-devices) to connect real equipment.
+- [Troubleshooting and FAQ](Troubleshooting-and-FAQ) if something does not work as expected.

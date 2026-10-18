@@ -1,5 +1,3 @@
-# Photometry and exoplanets
-
 The **Photometry** workspace measures the brightness of stars in image sequences and analyses the resulting light curves. Use it for variable stars, eclipsing binaries, exoplanet transits and asteroid rotation. It has four tabs: **Measure**, **Light curve analysis**, **Exoplanet transits** and **Transit predictions**.
 
 ## Contents
@@ -171,4 +169,4 @@ The archive is queried once per session; predictions are based on the archive's 
 - Use comparison stars of similar colour and brightness to the target, close to it in the field.
 - Keep the field on the same pixels all night (good guiding, no meridian flip during a transit if you can avoid it).
 - Watch the check star: if it varies, the ensemble or the conditions are at fault, not the target.
-- Submit variable-star data to the AAVSO and transit timings to Exoplanet Watch or ExoClock; see [Databases and citizen science](Databases-and-Citizen-Science.md#amateur-science).
+- Submit variable-star data to the AAVSO and transit timings to Exoplanet Watch or ExoClock; see [Databases and citizen science](Databases-and-citizen-science#amateur-science).

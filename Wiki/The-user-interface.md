@@ -1,5 +1,3 @@
-# The user interface
-
 Sidralune uses one main window for everything. This page explains its parts and the conventions shared by every workspace.
 
 ## Contents
@@ -102,7 +100,7 @@ Clicking an object in a chart, a grid row, or a search result makes it the selec
 
 Results and problems are shown as short "toasts" in the corner of the window instead of dialog boxes, so they never interrupt your work. Successes are green, warnings amber and errors red. Dialog boxes are only used to confirm something that cannot be undone, such as deleting an observing list.
 
-If Sidralune hits an unexpected error, it keeps running, shows a toast and writes a crash report to the Logs folder. Please include that report when you [report a bug](../CONTRIBUTING.md#reporting-a-bug).
+If Sidralune hits an unexpected error, it keeps running, shows a toast and writes a crash report to the Logs folder. Please include that report when you [report a bug](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#reporting-a-bug).
 
 ## Background tasks
 

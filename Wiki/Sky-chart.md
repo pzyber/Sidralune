@@ -1,5 +1,3 @@
-# Sky chart
-
 The **Sky** workspace is Sidralune's planetarium and star atlas. It shows stars, deep-sky objects, planets, the Moon, comets and asteroids for your site and time, overlays the fields of view of your equipment, gives detailed information about any object, controls your telescope and prints finder charts.
 
 ## Contents
@@ -57,7 +55,7 @@ The chart can zoom from the whole sky (200°) down to a few arcminutes.
 ## Finding objects
 
 - Type in the **find box** on the toolbar and press Enter. It accepts names (`Albireo`, `Ring Nebula`), designations (`M 57`, `NGC 6720`, `HIP 95947`), planets, comets and asteroids, and coordinates in the form `hh mm ss +dd mm ss`.
-- Or press **Ctrl+K** anywhere for the [command palette](User-Interface.md#command-palette).
+- Or press **Ctrl+K** anywhere for the [command palette](The-user-interface#command-palette).
 
 The chart centres on the object and selects it. If a name is not found in the local catalogues, try **Databases → Online databases → Resolve name**, which asks the CDS Sesame service.
 
@@ -76,7 +74,7 @@ The field-of-view list on the toolbar sets the zoom and draws matching indicator
 | **Camera** | Fits the sensor | Rectangle for the active telescope and camera |
 | **Custom** | Unchanged | None |
 
-The eyepiece and camera indicators come from **Settings → Equipment**. For mosaics and rotated framing, use [Astrometry → Framing & mosaics](Astrometry-and-Framing.md#framing-and-mosaics), which shares the same chart.
+The eyepiece and camera indicators come from **Settings → Equipment**. For mosaics and rotated framing, use [Astrometry → Framing & mosaics](Astrometry-and-framing#framing-and-mosaics), which shares the same chart.
 
 ## Mirror and invert
 
@@ -117,7 +115,7 @@ Deep-sky objects have their own limit, and their labels appear progressively as 
 - **Deep-sky objects** use standard atlas symbols: ellipses at true size and position angle for galaxies, circles with crosses for globular clusters, dashed circles for open clusters, squares for nebulae, circles with a ring for planetary nebulae.
 - **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings, and when zoomed in below 1°, Jupiter shows its four Galilean moons in their current positions.
 - **The Moon** is drawn with its correct phase and orientation; the Sun at its true size.
-- **Comets** are drawn with a short tail pointing away from the Sun, **asteroids** as small crosses, both labelled when bright enough or when you zoom in. They come from the installed MPC files, the four built-in asteroids, and anything you added in the [Solar system](Solar-System.md#minor-bodies) workspace.
+- **Comets** are drawn with a short tail pointing away from the Sun, **asteroids** as small crosses, both labelled when bright enough or when you zoom in. They come from the installed MPC files, the four built-in asteroids, and anything you added in the [Solar system](Solar-system#minor-bodies) workspace.
 - **Milky Way** is shaded along the galactic plane at night.
 - **Telescope position** is a crosshair at the connected mount's current pointing.
 - In planetarium mode during the day, the sky is coloured by the Sun's altitude and fainter stars fade out, as in reality.
@@ -131,8 +129,8 @@ Click any object to select it. The panel shows its name and type, and these butt
 |---|---|
 | **Center** | Centre the chart on the object |
 | **Slew** | Slew the connected telescope to it |
-| **Add to list** | Add it to the active observing list in the [Planner](Observation-Planning.md) |
-| **Frame** | Open it in [Astrometry → Framing & mosaics](Astrometry-and-Framing.md#framing-and-mosaics) |
+| **Add to list** | Add it to the active observing list in the [Planner](Observation-planning) |
+| **Frame** | Open it in [Astrometry → Framing & mosaics](Astrometry-and-framing#framing-and-mosaics) |
 | **Copy** | Copy its name and coordinates to the clipboard |
 
 The details include, as applicable:
@@ -159,7 +157,7 @@ Right-clicking the chart shows the coordinates under the cursor and offers:
 
 ## Controlling the telescope
 
-With a mount connected (see [Observatory and devices](Observatory-and-Devices.md)), **Slew** or **Slew telescope here** converts the J2000 position to the apparent position of date and sends the mount there. The telescope crosshair shows where the mount is pointing and moves with it.
+With a mount connected (see [Observatory and devices](Observatory-and-devices)), **Slew** or **Slew telescope here** converts the J2000 position to the apparent position of date and sends the mount there. The telescope crosshair shows where the mount is pointing and moves with it.
 
 > Watch the mount when you slew, especially the first time, and make sure cables and the tube cannot hit the pier.
 
@@ -177,7 +175,7 @@ The toolbar has the time controls:
 | Play | Animate time at 300× (one hour every 12 seconds) |
 | Date field | Type a local date and time and press Enter |
 
-Changing the time here changes it for the whole program; see [Time](User-Interface.md#time).
+Changing the time here changes it for the whole program; see [Time](The-user-interface#time).
 
 ## Printing finder charts
 

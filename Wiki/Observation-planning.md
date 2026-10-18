@@ -1,6 +1,4 @@
-# Observation planning
-
-The **Planner** workspace manages observing lists, predicts how well each object will be seen with your equipment tonight, plots altitudes through the night, and keeps a logbook of what you observed. Together with the [Sky chart](Sky-Chart.md) it covers everything you need to plan an observing session.
+The **Planner** workspace manages observing lists, predicts how well each object will be seen with your equipment tonight, plots altitudes through the night, and keeps a logbook of what you observed. Together with the [Sky chart](Sky-chart) it covers everything you need to plan an observing session.
 
 ## Contents
 
@@ -41,7 +39,7 @@ The number after each list name is how many objects it contains.
 ## Adding objects
 
 - Type a name in the box on the toolbar and click **Add** (or press Enter). Stars, deep-sky objects and planets (`Mars`) are accepted.
-- In the [Sky chart](Sky-Chart.md), select an object (including comets and asteroids) and click **Add to list**, or right-click it and choose **Add … to observing list**.
+- In the [Sky chart](Sky-chart), select an object (including comets and asteroids) and click **Add to list**, or right-click it and choose **Add … to observing list**.
 - In **Databases → Local catalogues**, select rows and click **Add to plan**.
 - Use **Generate best for tonight…** to build a list automatically.
 
@@ -138,5 +136,5 @@ The result is a **margin** in magnitudes: how much brighter than the threshold t
 - Set your real SQM, extinction and age in **Settings**; they make a large difference to the predictions.
 - Choose the eyepiece you will actually use as the active one, or check **Best ×** to see which magnification to use.
 - Sort by **Best** to observe objects in the west first, before they set.
-- Print a finder chart for each target from the [Sky chart](Sky-Chart.md#printing-finder-charts) before the session.
+- Print a finder chart for each target from the [Sky chart](Sky-chart#printing-finder-charts) before the session.
 - Use the **Moon** column to avoid faint galaxies near a bright Moon.

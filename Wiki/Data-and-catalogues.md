@@ -1,5 +1,3 @@
-# Data and catalogues
-
 Sidralune works out of the box with a small built-in catalogue and an analytic planetary theory. Downloading the optional datasets turns it into a full planetarium with 120,000 stars, every NGC/IC object, all known comets and milliarcsecond planetary positions. This page explains what each source provides and where the files live.
 
 ## Contents
@@ -72,7 +70,7 @@ You can also add individual objects without downloading the large files:
 
 ## Satellites
 
-Satellite passes use the SGP4 model with CelesTrak two-line elements. Elements age quickly (low satellites drift by kilometres per day), so update them before each session. See [Solar system → Satellites](Solar-System.md#satellites).
+Satellite passes use the SGP4 model with CelesTrak two-line elements. Elements age quickly (low satellites drift by kilometres per day), so update them before each session. See [Solar system → Satellites](Solar-system#satellites).
 
 ## Online services
 

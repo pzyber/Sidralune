@@ -1,5 +1,3 @@
-# Deep-sky stacking
-
 The **Deep sky** workspace turns a night's worth of light frames into one clean, deep image. The workflow is simple (add frames, register, stack), with modern rejection methods, drizzle, comet stacking and mosaics.
 
 ## Contents
@@ -42,7 +40,7 @@ Stacking N frames improves the signal-to-noise ratio by about √N, so 16 frames
 | **Dark flats** | Same exposure as the flats, telescope covered | 20–50 |
 | **Bias / offset** | Shortest possible exposure, telescope covered | 50–100 |
 
-You need either dark flats or bias frames for the flats. With cooled cameras you can reuse darks and bias frames for months at the same temperature and gain. You can capture all of these with the [Observatory](Observatory-and-Devices.md#camera) or the [sequencer](Sequencer.md).
+You need either dark flats or bias frames for the flats. With cooled cameras you can reuse darks and bias frames for months at the same temperature and gain. You can capture all of these with the [Observatory](Observatory-and-devices#camera) or the [sequencer](Sequencer).
 
 ## The Deep sky workspace
 
@@ -212,7 +210,7 @@ The stacked image is linear (unstretched) 32-bit floating point data. The previe
 | Button | Action |
 |---|---|
 | **Save stacked image…** | Save as 32-bit FITS (`Autosave.fits` by default), XISF or TIFF to keep the full data, or as PNG or JPEG with the preview stretch applied |
-| **Open in Process** | Send the result to the [Process](Image-Processing.md) workspace for background extraction, stretching and so on |
+| **Open in Process** | Send the result to the [Process](Image-processing) workspace for background extraction, stretching and so on |
 
 Keep the 32-bit linear file: all processing should start from it.
 

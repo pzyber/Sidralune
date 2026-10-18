@@ -1,10 +1,8 @@
-# Keyboard shortcuts
-
 ## Everywhere
 
 | Keys | Action |
 |---|---|
-| Ctrl+K, Ctrl+F, Ctrl+Shift+P | Open the [command palette](User-Interface.md#command-palette) |
+| Ctrl+K, Ctrl+F, Ctrl+Shift+P | Open the [command palette](The-user-interface#command-palette) |
 | Ctrl+1 | Tonight |
 | Ctrl+2 | Sky |
 | Ctrl+3 | Planner |

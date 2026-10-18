@@ -1,5 +1,3 @@
-# Command-line options
-
 Sidralune is normally started without arguments. For documentation, automated visual checks and demonstrations it has a **screenshot mode**, which opens a workspace in a chosen state, renders the window to a PNG file and exits.
 
 ## Contents
@@ -77,7 +75,7 @@ Sidralune.exe --screenshot observatory.png --view observatory --sim
 
 ## Driving the interface with a script
 
-`--script` runs a C# script (the same kind as in the [Scripts workspace](Scripting-and-Data-Analysis.md)) before the screenshot is taken. The script can call into the views through `MainForm.Instance` to put them in a particular state. Interface changes must run on the UI thread:
+`--script` runs a C# script (the same kind as in the [Scripts workspace](Scripting-and-data-analysis)) before the screenshot is taken. The script can call into the views through `MainForm.Instance` to put them in a particular state. Interface changes must run on the UI thread:
 
 ```csharp
 var mf = MainForm.Instance;
@@ -88,7 +86,7 @@ mf.Invoke((Action)(() =>
 }));
 ```
 
-Combined with `--wait`, this makes repeatable screenshots of any workspace, and can serve as an end-to-end test: the screenshot shows the script's output and the state of the interface. Contributors use this to check interface changes; see [CONTRIBUTING.md](../CONTRIBUTING.md#checking-the-interface).
+Combined with `--wait`, this makes repeatable screenshots of any workspace, and can serve as an end-to-end test: the screenshot shows the script's output and the state of the interface. Contributors use this to check interface changes; see [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#checking-the-interface).
 
 ## Notes
 

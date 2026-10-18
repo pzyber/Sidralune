@@ -4,7 +4,7 @@ Sidralune is a free astronomy suite for Windows. It brings planning, telescope c
 
 It is written in C# for .NET Framework 4.8.1, uses no NuGet packages or third-party libraries, and works offline. Online services are only contacted when you ask for something that needs them, such as a SIMBAD lookup or an astrometry.net solve.
 
-The full manual is in the [wiki](Wiki/Home.md).
+The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 
 ## Contents
 
@@ -74,7 +74,7 @@ The program is written to `Sidralune\bin\Release\Sidralune.exe`. Copy the whole 
 5. Go to **Sky**, press Ctrl+K and type an object name, for example `M 13`. Click **Add to list**, then open **Planner** to see when it is best placed.
 6. To try the observatory without hardware, open **Observatory → Equipment** and click **Connect simulated observatory**. You get a simulated mount, camera (rendering real catalogue stars), focuser, filter wheel, dome and weather station.
 
-The [Getting started](Wiki/Getting-Started.md) wiki page walks through each step in more detail.
+The [Getting started](https://github.com/pzyber/Sidralune/wiki/Getting-started) wiki page walks through each step in more detail.
 
 ## The workspaces
 
@@ -82,21 +82,21 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 
 | Workspace | Purpose | Wiki page |
 |---|---|---|
-| Tonight | Darkness times, Moon, planets, best targets, upcoming events, Jupiter's moons, bright comets | [Tonight](Wiki/Tonight.md) |
-| Sky | Planetarium and atlas chart, object information, printing | [Sky chart](Wiki/Sky-Chart.md) |
-| Planner | Observing lists, visibility ranking, altitude graph, logbook | [Observation planning](Wiki/Observation-Planning.md) |
-| Observatory | Equipment, imaging, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](Wiki/Observatory-and-Devices.md), [Sequencer](Wiki/Sequencer.md) |
-| Deep sky | Calibrate, register and stack deep-sky frames | [Deep-sky stacking](Wiki/Deep-Sky-Stacking.md) |
-| Process | Post-processing of stacked images | [Image processing](Wiki/Image-Processing.md) |
-| Planetary | Pre-process, Stacking, Sharpen & deconvolve, Derotation, Solar & lunar | [Planetary, lunar and solar imaging](Wiki/Planetary-Lunar-Solar.md) |
-| Astrometry | Plate solving, framing and mosaics, exposure planner | [Astrometry and framing](Wiki/Astrometry-and-Framing.md) |
-| Photometry | Measuring, light-curve analysis, transits, transit predictions | [Photometry and exoplanets](Wiki/Photometry-and-Exoplanets.md) |
-| Spectra | 2D reduction and 1D analysis | [Spectroscopy](Wiki/Spectroscopy.md) |
-| Solar sys. | Ephemerides, minor bodies, moons, occultations, meteors, satellites, MPC reports | [Solar system](Wiki/Solar-System.md) |
-| Radio | Hydrogen line, calculator, Jupiter, time-domain tools | [Radio astronomy](Wiki/Radio-Astronomy.md) |
-| Databases | Local catalogues, online databases, citizen science | [Databases and citizen science](Wiki/Databases-and-Citizen-Science.md) |
-| Scripts | C# scripts and data analysis | [Scripting and data analysis](Wiki/Scripting-and-Data-Analysis.md) |
-| Settings | Location, equipment, observer, appearance, data, about | [Settings](Wiki/Settings.md) |
+| Tonight | Darkness times, Moon, planets, best targets, upcoming events, Jupiter's moons, bright comets | [Tonight](https://github.com/pzyber/Sidralune/wiki/Tonight) |
+| Sky | Planetarium and atlas chart, object information, printing | [Sky chart](https://github.com/pzyber/Sidralune/wiki/Sky-chart) |
+| Planner | Observing lists, visibility ranking, altitude graph, logbook | [Observation planning](https://github.com/pzyber/Sidralune/wiki/Observation-planning) |
+| Observatory | Equipment, imaging, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices), [Sequencer](https://github.com/pzyber/Sidralune/wiki/Sequencer) |
+| Deep sky | Calibrate, register and stack deep-sky frames | [Deep-sky stacking](https://github.com/pzyber/Sidralune/wiki/Deep-sky-stacking) |
+| Process | Post-processing of stacked images | [Image processing](https://github.com/pzyber/Sidralune/wiki/Image-processing) |
+| Planetary | Pre-process, Stacking, Sharpen & deconvolve, Derotation, Solar & lunar | [Planetary, lunar and solar imaging](https://github.com/pzyber/Sidralune/wiki/Planetary,-lunar-and-solar-imaging) |
+| Astrometry | Plate solving, framing and mosaics, exposure planner | [Astrometry and framing](https://github.com/pzyber/Sidralune/wiki/Astrometry-and-framing) |
+| Photometry | Measuring, light-curve analysis, transits, transit predictions | [Photometry and exoplanets](https://github.com/pzyber/Sidralune/wiki/Photometry-and-exoplanets) |
+| Spectra | 2D reduction and 1D analysis | [Spectroscopy](https://github.com/pzyber/Sidralune/wiki/Spectroscopy) |
+| Solar sys. | Ephemerides, minor bodies, moons, occultations, meteors, satellites, MPC reports | [Solar system](https://github.com/pzyber/Sidralune/wiki/Solar-system) |
+| Radio | Hydrogen line, calculator, Jupiter, time-domain tools | [Radio astronomy](https://github.com/pzyber/Sidralune/wiki/Radio-astronomy) |
+| Databases | Local catalogues, online databases, citizen science | [Databases and citizen science](https://github.com/pzyber/Sidralune/wiki/Databases-and-citizen-science) |
+| Scripts | C# scripts and data analysis | [Scripting and data analysis](https://github.com/pzyber/Sidralune/wiki/Scripting-and-data-analysis) |
+| Settings | Location, equipment, observer, appearance, data, about | [Settings](https://github.com/pzyber/Sidralune/wiki/Settings) |
 
 ## Downloading catalogues and ephemerides
 
@@ -115,7 +115,7 @@ Nothing is downloaded automatically. **Settings → Data** lists every dataset w
 | CelesTrak bright satellites | 30 KB | No | Two-line elements for about 150 bright satellites |
 | CelesTrak space stations | 10 KB | No | ISS, Tiangong and other crewed stations |
 
-Without these files, Sidralune uses a built-in catalogue of 114 bright stars, 169 Messier and showpiece objects, all 88 constellations, four bright asteroids, and an analytic planetary theory. See [Data and catalogues](Wiki/Data-and-Catalogs.md).
+Without these files, Sidralune uses a built-in catalogue of 114 bright stars, 169 Messier and showpiece objects, all 88 constellations, four bright asteroids, and an analytic planetary theory. See [Data and catalogues](https://github.com/pzyber/Sidralune/wiki/Data-and-catalogues).
 
 ## Connecting equipment
 
@@ -128,7 +128,7 @@ Without these files, Sidralune uses a built-in catalogue of 114 bright stars, 16
 | PHD2 | Guiding | Through PHD2's event server on port 4400. |
 | Simulators | Every device type | For learning, testing sequences and demonstrations. |
 
-See [Observatory and devices](Wiki/Observatory-and-Devices.md).
+See [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices).
 
 ## Supported file formats
 
@@ -140,7 +140,7 @@ See [Observatory and devices](Wiki/Observatory-and-Devices.md).
 | Data | CSV, text tables, MPC 1-line orbits, CelesTrak TLE, JPL SPK (.bsp) | CSV, AAVSO extended format, MPC 80-column, ADES PSV |
 | Projects | Stacking lists (`.sdstack`), sequences (`.json`), scripts (`.cs`) | Same |
 
-Full details in [File formats](Wiki/File-Formats.md).
+Full details in [File formats](https://github.com/pzyber/Sidralune/wiki/File-formats).
 
 ## Keyboard shortcuts
 
@@ -174,7 +174,7 @@ Sidralune.exe --screenshot out.png --view sky --time 2026-12-14T22:00:00 --night
 | `--wait <seconds>` | Time to let the view settle before capturing (default 4) |
 | `--script <file.cs>` | Run a C# script in the Scripts workspace before capturing |
 
-See [Command-line options](Wiki/Command-Line-Options.md).
+See [Command-line options](https://github.com/pzyber/Sidralune/wiki/Command-line-options).
 
 ## Where Sidralune stores its data
 
@@ -205,7 +205,7 @@ Uninstalling is a matter of deleting the program folder and this folder.
 | Time | Leap seconds, ΔT from Espenak-Meeus | Sub-second for modern dates |
 | Visibility | Krisciunas-Schaefer sky brightness and Schaefer's threshold model | A guide, not a guarantee |
 
-The test suite compares positions against JPL Horizons, Meeus worked examples and published values. See [Algorithms and accuracy](Wiki/Algorithms-and-Accuracy.md).
+The test suite compares positions against JPL Horizons, Meeus worked examples and published values. See [Algorithms and accuracy](https://github.com/pzyber/Sidralune/wiki/Algorithms-and-accuracy).
 
 ## Running the tests
 
@@ -231,7 +231,7 @@ Pass part of a test name to run a subset, for example `Sidralune.Tests.exe Photo
 
 ## Documentation
 
-Start at the [wiki home page](Wiki/Home.md). It has a page for every workspace, plus reference pages on file formats, algorithms, the command line and troubleshooting.
+Start at the [wiki home page](https://github.com/pzyber/Sidralune/wiki/Home). It has a page for every workspace, plus reference pages on file formats, algorithms, the command line and troubleshooting.
 
 ## Contributing
 
