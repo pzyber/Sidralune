@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F7D0410C-00DB-4CE6-B4DB-7E82FC9ED609}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Sidralune</RootNamespace>
+    <AssemblyName>Sidralune</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NoWarn>1591;0649;0169;0414</NoWarn>
+    <ApplicationIcon>Resources\Sidralune.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Design" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AppState.cs" />
+    <Compile Include="MainForm.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripting\ScriptHost.cs" />
+    <Compile Include="UI\Controls.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\ImageViewer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\PlotControl.cs" />
+    <Compile Include="UI\SkyChart.cs" />
+    <Compile Include="UI\Theme.cs" />
+    <Compile Include="Views\AstrometryView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\DatabaseView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\ObservatoryView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PhotometryView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PlanetaryView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\PlannerView.cs" />
+    <Compile Include="Views\ProcessingView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\RadioView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\ScriptingView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\SettingsView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\SkyView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\SolarSystemView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\SpectroscopyView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\StackingView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\TonightView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="app.manifest" />
+    <Content Include="Resources\Sidralune.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sidralune.Core\Sidralune.Core.csproj">
+      <Project>{3B6D1A40-7C11-4E2B-9A51-0C1D2E3F4A01}</Project>
+      <Name>Sidralune.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sidralune.Imaging\Sidralune.Imaging.csproj">
+      <Project>{3B6D1A40-7C11-4E2B-9A51-0C1D2E3F4A02}</Project>
+      <Name>Sidralune.Imaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sidralune.Science\Sidralune.Science.csproj">
+      <Project>{3B6D1A40-7C11-4E2B-9A51-0C1D2E3F4A04}</Project>
+      <Name>Sidralune.Science</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Sidralune.Devices\Sidralune.Devices.csproj">
+      <Project>{3B6D1A40-7C11-4E2B-9A51-0C1D2E3F4A03}</Project>
+      <Name>Sidralune.Devices</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
