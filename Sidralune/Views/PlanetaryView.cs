@@ -56,7 +56,7 @@ namespace Sidralune.Views
             var scrub = new TrackBar { Dock = DockStyle.Bottom, Height = 30, TickStyle = TickStyle.None };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 150, Title = "Frame quality", XLabel = "frame", ShowLegend = true };
             var opt = new PippOptions { OutputFolder = Path.Combine(AppState.Settings.ImageFolder, "Planetary") };
-            var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(opt, "PIPP"), PropertySort = PropertySort.NoSort };
+            var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(opt, "Pre-process"), PropertySort = PropertySort.NoSort };
             var side = Side("Options", 380);
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 116 };
             var planet = Ui.Combo("(no derotation target)", "Jupiter", "Saturn", "Mars", "Venus", "Moon", "Sun", "Mercury", "Uranus", "Neptune");
@@ -79,14 +79,14 @@ namespace Sidralune.Views
                 }
                 var src = _source;
                 PippResult res = null;
-                Tasks.Run("PIPP processing", t => res = Preprocessor.Run(src, opt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
+                Tasks.Run("Pre-processing", t => res = Preprocessor.Run(src, opt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
                     plot.Clear();
                     var all = plot.AddSeries("quality", SeriesStyle.Scatter);
                     var kept = plot.AddSeries("kept", SeriesStyle.Scatter, Theme.Current.Success);
                     foreach (var f in res.Frames) { if (f.Rejected) all.Add(f.Index, f.Quality); else kept.Add(f.Index, f.Quality); }
                     plot.Invalidate();
-                    MainForm.Instance.Toast("PIPP: " + res.Summary, Icons.Check, Theme.Current.Success);
+                    MainForm.Instance.Toast("Pre-process: " + res.Summary, Icons.Check, Theme.Current.Success);
                     if (res.OutputFiles.Count > 0 && res.OutputFiles[0].EndsWith(".ser")) { _source?.Dispose(); _source = new SerReader(res.OutputFiles[0]); }
                 });
             }, ButtonKind.Primary);
@@ -223,7 +223,7 @@ namespace Sidralune.Views
                     if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
             }, ButtonKind.Primary);
             g.Full(buttons);
-            g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px, as in RegiStax. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
+            g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
             side.Controls.Add(g);
             panel.Controls.Add(_sharpViewer);
             panel.Controls.Add(side);
@@ -260,7 +260,7 @@ namespace Sidralune.Views
             var north = g.Row("Image north angle (°)", Ui.Num(0, -180, 180, 1));
             var mirror = g.Row("Mirrored", new CheckBox { Text = "Image is mirror-reversed" });
             var target = g.Row("Target time (UTC)", new TextBox());
-            var ld = g.Row("Limb darkening comp.", new CheckBox { Text = "Compensate (WinJUPOS LD)", Checked = true });
+            var ld = g.Row("Limb darkening comp.", new CheckBox { Text = "Compensate", Checked = true });
             var info = new Label { Tag = "dim", Height = 70, AutoSize = false };
             g.Full(info);
             Func<string, DateTime?> timeFromName = n =>

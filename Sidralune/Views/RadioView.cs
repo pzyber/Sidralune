@@ -72,7 +72,7 @@ namespace Sidralune.Views
             }, ButtonKind.Subtle);
             btn("Analyse line (selected range = line window)", Icons.Chart, () => AnalyseLine(), ButtonKind.Normal);
             btn("Export CSV…", Icons.Save, () => ExportSpectrum(), ButtonKind.Subtle);
-            g.Full(Ui.Hint("Record IQ with SDR#, GQRX, rtl_sdr or hackrf_transfer. With an OFF (frequency-switched or cold-sky) reference the spectrum is calibrated to antenna temperature: (ON−OFF)/OFF × Tsys. Drag across the line to exclude it from the baseline fit."));
+            g.Full(Ui.Hint("Record raw IQ data with your SDR software. With an OFF (frequency-switched or cold-sky) reference the spectrum is calibrated to antenna temperature: (ON−OFF)/OFF × Tsys. Drag across the line to exclude it from the baseline fit."));
             _specOut = new TextBox { Multiline = true, ReadOnly = true, Height = 160, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             g.Full(_specOut);
             side.Controls.Add(g);

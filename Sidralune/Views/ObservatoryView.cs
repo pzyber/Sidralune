@@ -139,7 +139,7 @@ namespace Sidralune.Views
             var ap = optics.Row("Aperture (mm)", Ui.Num((decimal)Dm.ApertureMm, 10, 2000));
             fl.ValueChanged += (s, e) => Dm.FocalLengthMm = (double)fl.Value;
             ap.ValueChanged += (s, e) => Dm.ApertureMm = (double)ap.Value;
-            optics.Full(Ui.Hint("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (e.g. on a Raspberry Pi with KStars/Ekos or StellarMate) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi."));
+            optics.Full(Ui.Hint("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi."));
             var card = new Card("Optics") { Dock = DockStyle.Top, Height = 170 };
             card.Controls.Add(optics);
             panel.Controls.Add(card);

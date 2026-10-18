@@ -284,9 +284,9 @@ namespace Sidralune.Views
                 "Sidralune 0.1.0 — an integrated astronomy suite for planning, observing, imaging and science.\r\n\r\n" +
                 "Algorithms: IAU 2006 precession and nutation, JPL DE440 (SPK) or Standish/ELP2000 analytic ephemerides, SGP4 (Vallado 2006),\r\n" +
                 "Krisciunas & Schaefer sky brightness, Schaefer visual thresholds, triangle-invariant star matching with RANSAC, TAN-SIP WCS,\r\n" +
-                "DeepSkyStacker-style stacking with kappa-sigma, winsorized, linear-fit and generalized-ESD rejection, drizzle (Fruchter & Hook),\r\n" +
+                "Stacking with kappa-sigma, winsorized, linear-fit and generalized-ESD rejection, drizzle (Fruchter & Hook),\r\n" +
                 "Richardson-Lucy with total variation (Dey et al.), starlet wavelets (Starck & Murtagh), generalized hyperbolic stretch,\r\n" +
-                "multi-point lucky imaging, WinJUPOS-style derotation, generalised Lomb-Scargle, BLS, PDM, Kwee-van Woerden, Mandel-Agol-type transit model with emcee-style MCMC.\r\n\r\n" +
+                "multi-point lucky imaging, spherical planetary derotation, generalised Lomb-Scargle, BLS, PDM, Kwee-van Woerden, Mandel-Agol-type transit model with ensemble MCMC.\r\n\r\n" +
                 "Data © their providers: JPL/NASA, Minor Planet Center, HYG Database (D. Nash), OpenNGC (M. Verga), Stellarium, CDS (SIMBAD/VizieR), AAVSO, CelesTrak.\r\n\r\n" +
                 "Settings and data: " + AppPaths.Root };
             card.Controls.Add(t);

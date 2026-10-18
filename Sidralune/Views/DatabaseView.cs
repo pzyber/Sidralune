@@ -273,7 +273,7 @@ namespace Sidralune.Views
             new[] { "Occultations", "Occult Watcher Cloud", "Coordinate occultation stations.", "https://cloud.occultwatcher.net/" },
             new[] { "Planets", "ALPO", "Planetary, lunar and solar observing sections.", "https://alpo-astronomy.org/" },
             new[] { "Planets", "PVOL – Planetary Virtual Observatory", "Upload Jupiter, Saturn and other planetary images for professional use.", "http://pvol2.ehu.eus/" },
-            new[] { "Planets", "JUPOS", "Jupiter feature longitude measurements (WinJUPOS).", "http://jupos.org/" },
+            new[] { "Planets", "JUPOS", "Jupiter feature longitude measurements.", "http://jupos.org/" },
             new[] { "Sun", "SIDC / SILSO sunspot number", "Report sunspot counts (Wolf number).", "https://www.sidc.be/SILSO/" },
             new[] { "Meteors", "IMO – International Meteor Organization", "Visual meteor counts and video networks.", "https://www.imo.net/" },
             new[] { "Meteors", "Global Meteor Network", "Low-cost video cameras for meteor orbits.", "https://globalmeteornetwork.org/" },

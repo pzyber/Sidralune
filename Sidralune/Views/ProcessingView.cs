@@ -323,7 +323,7 @@ namespace Sidralune.Views
                 double d = (double)wdn.Value;
                 Apply("Wavelets", img => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Wavelets.Sharpen(img.Data[c], img.Width, img.Height, amt, new[] { d, d / 2, 0, 0, 0, 0 }); });
             }) { Kind = ButtonKind.Primary });
-            list.Add(new Collapsible("Wavelets (RegiStax style)", wv, false));
+            list.Add(new Collapsible("Wavelets", wv, false));
 
             // noise
             var nz = new FormGrid(110);
