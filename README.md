@@ -34,7 +34,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers |
 | Deep-sky imaging | Calibration with masters, star registration, 12 pixel-combine methods, drizzle, comet stacking, mosaics |
 | Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history |
-| Planetary, lunar and solar | Video pre-processing (centring, cropping, frame rejection), lucky stacking with alignment points, wavelet sharpening, deconvolution, field derotation for alt-az mounts, planetary rotation correction across several videos, solar and lunar tools, mosaic stitching |
+| Planetary, lunar and solar | Video pre-processing (centring, cropping, frame rejection), stacking with alignment points, wavelet sharpening, deconvolution, field derotation for alt-az mounts, planetary rotation correction across several videos, solar and lunar tools, mosaic stitching |
 | Astrometry | Built-in blind plate solver with TAN-SIP fitting, ASTAP and astrometry.net bridges, annotation, framing and mosaic planner, exposure and SNR calculator |
 | Photometry | Ensemble differential photometry, AAVSO reports, Lomb-Scargle, BLS and PDM period searches, eclipse timing, O−C, transit fitting with MCMC, transit predictions |
 | Spectroscopy | Trace and optimal extraction, lamp wavelength calibration, line measurement, radial velocity, instrument response, temperature and spectral class, BeSS export |
