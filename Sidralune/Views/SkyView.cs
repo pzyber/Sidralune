@@ -103,10 +103,13 @@ namespace Sidralune.Views
             var b = new FlatButton("Layers", Icons.Layers);
             var menu = new ContextMenuStrip { Renderer = new DarkToolStripRenderer() };
             var L = Chart.Layers;
+            // ticks are refreshed every time the menu opens, since other controls (FOV presets, scripts) change layers too
+            var refresh = new List<Action>();
             Action<string, Func<bool>, Action<bool>> add = (name, get, set) =>
             {
                 var it = new ToolStripMenuItem(name) { CheckOnClick = true, Checked = get() };
-                it.CheckedChanged += (s, e) => { set(it.Checked); Chart.Invalidate(); };
+                it.Click += (s, e) => { set(it.Checked); Chart.Invalidate(); };
+                refresh.Add(() => it.Checked = get());
                 menu.Items.Add(it);
             };
             add("Stars", () => L.Stars, v => L.Stars = v);
@@ -140,11 +143,18 @@ namespace Sidralune.Views
             foreach (var m in new[] { 4.0, 5.0, 6.0, 6.5, 7.5, 8.5, 10.0, 12.0 })
             {
                 var mm = m;
-                var mi = new ToolStripMenuItem(m.ToString("0.0")) { Checked = Math.Abs(L.MagLimit - m) < 0.01 };
+                var mi = new ToolStripMenuItem(m.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
                 mi.Click += (s, e) => { L.MagLimit = mm; Chart.Invalidate(); };
+                refresh.Add(() => mi.Checked = Math.Abs(L.MagLimit - mm) < 0.01);
                 mag.DropDownItems.Add(mi);
             }
+            mag.DropDownItems.Add(new ToolStripSeparator());
+            var auto = new ToolStripMenuItem("Deeper when zoomed in") { CheckOnClick = true, ToolTipText = "Show fainter stars as the field of view gets smaller" };
+            auto.Click += (s, e) => { L.AutoMagLimit = auto.Checked; Chart.Invalidate(); };
+            refresh.Add(() => auto.Checked = L.AutoMagLimit);
+            mag.DropDownItems.Add(auto);
             menu.Items.Add(mag);
+            menu.Opening += (s, e) => { foreach (var r in refresh) r(); };
             b.Click += (s, e) => menu.Show(b, new Point(0, b.Height));
             return b;
         }
