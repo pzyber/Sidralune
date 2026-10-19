@@ -2,7 +2,7 @@
 
 Sidralune is a free astronomy suite for Windows. It brings planning, telescope control, image capture, image processing and amateur science together in one dark-themed desktop application, so you can go from "what can I see tonight?" to a calibrated light curve or a stacked planetary image without switching programs.
 
-It is written in C# for .NET Framework 4.8.1, uses no NuGet packages or third-party libraries, and works offline. Online services are only contacted when you ask for something that needs them, such as a SIMBAD lookup or an astrometry.net solve.
+It is written in C# for .NET Framework, uses no NuGet packages or third-party libraries, and works offline. Online services are only contacted when you ask for something that needs them, such as a SIMBAD lookup or an astrometry.net solve.
 
 The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 
