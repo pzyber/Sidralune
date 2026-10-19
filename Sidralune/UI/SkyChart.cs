@@ -375,6 +375,18 @@ namespace Sidralune.UI
             }
         }
 
+        /// <summary>True when the screen point lies below the local horizon (including the site's horizon profile).</summary>
+        private bool IsGround(double sx, double sy, double[] profileRad)
+        {
+            var f = Unproject(sx, sy);
+            double lon, lat;
+            f.ToSpherical(out lon, out lat);
+            double az = AstroMath.NormalizeDeg(-lon * AstroMath.Rad2Deg);
+            int i = Math.Min(359, (int)az);
+            double horizon = profileRad[i] + (profileRad[i + 1] - profileRad[i]) * (az - i);
+            return lat < horizon;
+        }
+
         private bool InView(PointF p) => p.X >= -20 && p.Y >= -20 && p.X <= Width + 20 && p.Y <= Height + 20;
 
         private double ViewRadius()
@@ -745,45 +757,65 @@ namespace Sidralune.UI
 
         private void DrawHorizon(Graphics g, Color sky)
         {
-            // ground polygon: horizon (with local profile) then close through the nadir side of the screen
-            var pts = new List<PointF>();
-            for (int az = 0; az <= 360; az += 1)
-            {
-                double alt = Site.HorizonAltitude(az);
-                PointF pt;
-                if (Project(HorizontalToFrame(az * AstroMath.Deg2Rad, alt * AstroMath.Deg2Rad), out pt)) pts.Add(pt);
-            }
-            PointF nadir;
-            bool nadirVisible = Project(HorizontalToFrame(0, -AstroMath.HalfPi + 0.01), out nadir);
+            int w = (int)Math.Round(_cx * 2), h = (int)Math.Round(_cy * 2);
+            // horizon profile per degree of azimuth (0..360 inclusive), so the per-pixel test is cheap
+            var profile = new double[361];
+            for (int az = 0; az <= 360; az++) profile[az] = Site.HorizonAltitude(az) * AstroMath.Deg2Rad;
+
+            // Ground: test the screen directly instead of building a polygon from the projected horizon, which breaks
+            // when parts of the horizon project off-screen or behind the viewer. Each row is sampled coarsely, and every
+            // ground/sky transition is refined by bisection to sub-pixel precision.
+            const int rowStep = 2, colStep = 8;
             using (var path = new GraphicsPath())
             {
-                if (pts.Count > 2)
+                for (int y = 0; y < h; y += rowStep)
                 {
-                    if (CenterLat > -0.2)
+                    double yc = y + rowStep / 2.0;
+                    float runStart = -1;
+                    bool prev = IsGround(0, yc, profile);
+                    if (prev) runStart = 0;
+                    for (int x = colStep; ; x += colStep)
                     {
-                        // fill everything below the horizon line using a large polygon down to the bottom of the screen
-                        path.AddLines(pts.ToArray());
-                        var last = pts[pts.Count - 1]; var first = pts[0];
-                        float big = Math.Max(Width, Height) * 4;
-                        PointF down;
-                        if (nadirVisible) down = nadir;
-                        else
+                        double xs = Math.Min(x, w);
+                        bool cur = IsGround(xs, yc, profile);
+                        if (cur != prev)
                         {
-                            Project(HorizontalToFrame(CenterLon == 0 ? 0 : -CenterLon, -0.3), out down);
+                            double lo = xs - colStep, hi = xs;
+                            for (int k = 0; k < 6; k++) { double mid = (lo + hi) / 2; if (IsGround(mid, yc, profile) == prev) lo = mid; else hi = mid; }
+                            float edge = (float)((lo + hi) / 2);
+                            if (cur) runStart = edge;
+                            else { path.AddRectangle(new RectangleF(runStart, y, edge - runStart, rowStep)); runStart = -1; }
+                            prev = cur;
                         }
-                        // extend far beyond the screen in the direction of the nadir
-                        float dx = down.X - (float)_cx, dy = down.Y - (float)_cy;
-                        float len = (float)Math.Sqrt(dx * dx + dy * dy);
-                        if (len < 1) { dx = 0; dy = 1; len = 1; }
-                        var far = new PointF((float)_cx + dx / len * big, (float)_cy + dy / len * big);
-                        path.AddLine(last, far);
-                        path.AddLine(far, first);
-                        path.CloseFigure();
+                        if (xs >= w) break;
                     }
-                    else { path.AddRectangle(new RectangleF(-10, -10, Width + 20, Height + 20)); }
-                    using (var br = new SolidBrush(_print ? Color.FromArgb(240, 240, 240) : Theme.WithAlpha(_p.Ground, 245))) g.FillPath(br, path);
-                    using (var pen = new Pen(_p.Horizon, 1.5f)) g.DrawLines(pen, pts.ToArray());
+                    if (runStart >= 0) path.AddRectangle(new RectangleF(runStart, y, w - runStart, rowStep));
                 }
+                var old = g.SmoothingMode;
+                g.SmoothingMode = SmoothingMode.None; // no seams between the row strips
+                using (var br = new SolidBrush(_print ? Color.FromArgb(240, 240, 240) : Theme.WithAlpha(_p.Ground, 245))) g.FillPath(br, path);
+                g.SmoothingMode = old;
+            }
+
+            // horizon line, split wherever the projection fails or jumps (behind the viewer)
+            var seg = new List<PointF>();
+            float maxJump = Math.Max(w, h) * 0.5f;
+            using (var pen = new Pen(_p.Horizon, 1.5f))
+            {
+                Action flush = () => { if (seg.Count > 1) g.DrawLines(pen, seg.ToArray()); seg.Clear(); };
+                for (double az = 0; az <= 360; az += 0.5)
+                {
+                    PointF pt;
+                    double alt = profile[(int)Math.Floor(az)] + (profile[Math.Min(360, (int)Math.Floor(az) + 1)] - profile[(int)Math.Floor(az)]) * (az - Math.Floor(az));
+                    if (!Project(HorizontalToFrame(az * AstroMath.Deg2Rad, alt), out pt)) { flush(); continue; }
+                    if (seg.Count > 0)
+                    {
+                        var q = seg[seg.Count - 1];
+                        if (Math.Abs(pt.X - q.X) + Math.Abs(pt.Y - q.Y) > maxJump) flush();
+                    }
+                    seg.Add(pt);
+                }
+                flush();
             }
             if (Layers.Cardinals)
             {
