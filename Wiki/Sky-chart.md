@@ -101,11 +101,11 @@ The settings are also used when printing.
 | Equipment | Telescope position, Field-of-view indicators, Telrad rings |
 | Calculation | Refraction |
 
-The **Limiting magnitude** submenu sets a fixed faintest star magnitude, or automatic.
+The **Limiting magnitude** submenu sets the faintest stars shown (4.0 to 12.0) and whether the chart goes deeper as you zoom in. The current choices are ticked.
 
 ## Limiting magnitude
 
-In automatic mode the faintest magnitude shown depends on the zoom: about 6.5 for the whole sky, getting deeper as you zoom in, so that the chart always has a useful number of stars without clutter. A fixed limit from the menu overrides this. The current limit is shown in the caption.
+The value chosen in **Layers → Limiting magnitude** (6.5 by default) is the faintest star magnitude shown for the whole sky. With **Deeper when zoomed in** ticked (the default), the limit grows by about 2.2 magnitudes for every tenfold zoom, so the chart always has a useful number of stars without clutter; untick it to keep exactly the chosen limit at every zoom. The limit in use is shown in the caption at the bottom of the chart.
 
 Deep-sky objects have their own limit, and their labels appear progressively as you zoom in. Comets and asteroids are shown down to about two magnitudes fainter than the star limit (at most magnitude 15).
 
