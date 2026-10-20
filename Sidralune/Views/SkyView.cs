@@ -21,7 +21,7 @@ namespace Sidralune.Views
     public class SkyView : UserControl, ICommandSource, IActivatable
     {
         public readonly SkyChart Chart = new SkyChart { Dock = DockStyle.Fill };
-        private readonly Panel _side = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8) };
+        private readonly Panel _side = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8), AutoScroll = true };
         private readonly SegmentedTabs _mode = new SegmentedTabs { Width = 220 };
         private readonly TextBox _find = new TextBox { Width = 200 };
         private readonly ComboBox _fov = Ui.Combo("Naked eye (100°)", "Wide (60°)", "Binoculars (7°)", "Finder (5°)", "Low power (2°)", "Eyepiece", "Camera", "Custom");

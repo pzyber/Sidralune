@@ -150,7 +150,9 @@ namespace Sidralune.UI
         public NavItem Selected { get; private set; }
         public event Action<NavItem> SelectedChanged;
         private int _hover = -1;
-        private int ItemH => Math.Max(40, Math.Min(56, (Height - 16 - 12 * 4) / Math.Max(1, Items.Count)));
+        // shrink items to fit the window (labels are hidden below 48 px; titles stay available as tooltips)
+        private int ItemH => Math.Max(30, Math.Min(56, (Height - 16 - 12 * GroupGaps) / Math.Max(1, Items.Count)));
+        private int GroupGaps { get { int n = 0; for (int k = 1; k < Items.Count; k++) if (Items[k].Group != Items[k - 1].Group) n++; return n; } }
         private readonly ToolTip _tip = CreateTip();
         private static ToolTip CreateTip() { var t = Theme.CreateToolTip(); t.InitialDelay = 500; return t; }
         public bool Compact { get; set; }

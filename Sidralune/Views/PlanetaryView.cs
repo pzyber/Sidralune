@@ -58,7 +58,7 @@ namespace Sidralune.Views
             var opt = new PippOptions { OutputFolder = Path.Combine(AppState.Settings.ImageFolder, "Planetary") };
             var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(opt, "Pre-process"), PropertySort = PropertySort.NoSort };
             var side = Side("Options", 380);
-            var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 116 };
+            var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
             var planet = Ui.Combo("(no derotation target)", "Jupiter", "Saturn", "Mars", "Venus", "Moon", "Sun", "Mercury", "Uranus", "Neptune");
             planet.Width = 200;
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); };
