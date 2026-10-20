@@ -35,7 +35,8 @@ namespace Sidralune
         private readonly FlatButton _night = new FlatButton { Icon = Icons.Night, Toggle = true, Width = 34, Kind = ButtonKind.Subtle, ToolTipText = "Night vision (red) mode  Ctrl+Shift+N" };
         private readonly FlatButton _live = new FlatButton { Text = "Live", Icon = Icons.Clock, Kind = ButtonKind.Subtle, ToolTipText = "Return to the current time" };
         private readonly FlowLayoutPanel _statusLeft = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(4, 3, 0, 0) };
-        private readonly Label _statusMsg = new Label { AutoSize = true, Dock = DockStyle.Right, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 6, 10, 0) };
+        private readonly StatusPill _statusMsg = new StatusPill { ShowDot = false, Dock = DockStyle.Right, Width = 0 };
+        private FlatButton _logBtn;
         private readonly TextBox _log = new TextBox { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Bottom, Height = 160, Visible = false, Font = Theme.MonoFont };
         private readonly Timer _timer = new Timer { Interval = 1000 };
         private ToastHost _toasts;
@@ -140,13 +141,15 @@ namespace Sidralune
                 _devicePills[k] = pill;
                 _statusLeft.Controls.Add(pill);
             }
+            _dataPill.Margin = _taskPill.Margin = new Padding(0, 0, 4, 0); // same as the device pills so all sit on one line
             _statusLeft.Controls.Add(_dataPill);
             _dataPill.Cursor = Cursors.Hand;
             _dataPill.Click += (s, e) => Navigate("settings");
             _statusLeft.Controls.Add(_taskPill);
-            var logBtn = new FlatButton { Text = "Log", Icon = Icons.List, Kind = ButtonKind.Subtle, Height = 22, Dock = DockStyle.Right };
+            var logBtn = _logBtn = new FlatButton { Text = "Log", Icon = Icons.List, Kind = ButtonKind.Subtle, Height = 22, Dock = DockStyle.Right };
             logBtn.AutoSizeToText();
             logBtn.Click += (s, e) => _log.Visible = !_log.Visible;
+            _status.Resize += (s, e) => LayoutStatus();
             _status.Controls.Add(_statusLeft);
             _status.Controls.Add(_statusMsg);
             _status.Controls.Add(logBtn);
@@ -233,7 +236,32 @@ namespace Sidralune
         }
 
         public void Toast(string text, string icon = Icons.Info, Color? accent = null) => _toasts.Show(text, icon, 4500, accent);
-        public void SetStatus(string text) { if (InvokeRequired) BeginInvoke(new Action(() => _statusMsg.Text = text)); else _statusMsg.Text = text; }
+        public void SetStatus(string text) { if (InvokeRequired) BeginInvoke(new Action(() => SetStatus(text))); else { _statusMsg.Set(text, Color.Empty); LayoutStatus(); } }
+
+        /// <summary>
+        /// Fit the status bar to its width: everything at full length when there is room; otherwise the data and task
+        /// items shorten with an ellipsis first and the message takes what is left (full texts are shown as tooltips).
+        /// </summary>
+        private void LayoutStatus()
+        {
+            if (_logBtn == null) return;
+            _dataPill.MaxTextWidth = _taskPill.MaxTextWidth = _statusMsg.MaxTextWidth = int.MaxValue;
+            int avail = _status.ClientSize.Width - _logBtn.Width - 8;
+            int pills = _statusLeft.Padding.Horizontal;
+            foreach (Control c in _statusLeft.Controls) pills += (c is StatusPill ? ((StatusPill)c).NaturalWidth : c.Width) + c.Margin.Horizontal;
+            int msg = string.IsNullOrEmpty(_statusMsg.Text) ? 0 : _statusMsg.NaturalWidth + 8;
+            int over = pills + msg - avail;
+            foreach (var pill in new[] { _dataPill, _taskPill })
+            {
+                if (over <= 0) break;
+                int text = pill.TextWidth, min = 90;
+                int cut = Math.Min(over, Math.Max(0, text - min));
+                if (cut > 0) { pill.MaxTextWidth = text - cut; over -= cut; }
+            }
+            int width = Math.Max(0, msg - Math.Max(0, over));
+            if (width < msg) _statusMsg.MaxTextWidth = Math.Max(0, width - 20);
+            _statusMsg.Width = width;
+        }
 
         private void Tick()
         {
@@ -269,10 +297,11 @@ namespace Sidralune
         {
             List<BackgroundTask> tasks;
             lock (Tasks.Running) tasks = Tasks.Running.ToList();
-            if (tasks.Count == 0) { _taskPill.Set("Idle", Theme.Current.TextFaint); return; }
+            if (tasks.Count == 0) { _taskPill.Set("Idle", Theme.Current.TextFaint); LayoutStatus(); return; }
             var t = tasks[0];
             string p = double.IsNaN(t.Progress) ? "" : string.Format(" {0:0}%", t.Progress * 100);
             _taskPill.Set(t.Name + p + (tasks.Count > 1 ? " (+" + (tasks.Count - 1) + ")" : "") + (string.IsNullOrEmpty(t.Status) ? "" : " — " + t.Status), Theme.Current.Accent);
+            LayoutStatus();
         }
 
         private void UpdateDataPill()
@@ -280,6 +309,7 @@ namespace Sidralune
             bool hi = EphemerisManager.HasHighPrecision;
             var cm = CatalogManager.Instance;
             _dataPill.Set((hi ? "DE440" : "Analytic ephemeris") + " · " + cm.StarSource + " · " + cm.DeepSkySource, hi && !cm.StarSource.StartsWith("built") ? Theme.Current.Success : Theme.Current.Warning);
+            LayoutStatus();
         }
 
         private void AppendLog(Log.Entry e)
@@ -298,7 +328,6 @@ namespace Sidralune
             _statusLeft.BackColor = p.Surface;
             _title.ForeColor = p.Text;
             _viewTitle.ForeColor = p.TextDim;
-            _statusMsg.ForeColor = p.TextDim;
             foreach (Control c in _top.Controls) if (c is Label && c != _clock && c != _viewTitle) c.ForeColor = c == _title ? p.Text : p.Accent;
             _log.BackColor = p.Surface; _log.ForeColor = p.TextDim;
             Theme.Apply(_content);

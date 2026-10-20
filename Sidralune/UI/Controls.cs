@@ -440,16 +440,45 @@ namespace Sidralune.UI
     public class StatusPill : Control, IThemed
     {
         public Color DotColor = Color.Gray;
+        /// <summary>False for a plain text item (the status message).</summary>
+        public bool ShowDot = true;
+        private int _maxTextWidth = int.MaxValue;
+        private static readonly ToolTip Tip = Theme.CreateToolTip();
         public StatusPill() { SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true); Height = 22; Font = Theme.SmallFont; }
         public void ApplyTheme(Palette p) => Invalidate();
-        public void Set(string text, Color c) { Text = text; DotColor = c; Width = TextRenderer.MeasureText(text, Font).Width + 26; Invalidate(); }
+        public void Set(string text, Color c) { Text = text; DotColor = c; Fit(); }
+        private int TextLeft => ShowDot ? 18 : 4;
+        public int TextWidth => string.IsNullOrEmpty(Text) ? 0 : TextRenderer.MeasureText(Text, Font).Width;
+        /// <summary>Width with the whole text shown.</summary>
+        public int NaturalWidth => TextWidth + TextLeft + 8;
+        /// <summary>Shorten the text with an ellipsis beyond this width (the full text is shown as a tooltip).</summary>
+        public int MaxTextWidth { get { return _maxTextWidth; } set { if (_maxTextWidth != value) { _maxTextWidth = value; Fit(); } } }
+        private void Fit()
+        {
+            int tw = TextWidth;
+            Width = Math.Max(0, Math.Min(tw, _maxTextWidth) + TextLeft + 8);
+            Tip.SetToolTip(this, tw > _maxTextWidth ? Text : null);
+            Invalidate();
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             var p = Theme.Current;
             e.Graphics.Clear(Parent?.BackColor ?? p.Surface);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var b = new SolidBrush(DotColor)) e.Graphics.FillEllipse(b, 6, Height / 2 - 4, 8, 8);
-            TextRenderer.DrawText(e.Graphics, Text, Font, new Point(18, (Height - Font.Height) / 2), p.TextDim);
+            if (!ShowDot)
+            {
+                TextRenderer.DrawText(e.Graphics, Text, Font, new Rectangle(TextLeft, 0, Width - TextLeft - 4, Height), p.TextDim, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+                return;
+            }
+            // centre the dot on the capital letters rather than on the control (the text line box includes the descender
+            // space, so its middle sits below the visible letters)
+            int top = (Height - Font.Height) / 2;
+            var ff = Font.FontFamily;
+            float em = Font.SizeInPoints * e.Graphics.DpiY / 72f;
+            float baseline = top + em * ff.GetCellAscent(Font.Style) / ff.GetEmHeight(Font.Style);
+            float cy = baseline - em * 0.36f;
+            using (var b = new SolidBrush(DotColor)) e.Graphics.FillEllipse(b, 6, cy - 4, 8, 8);
+            TextRenderer.DrawText(e.Graphics, Text, Font, new Rectangle(TextLeft, top, Width - TextLeft - 4, Font.Height + 2), p.TextDim, TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
         }
     }
 
