@@ -248,19 +248,31 @@ namespace Sidralune.UI
 
         private void DrawMilkyWay(Graphics g, double strength)
         {
-            // soft band along the galactic plane, wider towards the galactic centre
+            // soft band along the galactic plane. The plane is a closed ring: draw it as one closed figure when all of it
+            // projects, otherwise start each visible stretch just after a hidden point so no seam (an open end at the
+            // starting longitude, which used to leave a gap at the anticentre in Auriga) falls in view.
+            const int n = 180; // 2° steps in galactic longitude
+            var ring = new PointF[n];
+            var ok = new bool[n];
+            int firstHidden = -1;
+            for (int i = 0; i < n; i++)
+            {
+                double ra, dec;
+                Transforms.GalacticToEquatorial((-180 + 2.0 * i) * AstroMath.Deg2Rad, 0, out ra, out dec);
+                ok[i] = ProjectIcrs(ra, dec, out ring[i]);
+                if (!ok[i] && firstHidden < 0) firstHidden = i;
+            }
             for (int pass = 0; pass < 3; pass++)
             {
-                var pts = new List<PointF>();
                 float width = (float)(_scale * (pass == 0 ? 0.30 : pass == 1 ? 0.18 : 0.08));
                 using (var pen = new Pen(Theme.WithAlpha(_p.MilkyWay, (int)((pass == 0 ? 50 : pass == 1 ? 70 : 90) * strength)), width) { LineJoin = LineJoin.Round, StartCap = LineCap.Flat, EndCap = LineCap.Flat })
                 {
-                    for (double l = -180; l < 180; l += 2)
+                    if (firstHidden < 0) { g.DrawPolygon(pen, ring); continue; }
+                    var pts = new List<PointF>();
+                    for (int k = 1; k <= n; k++)
                     {
-                        double ra, dec;
-                        Transforms.GalacticToEquatorial(l * AstroMath.Deg2Rad, 0, out ra, out dec);
-                        PointF pt;
-                        if (ProjectIcrs(ra, dec, out pt)) pts.Add(pt);
+                        int i = (firstHidden + k) % n;
+                        if (ok[i]) pts.Add(ring[i]);
                         else { if (pts.Count > 1) g.DrawLines(pen, pts.ToArray()); pts.Clear(); }
                     }
                     if (pts.Count > 1) g.DrawLines(pen, pts.ToArray());
