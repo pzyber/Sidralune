@@ -34,6 +34,11 @@ namespace Sidralune.UI
         public double WidthDeg, HeightDeg; // circle when HeightDeg <= 0
         public double RotationDeg;
         public Color? Color;
+        /// <summary>
+        /// Optional outline fixed on the sky ([RA°, Dec°] ICRS points, e.g. the border of a plate-solved image). When set,
+        /// the outline is drawn where it lies on the sky instead of as an eyepiece/camera frame at the chart centre.
+        /// </summary>
+        public List<double[]> Outline;
     }
 
     /// <summary>Interactive sky chart / planetarium renderer.</summary>
@@ -679,6 +684,7 @@ namespace Sidralune.UI
             foreach (var f in Fovs)
             {
                 var col = f.Color ?? _p.FovOverlay;
+                if (f.Outline != null) { DrawSkyOutline(g, f, col); continue; }
                 using (var pen = new Pen(col, 1.4f))
                 {
                     // half-width in pixels of an angular size under the stereographic scale
@@ -703,6 +709,22 @@ namespace Sidralune.UI
                         float pr = (float)(_scale * 2 * Math.Tan(deg * AstroMath.Deg2Rad / 4));
                         g.DrawEllipse(pen, centre.X - pr, centre.Y - pr, 2 * pr, 2 * pr);
                     }
+        }
+
+        private void DrawSkyOutline(Graphics g, ChartFov f, Color col)
+        {
+            var pts = new List<PointF>(f.Outline.Count);
+            foreach (var v in f.Outline)
+            {
+                PointF pt;
+                if (!ProjectIcrs(v[0] * AstroMath.Deg2Rad, v[1] * AstroMath.Deg2Rad, out pt)) return; // partly behind the view
+                pts.Add(pt);
+            }
+            if (pts.Count < 2) return;
+            using (var pen = new Pen(col, 1.4f)) g.DrawPolygon(pen, pts.ToArray());
+            // label at the top-right-most point of the outline
+            var label = pts.OrderBy(p => p.Y - p.X).First();
+            TextRenderer.DrawText(g, f.Name, Theme.SmallFont, new Point((int)label.X + 6, (int)label.Y - 14), col);
         }
 
         private void DrawMosaic(Graphics g)

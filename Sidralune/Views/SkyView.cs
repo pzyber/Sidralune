@@ -178,6 +178,16 @@ namespace Sidralune.Views
             _alt.Title = "Altitude tonight";
         }
 
+        /// <summary>Show a field fixed on the sky (e.g. a plate-solved image) in atlas mode, centred and framed.</summary>
+        public void ShowField(string name, List<double[]> outline, double raRad, double decRad, double fovDeg)
+        {
+            _mode.SelectedIndex = 1; // atlas, keeping the tab and the chart in step
+            Chart.Fovs.RemoveAll(f => f.Name == name);
+            Chart.Fovs.Add(new ChartFov { Name = name, Outline = outline });
+            Chart.Layers.FovIndicators = true;
+            Chart.CenterOn(raRad, decRad, fovDeg);
+        }
+
         private void SetMode(ChartMode m)
         {
             // keep the same sky position centred when switching
