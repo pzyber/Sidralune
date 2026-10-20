@@ -278,7 +278,7 @@ namespace Sidralune.Views
             var tw = AstroEvents.Twilight(site, AstroTime.FromDateTime(noon));
             Action<AstroTime?, AstroTime?, int> band = (a, b2, alpha) =>
             {
-                if (a.HasValue && b2.HasValue) _alt.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b2.Value.ToDateTimeUtc()).ToOADate(), Color = Theme.WithAlpha(Theme.Current.Accent, alpha) });
+                if (a.HasValue && b2.HasValue) _alt.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b2.Value.ToDateTimeUtc()).ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) });
             };
             band(tw.SunSet, tw.SunRise, 18);
             band(tw.NauticalDusk, tw.NauticalDawn, 18);

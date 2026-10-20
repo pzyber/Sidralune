@@ -66,6 +66,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\PlotControl.cs" />
+    <Compile Include="UI\ScrollOverlays.cs" />
+    <Compile Include="UI\SystemColorHook.cs" />
     <Compile Include="UI\SkyChart.cs" />
     <Compile Include="UI\Theme.cs" />
     <Compile Include="Views\AstrometryView.cs">

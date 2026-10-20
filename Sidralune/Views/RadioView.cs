@@ -200,7 +200,7 @@ namespace Sidralune.Views
             for (int i = 0; i < x.Length; i++) s.Add(x[i], y[i]);
             if (!vel && x[0] < RadioMath.HydrogenLineMHz && x[x.Length - 1] > RadioMath.HydrogenLineMHz) _specPlot.Markers.Add(new PlotMarker { X = RadioMath.HydrogenLineMHz, Label = "HI 1420.406" });
             if (vel) _specPlot.Markers.Add(new PlotMarker { X = 0, Label = "0 km/s" });
-            if (!double.IsNaN(_exLo)) _specPlot.Bands.Add(new PlotBand { X0 = _exLo, X1 = _exHi, Color = Theme.WithAlpha(Theme.Current.Accent, 40), Label = "line window" });
+            if (!double.IsNaN(_exLo)) _specPlot.Bands.Add(new PlotBand { X0 = _exLo, X1 = _exHi, ThemeColor = pal => Theme.WithAlpha(pal.Accent, 40), Label = "line window" });
             _specPlot.Invalidate();
         }
 
@@ -376,7 +376,7 @@ namespace Sidralune.Views
                 if (t.Count < 100) return;
                 var ev = TimeDomainRadio.DetectSid(y);
                 plotRaw();
-                foreach (var i in ev) plot.Markers.Add(new PlotMarker { X = t[i], Color = Theme.Current.Warning });
+                foreach (var i in ev) plot.Markers.Add(new PlotMarker { X = t[i], ThemeColor = pal => pal.Warning });
                 outp.Text = ev.Count + " sudden ionospheric disturbance candidates" + (ev.Count > 0 ? ": " + string.Join(", ", ev.Take(20).Select(i => t[i].ToString("0", CultureInfo.InvariantCulture))) : "");
                 plot.Invalidate();
             });

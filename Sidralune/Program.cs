@@ -46,6 +46,21 @@ namespace Sidralune
                 using (var bmp = new Bitmap(form.Width, form.Height))
                 {
                     form.DrawToBitmap(bmp, new Rectangle(0, 0, form.Width, form.Height));
+                    // DrawToBitmap paints child controls in reverse z-order, so floating controls on top of the layout
+                    // (themed scroll bars, notifications) end up hidden; draw them again, back to front
+                    var offset = form.PointToScreen(Point.Empty);
+                    var origin = new Point(offset.X - form.Left, offset.Y - form.Top);
+                    for (int i = form.Controls.Count - 1; i >= 0; i--)
+                    {
+                        var c = form.Controls[i];
+                        if (!c.Visible || c.Dock != DockStyle.None || c.Width <= 0 || c.Height <= 0) continue;
+                        using (var part = new Bitmap(c.Width, c.Height))
+                        using (var g = Graphics.FromImage(bmp))
+                        {
+                            c.DrawToBitmap(part, new Rectangle(0, 0, c.Width, c.Height));
+                            g.DrawImage(part, origin.X + c.Left, origin.Y + c.Top);
+                        }
+                    }
                     bmp.Save(shot, ImageFormat.Png);
                 }
                 form.Close();

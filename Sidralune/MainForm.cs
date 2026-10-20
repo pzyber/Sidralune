@@ -291,6 +291,9 @@ namespace Sidralune
             foreach (Control c in _top.Controls) c.Invalidate();
             foreach (var it in _rail.Items) if (it.Instance != null) Theme.Apply(it.Instance);
             if (IsHandleCreated) Theme.DarkTitleBar(this);
+            // pills keep the colour they were given, so recolour them for the new palette
+            UpdateDevicePills(); UpdateTaskPill(); UpdateDataPill();
+            Theme.Apply(_status);
             Tick();
         }
 

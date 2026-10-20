@@ -151,7 +151,19 @@ namespace Sidralune.UI
         /// <summary>Use the Explorer dark theme for native scrollbars and common controls.</summary>
         public static void DarkNative(Control c)
         {
-            try { if (c.IsHandleCreated) SetWindowTheme(c.Handle, "DarkMode_Explorer", null); else c.HandleCreated += (s, e) => SetWindowTheme(c.Handle, "DarkMode_Explorer", null); } catch { }
+            try
+            {
+                // also hook HandleCreated so the theme survives handle re-creation; redraw the frame so scroll bars update
+                if (c.IsHandleCreated) { SetWindowTheme(c.Handle, "DarkMode_Explorer", null); RedrawAll(c); }
+                c.HandleCreated += (s, e) => SetWindowTheme(c.Handle, "DarkMode_Explorer", null);
+            }
+            catch { }
+        }
+
+        private static void DarkNativeTree(Control c)
+        {
+            foreach (Control k in c.Controls) { DarkNative(k); DarkNativeTree(k); }
+            c.ControlAdded += (s, e) => { DarkNative(e.Control); DarkNativeTree(e.Control); };
         }
 
         /// <summary>Recursively style standard controls (custom controls paint themselves).</summary>
@@ -162,25 +174,538 @@ namespace Sidralune.UI
             foreach (Control c in root.Controls) Apply(c);
         }
 
+        // ------------------------------------------------------------------ painting over native parts
+        // Several parts of standard controls are drawn by Windows with system colours (borders, drop-down and spin
+        // buttons, check boxes, selection highlights) and ignore BackColor/ForeColor. They are repainted here with
+        // the palette, so every theme (including the red night theme) covers them.
+
+        [DllImport("user32.dll")] private static extern IntPtr GetWindowDC(IntPtr hwnd);
+        [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+        [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
+        [DllImport("user32.dll")] private static extern bool RedrawWindow(IntPtr hwnd, IntPtr rect, IntPtr rgn, uint flags);
+        [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, object> Hooked = new System.Runtime.CompilerServices.ConditionalWeakTable<Control, object>();
+
+        /// <summary>True the first time it is called for a control, so hooks are attached once even when themes are re-applied.</summary>
+        private static bool FirstHook(Control c)
+        {
+            object o;
+            if (Hooked.TryGetValue(c, out o)) return false;
+            Hooked.Add(c, new object());
+            return true;
+        }
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, object> TreeHooked = new System.Runtime.CompilerServices.ConditionalWeakTable<Control, object>();
+        private static bool FirstHookTree(Control c) { object o; if (TreeHooked.TryGetValue(c, out o)) return false; TreeHooked.Add(c, new object()); return true; }
+
+        /// <summary>Lets Windows paint a window, then paints over it in window coordinates (including the non-client border).</summary>
+        private sealed class OverPainter : NativeWindow
+        {
+            private readonly Action<Graphics, Size> _paint;
+            public OverPainter(Control c, Action<Graphics, Size> paint)
+            {
+                _paint = paint;
+                if (c.IsHandleCreated) AssignHandle(c.Handle);
+                c.HandleCreated += (s, e) => AssignHandle(c.Handle);
+                c.HandleDestroyed += (s, e) => ReleaseHandle();
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                // WM_PAINT, WM_NCPAINT, WM_SETFOCUS, WM_KILLFOCUS, WM_ENABLE, CB_SETCURSEL: paint on the window
+                if (m.Msg == 0x000F || m.Msg == 0x0085 || m.Msg == 0x0007 || m.Msg == 0x0008 || m.Msg == 0x000A || m.Msg == 0x014E) Draw();
+                // WM_PRINT (used by DrawToBitmap and print previews): paint into the supplied device context
+                else if (m.Msg == 0x0317 && m.WParam != IntPtr.Zero && ((long)m.LParam & 0x0002) != 0)
+                {
+                    RECT r;
+                    if (!GetWindowRect(Handle, out r)) return;
+                    try { using (var g = Graphics.FromHdc(m.WParam)) _paint(g, new Size(r.Right - r.Left, r.Bottom - r.Top)); } catch { }
+                }
+            }
+
+            private void Draw()
+            {
+                if (Handle == IntPtr.Zero) return;
+                RECT r;
+                if (!GetWindowRect(Handle, out r)) return;
+                var dc = GetWindowDC(Handle);
+                if (dc == IntPtr.Zero) return;
+                try { using (var g = Graphics.FromHdc(dc)) _paint(g, new Size(r.Right - r.Left, r.Bottom - r.Top)); }
+                catch { }
+                finally { ReleaseDC(Handle, dc); }
+            }
+        }
+
+        // ------------------------------------------------------------------ scroll bars
+        // Windows draws scroll bars itself (at best dark grey with the dark Explorer theme). ScrollPainter lets Windows
+        // paint and handle input as usual, asks it for the exact layout (arrows, track, thumb, hot/pressed states) with
+        // GetScrollBarInfo, and paints the bar again in the palette whenever that layout or state changes.
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SCROLLBARINFO
+        {
+            public int cbSize;
+            public RECT rcScrollBar;
+            public int dxyLineButton, xyThumbTop, xyThumbBottom, reserved;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)] public int[] rgstate;
+        }
+
+        [DllImport("user32.dll")] private static extern bool GetScrollBarInfo(IntPtr hwnd, int idObject, ref SCROLLBARINFO psbi);
+
+        private const int OBJID_HSCROLL = unchecked((int)0xFFFFFFFA), OBJID_VSCROLL = unchecked((int)0xFFFFFFFB), OBJID_CLIENT = unchecked((int)0xFFFFFFFC);
+        private const int STATE_INVISIBLE = 0x8000, STATE_UNAVAILABLE = 0x0001, STATE_PRESSED = 0x0008, STATE_HOT = 0x0080;
+
+        private sealed class ScrollPainter : NativeWindow
+        {
+            private readonly bool _isControl; // a SCROLLBAR control (grid and property grid scroll bars) rather than window scroll bars
+            private readonly bool _vertical;
+
+            public ScrollPainter(Control c, bool isControl, bool vertical)
+            {
+                _isControl = isControl; _vertical = vertical;
+                if (c.IsHandleCreated) AssignHandle(c.Handle);
+                c.HandleCreated += (s, e) => AssignHandle(c.Handle);
+                c.HandleDestroyed += (s, e) => ReleaseHandle();
+            }
+
+            private readonly bool _border;
+            public ScrollPainter(IntPtr hwnd) { _border = true; AssignHandle(hwnd); }
+
+            private bool _busy;
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                // GetScrollBarInfo sends SBM_GETSCROLLBARINFO (0x00EB) to scroll bar controls, so never react to our own queries
+                if (_busy || Handle == IntPtr.Zero || m.Msg == 0x00EB || m.Msg == 0x0082) return;
+                _busy = true;
+                try
+                {
+                    if (m.Msg == 0x0317) { PaintTo(m.WParam, ((long)m.LParam & (_isControl ? 0x0004 : 0x0002)) != 0); return; } // WM_PRINT
+                    // Windows can redraw a scroll bar while handling almost any message (SetScrollInfo during text edits,
+                    // scrolling, layout, mouse tracking), so the bar is painted again after every message (the drop-down
+                    // list this is used for is switched to the classic style, which has no hover animations).
+                    Paint();
+                }
+                finally { _busy = false; }
+            }
+
+            private SCROLLBARINFO Info(int id)
+            {
+                var i = new SCROLLBARINFO { cbSize = Marshal.SizeOf(typeof(SCROLLBARINFO)), rgstate = new int[6] };
+                if (!GetScrollBarInfo(Handle, id, ref i)) i.rgstate[0] = STATE_INVISIBLE;
+                return i;
+            }
+
+            private void Paint()
+            {
+                var dc = GetWindowDC(Handle);
+                if (dc == IntPtr.Zero) return;
+                try { PaintTo(dc, true); } finally { ReleaseDC(Handle, dc); }
+            }
+
+            private void PaintTo(IntPtr dc, bool include)
+            {
+                if (!include || dc == IntPtr.Zero) return;
+                RECT w;
+                if (!GetWindowRect(Handle, out w)) return;
+                try
+                {
+                    using (var g = Graphics.FromHdc(dc))
+                    {
+                        var origin = new Point(w.Left, w.Top);
+                        if (_border) using (var pen = new Pen(Current.BorderStrong)) g.DrawRectangle(pen, 0, 0, w.Right - w.Left - 1, w.Bottom - w.Top - 1);
+                        if (_isControl) DrawBar(g, Info(OBJID_CLIENT), _vertical, origin);
+                        else
+                        {
+                            var v = Info(OBJID_VSCROLL); var h = Info(OBJID_HSCROLL);
+                            DrawBar(g, v, true, origin);
+                            DrawBar(g, h, false, origin);
+                            // the corner between two visible bars
+                            if ((v.rgstate[0] & STATE_INVISIBLE) == 0 && (h.rgstate[0] & STATE_INVISIBLE) == 0)
+                                using (var b = new SolidBrush(Current.Surface))
+                                    g.FillRectangle(b, v.rcScrollBar.Left - origin.X, h.rcScrollBar.Top - origin.Y, v.rcScrollBar.Right - v.rcScrollBar.Left, h.rcScrollBar.Bottom - h.rcScrollBar.Top);
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            private static void DrawBar(Graphics g, SCROLLBARINFO i, bool vertical, Point origin)
+            {
+                if ((i.rgstate[0] & STATE_INVISIBLE) != 0) return;
+                var p = Current;
+                var r = Rectangle.FromLTRB(i.rcScrollBar.Left - origin.X, i.rcScrollBar.Top - origin.Y, i.rcScrollBar.Right - origin.X, i.rcScrollBar.Bottom - origin.Y);
+                if (r.Width <= 0 || r.Height <= 0) return;
+                bool disabled = (i.rgstate[0] & STATE_UNAVAILABLE) != 0;
+                using (var b = new SolidBrush(p.Surface)) g.FillRectangle(b, r);
+                int btn = Math.Max(0, i.dxyLineButton);
+                Rectangle a1, a2;
+                if (vertical) { a1 = new Rectangle(r.X, r.Y, r.Width, btn); a2 = new Rectangle(r.X, r.Bottom - btn, r.Width, btn); }
+                else { a1 = new Rectangle(r.X, r.Y, btn, r.Height); a2 = new Rectangle(r.Right - btn, r.Y, btn, r.Height); }
+                Action<Rectangle, int, bool> arrow = (ar, state, first) =>
+                {
+                    if (ar.Width <= 0 || ar.Height <= 0) return;
+                    bool pressed = (state & STATE_PRESSED) != 0, hot = (state & STATE_HOT) != 0;
+                    if (pressed || hot) using (var b = new SolidBrush(pressed ? p.SurfacePressed : p.SurfaceHover)) g.FillRectangle(b, ar);
+                    var col = disabled || (state & STATE_UNAVAILABLE) != 0 ? p.TextFaint : (pressed || hot ? p.Text : p.TextDim);
+                    if (vertical) DrawChevron(g, ar, first, col);
+                    else DrawSideChevron(g, ar, first, col);
+                };
+                arrow(a1, i.rgstate[1], true);
+                arrow(a2, i.rgstate[5], false);
+                if (!disabled && i.xyThumbBottom > i.xyThumbTop)
+                {
+                    int st = i.rgstate[3];
+                    var col = (st & STATE_PRESSED) != 0 ? p.TextDim : (st & STATE_HOT) != 0 ? Blend(p.TextFaint, p.TextDim, 0.5) : p.TextFaint;
+                    int pad = Math.Max(2, (vertical ? r.Width : r.Height) / 4);
+                    var thumb = vertical
+                        ? new Rectangle(r.X + pad, r.Y + i.xyThumbTop + 1, r.Width - 2 * pad, i.xyThumbBottom - i.xyThumbTop - 2)
+                        : new Rectangle(r.X + i.xyThumbTop + 1, r.Y + pad, i.xyThumbBottom - i.xyThumbTop - 2, r.Height - 2 * pad);
+                    if (thumb.Width > 0 && thumb.Height > 0)
+                    {
+                        var old = g.SmoothingMode;
+                        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                        using (var path = Rounded(thumb, Math.Min(thumb.Width, thumb.Height) / 2f))
+                        using (var b = new SolidBrush(col)) g.FillPath(b, path);
+                        g.SmoothingMode = old;
+                    }
+                }
+            }
+        }
+
+        private static System.Drawing.Drawing2D.GraphicsPath Rounded(RectangleF r, float rad)
+        {
+            var path = new System.Drawing.Drawing2D.GraphicsPath();
+            float d = Math.Max(0.5f, Math.Min(rad * 2, Math.Min(r.Width, r.Height)));
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        private static void DrawSideChevron(Graphics g, RectangleF r, bool left, Color col)
+        {
+            float cx = r.X + r.Width / 2f, cy = r.Y + r.Height / 2f, s = Math.Max(2.5f, Math.Min(r.Width, r.Height) / 5f);
+            var old = g.SmoothingMode;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var pen = new Pen(col, 1.4f))
+            {
+                if (left) g.DrawLines(pen, new[] { new PointF(cx + s / 2, cy - s), new PointF(cx - s / 2, cy), new PointF(cx + s / 2, cy + s) });
+                else g.DrawLines(pen, new[] { new PointF(cx - s / 2, cy - s), new PointF(cx + s / 2, cy), new PointF(cx - s / 2, cy + s) });
+            }
+            g.SmoothingMode = old;
+        }
+
+        private static void HookScroll(Control c)
+        {
+            // panels that never scroll need no overlays
+            var sc = c as ScrollableControl;
+            if (sc != null && !sc.AutoScroll) return;
+            ScrollOverlays.Attach(c);
+        }
+
+        [DllImport("user32.dll")] private static extern bool GetComboBoxInfo(IntPtr hwnd, ref COMBOBOXINFO info);
+        [StructLayout(LayoutKind.Sequential)]
+        private struct COMBOBOXINFO { public int cbSize; public RECT rcItem, rcButton; public int stateButton; public IntPtr hwndCombo, hwndItem, hwndList; }
+        private static readonly HashSet<IntPtr> HookedLists = new HashSet<IntPtr>();
+
+        /// <summary>The drop-down list of a combo box is a separate window with its own scroll bar.</summary>
+        private static void HookComboList(ComboBox cb)
+        {
+            cb.DropDown += (s, e) =>
+            {
+                try
+                {
+                    var info = new COMBOBOXINFO { cbSize = Marshal.SizeOf(typeof(COMBOBOXINFO)) };
+                    if (!GetComboBoxInfo(cb.Handle, ref info) || info.hwndList == IntPtr.Zero || !HookedLists.Add(info.hwndList)) return;
+                    SetWindowTheme(info.hwndList, "", "");
+                    new ScrollPainter(info.hwndList);
+                }
+                catch { }
+            };
+        }
+
+        /// <summary>Repaint a control including its non-client area (after a theme change).</summary>
+        private static void RedrawAll(Control c)
+        {
+            // RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW
+            if (c.IsHandleCreated) RedrawWindow(c.Handle, IntPtr.Zero, IntPtr.Zero, 0x0001 | 0x0400 | 0x0080 | 0x0100);
+        }
+
+        private static void DrawChevron(Graphics g, RectangleF r, bool up, Color col)
+        {
+            float cx = r.X + r.Width / 2f, cy = r.Y + r.Height / 2f, s = Math.Max(2.5f, Math.Min(r.Width, r.Height) / 5f);
+            var old = g.SmoothingMode;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var pen = new Pen(col, 1.4f))
+            {
+                if (up) g.DrawLines(pen, new[] { new PointF(cx - s, cy + s / 2), new PointF(cx, cy - s / 2), new PointF(cx + s, cy + s / 2) });
+                else g.DrawLines(pen, new[] { new PointF(cx - s, cy - s / 2), new PointF(cx, cy + s / 2), new PointF(cx + s, cy - s / 2) });
+            }
+            g.SmoothingMode = old;
+        }
+
+        private static Color BorderFor(Control c) => c.Focused || c.ContainsFocus ? Current.Accent : Current.BorderStrong;
+
+        private static void HookBorder(Control c)
+        {
+            new OverPainter(c, (g, sz) =>
+            {
+                using (var pen = new Pen(BorderFor(c)))
+                {
+                    g.DrawRectangle(pen, 0, 0, sz.Width - 1, sz.Height - 1);
+                    // a text box with scroll bars draws a grey border edge in its last client column/row, beside the bar
+                    // (the outer edge is under the scroll bar overlay): close the box there in the palette
+                    RECT wr;
+                    if (!(c is TextBoxBase) || !c.IsHandleCreated || !GetWindowRect(c.Handle, out wr)) return;
+                    var cr = c.RectangleToScreen(c.ClientRectangle);
+                    int right = cr.Right - wr.Left, bottom = cr.Bottom - wr.Top;
+                    if (right < sz.Width - 1) g.DrawLine(pen, right - 1, 0, right - 1, bottom - 1);
+                    if (bottom < sz.Height - 1) g.DrawLine(pen, 0, bottom - 1, right - 1, bottom - 1);
+                }
+            });
+        }
+
+        private static void HookComboBox(ComboBox cb)
+        {
+            new OverPainter(cb, (g, sz) =>
+            {
+                var p = Current;
+                int bw = Math.Max(SystemInformation.HorizontalScrollBarArrowWidth, (int)(17 * cb.DeviceDpi / 96.0)) + 2;
+                var btn = new Rectangle(sz.Width - bw - 1, 1, bw, sz.Height - 2);
+                using (var b = new SolidBrush(cb.Enabled ? p.SurfaceRaised : p.Surface)) g.FillRectangle(b, btn);
+                DrawChevron(g, btn, false, cb.Enabled ? p.TextDim : p.TextFaint);
+                using (var pen = new Pen(BorderFor(cb))) g.DrawRectangle(pen, 0, 0, sz.Width - 1, sz.Height - 1);
+            });
+        }
+
+        private static void HookUpDown(NumericUpDown n)
+        {
+            HookBorder(n);
+            foreach (Control child in n.Controls)
+            {
+                if (child is TextBox) continue; // the edit part
+                var buttons = child;
+                new OverPainter(buttons, (g, sz) =>
+                {
+                    var p = Current;
+                    using (var b = new SolidBrush(p.SurfaceRaised)) g.FillRectangle(b, 0, 0, sz.Width, sz.Height);
+                    using (var pen = new Pen(p.Border))
+                    {
+                        g.DrawLine(pen, 0, 0, 0, sz.Height);
+                        g.DrawLine(pen, 0, sz.Height / 2, sz.Width, sz.Height / 2);
+                    }
+                    var col = n.Enabled ? p.TextDim : p.TextFaint;
+                    DrawChevron(g, new RectangleF(1, 0, sz.Width - 1, sz.Height / 2f), true, col);
+                    DrawChevron(g, new RectangleF(1, sz.Height / 2f, sz.Width - 1, sz.Height / 2f), false, col);
+                });
+            }
+        }
+
+        /// <summary>Draw a check box (or radio button) glyph in the palette.</summary>
+        public static void DrawCheckGlyph(Graphics g, Rectangle box, bool isChecked, bool enabled, bool radio = false)
+        {
+            var p = Current;
+            var old = g.SmoothingMode;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var fill = new SolidBrush(isChecked && enabled ? p.Accent : p.SurfaceRaised))
+            using (var pen = new Pen(isChecked && enabled ? p.Accent : (enabled ? p.TextDim : p.TextFaint)))
+            {
+                if (radio)
+                {
+                    using (var bg = new SolidBrush(p.SurfaceRaised)) g.FillEllipse(bg, box);
+                    g.DrawEllipse(pen, box);
+                    if (isChecked) { var dot = Rectangle.Inflate(box, -box.Width / 4, -box.Height / 4); g.FillEllipse(fill, dot); }
+                }
+                else
+                {
+                    g.FillRectangle(fill, box);
+                    g.DrawRectangle(pen, box);
+                    if (isChecked)
+                        using (var tick = new Pen(p.AccentText, Math.Max(1.6f, box.Width / 7f)))
+                            g.DrawLines(tick, new[] { new PointF(box.X + box.Width * 0.22f, box.Y + box.Height * 0.52f), new PointF(box.X + box.Width * 0.42f, box.Y + box.Height * 0.72f), new PointF(box.X + box.Width * 0.78f, box.Y + box.Height * 0.3f) });
+                }
+            }
+            g.SmoothingMode = old;
+        }
+
+        private static void HookCheckBox(ButtonBase b)
+        {
+            // ButtonBase raises Paint after its own drawing, so the whole control is redrawn here
+            b.Paint += (s, e) =>
+            {
+                var p = Current;
+                var cb = b as CheckBox; var rb = b as RadioButton;
+                if ((cb != null && cb.Appearance == Appearance.Button) || (rb != null && rb.Appearance == Appearance.Button)) return;
+                bool isChecked = cb != null ? cb.CheckState != CheckState.Unchecked : rb != null && rb.Checked;
+                var g = e.Graphics;
+                using (var bg = new SolidBrush(b.BackColor.A == 0 ? (b.Parent != null ? b.Parent.BackColor : p.Background) : b.BackColor)) g.FillRectangle(bg, b.ClientRectangle);
+                int size = (int)Math.Round(13 * b.DeviceDpi / 96.0);
+                var box = new Rectangle(1, (b.Height - size) / 2, size - 1, size - 1);
+                DrawCheckGlyph(g, box, isChecked, b.Enabled, rb != null);
+                if (!string.IsNullOrEmpty(b.Text))
+                {
+                    var tr = new Rectangle(size + 5, 0, b.Width - size - 5, b.Height);
+                    TextRenderer.DrawText(g, b.Text, b.Font, tr, b.Enabled ? b.ForeColor : p.TextFaint, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+                }
+                if (b.Focused) using (var pen = new Pen(p.Focus) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dot }) g.DrawRectangle(pen, 0, 0, b.Width - 1, b.Height - 1);
+            };
+        }
+
+        private static void HookListBox(ListBox lb)
+        {
+            if (lb is CheckedListBox || lb.DrawMode != DrawMode.Normal) return;
+            lb.DrawMode = DrawMode.OwnerDrawFixed;
+            lb.ItemHeight = Math.Max(lb.ItemHeight, (int)(20 * lb.DeviceDpi / 96.0));
+            lb.DrawItem += (s, e) =>
+            {
+                var p = Current;
+                bool sel = (e.State & DrawItemState.Selected) != 0;
+                using (var b = new SolidBrush(sel ? p.AccentSoft : lb.BackColor)) e.Graphics.FillRectangle(b, e.Bounds);
+                if (e.Index >= 0 && e.Index < lb.Items.Count)
+                    TextRenderer.DrawText(e.Graphics, lb.GetItemText(lb.Items[e.Index]), lb.Font, new Rectangle(e.Bounds.X + 4, e.Bounds.Y, e.Bounds.Width - 4, e.Bounds.Height), lb.Enabled ? p.Text : p.TextFaint, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+            };
+        }
+
+        private static void HookTreeView(TreeView tv)
+        {
+            tv.FullRowSelect = false;
+            tv.DrawMode = TreeViewDrawMode.OwnerDrawText;
+            tv.DrawNode += (s, e) =>
+            {
+                var p = Current;
+                if (e.Bounds.IsEmpty) return;
+                bool sel = e.Node.IsSelected && (tv.Focused || !tv.HideSelection);
+                var r = new Rectangle(e.Bounds.X, e.Bounds.Y, Math.Max(e.Bounds.Width, tv.ClientSize.Width - e.Bounds.X), e.Bounds.Height);
+                using (var b = new SolidBrush(sel ? p.AccentSoft : tv.BackColor)) e.Graphics.FillRectangle(b, r);
+                var col = e.Node.ForeColor.IsEmpty ? p.Text : e.Node.ForeColor;
+                TextRenderer.DrawText(e.Graphics, e.Node.Text, e.Node.NodeFont ?? tv.Font, r, col, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.NoPrefix);
+                // the expand/collapse glyph is drawn by the theme in grey/white; draw it again in the palette
+                if (tv.ShowPlusMinus && e.Node.Nodes.Count > 0 && (tv.ShowRootLines || e.Node.Parent != null))
+                {
+                    int image = tv.ImageList != null ? tv.ImageList.ImageSize.Width + 3 : 0;
+                    float cx = e.Bounds.X - image - tv.Indent / 2f, cy = e.Bounds.Y + e.Bounds.Height / 2f;
+                    float half = Math.Min(tv.Indent, e.Bounds.Height) * 0.4f;
+                    using (var b = new SolidBrush(tv.BackColor)) e.Graphics.FillRectangle(b, cx - half, cy - half, half * 2, half * 2);
+                    DrawTreeGlyph(e.Graphics, cx, cy, Math.Max(2.5f, half * 0.45f), e.Node.IsExpanded, p.TextDim);
+                }
+            };
+        }
+
+        /// <summary>Chevron pointing right (collapsed) or down (expanded), centred on (cx, cy).</summary>
+        private static void DrawTreeGlyph(Graphics g, float cx, float cy, float s, bool expanded, Color col)
+        {
+            var old = g.SmoothingMode;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (var pen = new Pen(col, 1.4f))
+            {
+                if (expanded) g.DrawLines(pen, new[] { new PointF(cx - s, cy - s / 2), new PointF(cx, cy + s / 2), new PointF(cx + s, cy - s / 2) });
+                else g.DrawLines(pen, new[] { new PointF(cx - s / 2, cy - s), new PointF(cx + s / 2, cy), new PointF(cx - s / 2, cy + s) });
+            }
+            g.SmoothingMode = old;
+        }
+
+        private static void HookGrid(DataGridView g)
+        {
+            // check-box cells are drawn by Windows; paint them in the palette instead
+            g.CellPainting += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+                if (g.Columns[e.ColumnIndex] is DataGridViewComboBoxColumn)
+                {
+                    // the drop-down button of combo cells is drawn by Windows; draw the cell ourselves
+                    var pal = Current;
+                    e.PaintBackground(e.CellBounds, (e.State & DataGridViewElementStates.Selected) != 0);
+                    int bw = (int)(16 * g.DeviceDpi / 96.0);
+                    var btn = new Rectangle(e.CellBounds.Right - bw - 2, e.CellBounds.Y + 3, bw, e.CellBounds.Height - 6);
+                    var text = new Rectangle(e.CellBounds.X + 4, e.CellBounds.Y, e.CellBounds.Width - bw - 8, e.CellBounds.Height);
+                    TextRenderer.DrawText(e.Graphics, Convert.ToString(e.FormattedValue), e.CellStyle.Font ?? g.Font, text, pal.Text, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+                    using (var b = new SolidBrush(pal.SurfaceRaised)) e.Graphics.FillRectangle(b, btn);
+                    using (var pen = new Pen(pal.BorderStrong)) e.Graphics.DrawRectangle(pen, btn);
+                    DrawChevron(e.Graphics, btn, false, pal.TextDim);
+                    e.Handled = true;
+                    return;
+                }
+                if (!(g.Columns[e.ColumnIndex] is DataGridViewCheckBoxColumn)) return;
+                e.PaintBackground(e.CellBounds, true);
+                bool isChecked = e.Value is bool && (bool)e.Value;
+                int size = (int)Math.Round(13 * g.DeviceDpi / 96.0);
+                var box = new Rectangle(e.CellBounds.X + (e.CellBounds.Width - size) / 2, e.CellBounds.Y + (e.CellBounds.Height - size) / 2, size - 1, size - 1);
+                DrawCheckGlyph(e.Graphics, box, isChecked, !g.ReadOnly || !g.Columns[e.ColumnIndex].ReadOnly);
+                e.Handled = true;
+            };
+            // editing controls (combo boxes, text boxes in cells) are created on demand
+            g.EditingControlShowing += (s, e) => Apply(e.Control);
+            if (FirstHookTree(g)) DarkNativeTree(g); // grid scroll bars are child controls
+        }
+
+        /// <summary>A tooltip drawn in the palette instead of the system's light yellow or white.</summary>
+        public static ToolTip CreateToolTip()
+        {
+            var t = new ToolTip { OwnerDraw = true };
+            t.Draw += (s, e) =>
+            {
+                var p = Current;
+                using (var b = new SolidBrush(p.SurfaceRaised)) e.Graphics.FillRectangle(b, e.Bounds);
+                using (var pen = new Pen(p.BorderStrong)) e.Graphics.DrawRectangle(pen, 0, 0, e.Bounds.Width - 1, e.Bounds.Height - 1);
+                TextRenderer.DrawText(e.Graphics, e.ToolTipText, UiFont, e.Bounds, p.Text, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter | TextFormatFlags.NoPrefix);
+            };
+            t.Popup += (s, e) =>
+            {
+                var sz = TextRenderer.MeasureText(t.GetToolTip(e.AssociatedControl) ?? "", UiFont);
+                e.ToolTipSize = new Size(sz.Width + 12, sz.Height + 8);
+            };
+            return t;
+        }
+
         private static void StyleOne(Control c, Palette p)
         {
-            if (c is IThemed) { ((IThemed)c).ApplyTheme(p); return; }
+            bool first = FirstHook(c);
+            if (c is IThemed)
+            {
+                ((IThemed)c).ApplyTheme(p);
+                if (first && c is ScrollableControl) { DarkNative(c); HookScroll(c); }
+                else if (c is ScrollableControl) RedrawAll(c);
+                return;
+            }
             if (c is Form || c is UserControl || c is Panel || c is SplitContainer || c is TableLayoutPanel || c is FlowLayoutPanel || c is SplitterPanel)
             {
                 if (!(c.Tag is string && (string)c.Tag == "keepcolor")) { c.BackColor = c is Form ? p.Background : (c.Parent != null && !(c.Parent is Form) ? c.Parent.BackColor : p.Background); }
                 c.ForeColor = p.Text;
                 if (c is SplitContainer) { ((SplitContainer)c).BackColor = p.Border; }
+                if (first && !(c is Form)) { DarkNative(c); HookScroll(c); } // scroll bars on scrolling panels
+                else if (!(c is Form)) RedrawAll(c);
             }
             else if (c is TextBox || c is RichTextBox || c is MaskedTextBox)
             {
                 c.BackColor = p.SurfaceRaised; c.ForeColor = p.Text;
-                var tb = c as TextBoxBase; if (tb != null) tb.BorderStyle = BorderStyle.FixedSingle;
-                if (c is RichTextBox || (c is TextBox && ((TextBox)c).Multiline)) DarkNative(c);
+                var tb = c as TextBoxBase;
+                // text boxes inside a NumericUpDown or a grid cell have no border of their own
+                bool embedded = c.Parent is UpDownBase || c.Parent is DataGridView || (c.Parent != null && c.Parent.Parent is DataGridView);
+                if (tb != null && !embedded && tb.BorderStyle != BorderStyle.None) tb.BorderStyle = BorderStyle.FixedSingle;
+                if (first && !embedded && tb != null && tb.BorderStyle == BorderStyle.FixedSingle) HookBorder(c);
+                if (first) { DarkNative(c); SystemColorHook.Install(); c.HandleCreated += (s2, e2) => SystemColorHook.Install(); }
+                if (first && (c is RichTextBox || (c is TextBox && ((TextBox)c).Multiline))) HookScroll(c);
+                RedrawAll(c);
             }
-            else if (c is NumericUpDown) { c.BackColor = p.SurfaceRaised; c.ForeColor = p.Text; ((NumericUpDown)c).BorderStyle = BorderStyle.FixedSingle; }
+            else if (c is NumericUpDown)
+            {
+                c.BackColor = p.SurfaceRaised; c.ForeColor = p.Text; ((NumericUpDown)c).BorderStyle = BorderStyle.FixedSingle;
+                if (first) HookUpDown((NumericUpDown)c);
+                foreach (Control k in c.Controls) { k.BackColor = p.SurfaceRaised; k.ForeColor = p.Text; }
+                RedrawAll(c);
+                return; // children handled here
+            }
             else if (c is ComboBox)
             {
                 var cb = (ComboBox)c;
+                if (first) { HookComboBox(cb); HookComboList(cb); SystemColorHook.Install(); }
+                RedrawAll(cb);
                 cb.FlatStyle = FlatStyle.Flat; cb.BackColor = p.SurfaceRaised; cb.ForeColor = p.Text;
                 if (cb.DrawMode == DrawMode.Normal)
                 {
@@ -197,14 +722,30 @@ namespace Sidralune.UI
                 }
                 try { if (cb.IsHandleCreated) SetWindowTheme(cb.Handle, "DarkMode_CFD", null); else cb.HandleCreated += (s, e) => SetWindowTheme(cb.Handle, "DarkMode_CFD", null); } catch { }
             }
-            else if (c is ListBox || c is CheckedListBox) { c.BackColor = p.Surface; c.ForeColor = p.Text; ((ListBox)c).BorderStyle = BorderStyle.None; DarkNative(c); }
-            else if (c is ListView) { var lv = (ListView)c; lv.BackColor = p.Surface; lv.ForeColor = p.Text; lv.BorderStyle = BorderStyle.None; DarkNative(lv); }
-            else if (c is TreeView) { var tv = (TreeView)c; tv.BackColor = p.Surface; tv.ForeColor = p.Text; tv.BorderStyle = BorderStyle.None; tv.LineColor = p.BorderStrong; DarkNative(tv); }
-            else if (c is DataGridView) StyleGrid((DataGridView)c, p);
-            else if (c is PropertyGrid) StylePropertyGrid((PropertyGrid)c, p);
-            else if (c is CheckBox || c is RadioButton) { c.ForeColor = p.Text; c.BackColor = c.Parent?.BackColor ?? p.Background; ((ButtonBase)c).FlatStyle = FlatStyle.Flat; }
+            else if (c is ListBox || c is CheckedListBox)
+            {
+                c.BackColor = p.Surface; c.ForeColor = p.Text; ((ListBox)c).BorderStyle = BorderStyle.None;
+                if (first) { HookListBox((ListBox)c); DarkNative(c); HookScroll(c); }
+                RedrawAll(c);
+            }
+            else if (c is ListView) { var lv = (ListView)c; lv.BackColor = p.Surface; lv.ForeColor = p.Text; lv.BorderStyle = BorderStyle.None; if (first) { DarkNative(lv); HookScroll(lv); } else RedrawAll(lv); }
+            else if (c is TreeView)
+            {
+                var tv = (TreeView)c; tv.BackColor = p.Surface; tv.ForeColor = p.Text; tv.BorderStyle = BorderStyle.None; tv.LineColor = p.BorderStrong;
+                if (first) { HookTreeView(tv); DarkNative(tv); HookScroll(tv); }
+                RedrawAll(tv);
+            }
+            else if (c is DataGridView) { if (first) HookGrid((DataGridView)c); StyleGrid((DataGridView)c, p); c.Invalidate(); return; }
+            else if (c is PropertyGrid) { StylePropertyGrid((PropertyGrid)c, p); return; }
+            else if (c is CheckBox || c is RadioButton)
+            {
+                c.ForeColor = p.Text; c.BackColor = c.Parent?.BackColor ?? p.Background; ((ButtonBase)c).FlatStyle = FlatStyle.Flat;
+                if (first) HookCheckBox((ButtonBase)c);
+                c.Invalidate();
+            }
             else if (c is Button) { var b = (Button)c; b.FlatStyle = FlatStyle.Flat; b.BackColor = p.SurfaceRaised; b.ForeColor = p.Text; b.FlatAppearance.BorderColor = p.BorderStrong; b.FlatAppearance.MouseOverBackColor = p.SurfaceHover; b.FlatAppearance.MouseDownBackColor = p.SurfacePressed; }
             else if (c is Label || c is LinkLabel) { c.ForeColor = c.Tag is string && (string)c.Tag == "dim" ? p.TextDim : p.Text; c.BackColor = Color.Transparent; if (c is LinkLabel) ((LinkLabel)c).LinkColor = p.Accent; }
+            else if (c is ScrollBar) { if (first) { DarkNative(c); HookScroll(c); } RedrawAll(c); }
             else if (c is TrackBar) { c.BackColor = c.Parent?.BackColor ?? p.Background; }
             else if (c is DateTimePicker) { c.BackColor = p.SurfaceRaised; c.ForeColor = p.Text; }
             else if (c is ToolStrip) { ((ToolStrip)c).Renderer = new DarkToolStripRenderer(); c.BackColor = p.Surface; c.ForeColor = p.Text; }
@@ -247,6 +788,7 @@ namespace Sidralune.UI
             g.DisabledItemForeColor = p.TextFaint;
             g.ToolbarVisible = false;
             DarkNative(g);
+            if (FirstHookTree(g)) DarkNativeTree(g); // the scroll bar is a child of the inner grid view
         }
 
         public static Color Blend(Color a, Color b, double t) =>
@@ -285,6 +827,15 @@ namespace Sidralune.UI
         {
             e.ArrowColor = Theme.Current.TextDim;
             base.OnRenderArrow(e);
+        }
+
+        protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+        {
+            // the default check mark is a black bitmap; draw it in the palette
+            var r = e.ImageRectangle;
+            int s = Math.Min(r.Width, r.Height) - 2;
+            var box = new Rectangle(r.X + (r.Width - s) / 2, r.Y + (r.Height - s) / 2, s, s);
+            Theme.DrawCheckGlyph(e.Graphics, box, true, e.Item.Enabled);
         }
 
         private class DarkColorTable : ProfessionalColorTable

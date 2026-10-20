@@ -17,6 +17,8 @@ namespace Sidralune.UI
         public List<double> X = new List<double>(), Y = new List<double>(), YErr;
         public SeriesStyle Style = SeriesStyle.Line;
         public Color? Color;
+        /// <summary>Colour taken from the palette when drawn, so the series follows theme switches (overrides Color).</summary>
+        public Func<Palette, Color> ThemeColor;
         public float Width = 1.6f;
         public float MarkerSize = 4f;
         public bool Visible = true;
@@ -25,8 +27,8 @@ namespace Sidralune.UI
         public void Add(double x, double y, double err = double.NaN) { X.Add(x); Y.Add(y); if (!double.IsNaN(err)) { if (YErr == null) YErr = new List<double>(); YErr.Add(err); } }
     }
 
-    public class PlotBand { public double X0, X1; public Color Color; public string Label; }
-    public class PlotMarker { public double X; public string Label; public Color? Color; public bool Horizontal; }
+    public class PlotBand { public double X0, X1; public Color Color; public Func<Palette, Color> ThemeColor; public string Label; }
+    public class PlotMarker { public double X; public string Label; public Color? Color; public Func<Palette, Color> ThemeColor; public bool Horizontal; }
 
     public enum AxisFormat { Number, Time, Hours, Jd }
 
@@ -68,6 +70,14 @@ namespace Sidralune.UI
         {
             var s = new PlotSeries(name, style) { Color = color };
             Series.Add(s);
+            return s;
+        }
+
+        /// <summary>Add a series coloured by a palette role (e.g. <c>p =&gt; p.Moon</c>), resolved each time the plot is drawn.</summary>
+        public PlotSeries AddSeries(string name, SeriesStyle style, Func<Palette, Color> color)
+        {
+            var s = AddSeries(name, style);
+            s.ThemeColor = color;
             return s;
         }
 
@@ -145,7 +155,7 @@ namespace Sidralune.UI
             // bands
             g.SetClip(_plot);
             foreach (var b in Bands)
-                using (var br = new SolidBrush(b.Color)) g.FillRectangle(br, Math.Min(Sx(b.X0), Sx(b.X1)), _plot.Top, Math.Abs(Sx(b.X1) - Sx(b.X0)), _plot.Height);
+                using (var br = new SolidBrush(b.ThemeColor != null ? b.ThemeColor(p) : b.Color)) g.FillRectangle(br, Math.Min(Sx(b.X0), Sx(b.X1)), _plot.Top, Math.Abs(Sx(b.X1) - Sx(b.X0)), _plot.Height);
             g.Clip = clip;
             // grid and ticks
             double xs = NiceStep(_x1 - _x0, Math.Max(2, _plot.Width / 90)), ys = NiceStep(_y1 - _y0, Math.Max(2, _plot.Height / 50));
@@ -190,7 +200,7 @@ namespace Sidralune.UI
             int si = 0;
             foreach (var s in Series)
             {
-                var col = s.Color ?? p.Series[si % p.Series.Length];
+                var col = s.ThemeColor != null ? s.ThemeColor(p) : s.Color ?? p.Series[si % p.Series.Length];
                 si++;
                 if (!s.Visible || s.X.Count == 0) continue;
                 using (var pen = new Pen(col, s.Width) { DashStyle = s.DashDot ? DashStyle.Dash : DashStyle.Solid })
@@ -237,10 +247,11 @@ namespace Sidralune.UI
             }
             foreach (var mk in Markers)
             {
-                using (var pen = new Pen(mk.Color ?? p.Warning, 1.2f) { DashStyle = DashStyle.Dash })
+                var mc = mk.ThemeColor != null ? mk.ThemeColor(p) : mk.Color ?? p.Warning;
+                using (var pen = new Pen(mc, 1.2f) { DashStyle = DashStyle.Dash })
                 {
-                    if (mk.Horizontal) { float y = Sy(mk.X); g.DrawLine(pen, _plot.Left, y, _plot.Right, y); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point(_plot.Left + 4, (int)y - 16), mk.Color ?? p.Warning); }
-                    else { float x = Sx(mk.X); g.DrawLine(pen, x, _plot.Top, x, _plot.Bottom); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point((int)x + 3, _plot.Top + 2), mk.Color ?? p.Warning); }
+                    if (mk.Horizontal) { float y = Sy(mk.X); g.DrawLine(pen, _plot.Left, y, _plot.Right, y); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point(_plot.Left + 4, (int)y - 16), mc); }
+                    else { float x = Sx(mk.X); g.DrawLine(pen, x, _plot.Top, x, _plot.Bottom); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point((int)x + 3, _plot.Top + 2), mc); }
                 }
             }
             if (_dragStart.HasValue && _dragEnd.HasValue)
@@ -269,7 +280,7 @@ namespace Sidralune.UI
                 si = 0;
                 foreach (var s in Series)
                 {
-                    var col = s.Color ?? p.Series[si % p.Series.Length]; si++;
+                    var col = s.ThemeColor != null ? s.ThemeColor(p) : s.Color ?? p.Series[si % p.Series.Length]; si++;
                     if (string.IsNullOrEmpty(s.Name)) continue;
                     using (var br = new SolidBrush(Theme.WithAlpha(p.Surface, 200))) g.FillRectangle(br, lx - maxw, ly - 1, maxw, 16);
                     using (var br = new SolidBrush(s.Visible ? col : p.TextFaint)) g.FillRectangle(br, lx - maxw + 4, ly + 5, 14, 4);

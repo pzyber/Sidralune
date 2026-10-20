@@ -190,10 +190,14 @@ namespace Sidralune.Views
                 for (int c = 0; c < img.Channels; c++) res.Add(Stats.Histogram(img.Data[c], 256, 0, 1));
                 MainForm.Instance.Post(() =>
                 {
-                    var cols = img.Channels == 1 ? new[] { Theme.Current.TextDim } : new[] { Color.FromArgb(230, 90, 90), Color.FromArgb(90, 200, 120), Color.FromArgb(100, 140, 240) };
+                    // resolved from the palette at draw time so the histogram follows day/night switches
+                    var rgb = new[] { Color.FromArgb(230, 90, 90), Color.FromArgb(90, 200, 120), Color.FromArgb(100, 140, 240) };
+                    var night = new[] { 0, 2, 3 };
                     for (int c = 0; c < res.Count; c++)
                     {
-                        var s = _hist.AddSeries(null, SeriesStyle.Line, cols[Math.Min(c, cols.Length - 1)]);
+                        int ch = Math.Min(c, 2);
+                        Func<Palette, Color> col = img.Channels == 1 ? (Func<Palette, Color>)(pal => pal.TextDim) : pal => pal.IsNight ? pal.Series[night[ch]] : rgb[ch];
+                        var s = _hist.AddSeries(null, SeriesStyle.Line, col);
                         for (int i = 0; i < 256; i++) s.Add(i / 255.0, Math.Log10(1 + res[c][i]));
                     }
                     _hist.Invalidate();

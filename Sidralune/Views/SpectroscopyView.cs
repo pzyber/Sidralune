@@ -127,7 +127,7 @@ namespace Sidralune.Views
             if (_lampSpec != null && cal)
             {
                 double scale = _extracted != null ? _extracted.Flux.Max() / Math.Max(1e-9, _lampSpec.Flux.Max()) : 1;
-                var l = _redPlot.AddSeries("lamp", SeriesStyle.Line, Theme.Current.TextDim);
+                var l = _redPlot.AddSeries("lamp", SeriesStyle.Line, pal => pal.TextDim);
                 for (int i = 0; i < _lampSpec.Length; i++) l.Add(_lampSpec.Wavelength[i], _lampSpec.Flux[i] * scale);
             }
             _redPlot.Invalidate();
@@ -278,9 +278,9 @@ namespace Sidralune.Views
             var s = _plot.AddSeries(_shown.Name ?? "spectrum");
             for (int i = 0; i < _shown.Length; i++) s.Add(_shown.Wavelength[i], _shown.Flux[i]);
             double w0 = _shown.Wavelength[0], w1 = _shown.Wavelength[_shown.Length - 1];
-            foreach (var l in AllLines().Where(l => l.Wavelength > w0 && l.Wavelength < w1)) _plot.Markers.Add(new PlotMarker { X = l.Wavelength, Label = l.Name, Color = Theme.Current.TextDim });
-            foreach (var m in _measured) _plot.Markers.Add(new PlotMarker { X = m.Centre, Label = string.Format("{0:0.0}", m.Centre), Color = Theme.Current.Warning });
-            if (!double.IsNaN(_selA)) _plot.Bands.Add(new PlotBand { X0 = _selA, X1 = _selB, Color = Theme.WithAlpha(Theme.Current.Accent, 50) });
+            foreach (var l in AllLines().Where(l => l.Wavelength > w0 && l.Wavelength < w1)) _plot.Markers.Add(new PlotMarker { X = l.Wavelength, Label = l.Name, ThemeColor = pal => pal.TextDim });
+            foreach (var m in _measured) _plot.Markers.Add(new PlotMarker { X = m.Centre, Label = string.Format("{0:0.0}", m.Centre), ThemeColor = pal => pal.Warning });
+            if (!double.IsNaN(_selA)) _plot.Bands.Add(new PlotBand { X0 = _selA, X1 = _selB, ThemeColor = pal => Theme.WithAlpha(pal.Accent, 50) });
             _plot.Invalidate();
         }
 

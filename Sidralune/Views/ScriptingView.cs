@@ -314,7 +314,7 @@ namespace Sidralune.Views
                 {
                     var res = x.Select((v, i) => y[i] - model(v)).ToList();
                     sb.AppendLine(string.Format("Residual rms {0:G4}", Math.Sqrt(res.Sum(r => r * r) / res.Count)));
-                    var fs = _dataPlot.AddSeries("fit", SeriesStyle.Line, Theme.Current.Warning);
+                    var fs = _dataPlot.AddSeries("fit", SeriesStyle.Line, pal => pal.Warning);
                     double x0 = x.Min(), x1 = x.Max();
                     for (int i = 0; i <= 300; i++) { double v = x0 + (x1 - x0) * i / 300; fs.Add(v, model(v)); }
                 }
