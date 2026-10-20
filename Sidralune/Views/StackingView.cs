@@ -62,7 +62,7 @@ namespace Sidralune.Views
             _grid.Columns["File"].FillWeight = 180; _grid.Columns["Status"].FillWeight = 140; _grid.Columns["Type"].FillWeight = 55;
             _grid.CurrentCellDirtyStateChanged += (s, e) => { if (_grid.IsCurrentCellDirty) _grid.CommitEdit(DataGridViewDataErrorContexts.Commit); };
             _grid.CellValueChanged += (s, e) => { if (e.RowIndex >= 0 && e.ColumnIndex == 0) ((StackFrame)_grid.Rows[e.RowIndex].Tag).Enabled = (bool)(_grid.Rows[e.RowIndex].Cells[0].Value ?? false); };
-            _grid.SelectionChanged += (s, e) => Preview();
+            _grid.SelectionChanged += (s, e) => { if (!_filling) Preview(); };
             _grid.AllowDrop = true;
             _grid.DragEnter += (s, e) => { if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; };
             _grid.DragDrop += (s, e) => { var f = e.Data.GetData(DataFormats.FileDrop) as string[]; if (f != null) AddPaths(f, null); };
@@ -162,16 +162,24 @@ namespace Sidralune.Views
         private void RefreshGrid()
         {
             _grid.SuspendLayout();
-            _grid.Rows.Clear();
-            foreach (var f in _engine.Frames.OrderBy(f => f.Kind).ThenBy(f => f.Path))
+            // adding the first row selects it and raises SelectionChanged; give every row its frame before it is added
+            // and preview once the list is complete
+            _filling = true;
+            try
             {
-                int i = _grid.Rows.Add(f.Enabled, f.Kind + (f.IsReference ? " ★" : ""), f.FileName, f.Exposure > 0 ? f.Exposure.ToString("0.###") + " s" : "",
-                    !double.IsNaN(f.Iso) ? "ISO " + f.Iso : !double.IsNaN(f.Gain) ? f.Gain.ToString("0") : "", double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0"),
-                    f.Filter ?? "", f.Registered ? f.Score.ToString("0.0") : "", f.Registered ? f.StarCount.ToString() : "", double.IsNaN(f.Fwhm) ? "" : f.Fwhm.ToString("0.00"),
-                    double.IsNaN(f.Eccentricity) ? "" : f.Eccentricity.ToString("0.00"), double.IsNaN(f.Background) ? "" : (f.Background * 65535).ToString("0"), f.Status);
-                _grid.Rows[i].Tag = f;
+                _grid.Rows.Clear();
+                foreach (var f in _engine.Frames.OrderBy(f => f.Kind).ThenBy(f => f.Path))
+                {
+                    var row = new DataGridViewRow { Tag = f };
+                    row.CreateCells(_grid, f.Enabled, f.Kind + (f.IsReference ? " ★" : ""), f.FileName, f.Exposure > 0 ? f.Exposure.ToString("0.###") + " s" : "",
+                        !double.IsNaN(f.Iso) ? "ISO " + f.Iso : !double.IsNaN(f.Gain) ? f.Gain.ToString("0") : "", double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0"),
+                        f.Filter ?? "", f.Registered ? f.Score.ToString("0.0") : "", f.Registered ? f.StarCount.ToString() : "", double.IsNaN(f.Fwhm) ? "" : f.Fwhm.ToString("0.00"),
+                        double.IsNaN(f.Eccentricity) ? "" : f.Eccentricity.ToString("0.00"), double.IsNaN(f.Background) ? "" : (f.Background * 65535).ToString("0"), f.Status);
+                    _grid.Rows.Add(row);
+                }
             }
-            _grid.ResumeLayout();
+            finally { _filling = false; _grid.ResumeLayout(); }
+            Preview();
             var lights = _engine.Frames.Where(f => f.Kind == FrameKind.Light).ToList();
             _summary.Text = string.Format("{0} lights ({1} checked, {2:0.0} min) · {3} darks · {4} flats · {5} dark flats · {6} bias{7}",
                 lights.Count, lights.Count(f => f.Enabled), lights.Where(f => f.Enabled).Sum(f => f.Exposure) / 60, _engine.Frames.Count(f => f.Kind == FrameKind.Dark),
@@ -180,11 +188,15 @@ namespace Sidralune.Views
         }
 
         private AstroImage _preview;
+        private StackFrame _previewFrame;
+        private bool _filling;
 
         private void Preview()
         {
             if (_grid.SelectedRows.Count == 0) return;
-            var fr = (StackFrame)_grid.SelectedRows[0].Tag;
+            var fr = _grid.SelectedRows[0].Tag as StackFrame;
+            if (fr == null || fr == _previewFrame) return; // refreshing the list keeps the frame already shown
+            _previewFrame = fr;
             Tasks.Run("Loading preview", t =>
             {
                 var img = ImageFile.Load(fr.Path);
