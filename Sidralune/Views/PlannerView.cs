@@ -87,7 +87,7 @@ namespace Sidralune.Views
             centre.Controls.Add(bar);
             _grid.ReadOnly = false;
             _grid.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) MainForm.Instance.ShowObject(ToSelected((ListEntry)_grid.Rows[e.RowIndex].Tag)); };
-            _grid.SelectionChanged += (s, e) => { PlotSelected(); ShowLog(); };
+            _grid.SelectionChanged += (s, e) => { if (_filling) return; PlotSelected(); ShowLog(); };
             _grid.CellValueChanged += (s, e) =>
             {
                 if (e.RowIndex < 0) return;
@@ -283,6 +283,8 @@ namespace Sidralune.Views
         private void ShowRows(List<object[]> rows, TwilightTimes tw, AstroTime noon)
         {
             _grid.SuspendLayout();
+            // adding the first row makes it current and raises SelectionChanged; plot once when the rows are complete
+            _filling = true;
             _grid.Rows.Clear();
             if (_grid.Columns.Count == 0)
             {
@@ -291,12 +293,22 @@ namespace Sidralune.Views
                 for (int i = 1; i < _grid.Columns.Count - 1; i++) _grid.Columns[i].ReadOnly = true;
                 _grid.Columns["Object"].FillWeight = 140; _grid.Columns["Type"].FillWeight = 90; _grid.Columns["Notes"].FillWeight = 120;
             }
-            foreach (var r in rows) { int i = _grid.Rows.Add(r.Skip(1).ToArray()); _grid.Rows[i].Tag = r[0]; }
-            _grid.ResumeLayout();
+            try
+            {
+                foreach (var r in rows)
+                {
+                    var row = new DataGridViewRow { Tag = r[0] };
+                    row.CreateCells(_grid, r.Skip(1).ToArray());
+                    _grid.Rows.Add(row);
+                }
+            }
+            finally { _filling = false; _grid.ResumeLayout(); }
             _twilight = tw; _noon = noon;
             PlotSelected();
+            ShowLog();
         }
 
+        private bool _filling;
         private TwilightTimes _twilight;
         private AstroTime _noon;
 
@@ -307,8 +319,8 @@ namespace Sidralune.Views
             var site = AppState.Site;
             Action<AstroTime?, AstroTime?, int> band = (a, b, alpha) => { if (a.HasValue && b.HasValue) _plot.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b.Value.ToDateTimeUtc()).ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) }); };
             band(_twilight.SunSet, _twilight.SunRise, 16); band(_twilight.NauticalDusk, _twilight.NauticalDawn, 16); band(_twilight.AstronomicalDusk, _twilight.AstronomicalDawn, 22);
-            var sel = _grid.SelectedRows.Cast<DataGridViewRow>().Select(r => (ListEntry)r.Tag).Take(8).ToList();
-            if (sel.Count == 0) sel = _grid.Rows.Cast<DataGridViewRow>().Take(5).Select(r => (ListEntry)r.Tag).ToList();
+            var sel = _grid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(8).ToList();
+            if (sel.Count == 0) sel = _grid.Rows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(5).ToList();
             var moonS = _plot.AddSeries("Moon", SeriesStyle.Line, pal => pal.Moon);
             moonS.DashDot = true;
             for (int i = 0; i <= 96; i++)
@@ -335,7 +347,7 @@ namespace Sidralune.Views
 
         private void ShowLog()
         {
-            var e = _grid.SelectedRows.Count > 0 ? (ListEntry)_grid.SelectedRows[0].Tag : null;
+            var e = _grid.SelectedRows.Count > 0 ? _grid.SelectedRows[0].Tag as ListEntry : null;
             _logTitle.Text = e != null ? e.Name : "Select an object";
             _log.Rows.Clear();
             if (_log.Columns.Count == 0) foreach (var c in new[] { "Date", "Rating", "Notes" }) _log.Columns.Add(c, c);
@@ -346,7 +358,7 @@ namespace Sidralune.Views
 
         private void AddLog()
         {
-            var e = _grid.SelectedRows.Count > 0 ? (ListEntry)_grid.SelectedRows[0].Tag : null;
+            var e = _grid.SelectedRows.Count > 0 ? _grid.SelectedRows[0].Tag as ListEntry : null;
             if (e == null) return;
             var entry = new LogEntry { TimeUtc = DateTime.UtcNow, Object = e.Name, Site = AppState.Site.Name, Instrument = AppState.Instrument.Name, Eyepiece = AppState.Instrument.EyepieceFocalMm + " mm", Sqm = AppState.Site.SqmZenith, Notes = "" };
             using (var f = new Form { Text = "Log observation — " + e.Name, Width = 460, Height = 420, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog })
