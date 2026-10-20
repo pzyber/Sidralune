@@ -73,13 +73,20 @@ namespace Sidralune.Views
             btn("Show field in sky chart", Icons.Sky, () =>
             {
                 if (_solve == null || !_solve.Success) return;
-                double cra, cdec; _solve.Wcs.Centre(out cra, out cdec);
+                var w = _solve.Wcs;
+                double cra, cdec; w.Centre(out cra, out cdec);
+                // trace the image border through the solution so the outline stays on the right patch of sky
+                var outline = new List<double[]>();
+                int n = 8;
+                double x1 = w.ImageWidth - 1, y1 = w.ImageHeight - 1;
+                Action<double, double> add = (x, y) => { double pra, pdec; w.PixelToWorld(x, y, out pra, out pdec); outline.Add(new[] { pra, pdec }); };
+                for (int i = 0; i < n; i++) add(x1 * i / n, 0);
+                for (int i = 0; i < n; i++) add(x1, y1 * i / n);
+                for (int i = 0; i < n; i++) add(x1 * (n - i) / n, y1);
+                for (int i = 0; i < n; i++) add(0, y1 * (n - i) / n);
                 var sky = MainForm.Instance.GetView<SkyView>("sky");
                 MainForm.Instance.Navigate("sky");
-                sky.Chart.Mode = ChartMode.Atlas;
-                sky.Chart.Fovs.Clear();
-                sky.Chart.Fovs.Add(new ChartFov { Name = "Solved field", WidthDeg = _solve.Wcs.FieldWidthDeg, HeightDeg = _solve.Wcs.FieldHeightDeg, RotationDeg = -_solve.Wcs.RotationDeg });
-                sky.Chart.CenterOn(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, Math.Max(_solve.Wcs.FieldWidthDeg, _solve.Wcs.FieldHeightDeg) * 2.5);
+                sky.ShowField("Solved field", outline, cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, Math.Max(w.FieldWidthDeg, w.FieldHeightDeg) * 2.5);
             }, ButtonKind.Subtle);
             g.Full(buttons);
             g.Full(Ui.Hint("The internal solver matches triangles of stars (scale and rotation invariant) against catalogue stars, then fits a TAN-SIP world coordinate system. Without hints it tries field sizes from 0.25° to 60°. Gaia DR3 queries are cached for offline re-use."));

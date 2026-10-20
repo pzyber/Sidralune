@@ -69,7 +69,10 @@ namespace Sidralune.Science.Astrometry
             if (imgStars.Count < 6) imgStars = stars.OrderByDescending(s => s.Flux).Take(opt.MaxImageStars).ToList();
             var fovs = new List<double>();
             if (!double.IsNaN(opt.ScaleHint)) fovs.Add(Math.Sqrt(width * width + height * height) * opt.ScaleHint / 3600.0);
-            else foreach (var f in new[] { 1.0, 2.0, 0.5, 4.0, 0.25, 8.0, 16.0, 32.0, 60.0 }) fovs.Add(f);
+            // near a hint, the likely field sizes come first; a blind search tiles the whole sky, so it starts with the wide
+            // sizes (tens to hundreds of tiles) before the narrow ones (tens of thousands)
+            else if (!double.IsNaN(opt.HintRa)) foreach (var f in new[] { 1.0, 2.0, 0.5, 4.0, 0.25, 8.0, 16.0, 32.0, 60.0 }) fovs.Add(f);
+            else foreach (var f in new[] { 60.0, 32.0, 16.0, 8.0, 4.0, 2.0, 1.0, 0.5, 0.25 }) fovs.Add(f);
             int tried = 0;
             foreach (var fovDeg in fovs)
             {
@@ -116,13 +119,17 @@ namespace Sidralune.Science.Astrometry
                     catch (Exception ex) { res.Message = "Catalog query failed: " + ex.Message; return res; }
                     if (cat.Count < 6) continue;
                     var w = TryMatch(imgStars, stars, cat, c[0], c[1], width, height, opt, false) ?? TryMatch(imgStars, stars, cat, c[0], c[1], width, height, opt, true);
-                    if (w != null)
+                    if (w != null && Plausible(w, fovDeg, width, height))
                     {
                         double cra, cdec;
                         w.Centre(out cra, out cdec);
                         var cat2 = catalog.Cone(cra, cdec, Math.Max(w.FieldWidthDeg, w.FieldHeightDeg) * 0.8, magLim + 1.5, opt.MaxCatalogStars * 3);
-                        var refined = RefineAll(w, stars, cat2, width, height, opt.SipOrder, res.Matches);
-                        res.Wcs = refined ?? w;
+                        var matches = new List<Tuple<DetectedStar, RefStar>>();
+                        var refined = RefineAll(w, stars, cat2, width, height, opt.SipOrder, matches) ?? w;
+                        // a chance match of a handful of stars does not survive matching the whole field
+                        if (matches.Count < MinRefinedMatches || !Plausible(refined, fovDeg, width, height)) continue;
+                        res.Matches.AddRange(matches);
+                        res.Wcs = refined;
                         res.Success = true;
                         res.Message = "Solved: " + res.Wcs;
                         return res;
@@ -131,6 +138,23 @@ namespace Sidralune.Science.Astrometry
             }
             res.Message = "No solution found (" + tried + " fields tried)";
             return res;
+        }
+
+        private const int MinRefinedMatches = 10;
+
+        /// <summary>
+        /// Reject geometrically impossible solutions: a camera has square pixels and no skew, so the CD matrix must be a
+        /// rotation times one scale (a flattened matrix can have a tiny area-based scale while one axis spans tens of
+        /// degrees), and the solved field must be about the size of the field that was searched.
+        /// </summary>
+        private static bool Plausible(Wcs w, double fovDeg, int width, int height)
+        {
+            if (w == null || !w.IsValid) return false;
+            double sx = Math.Sqrt(w.Cd11 * w.Cd11 + w.Cd21 * w.Cd21), sy = Math.Sqrt(w.Cd12 * w.Cd12 + w.Cd22 * w.Cd22);
+            if (sx <= 0 || sy <= 0 || Math.Max(sx, sy) / Math.Min(sx, sy) > 1.15) return false;
+            if (Math.Abs(w.Cd11 * w.Cd12 + w.Cd21 * w.Cd22) / (sx * sy) > 0.1) return false;
+            double diagDeg = w.PixelScale * Math.Sqrt((double)width * width + (double)height * height) / 3600.0;
+            return diagDeg > fovDeg / 3 && diagDeg < fovDeg * 3;
         }
 
         private static Wcs TryMatch(List<DetectedStar> imgStars, List<DetectedStar> allStars, List<RefStar> cat, double ra0, double dec0, int width, int height, SolveOptions opt, bool mirrored)
