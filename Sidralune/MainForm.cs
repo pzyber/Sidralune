@@ -108,10 +108,13 @@ namespace Sidralune
 
         private void LayoutTop()
         {
-            _search.Location = new Point(Math.Max(360, (_top.Width - _search.Width) / 2), 8);
             _night.Location = new Point(_top.Width - _night.Width - 12, 8);
             _live.Location = new Point(_night.Left - _live.Width - 8, 8);
             _clock.Location = new Point(_live.Left - _clock.Width - 12, 15);
+            // centre the search box between the view title and the clock; in a narrow window move it left and narrow it
+            int left = Math.Max(360, _viewTitle.Right + 16), right = _clock.Left - 16;
+            _search.Width = Math.Max(200, Math.Min(360, right - left));
+            _search.Location = new Point(Math.Max(left, Math.Min((_top.Width - _search.Width) / 2, right - _search.Width)), 8);
         }
 
         private void BuildStatusBar()

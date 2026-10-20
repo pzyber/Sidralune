@@ -572,6 +572,33 @@ namespace Sidralune.UI
             };
         }
 
+        /// <summary>
+        /// Toolbars and button rows are flow panels docked to the top or bottom with a fixed height, so in a narrow window
+        /// the controls that do not fit on the row are cut off. Let them wrap onto further rows and grow the panel to fit;
+        /// the designed height stays the minimum, so wide windows look as before.
+        /// </summary>
+        private static void FitFlowHeight(FlowLayoutPanel f)
+        {
+            if (f.AutoSize || (f.Dock != DockStyle.Top && f.Dock != DockStyle.Bottom)) return;
+            if (f.FlowDirection != FlowDirection.LeftToRight && f.FlowDirection != FlowDirection.RightToLeft) return;
+            int min = f.Height;
+            f.WrapContents = true;
+            bool busy = false;
+            Action fit = () =>
+            {
+                if (busy || f.Width <= 0 || f.IsDisposed) return;
+                busy = true;
+                try
+                {
+                    int h = Math.Max(min, f.GetPreferredSize(new Size(f.Width, 0)).Height);
+                    if (f.Height != h) f.Height = h;
+                }
+                finally { busy = false; }
+            };
+            f.Layout += (s, e) => fit();
+            f.SizeChanged += (s, e) => fit();
+        }
+
         private static void HookTreeView(TreeView tv)
         {
             tv.FullRowSelect = false;
@@ -679,6 +706,7 @@ namespace Sidralune.UI
                 c.ForeColor = p.Text;
                 if (c is SplitContainer) { ((SplitContainer)c).BackColor = p.Border; }
                 if (first && !(c is Form)) { DarkNative(c); HookScroll(c); } // scroll bars on scrolling panels
+                if (first && c is FlowLayoutPanel) FitFlowHeight((FlowLayoutPanel)c);
                 else if (!(c is Form)) RedrawAll(c);
             }
             else if (c is TextBox || c is RichTextBox || c is MaskedTextBox)
