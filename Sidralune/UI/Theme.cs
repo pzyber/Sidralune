@@ -789,6 +789,153 @@ namespace Sidralune.UI
             g.ToolbarVisible = false;
             DarkNative(g);
             if (FirstHookTree(g)) DarkNativeTree(g); // the scroll bar is a child of the inner grid view
+            PropertyGridPainter.Attach(g);
+            PropertyGridPainter.ResetBrushes(g);
+            g.Refresh();
+        }
+
+        /// <summary>
+        /// The property grid draws its expand glyphs and its drop-down and ellipsis value buttons with the system theme, and
+        /// caches the selection brush when it first paints. This repaints the glyphs and buttons in the palette and drops
+        /// the cached selection brush when the palette changes.
+        /// </summary>
+        private sealed class PropertyGridPainter : NativeWindow
+        {
+            private const System.Reflection.BindingFlags Any = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<PropertyGrid, object> Attached = new System.Runtime.CompilerServices.ConditionalWeakTable<PropertyGrid, object>();
+            private readonly Control _view;
+
+            private PropertyGridPainter(Control view)
+            {
+                _view = view;
+                if (view.IsHandleCreated) AssignHandle(view.Handle);
+                view.HandleCreated += (s, e) => AssignHandle(view.Handle);
+                view.HandleDestroyed += (s, e) => ReleaseHandle();
+            }
+
+            private static Control View(PropertyGrid g)
+            {
+                foreach (Control k in g.Controls) if (k.GetType().Name == "PropertyGridView") return k;
+                return null;
+            }
+
+            public static void Attach(PropertyGrid g)
+            {
+                object o;
+                if (Attached.TryGetValue(g, out o)) return;
+                var view = View(g);
+                if (view == null) return;
+                Attached.Add(g, new object());
+                new PropertyGridPainter(view);
+                try
+                {
+                    // the value buttons are created on first use; create them now so they can be hooked once
+                    foreach (var name in new[] { "DropDownButton", "DialogButton" })
+                    {
+                        var btn = view.GetType().GetProperty(name, Any).GetValue(view, null) as Button;
+                        if (btn == null) continue;
+                        bool dialog = name == "DialogButton";
+                        new OverPainter(btn, (bg, sz) => PaintValueButton(bg, sz, btn, dialog));
+                    }
+                    // the value drop-down list: draw its items and the border of the pop-up that holds it in the palette
+                    var list = view.GetType().GetProperty("DropDownListBox", Any).GetValue(view, null) as ListBox;
+                    if (list != null)
+                    {
+                        list.DrawItem += (s, e) => PaintListItem(list, e);
+                        // the pop-up already has a border: blend the list's own 3D border (2 px, system colours) into its background
+                        if (list.BorderStyle != BorderStyle.None)
+                            new OverPainter(list, (lg, lsz) => { using (var pen = new Pen(list.BackColor)) for (int i = 0; i < 2; i++) lg.DrawRectangle(pen, i, i, lsz.Width - 1 - 2 * i, lsz.Height - 1 - 2 * i); });
+                        list.VisibleChanged += (s, e) =>
+                        {
+                            var holder = list.Parent;
+                            if (holder == null || !FirstHookTree(holder)) return;
+                            new OverPainter(holder, (hg, hsz) => { using (var pen = new Pen(Current.BorderStrong)) hg.DrawRectangle(pen, 0, 0, hsz.Width - 1, hsz.Height - 1); });
+                        };
+                    }
+                }
+                catch (Exception ex) { Sidralune.Core.Util.Log.Debug("Theme", "property grid buttons: " + ex.Message); }
+            }
+
+            /// <summary>
+            /// The selection brush is created once and kept when SelectedItemWithFocusBackColor changes; dropping it makes
+            /// the grid create it again from the new colour. The value drop-down list is recoloured as well. (The line and background brushes are renewed by their colour
+            /// setters, and the background brush must not be cleared: the grid paints with it without recreating it.)
+            /// </summary>
+            public static void ResetBrushes(PropertyGrid g)
+            {
+                try
+                {
+                    var f = typeof(PropertyGrid).GetField("selectedItemWithFocusBackBrush", Any);
+                    if (f != null) f.SetValue(g, null);
+                    // the value drop-down list lives in a separate pop-up and keeps the colours it was created with
+                    var view = View(g);
+                    var list = view == null ? null : view.GetType().GetProperty("DropDownListBox", Any).GetValue(view, null) as ListBox;
+                    if (list != null)
+                    {
+                        list.BackColor = g.ViewBackColor; list.ForeColor = g.ViewForeColor;
+                        if (list.Parent != null) list.Parent.BackColor = g.ViewBackColor;
+                    }
+                }
+                catch (Exception ex) { Sidralune.Core.Util.Log.Debug("Theme", "property grid brushes: " + ex.Message); }
+            }
+
+            /// <summary>Runs after the grid's own item drawing, which uses system colours for the focus line.</summary>
+            private static void PaintListItem(ListBox list, DrawItemEventArgs e)
+            {
+                if (e.Index < 0 || e.Index >= list.Items.Count) return;
+                var p = Current;
+                bool sel = (e.State & DrawItemState.Selected) != 0;
+                using (var b = new SolidBrush(sel ? p.AccentSoft : list.BackColor)) e.Graphics.FillRectangle(b, e.Bounds);
+                var text = new Rectangle(e.Bounds.X + 2, e.Bounds.Y, e.Bounds.Width - 2, e.Bounds.Height);
+                TextRenderer.DrawText(e.Graphics, list.GetItemText(list.Items[e.Index]), list.Font, text, p.Text, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+            }
+
+            private static void PaintValueButton(Graphics g, Size sz, Button btn, bool dialog)
+            {
+                var p = Current;
+                var r = new Rectangle(0, 0, sz.Width, sz.Height);
+                bool hot = btn.Enabled && r.Contains(btn.PointToClient(Control.MousePosition));
+                bool pressed = hot && (Control.MouseButtons & MouseButtons.Left) != 0;
+                using (var b = new SolidBrush(pressed ? p.SurfacePressed : hot ? p.SurfaceHover : p.SurfaceRaised)) g.FillRectangle(b, r);
+                using (var pen = new Pen(btn.Focused ? p.Accent : p.BorderStrong)) g.DrawRectangle(pen, 0, 0, sz.Width - 1, sz.Height - 1);
+                var col = btn.Enabled ? p.TextDim : p.TextFaint;
+                if (!dialog) { DrawChevron(g, r, false, col); return; }
+                float d = Math.Max(1.5f, sz.Height / 10f), cy = sz.Height / 2f, cx = sz.Width / 2f;
+                using (var b = new SolidBrush(col))
+                    for (int i = -1; i <= 1; i++) g.FillEllipse(b, cx + i * d * 2.2f - d / 2, cy + d * 1.2f - d / 2, d, d);
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                if (m.Msg == 0x000F) { try { using (var g = _view.CreateGraphics()) PaintGlyphs(g); } catch { } }
+                // WM_PRINT / WM_PRINTCLIENT (DrawToBitmap): paint into the supplied device context
+                else if ((m.Msg == 0x0317 || m.Msg == 0x0318) && m.WParam != IntPtr.Zero) { try { using (var g = Graphics.FromHdc(m.WParam)) PaintGlyphs(g); } catch { } }
+            }
+
+            private void PaintGlyphs(Graphics g)
+            {
+                var t = _view.GetType();
+                int rows = (int)t.GetField("visibleRows", Any).GetValue(_view);
+                var fromRow = t.GetMethod("GetGridEntryFromRow", Any);
+                var rect = t.GetMethod("GetRectangle", Any);
+                var p = Current;
+                var grid = (PropertyGrid)_view.Parent;
+                for (int r = 0; r <= rows; r++)
+                {
+                    var entry = fromRow.Invoke(_view, new object[] { r }) as GridItem;
+                    if (entry == null || !entry.Expandable) continue;
+                    var outline = (Rectangle)entry.GetType().GetProperty("OutlineRect", Any).GetValue(entry, null);
+                    if (outline.Width <= 0) continue;
+                    var label = (Rectangle)rect.Invoke(_view, new object[] { r, 1 }); // ROWLABEL
+                    var box = new Rectangle(outline.X, label.Y - 1 + outline.Y, outline.Width, outline.Height);
+                    bool category = entry.GetType().Name == "CategoryGridEntry";
+                    // the glyph sits in the left margin (line colour) for categories and top-level properties
+                    using (var b = new SolidBrush(category || outline.Right <= label.X + outline.Width + 4 ? grid.LineColor : grid.ViewBackColor))
+                        g.FillRectangle(b, box);
+                    DrawTreeGlyph(g, box.X + box.Width / 2f, box.Y + box.Height / 2f, Math.Max(2.5f, box.Width * 0.22f), entry.Expanded, p.TextDim);
+                }
+            }
         }
 
         public static Color Blend(Color a, Color b, double t) =>
