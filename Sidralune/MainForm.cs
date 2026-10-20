@@ -69,7 +69,7 @@ namespace Sidralune
             _rail.SelectedChanged += ShowView;
             RegisterCommands();
 
-            Theme.Changed += (s, e) => ApplyTheme(Theme.Current);
+            Theme.Changed += (s, e) => { _syncingNight = true; _night.Checked = Theme.Current.IsNight; _syncingNight = false; ApplyTheme(Theme.Current); };
             Log.Logged += e => Post(() => AppendLog(e));
             Tasks.Changed += UpdateTaskPill;
             DeviceManager.Instance.DevicesChanged += (s, e) => Post(UpdateDevicePills);
@@ -89,6 +89,18 @@ namespace Sidralune
 
         protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); Theme.DarkTitleBar(this); }
 
+        private bool _syncingNight;
+
+        /// <summary>
+        /// Switch night (red) mode and remember it. The top-bar button and the Settings check box both call this and
+        /// follow Theme.Changed, so they stay in step whichever one (or Ctrl+Shift+N) was used.
+        /// </summary>
+        public void SetNightMode(bool on)
+        {
+            if (AppState.Settings.NightMode != on) { AppState.Settings.NightMode = on; AppState.Save(); }
+            if (Theme.Current.IsNight != on) Theme.SetNightMode(on);
+        }
+
         private void BuildTopBar()
         {
             var logo = new Label { Text = "", Font = Theme.IconFontLarge, AutoSize = true, Location = new Point(28, 13) };
@@ -97,7 +109,7 @@ namespace Sidralune
             _top.Controls.Add(logo); _top.Controls.Add(_title); _top.Controls.Add(_viewTitle);
             _search.Height = 32;
             _search.Click += (s, e) => ShowPalette();
-            _night.CheckedChanged += (s, e) => { AppState.Settings.NightMode = _night.Checked; Theme.SetNightMode(_night.Checked); AppState.Save(); };
+            _night.CheckedChanged += (s, e) => { if (!_syncingNight) SetNightMode(_night.Checked); };
             _live.Height = 32; _live.AutoSizeToText();
             _live.Click += (s, e) => AppState.GoLive();
             _night.Height = 32;
@@ -168,7 +180,7 @@ namespace Sidralune
                 var item = it;
                 Commands.Add(new AppCommand { Title = "Go to " + item.Title, Category = "Navigate", Icon = item.Icon, Run = () => Navigate(item.Key) });
             }
-            Commands.Add(new AppCommand { Title = "Toggle night vision mode", Category = "View", Shortcut = "Ctrl+Shift+N", Icon = Icons.Night, Run = () => { _night.Checked = !_night.Checked; AppState.Settings.NightMode = _night.Checked; Theme.SetNightMode(_night.Checked); } });
+            Commands.Add(new AppCommand { Title = "Toggle night vision mode", Category = "View", Shortcut = "Ctrl+Shift+N", Icon = Icons.Night, Run = () => SetNightMode(!Theme.Current.IsNight) });
             Commands.Add(new AppCommand { Title = "Return to live time", Category = "Time", Icon = Icons.Clock, Run = AppState.GoLive });
             Commands.Add(new AppCommand { Title = "Time: +1 hour", Category = "Time", Run = () => AppState.Step(1 / 24.0) });
             Commands.Add(new AppCommand { Title = "Time: -1 hour", Category = "Time", Run = () => AppState.Step(-1 / 24.0) });

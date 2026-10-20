@@ -268,8 +268,12 @@ namespace Sidralune.Views
         {
             var card = new Card("Appearance") { Dock = DockStyle.Fill };
             var g = new FormGrid(220);
-            var night = g.Row("Night vision (red) mode", new CheckBox { Checked = AppState.Settings.NightMode, Text = "Use deep red colours to protect dark adaptation" });
-            night.CheckedChanged += (s, e) => { AppState.Settings.NightMode = night.Checked; Theme.SetNightMode(night.Checked); AppState.Save(); };
+            var night = g.Row("Night vision (red) mode", new CheckBox { Checked = Theme.Current.IsNight, Text = "Use deep red colours to protect dark adaptation" });
+            bool syncing = false;
+            night.CheckedChanged += (s, e) => { if (!syncing) MainForm.Instance.SetNightMode(night.Checked); };
+            EventHandler sync = (s, e) => { syncing = true; night.Checked = Theme.Current.IsNight; syncing = false; };
+            Theme.Changed += sync;
+            night.Disposed += (s, e) => Theme.Changed -= sync;
             var refr = g.Row("Atmospheric refraction", new CheckBox { Checked = AppState.Settings.UseRefraction, Text = "Apply refraction to horizontal coordinates" });
             refr.CheckedChanged += (s, e) => { AppState.Settings.UseRefraction = refr.Checked; AppState.Save(); };
             g.Full(Ui.Hint("Keyboard: Ctrl+K command palette · Ctrl+1…9 switch workspace · Ctrl+Shift+N night mode · in charts: arrows pan, +/− zoom, N/E/S/W/Z look direction, double-click centre."));
