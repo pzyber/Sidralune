@@ -28,7 +28,7 @@ namespace Sidralune.Scripting
         public void CheckCancel() => Token.ThrowIfCancellationRequested();
 
         public void Print(object o) => Host.Output(Convert.ToString(o, System.Globalization.CultureInfo.InvariantCulture) + Environment.NewLine);
-        public void Print(string format, params object[] args) => Host.Output(string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args) + Environment.NewLine);
+        public void Print(string format, params object[] args) => Host.Output((args == null || args.Length == 0 ? format : string.Format(System.Globalization.CultureInfo.InvariantCulture, format, args)) + Environment.NewLine);
         public void Progress(double fraction, string status = null) => Host.Progress(fraction, status);
 
         /// <summary>Observing site, current (simulated) time and selected object.</summary>

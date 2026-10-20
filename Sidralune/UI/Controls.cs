@@ -22,7 +22,7 @@ namespace Sidralune.UI
         public bool Checked { get { return _checked; } set { _checked = value; Invalidate(); } }
         public DialogResult DialogResult { get; set; }
         public event EventHandler CheckedChanged;
-        private readonly ToolTip _tip = new ToolTip();
+        private readonly ToolTip _tip = Theme.CreateToolTip();
         private string _tooltip;
         public string ToolTipText { get { return _tooltip; } set { _tooltip = value; _tip.SetToolTip(this, value); } }
 
@@ -151,7 +151,8 @@ namespace Sidralune.UI
         public event Action<NavItem> SelectedChanged;
         private int _hover = -1;
         private int ItemH => Math.Max(40, Math.Min(56, (Height - 16 - 12 * 4) / Math.Max(1, Items.Count)));
-        private readonly ToolTip _tip = new ToolTip { InitialDelay = 500 };
+        private readonly ToolTip _tip = CreateTip();
+        private static ToolTip CreateTip() { var t = Theme.CreateToolTip(); t.InitialDelay = 500; return t; }
         public bool Compact { get; set; }
 
         public NavRail()
@@ -686,6 +687,82 @@ namespace Sidralune.UI
                 Text = d.ToString(Format);
             }
             else Text = _value.ToString(Format);
+        }
+    }
+    /// <summary>
+    /// Horizontal slider drawn in the palette (the native TrackBar is painted by Windows in light colours).
+    /// Drag, click, mouse wheel, arrow keys, Page Up/Down, Home and End change the value.
+    /// </summary>
+    public class Slider : Control, IThemed
+    {
+        private int _min, _max = 100, _value;
+        private bool _drag;
+        public event EventHandler ValueChanged;
+
+        public Slider()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.Selectable, true);
+            Height = 30; TabStop = true;
+        }
+
+        public int Minimum { get { return _min; } set { _min = value; if (_max < _min) _max = _min; Value = _value; Invalidate(); } }
+        public int Maximum { get { return _max; } set { _max = Math.Max(value, _min); Value = _value; Invalidate(); } }
+        public int SmallChange { get; set; } = 1;
+        public int LargeChange { get; set; } = 10;
+        /// <summary>Accepted for compatibility with TrackBar; ticks are not drawn.</summary>
+        public TickStyle TickStyle { get; set; }
+
+        public int Value
+        {
+            get { return _value; }
+            set
+            {
+                int v = Math.Max(_min, Math.Min(_max, value));
+                if (v == _value) return;
+                _value = v; Invalidate();
+                ValueChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void ApplyTheme(Palette p) => Invalidate();
+
+        private int Thumb => (int)Math.Round(14 * DeviceDpi / 96.0);
+        private Rectangle Track => new Rectangle(Thumb / 2 + 2, Height / 2 - 2, Math.Max(1, Width - Thumb - 4), 4);
+        private int XFor(int v) { var t = Track; return _max == _min ? t.X : t.X + (int)Math.Round((double)(v - _min) / (_max - _min) * t.Width); }
+        private int ValueAt(int x) { var t = Track; return _min + (int)Math.Round((double)(x - t.X) / Math.Max(1, t.Width) * (_max - _min)); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var p = Theme.Current; var g = e.Graphics;
+            g.Clear(Parent != null ? Parent.BackColor : p.Background);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var t = Track; int x = XFor(_value);
+            using (var b = new SolidBrush(p.SurfacePressed)) g.FillRectangle(b, t);
+            using (var b = new SolidBrush(Enabled ? p.Accent : p.TextFaint)) g.FillRectangle(b, t.X, t.Y, x - t.X, t.Height);
+            int s = Thumb;
+            using (var b = new SolidBrush(Enabled ? p.Accent : p.TextFaint)) g.FillEllipse(b, x - s / 2, Height / 2 - s / 2, s, s);
+            using (var pen = new Pen(Focused ? p.Focus : p.Surface, Focused ? 2f : 1.5f)) g.DrawEllipse(pen, x - s / 2, Height / 2 - s / 2, s, s);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e) { Focus(); if (e.Button == MouseButtons.Left) { _drag = true; Value = ValueAt(e.X); } base.OnMouseDown(e); }
+        protected override void OnMouseMove(MouseEventArgs e) { if (_drag) Value = ValueAt(e.X); base.OnMouseMove(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { _drag = false; base.OnMouseUp(e); }
+        protected override void OnMouseWheel(MouseEventArgs e) { Value += Math.Sign(e.Delta) * SmallChange; base.OnMouseWheel(e); }
+        protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
+        protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
+        protected override bool IsInputKey(Keys k) => k == Keys.Left || k == Keys.Right || k == Keys.Up || k == Keys.Down || base.IsInputKey(k);
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Left: case Keys.Down: Value -= SmallChange; break;
+                case Keys.Right: case Keys.Up: Value += SmallChange; break;
+                case Keys.PageDown: Value -= LargeChange; break;
+                case Keys.PageUp: Value += LargeChange; break;
+                case Keys.Home: Value = _min; break;
+                case Keys.End: Value = _max; break;
+            }
+            base.OnKeyDown(e);
         }
     }
 }

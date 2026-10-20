@@ -305,11 +305,11 @@ namespace Sidralune.Views
             _plot.Clear();
             if (_twilight == null) return;
             var site = AppState.Site;
-            Action<AstroTime?, AstroTime?, int> band = (a, b, alpha) => { if (a.HasValue && b.HasValue) _plot.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b.Value.ToDateTimeUtc()).ToOADate(), Color = Theme.WithAlpha(Theme.Current.Accent, alpha) }); };
+            Action<AstroTime?, AstroTime?, int> band = (a, b, alpha) => { if (a.HasValue && b.HasValue) _plot.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b.Value.ToDateTimeUtc()).ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) }); };
             band(_twilight.SunSet, _twilight.SunRise, 16); band(_twilight.NauticalDusk, _twilight.NauticalDawn, 16); band(_twilight.AstronomicalDusk, _twilight.AstronomicalDawn, 22);
             var sel = _grid.SelectedRows.Cast<DataGridViewRow>().Select(r => (ListEntry)r.Tag).Take(8).ToList();
             if (sel.Count == 0) sel = _grid.Rows.Cast<DataGridViewRow>().Take(5).Select(r => (ListEntry)r.Tag).ToList();
-            var moonS = _plot.AddSeries("Moon", SeriesStyle.Line, Theme.Current.Moon);
+            var moonS = _plot.AddSeries("Moon", SeriesStyle.Line, pal => pal.Moon);
             moonS.DashDot = true;
             for (int i = 0; i <= 96; i++)
             {
@@ -329,7 +329,7 @@ namespace Sidralune.Views
             }
             _plot.FixedYMin = 0; _plot.FixedYMax = 90;
             _plot.Markers.Add(new PlotMarker { X = site.ToLocal(AppState.Now.ToDateTimeUtc()).ToOADate(), Label = "now" });
-            _plot.Markers.Add(new PlotMarker { X = 30, Horizontal = true, Label = "30°", Color = Theme.Current.TextFaint });
+            _plot.Markers.Add(new PlotMarker { X = 30, Horizontal = true, Label = "30°", ThemeColor = pal => pal.TextFaint });
             _plot.Invalidate();
         }
 

@@ -48,7 +48,8 @@ namespace Sidralune.UI
             TabStop = true;
         }
 
-        public void ApplyTheme(Palette p) => Invalidate();
+        public void ApplyTheme(Palette p) { if (_image != null && _bitmapNight != p.IsNight) Rebuild(); else Invalidate(); }
+        private bool _bitmapNight;
 
         public AstroImage Image => _image;
         public double Zoom => _zoom;
@@ -81,7 +82,7 @@ namespace Sidralune.UI
             int version = ++_renderVersion;
             var stretch = _stretch;
             var custom = CustomStretch;
-            bool inv = Invert, fc = FalseColor;
+            bool inv = Invert, fc = FalseColor, night = Theme.Current.IsNight;
             Task.Run(() =>
             {
                 HistogramTransform[] t = null;
@@ -103,6 +104,7 @@ namespace Sidralune.UI
                     return r;
                 };
                 Bitmap bmp = fc && img.Channels == 1 ? FalseColorBitmap(img, tf) : BitmapIO.ToBitmap(img, tf);
+                if (night) NightTint(bmp);
                 if (IsDisposed) { bmp.Dispose(); return; }
                 try
                 {
@@ -112,11 +114,34 @@ namespace Sidralune.UI
                         _bitmap?.Dispose();
                         _bitmap = bmp;
                         _stf = t;
+                        _bitmapNight = night;
                         Invalidate();
                     }));
                 }
                 catch { bmp.Dispose(); }
             });
+        }
+
+        /// <summary>Night vision: show brightness in red only, so images do not spoil dark adaptation.</summary>
+        private static unsafe void NightTint(Bitmap bmp)
+        {
+            var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            try
+            {
+                int h = bmp.Height, w = bmp.Width, stride = data.Stride;
+                byte* scan0 = (byte*)data.Scan0;
+                System.Threading.Tasks.Parallel.For(0, h, y =>
+                {
+                    byte* row = scan0 + (long)y * stride;
+                    for (int x = 0; x < w; x++)
+                    {
+                        byte* px = row + x * 4; // B, G, R, A
+                        int lum = (px[0] * 29 + px[1] * 150 + px[2] * 77) >> 8;
+                        px[2] = (byte)lum; px[1] = (byte)(lum * 6 / 100); px[0] = (byte)(lum * 4 / 100);
+                    }
+                });
+            }
+            finally { bmp.UnlockBits(data); }
         }
 
         private static unsafe Bitmap FalseColorBitmap(AstroImage img, Func<int, float, float> tf)

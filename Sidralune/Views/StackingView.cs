@@ -23,9 +23,9 @@ namespace Sidralune.Views
         private AstroImage _resultBase;
         private bool _markComet;
         private CalibrationSet _cal;
-        private readonly TrackBar _sat = new TrackBar { Minimum = 0, Maximum = 300, Value = 100, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
-        private readonly TrackBar _black = new TrackBar { Minimum = 0, Maximum = 200, Value = 0, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
-        private readonly TrackBar _mid = new TrackBar { Minimum = 1, Maximum = 99, Value = 50, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
+        private readonly Slider _sat = new Slider { Minimum = 0, Maximum = 300, Value = 100, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
+        private readonly Slider _black = new Slider { Minimum = 0, Maximum = 200, Value = 0, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
+        private readonly Slider _mid = new Slider { Minimum = 1, Maximum = 99, Value = 50, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
 
         public StackingView()
         {

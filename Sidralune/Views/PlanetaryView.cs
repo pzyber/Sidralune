@@ -53,7 +53,7 @@ namespace Sidralune.Views
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a SER/AVI video or an image sequence" };
-            var scrub = new TrackBar { Dock = DockStyle.Bottom, Height = 30, TickStyle = TickStyle.None };
+            var scrub = new Slider { Dock = DockStyle.Bottom, Height = 30, TickStyle = TickStyle.None };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 150, Title = "Frame quality", XLabel = "frame", ShowLegend = true };
             var opt = new PippOptions { OutputFolder = Path.Combine(AppState.Settings.ImageFolder, "Planetary") };
             var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(opt, "Pre-process"), PropertySort = PropertySort.NoSort };
@@ -83,7 +83,7 @@ namespace Sidralune.Views
                 {
                     plot.Clear();
                     var all = plot.AddSeries("quality", SeriesStyle.Scatter);
-                    var kept = plot.AddSeries("kept", SeriesStyle.Scatter, Theme.Current.Success);
+                    var kept = plot.AddSeries("kept", SeriesStyle.Scatter, pal => pal.Success);
                     foreach (var f in res.Frames) { if (f.Rejected) all.Add(f.Index, f.Quality); else kept.Add(f.Index, f.Quality); }
                     plot.Invalidate();
                     MainForm.Instance.Toast("Pre-process: " + res.Summary, Icons.Check, Theme.Current.Success);
@@ -181,8 +181,8 @@ namespace Sidralune.Views
 
         private ImageViewer _sharpViewer;
         private AstroImage _sharpSource;
-        private readonly TrackBar[] _layers = new TrackBar[6];
-        private TrackBar _denoise;
+        private readonly Slider[] _layers = new Slider[6];
+        private Slider _denoise;
         private System.Windows.Forms.Timer _sharpDebounce;
 
         private void SetSharpenImage(AstroImage img) { _sharpSource = img; _sharpViewer.SetImage(img); UpdateSharpen(); }
@@ -195,11 +195,11 @@ namespace Sidralune.Views
             var g = new FormGrid(100);
             for (int i = 0; i < 6; i++)
             {
-                _layers[i] = new TrackBar { Minimum = -50, Maximum = 400, Value = i == 0 ? 120 : i == 1 ? 60 : i == 2 ? 20 : 0, TickStyle = TickStyle.None };
+                _layers[i] = new Slider { Minimum = -50, Maximum = 400, Value = i == 0 ? 120 : i == 1 ? 60 : i == 2 ? 20 : 0, TickStyle = TickStyle.None };
                 _layers[i].ValueChanged += (s, e) => { _sharpDebounce.Stop(); _sharpDebounce.Start(); };
                 g.Row("Layer " + (i + 1), _layers[i]);
             }
-            _denoise = new TrackBar { Minimum = 0, Maximum = 300, Value = 60, TickStyle = TickStyle.None };
+            _denoise = new Slider { Minimum = 0, Maximum = 300, Value = 60, TickStyle = TickStyle.None };
             _denoise.ValueChanged += (s, e) => { _sharpDebounce.Stop(); _sharpDebounce.Start(); };
             g.Row("Denoise", _denoise);
             _sharpDebounce = new System.Windows.Forms.Timer { Interval = 250 };

@@ -227,7 +227,7 @@ namespace Sidralune.Views
             foreach (var kv in _phot.Curves)
             {
                 var s = _measPlot.AddSeries(kv.Key, SeriesStyle.Scatter);
-                var c = _measPlot.AddSeries(kv.Key + " check", SeriesStyle.Scatter, Theme.Current.TextDim);
+                var c = _measPlot.AddSeries(kv.Key + " check", SeriesStyle.Scatter, pal => pal.TextDim);
                 foreach (var p in kv.Value.Where(p => !p.Rejected))
                 {
                     s.Add(p.Jd, p.Mag, p.MagError);
@@ -331,7 +331,7 @@ namespace Sidralune.Views
             _curvePlot.Clear();
             var s = _curvePlot.AddSeries(_curveName, SeriesStyle.Scatter);
             for (int i = 0; i < _t.Count; i++) s.Add(_t[i], _y[i], _e[i] > 0 ? _e[i] : double.NaN);
-            if (!double.IsNaN(_selX0)) _curvePlot.Bands.Add(new PlotBand { X0 = _selX0, X1 = _selX1, Color = Theme.WithAlpha(Theme.Current.Accent, 50), Label = "selection" });
+            if (!double.IsNaN(_selX0)) _curvePlot.Bands.Add(new PlotBand { X0 = _selX0, X1 = _selX1, ThemeColor = pal => Theme.WithAlpha(pal.Accent, 50), Label = "selection" });
             _curvePlot.Invalidate();
         }
 
@@ -438,12 +438,12 @@ namespace Sidralune.Views
             _phasePlot.Clear();
             _phasePlot.Title = string.Format("Phase folded at P = {0:0.000000} d", _period);
             var s = _phasePlot.AddSeries("data", SeriesStyle.Scatter);
-            var s2 = _phasePlot.AddSeries("repeat", SeriesStyle.Scatter, Theme.Current.TextDim);
+            var s2 = _phasePlot.AddSeries("repeat", SeriesStyle.Scatter, pal => pal.TextDim);
             for (int i = 0; i < ph.Length; i++) { s.Add(ph[i], y[i]); s2.Add(ph[i] + 1, y[i]); }
             List<double> bt, by, be;
             var order = Enumerable.Range(0, ph.Length).OrderBy(i => ph[i]).ToList();
             LightCurveTools.Bin(order.Select(i => ph[i]).ToList(), order.Select(i => y[i]).ToList(), 0.02, out bt, out by, out be);
-            var b = _phasePlot.AddSeries("binned", SeriesStyle.Line, Theme.Current.Warning);
+            var b = _phasePlot.AddSeries("binned", SeriesStyle.Line, pal => pal.Warning);
             for (int i = 0; i < bt.Count; i++) b.Add(bt[i], by[i]);
             _phasePlot.Invalidate();
         }
@@ -601,7 +601,7 @@ namespace Sidralune.Views
             for (int i = 0; i < _t.Count; i++) s.Add(hrs(_t[i]), f[i]);
             if (m != null)
             {
-                var ms = _tfPlot.AddSeries("model", SeriesStyle.Line, Theme.Current.Warning);
+                var ms = _tfPlot.AddSeries("model", SeriesStyle.Line, pal => pal.Warning);
                 ms.Width = 2.2f;
                 double span = Math.Max(m.Duration * 1.6, 0.1);
                 for (double dt = -span; dt <= span; dt += span / 200) ms.Add(dt * 24, m.Flux(m.T0 + dt));

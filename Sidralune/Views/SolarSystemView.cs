@@ -471,12 +471,12 @@ namespace Sidralune.Views
                 var p = Theme.Current; var g = e.Graphics;
                 g.Clear(p.Surface); g.SmoothingMode = SmoothingMode.AntiAlias;
                 float cx = Width / 2f, cy = Height / 2f, r = Math.Max(6, Width / 70f);
-                using (var b = new SolidBrush(Color.FromArgb(220, 200, 170))) g.FillEllipse(b, cx - r, cy - r * 0.93f, 2 * r, 2 * r * 0.93f);
+                using (var b = new SolidBrush(p.IsNight ? p.Planet : Color.FromArgb(220, 200, 170))) g.FillEllipse(b, cx - r, cy - r * 0.93f, 2 * r, 2 * r * 0.93f);
                 TextRenderer.DrawText(g, "E", Theme.SmallFont, new Point(4, (int)cy - 8), p.TextDim);
                 TextRenderer.DrawText(g, "W", Theme.SmallFont, new Point(Width - 16, (int)cy - 8), p.TextDim);
                 TextRenderer.DrawText(g, "Jupiter's Galilean moons (as seen in binoculars: north up, west right)", Theme.SmallFont, new Point(4, 4), p.TextDim);
                 if (Moons == null) return;
-                var cols = new[] { Color.Gold, Color.LightSkyBlue, Color.Silver, Color.SandyBrown };
+                var cols = p.IsNight ? new[] { p.Series[0], p.Series[2], p.Series[4], p.Series[1] } : new[] { Color.Gold, Color.LightSkyBlue, Color.Silver, Color.SandyBrown };
                 for (int i = 0; i < Moons.Length; i++)
                 {
                     var m = Moons[i];

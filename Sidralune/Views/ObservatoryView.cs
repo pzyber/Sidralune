@@ -448,9 +448,22 @@ namespace Sidralune.Views
             _seqTree = new TreeView { Dock = DockStyle.Fill, HideSelection = false, FullRowSelect = true, ItemHeight = 26 };
             _seqProps = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, PropertySort = PropertySort.NoSort };
             var log = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Bottom, Height = 140, ScrollBars = ScrollBars.Vertical, Font = Theme.MonoFont };
-            var triggers = new CheckedListBox { Dock = DockStyle.Bottom, Height = 110, CheckOnClick = true };
-            foreach (var t in _sequencer.Triggers) triggers.Items.Add(t.Title, t.Enabled);
-            triggers.ItemCheck += (s, e) => _sequencer.Triggers[e.Index].Enabled = e.NewValue == CheckState.Checked;
+            // owner-drawn check list (the native CheckedListBox draws its boxes in system colours)
+            var triggers = new ListBox { Dock = DockStyle.Bottom, Height = 110, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 24 };
+            foreach (var t in _sequencer.Triggers) triggers.Items.Add(t);
+            triggers.DrawItem += (s, e) =>
+            {
+                if (e.Index < 0) return;
+                var p = Theme.Current;
+                var t = _sequencer.Triggers[e.Index];
+                using (var b = new SolidBrush((e.State & DrawItemState.Selected) != 0 ? p.AccentSoft : triggers.BackColor)) e.Graphics.FillRectangle(b, e.Bounds);
+                int size = (int)Math.Round(13 * triggers.DeviceDpi / 96.0);
+                Theme.DrawCheckGlyph(e.Graphics, new Rectangle(e.Bounds.X + 4, e.Bounds.Y + (e.Bounds.Height - size) / 2, size - 1, size - 1), t.Enabled, true);
+                TextRenderer.DrawText(e.Graphics, t.Title, triggers.Font, new Rectangle(e.Bounds.X + size + 10, e.Bounds.Y, e.Bounds.Width - size - 10, e.Bounds.Height), p.Text, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+            };
+            Action<int> toggle = i => { if (i >= 0 && i < _sequencer.Triggers.Count) { _sequencer.Triggers[i].Enabled = !_sequencer.Triggers[i].Enabled; triggers.Invalidate(); } };
+            triggers.MouseClick += (s, e) => toggle(triggers.IndexFromPoint(e.Location));
+            triggers.KeyDown += (s, e) => { if (e.KeyCode == Keys.Space) { toggle(triggers.SelectedIndex); e.Handled = true; } };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
             var add = new FlatButton("Add", Icons.Add); add.AutoSizeToText();
             var addMenu = new ContextMenuStrip { Renderer = new DarkToolStripRenderer() };
