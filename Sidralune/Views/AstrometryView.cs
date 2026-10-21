@@ -24,7 +24,8 @@ namespace Sidralune.Views
         private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open an image to plate solve (FITS headers with RA/DEC, FOCALLEN and XPIXSZ speed things up)" };
         private AstroImage _img;
         private SolveResult _solve;
-        private List<Tuple<string, double, double, Color>> _annotations = new List<Tuple<string, double, double, Color>>();
+        // colours are palette roles, resolved when painting so the annotations follow day/night switches
+        private List<Tuple<string, double, double, Func<Palette, Color>>> _annotations = new List<Tuple<string, double, double, Func<Palette, Color>>>();
         private readonly TextBox _result = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Bottom, Height = 150, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
         private readonly SkyChart _frameChart = new SkyChart { Dock = DockStyle.Fill, Mode = ChartMode.Atlas, FovDeg = 6 };
         private SelectedObject _frameTarget;
@@ -171,7 +172,7 @@ namespace Sidralune.Views
 
         private void BuildAnnotations(Wcs w)
         {
-            var list = new List<Tuple<string, double, double, Color>>();
+            var list = new List<Tuple<string, double, double, Func<Palette, Color>>>();
             double cra, cdec; w.Centre(out cra, out cdec);
             double r = Math.Sqrt(w.FieldWidthDeg * w.FieldWidthDeg + w.FieldHeightDeg * w.FieldHeightDeg) / 2 * AstroMath.Deg2Rad;
             var dsos = new List<DeepSkyObject>();
@@ -179,14 +180,14 @@ namespace Sidralune.Views
             foreach (var d in dsos)
             {
                 double x, y;
-                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(d.DisplayName, x, y, Theme.Current.Nebula));
+                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(d.DisplayName, x, y, (Func<Palette, Color>)(pal => pal.Nebula)));
             }
             var stars = new List<Star>();
             CatalogManager.Instance.Stars.Cone(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, r, 12, stars);
             foreach (var s in stars.Where(s => s.Name != null || s.Bayer != null).Take(60))
             {
                 double x, y;
-                if (w.WorldToPixel(s.RaHours * 15, s.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(s.DisplayName, x, y, Theme.Current.Warning));
+                if (w.WorldToPixel(s.RaHours * 15, s.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(s.DisplayName, x, y, (Func<Palette, Color>)(pal => pal.Warning)));
             }
             var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(_img.DateObs ?? DateTime.UtcNow));
             foreach (var mb in Core.MinorBodies.MinorBodyStore.Instance.All)
@@ -196,7 +197,7 @@ namespace Sidralune.Views
                     var p = Core.MinorBodies.MinorBodyStore.Place(ctx, mb);
                     double x, y;
                     if (w.WorldToPixel(p.Astrometric.RaHours * 15, p.Astrometric.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight)
-                        list.Add(Tuple.Create(mb.DisplayName + string.Format(" ({0:0.0})", p.Magnitude), x, y, mb.IsComet ? Theme.Current.Comet : Theme.Current.Asteroid));
+                        list.Add(Tuple.Create(mb.DisplayName + string.Format(" ({0:0.0})", p.Magnitude), x, y, mb.IsComet ? (Func<Palette, Color>)(pal => pal.Comet) : pal => pal.Asteroid));
                 }
                 catch { }
             }
@@ -213,8 +214,9 @@ namespace Sidralune.Views
             foreach (var a in _annotations)
             {
                 var p = map(a.Item2, a.Item3);
-                using (var pen = new Pen(a.Item4, 1.5f)) { g.DrawLine(pen, p.X - 14, p.Y, p.X - 5, p.Y); g.DrawLine(pen, p.X, p.Y - 14, p.X, p.Y - 5); }
-                TextRenderer.DrawText(g, a.Item1, Theme.UiFont, new Point((int)p.X + 4, (int)p.Y - 20), a.Item4);
+                var col = a.Item4(Theme.Current);
+                using (var pen = new Pen(col, 1.5f)) { g.DrawLine(pen, p.X - 14, p.Y, p.X - 5, p.Y); g.DrawLine(pen, p.X, p.Y - 14, p.X, p.Y - 5); }
+                TextRenderer.DrawText(g, a.Item1, Theme.UiFont, new Point((int)p.X + 4, (int)p.Y - 20), col);
             }
         }
 
