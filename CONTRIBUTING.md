@@ -146,6 +146,7 @@ The library and test projects (`Sidralune.Core`, `Sidralune.Imaging`, `Sidralune
 - A view that implements `ICommandSource` adds its actions to the command palette through `GetCommands()`. Every important action should be reachable there.
 - Long work runs through `Tasks.Run(name, work, onDone, onError)`. The work runs on a background thread, shows progress in the status bar and can be cancelled; `onDone` and `onError` run on the UI thread. Use `Tasks.Report(task, fraction, status)` for progress and `task.Cts.Token` for cancellation. Use `MainForm.Instance.Post(action)` to update controls from other threads.
 - Notifications use `MainForm.Instance.Toast(text, icon, colour)`. Avoid message boxes except for confirmations.
+- The camera takes one exposure at a time. In `ObservatoryView`, anything new that exposes must check `CanUseCamera()`, start through `RunCameraJob(name, work)` (or the sequence or manual-capture paths), and add its button to `_cameraButtons`, so it is disabled while another job uses the camera and **Stop** can end it.
 - `AppState` holds the active site, equipment, simulated time and the selected object. Listen to its events (`TimeChanged`, `SiteChanged`, `ObjectSelected`) rather than polling.
 - Option classes in the engines use public fields. `GridAdapter` exposes them to a `PropertyGrid`, so a new option appears in the interface without extra code.
 
