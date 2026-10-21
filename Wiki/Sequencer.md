@@ -106,6 +106,8 @@ The sequencing engine also provides **Autofocus after 1.5 °C change** (temperat
 
 Click **Run sequence**. The sequence runs in the background: you can keep working in other workspaces, and the task pill in the status bar shows its progress. The tree marks each instruction's status and the log records every step with its time.
 
+Each frame the sequence takes is shown in the [Imaging tab](Observatory-and-devices#camera) as it arrives, with its star count, HFR, FWHM and file name. While the sequence runs, the Imaging tab's **Start** and **Loop** buttons are disabled so that the two cannot fight over the camera. If a capture or preview loop is already running in the Imaging tab, stop it first; **Run sequence** will not start until it has finished.
+
 Click **Stop**, or run the `Observatory: abort all` command, to stop. The current exposure is aborted and the mount stops slewing; it does not park automatically, so park it yourself if you are ending the night.
 
 Frames are saved with the [file name pattern](Observatory-and-devices#file-names) from the Imaging tab, under the image folder from **Settings → Observer & accounts**.

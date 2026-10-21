@@ -47,7 +47,7 @@ The rail on the left lists the workspaces, grouped by task:
 | Science | Astrometry, Photometry, Spectra, Solar sys., Radio |
 | Tools | Databases, Scripts, Settings |
 
-Ctrl+1 to Ctrl+9 open the first nine workspaces (Tonight to Photometry) in that order. When the window is short, the rail shrinks its buttons to fit and hides the labels.
+Ctrl+1 to Ctrl+9 open the first nine workspaces (Tonight to Photometry) in that order. When the window is short, the rail shrinks its buttons to fit and shows icons only; hover over an icon to see the workspace name. Every workspace stays reachable at the smallest window size.
 
 Each workspace is created the first time you open it, so start-up stays fast.
 
@@ -56,7 +56,7 @@ Each workspace is created the first time you open it, so start-up stays fast.
 From left to right:
 
 - The Sidralune logo and the name of the current workspace.
-- The search box. Clicking it opens the [command palette](#command-palette).
+- The search box. Clicking it opens the [command palette](#command-palette). In a narrow window it moves left and gets narrower so it never covers the clock.
 - The clock: site name, local date and time, and local sidereal time (LST). It is grey when it shows the present and amber when you are looking at another time.
 - **Live**, shown only when you are away from the present. It returns to the current time.
 - The moon button, which switches [night vision mode](#night-vision-mode).
@@ -93,8 +93,10 @@ Clicking an object in a chart, a grid row, or a search result makes it the selec
 - **Device pills** for the telescope, camera, focuser, filter wheel, guider and dome. A faint pill means no device of that kind is configured, green means connected and red means configured but disconnected. The pill text also shows extra state: slewing, parked or tracking for the mount, the sensor temperature for the camera, and the guiding state for the guider. Click a pill to open the Observatory.
 - **Data pill**: which ephemeris and catalogues are loaded, for example "DE440 · HYG (119627 stars) · OpenNGC (13380 objects)". Click it to open **Settings → Data**.
 - **Task pill**: the background task that is running, with its progress and status. "(+2)" means two more tasks are queued or running.
-- The latest warning or status message.
+- The latest warning or status message, on the right.
 - **Log**: shows or hides the log panel, which lists informational messages, warnings and errors with their source. The same messages are written to `%LOCALAPPDATA%\Sidralune\Logs`.
+
+When the window is too narrow for everything, the data pill and the task pill are shortened first, then the message; shortened texts end in "…". Hover over a shortened item to see its full text.
 
 ## Notifications
 
@@ -108,7 +110,9 @@ Anything that takes more than a moment (loading catalogues, stacking, plate solv
 
 ## Night vision mode
 
-Night vision mode replaces every colour with deep reds on black, so the screen does not ruin your dark adaptation at the telescope. Switch it with the moon button, **Ctrl+Shift+N**, **Settings → Appearance**, or the `Toggle night vision mode` command. The choice is remembered.
+Night vision mode replaces every colour with deep reds on black, so the screen does not ruin your dark adaptation at the telescope. Switch it with the moon button, **Ctrl+Shift+N**, **Settings → Appearance**, or the `Toggle night vision mode` command. The moon button and the setting always show the same state, and the choice is remembered.
+
+Everything follows the switch straight away, including scroll bars, drop-down lists, selected text, plots, chart overlays and plate-solve labels. Images (camera frames, stacks, plate-solving images) are shown as their brightness in red, at the same brightness as in the dark theme.
 
 For the best result, also turn down your screen's brightness: a red screen at full brightness still affects dark adaptation.
 
@@ -117,6 +121,8 @@ For the best result, also turn down your screen's brightness: a red screen at fu
 | Control | Behaviour |
 |---|---|
 | Tabs | Most workspaces are split into tabs across the top, in the order you would normally use them |
+| Toolbars | Buttons above a workspace. In a narrow window they wrap onto a second row instead of being cut off |
+| Side panels | Panels beside charts and images scroll when the window is too short for their contents |
 | Cards | Panels with a title, grouping related settings. Long cards scroll |
 | Collapsible sections | In the Process workspace, click a section heading to expand or collapse it |
 | Number boxes | Type a value, use the arrows, or scroll with the mouse wheel |

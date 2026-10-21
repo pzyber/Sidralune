@@ -100,6 +100,9 @@ Each of the three frames must plate solve. Point at a part of the sky away from 
 **Solving fails.**
 See [When solving fails](Astrometry-and-framing#when-solving-fails). The most common causes are a wrong scale (focal length or pixel size), too few stars, and using the local catalogue for a narrow field.
 
+**A blind solve takes minutes.**
+Without hints the solver searches the whole sky. Enter a rough **Hint RA** / **Hint Dec** (a few degrees off is fine) or the **Scale**, and it usually solves in about a second.
+
 **ASTAP is not found.**
 Install ASTAP in its default folder (`C:\Program Files\astap`) together with one of its star databases.
 

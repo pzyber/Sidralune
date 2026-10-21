@@ -186,6 +186,10 @@ namespace Sidralune.Views
 
         private ImageViewer _viewer;
         private CancellationTokenSource _captureCts;
+        // the camera takes one exposure at a time: manual capture (Imaging) and the sequencer must not run together
+        private BackgroundTask _manualTask, _sequenceTask;
+        private bool ManualCapturing => _manualTask != null && !_manualTask.Done;
+        private bool SequenceActive => (_sequenceTask != null && !_sequenceTask.Done) || _sequencer.Running;
 
         private Control BuildImaging()
         {
@@ -214,6 +218,9 @@ namespace Sidralune.Views
             var stop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; stop.AutoSizeToText();
             btns.Controls.AddRange(new Control[] { start, loop, stop });
             cam.Full(btns);
+            var busyNote = new Label { Tag = "dim", AutoSize = true, Visible = false, Text = "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." };
+            busyNote.MaximumSize = new Size(270, 0);
+            cam.Full(busyNote);
             var camStatus = new Label { Tag = "dim", AutoSize = false, Height = 60 };
             cam.Full(camStatus);
             var camCard = new Collapsible("Camera", cam);
@@ -231,6 +238,7 @@ namespace Sidralune.Views
             Action<bool> run = previewLoop =>
             {
                 if (Dm.Camera == null) { MainForm.Instance.Toast("No camera connected", Icons.Warning); return; }
+                if (SequenceActive) { MainForm.Instance.Toast("A sequence is running and using the camera", Icons.Info); return; }
                 _captureCts?.Cancel();
                 _captureCts = new CancellationTokenSource();
                 var ct = _captureCts.Token;
@@ -243,22 +251,35 @@ namespace Sidralune.Views
                     Light = (string)type.SelectedItem != "DARK" && (string)type.SelectedItem != "BIAS", Save = save.Checked && !previewLoop
                 };
                 int n = previewLoop ? int.MaxValue : (int)count.Value;
-                Tasks.Run(previewLoop ? "Preview loop" : "Capturing " + n + " frame(s)", t =>
+                _manualTask = Tasks.Run(previewLoop ? "Preview loop" : "Capturing " + n + " frame(s)", t =>
                 {
                     for (int i = 0; i < n && !ct.IsCancellationRequested; i++)
                     {
                         Tasks.Report(t, previewLoop ? double.NaN : (double)i / n, (i + 1) + "/" + (previewLoop ? "∞" : n.ToString()));
-                        var res = _capture.Expose(req, ct).GetAwaiter().GetResult();
-                        MainForm.Instance.Post(() =>
-                        {
-                            _viewer.SetImage(res.Image, _viewer.Image == null);
-                            camStatus.Text = string.Format("{0} stars · HFR {1:0.00} px · FWHM {2:0.00} px · median {3:0}{4}", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535, res.Path != null ? "\r\nSaved " + System.IO.Path.GetFileName(res.Path) : "");
-                        });
+                        _capture.Expose(req, ct).GetAwaiter().GetResult(); // shown through ImageCaptured below
                     }
                 });
             };
             start.Click += (s, e) => run(false);
             loop.Click += (s, e) => run(true);
+            // every frame the camera delivers (manual, sequence, autofocus) is shown here
+            _capture.ImageCaptured += res =>
+            {
+                bool fromSequence = SequenceActive; // decided now: the sequence may have finished by the time the UI updates
+                MainForm.Instance.Post(() =>
+                {
+                    _viewer.SetImage(res.Image, _viewer.Image == null);
+                    camStatus.Text = string.Format("{0}{1} stars · HFR {2:0.00} px · FWHM {3:0.00} px · median {4:0}{5}", fromSequence ? "Sequence · " : "", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535, res.Path != null ? "\r\nSaved " + System.IO.Path.GetFileName(res.Path) : "");
+                });
+            };
+            Action syncButtons = () =>
+            {
+                bool seq = SequenceActive;
+                start.Enabled = loop.Enabled = !seq;
+                busyNote.Visible = seq;
+            };
+            Tasks.Changed += syncButtons;
+            _sequencer.Changed += () => MainForm.Instance.Post(syncButtons);
             stop.Click += (s, e) => { _captureCts?.Cancel(); _sequencer.Stop(); };
 
             // mount pad
@@ -491,8 +512,10 @@ namespace Sidralune.Views
             var run = new FlatButton("Run sequence", Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
+                if (SequenceActive) return;
+                if (ManualCapturing) { MainForm.Instance.Toast("Stop the capture or preview loop in Imaging first", Icons.Info); return; }
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
-                Tasks.Run("Sequence", t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
+                _sequenceTask = Tasks.Run("Sequence", t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
             };
             bar.Controls.Add(run);
             btn("Stop", Icons.Stop, () => _sequencer.Stop());

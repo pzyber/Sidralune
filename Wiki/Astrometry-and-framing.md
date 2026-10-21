@@ -24,7 +24,8 @@ Plate solving matches the pattern of stars in your image against a star catalogu
 2. Catalogue stars around the hint position are projected onto a tangent plane.
 3. Triangles are formed from neighbouring stars in both sets. The shapes of triangles do not depend on scale, rotation or position, so matching triangles reveal matching stars even when the scale and orientation are unknown.
 4. The most consistent set of matches gives a first transformation, which is then refined iteratively using all matched stars and fitted as TAN-SIP (a gnomonic projection plus polynomial distortion terms of the chosen order).
-5. Without a position hint, the solver searches the sky. Without a scale hint, it tries field sizes from 0.25° to 60°. Mirrored images (taken with a diagonal) are handled.
+5. Without a position hint, the solver searches the whole sky, trying the widest field sizes first (60° down to 0.25°) because they need the fewest search positions. Without a scale hint, it tries field sizes from 0.25° to 60°. Mirrored images (taken with a diagonal) are handled.
+6. Every candidate solution is checked before it is accepted: the pixels must come out square with no skew, the solved field must be about the size that was searched for, and at least 10 stars must match across the whole image. A chance match of a handful of stars fails these checks, so the solver keeps searching and reports "No solution found" rather than a wrong position.
 
 ### Solvers
 
@@ -58,6 +59,8 @@ Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by
 
 The solve runs in the background; the status bar shows progress.
 
+With a rough position hint, solving usually takes about a second. A blind solve (no hints) searches the whole sky and can take a few minutes; entering only the scale already makes it several times faster.
+
 ### Results and annotation
 
 The result panel reports the centre, the scale, the rotation angle (and "flipped" for mirror-reversed images), the field size, the number of stars detected and matched, the RMS residual in arcseconds and the time taken.
@@ -77,7 +80,7 @@ The list of objects in the field is also printed in the result panel.
 |---|---|
 | **Write WCS to FITS…** | Saves a copy of the image with the WCS keywords (`CTYPE`, `CRVAL`, `CRPIX`, `CD` matrix and SIP coefficients) in its header, readable by any astronomy program |
 | **Sync telescope to solution** | Tells the connected mount where it is really pointing, which corrects its pointing for the next slews |
-| **Show field in sky chart** | Opens the [Sky chart](Sky-chart) in atlas mode centred on the image, with the image outline drawn |
+| **Show field in sky chart** | Opens the [Sky chart](Sky-chart) in atlas mode, centred on the image, with the image's outline drawn. The outline is traced through the plate solution, so it shows the true rotation and distortion and stays on its patch of sky when you pan or zoom. Showing another solved field replaces it |
 
 The WCS is also stored in the image in memory, so other workspaces (photometry, colour calibration, MPC astrometry) can use it.
 
@@ -85,6 +88,7 @@ The WCS is also stored in the image in memory, so other workspaces (photometry, 
 
 - Check the scale: a wrong focal length or pixel size is the most common cause. Set **Scale** to 0 to let the solver search.
 - Increase the **Search radius**, or clear the hints for a blind solve.
+- If a blind solve is slow, enter a rough **Hint RA** / **Hint Dec** (even a few degrees off is fine) or the **Scale**.
 - Use the Gaia solver for fields narrower than about 1°; the local catalogue does not have enough faint stars.
 - Make sure the image has at least 15–20 well-defined stars: not trailed, not badly out of focus, not dominated by clouds or a bright gradient.
 - Try ASTAP or astrometry.net.

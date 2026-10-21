@@ -126,6 +126,8 @@ The image viewer fills the centre. The readout under it shows the pixel position
 
 After each frame the status line shows the number of stars, the half-flux radius (HFR) and FWHM in pixels, the median level and the saved file name. These numbers are the quickest way to judge focus and sky conditions.
 
+The viewer shows every frame the camera takes, not only the ones started here: frames from a running [sequence](Sequencer) and from autofocus appear too, and the status line starts with "Sequence ·" for sequence frames. The camera can take only one exposure at a time, so **Start** and **Loop** are disabled while a sequence is running (a note says so); **Stop** here also ends the sequence. Likewise, a sequence cannot be started while a capture or preview loop is running here.
+
 ### File names
 
 Frames are saved under the **Image folder** from **Settings → Observer & accounts**. The default pattern is:
