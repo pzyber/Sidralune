@@ -298,9 +298,10 @@ namespace Sidralune.UI
                 g.InterpolationMode = _zoom >= 2 ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBilinear;
                 g.PixelOffsetMode = PixelOffsetMode.Half;
                 var dest = new RectangleF((float)(-_offset.X * _zoom), (float)(-_offset.Y * _zoom), (float)(_image.Width * _zoom), (float)(_image.Height * _zoom));
-                if (p.IsNight)
+                if (p.IsNight && !_bitmapNight)
                 {
-                    // night vision: show luminance in red only
+                    // night vision: show luminance in red only. Rebuild already tints the bitmap in night mode; this only
+                    // covers the moment after switching, before the tinted bitmap is ready (tinting twice keeps ~30%)
                     var cm = new ColorMatrix(new[]
                     {
                         new float[] { 0.30f, 0, 0, 0, 0 }, new float[] { 0.59f, 0, 0, 0, 0 }, new float[] { 0.11f, 0, 0, 0, 0 },
