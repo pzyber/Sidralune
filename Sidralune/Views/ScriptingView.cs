@@ -134,7 +134,7 @@ namespace Sidralune.Views
             host.Output = s => MainForm.Instance.Post(() => _console.AppendText(s.Replace("\n", Environment.NewLine).Replace("\r\r", "\r")));
             host.Ui = a => MainForm.Instance.Post(a);
             _running = host;
-            _runBtn.Text = "Stop"; _runBtn.Icon = Icons.Stop; _runBtn.AutoSizeToText();
+            _runBtn.Kind = ButtonKind.Danger; _runBtn.Text = "Stop"; _runBtn.Icon = Icons.Stop; _runBtn.AutoSizeToText();
             var bt = Tasks.Run("Script", t =>
             {
                 host.Cts = t.Cts;
@@ -149,7 +149,7 @@ namespace Sidralune.Views
         {
             _console.AppendText(msg + Environment.NewLine);
             _running = null;
-            _runBtn.Text = "Run (F5)"; _runBtn.Icon = Icons.Play; _runBtn.AutoSizeToText();
+            _runBtn.Kind = ButtonKind.Primary; _runBtn.Text = "Run (F5)"; _runBtn.Icon = Icons.Play; _runBtn.AutoSizeToText();
             if (_grid.Rows.Count > 0 && _console.Lines.Length < 4) _rightTabs.Select(2);
             else if (_plot.Series.Count > 0 && _console.Lines.Length < 4) _rightTabs.Select(1);
         }
