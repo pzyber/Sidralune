@@ -89,7 +89,7 @@ Click **Save** to store the changes.
 
 | Setting | Meaning |
 |---|---|
-| **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N |
+| **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N; this box and the moon button always show the same state |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 
 A list of keyboard shortcuts is shown on this tab; see also [Keyboard shortcuts](Keyboard-shortcuts).
@@ -121,4 +121,4 @@ The status line shows which ephemeris and catalogues are loaded. See [Data and c
 
 ## About
 
-Shows the version, the main algorithms Sidralune uses, the data credits and the folder where settings and data are stored.
+Shows the version, the copyright, the main algorithms Sidralune uses, the data credits and the folder where settings and data are stored.

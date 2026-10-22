@@ -134,6 +134,8 @@ Report positions of asteroids and comets to the Minor Planet Center:
 5. Click on the moving object in each image. Sidralune refines your click to the object's centroid with a Gaussian PSF fit, converts it to RA and Dec through the WCS, and takes the time from `DATE-OBS` plus half the exposure. Each measurement is numbered on the image.
 6. **Remove last measurement** undoes a click.
 
+Every measurement needs the image's plate solution and its observation time. Clicking shows "Image has no WCS" for an image that is not plate solved, and "Image has no DATE-OBS" for one without the FITS `DATE-OBS` (or `DATE_OBS`) start time. TIFF, PNG and JPEG files have no FITS header, and stacked images often lose the keyword, so measure the individual calibrated FITS frames from your capture software.
+
 The measurements appear in the MPC 1992 80-column format. **Copy MPC1992 (80-column)** copies them for an email report; **Save ADES PSV…** writes the modern ADES pipe-separated format with your telescope details. Uncertainties are taken from the plate solution's RMS residual.
 
 Measure at least three positions per night, spread over 30 minutes or more, and check the designation format before submitting.

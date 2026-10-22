@@ -186,6 +186,48 @@ namespace Sidralune.Views
 
         private ImageViewer _viewer;
         private CancellationTokenSource _captureCts;
+        // the camera takes one exposure at a time: manual capture (Imaging) and the sequencer must not run together
+        private BackgroundTask _manualTask, _sequenceTask;
+        private bool ManualCapturing => _manualTask != null && !_manualTask.Done;
+        private bool SequenceActive => (_sequenceTask != null && !_sequenceTask.Done) || _sequencer.Running;
+        private BackgroundTask _cameraJob;
+        private string _cameraJobName;
+        // buttons that start camera work; true marks Imaging's Start/Loop, which may replace a running manual capture
+        private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
+        private Label _busyNote;
+
+        /// <summary>What is using the camera, or null when it is free.</summary>
+        private string CameraBusyReason(bool ignoreManual = false)
+        {
+            if (SequenceActive) return "A sequence is running and using the camera";
+            if (_cameraJob != null && !_cameraJob.Done) return _cameraJobName + " is running and using the camera";
+            if (!ignoreManual && ManualCapturing) return "A capture or preview loop is running in Imaging";
+            return null;
+        }
+
+        private bool CanUseCamera(bool ignoreManual = false)
+        {
+            var why = CameraBusyReason(ignoreManual);
+            if (why != null) MainForm.Instance.Toast(why + ". Stop it first.", Icons.Info);
+            return why == null;
+        }
+
+        /// <summary>Start camera work other than Imaging's own capture: autofocus, centring, polar alignment.</summary>
+        private void RunCameraJob(string name, Action<BackgroundTask> work, Action onDone = null)
+        {
+            _cameraJobName = name;
+            _cameraJob = Tasks.Run(name, work, onDone);
+            SyncCameraButtons();
+        }
+
+        private void SyncCameraButtons()
+        {
+            foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2) == null;
+            if (_busyNote == null) return;
+            var why = CameraBusyReason(true);
+            _busyNote.Visible = why != null;
+            if (why != null) _busyNote.Text = SequenceActive ? "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." : why + ". Stop ends it.";
+        }
 
         private Control BuildImaging()
         {
@@ -214,6 +256,9 @@ namespace Sidralune.Views
             var stop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; stop.AutoSizeToText();
             btns.Controls.AddRange(new Control[] { start, loop, stop });
             cam.Full(btns);
+            var busyNote = _busyNote = new Label { Tag = "dim", AutoSize = true, Visible = false, Text = "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." };
+            busyNote.MaximumSize = new Size(270, 0);
+            cam.Full(busyNote);
             var camStatus = new Label { Tag = "dim", AutoSize = false, Height = 60 };
             cam.Full(camStatus);
             var camCard = new Collapsible("Camera", cam);
@@ -231,6 +276,8 @@ namespace Sidralune.Views
             Action<bool> run = previewLoop =>
             {
                 if (Dm.Camera == null) { MainForm.Instance.Toast("No camera connected", Icons.Warning); return; }
+                if (!CanUseCamera(true)) return;
+                var previous = ManualCapturing ? _manualTask : null; // switching between Loop and Start: let its exposure end first
                 _captureCts?.Cancel();
                 _captureCts = new CancellationTokenSource();
                 var ct = _captureCts.Token;
@@ -243,23 +290,33 @@ namespace Sidralune.Views
                     Light = (string)type.SelectedItem != "DARK" && (string)type.SelectedItem != "BIAS", Save = save.Checked && !previewLoop
                 };
                 int n = previewLoop ? int.MaxValue : (int)count.Value;
-                Tasks.Run(previewLoop ? "Preview loop" : "Capturing " + n + " frame(s)", t =>
+                _manualTask = Tasks.Run(previewLoop ? "Preview loop" : "Capturing " + n + " frame(s)", t =>
                 {
+                    while (previous != null && !previous.Done && !ct.IsCancellationRequested) Thread.Sleep(50);
                     for (int i = 0; i < n && !ct.IsCancellationRequested; i++)
                     {
                         Tasks.Report(t, previewLoop ? double.NaN : (double)i / n, (i + 1) + "/" + (previewLoop ? "∞" : n.ToString()));
-                        var res = _capture.Expose(req, ct).GetAwaiter().GetResult();
-                        MainForm.Instance.Post(() =>
-                        {
-                            _viewer.SetImage(res.Image, _viewer.Image == null);
-                            camStatus.Text = string.Format("{0} stars · HFR {1:0.00} px · FWHM {2:0.00} px · median {3:0}{4}", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535, res.Path != null ? "\r\nSaved " + System.IO.Path.GetFileName(res.Path) : "");
-                        });
+                        _capture.Expose(req, ct).GetAwaiter().GetResult(); // shown through ImageCaptured below
                     }
                 });
             };
             start.Click += (s, e) => run(false);
             loop.Click += (s, e) => run(true);
-            stop.Click += (s, e) => { _captureCts?.Cancel(); _sequencer.Stop(); };
+            _cameraButtons.Add(Tuple.Create((Control)start, true));
+            _cameraButtons.Add(Tuple.Create((Control)loop, true));
+            // every frame the camera delivers (manual, sequence, autofocus) is shown here
+            _capture.ImageCaptured += res =>
+            {
+                bool fromSequence = SequenceActive; // decided now: the sequence may have finished by the time the UI updates
+                MainForm.Instance.Post(() =>
+                {
+                    _viewer.SetImage(res.Image, _viewer.Image == null);
+                    camStatus.Text = string.Format("{0}{1} stars · HFR {2:0.00} px · FWHM {3:0.00} px · median {4:0}{5}", fromSequence ? "Sequence · " : "", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535, res.Path != null ? "\r\nSaved " + System.IO.Path.GetFileName(res.Path) : "");
+                });
+            };
+            Tasks.Changed += SyncCameraButtons;
+            _sequencer.Changed += () => MainForm.Instance.Post(SyncCameraButtons);
+            stop.Click += (s, e) => { _captureCts?.Cancel(); _cameraJob?.Cts.Cancel(); _sequencer.Stop(); };
 
             // mount pad
             var mount = new FormGrid(90);
@@ -286,9 +343,9 @@ namespace Sidralune.Views
             mount.Full(pad);
             var gotoBox = mount.Row("Go to", new TextBox());
             var mb = new FlowLayoutPanel { Height = 76 };
-            Action<string, string, Action> mbtn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning, Theme.Current.Danger); } }); b.AutoSizeToText(); mb.Controls.Add(b); };
+            Func<string, string, Action, FlatButton> mbtn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning, Theme.Current.Danger); } }); b.AutoSizeToText(); mb.Controls.Add(b); return b; };
             mbtn("Slew", Icons.Target, () => GotoObject(gotoBox.Text, false));
-            mbtn("Center", Icons.Solve, () => GotoObject(gotoBox.Text, true));
+            _cameraButtons.Add(Tuple.Create((Control)mbtn("Center", Icons.Solve, () => GotoObject(gotoBox.Text, true)), false)); // plate solves
             mbtn("Park", Icons.Lock, () => Tasks.Run("Parking", t => Dm.Telescope.Park()));
             mbtn("Unpark", Icons.Play, () => Dm.Telescope.Unpark());
             var track = new FlatButton("Tracking", Icons.Clock) { Toggle = true, Checked = true }; track.AutoSizeToText();
@@ -342,9 +399,10 @@ namespace Sidralune.Views
             }
             if (center)
             {
+                if (!CanUseCamera()) return;
                 var c = new Centering { Capture = _capture };
                 c.Status += s => MainForm.Instance.SetStatus(s);
-                Tasks.Run("Centering " + q, t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast("Centered on " + q));
+                RunCameraJob("Centering " + q, t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast("Centered on " + q));
             }
             else
             {
@@ -370,12 +428,13 @@ namespace Sidralune.Views
             af.Click += (s, e) =>
             {
                 if (Dm.Focuser == null || Dm.Camera == null) { MainForm.Instance.Toast("Focuser and camera required", Icons.Warning); return; }
+                if (!CanUseCamera()) return;
                 plot.Clear();
                 var pts = plot.AddSeries("HFR", SeriesStyle.Scatter);
                 var a = new Autofocus { Capture = _capture, Exposure = (double)afExp.Value, StepSize = (int)afStep.Value };
                 a.PointMeasured += p => MainForm.Instance.Post(() => { pts.Add(p.Position, p.Hfr); plot.Invalidate(); });
                 a.Status += st => MainForm.Instance.SetStatus(st);
-                Tasks.Run("Autofocus", t =>
+                RunCameraJob("Autofocus", t =>
                 {
                     var r = a.Run(t.Cts.Token).GetAwaiter().GetResult();
                     MainForm.Instance.Post(() =>
@@ -393,6 +452,7 @@ namespace Sidralune.Views
                 });
             };
             g.Full(af);
+            _cameraButtons.Add(Tuple.Create((Control)af, false));
             g.Full(plot);
             Poll += () => { var f = Dm.Focuser; pos.Text = f != null && f.Connected ? string.Format("{0}{1}  {2}", f.Position, f.IsMoving ? " (moving)" : "", double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0") + " °C") : "No focuser"; };
             return g;
@@ -491,10 +551,12 @@ namespace Sidralune.Views
             var run = new FlatButton("Run sequence", Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
+                if (SequenceActive || !CanUseCamera()) return;
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
-                Tasks.Run("Sequence", t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
+                _sequenceTask = Tasks.Run("Sequence", t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
             };
             bar.Controls.Add(run);
+            _cameraButtons.Add(Tuple.Create((Control)run, false));
             btn("Stop", Icons.Stop, () => _sequencer.Stop());
             _sequencer.Log += s => MainForm.Instance.Post(() => log.AppendText(DateTime.Now.ToString("HH:mm:ss ") + s + "\r\n"));
             _sequencer.Changed += () => MainForm.Instance.Post(UpdateTreeStatus);
@@ -589,9 +651,10 @@ namespace Sidralune.Views
             var go = new FlatButton("Start polar alignment", Icons.Target) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
             go.Click += (s, e) =>
             {
+                if (!CanUseCamera()) return;
                 var pa = new PolarAlignment { Capture = _capture, StepDeg = (double)step.Value, Exposure = (double)exp.Value };
                 pa.Status += st => MainForm.Instance.SetStatus(st);
-                Tasks.Run("Polar alignment", t =>
+                RunCameraJob("Polar alignment", t =>
                 {
                     var r = pa.Run(t.Cts.Token).GetAwaiter().GetResult();
                     MainForm.Instance.Post(() => res.Text = string.Format("Altitude error {0:+0.0;-0.0}'   Azimuth error {1:+0.0;-0.0}'\r\nTotal {2:0.0}'\r\n{3}", r.AltErrorArcmin, r.AzErrorArcmin, r.TotalErrorArcmin, r.Advice));
@@ -599,6 +662,7 @@ namespace Sidralune.Views
             };
             g.Full(Ui.Hint("Point the mount near the celestial equator/meridian with clear sky to the west or east. Sidralune rotates the RA axis three times, plate-solves each frame, finds the mount's rotation axis and reports how far it is from the refracted celestial pole. Works without a view of Polaris."));
             g.Full(go);
+            _cameraButtons.Add(Tuple.Create((Control)go, false));
             g.Full(res);
             card.Controls.Add(g);
             return card;
@@ -649,7 +713,7 @@ namespace Sidralune.Views
             yield return new AppCommand { Title = "Observatory: open equipment", Run = () => { MainForm.Instance.Navigate("observatory"); _tabs.Select(0); } };
             yield return new AppCommand { Title = "Observatory: sequencer", Run = () => { MainForm.Instance.Navigate("observatory"); _tabs.Select(3); } };
             yield return new AppCommand { Title = "Observatory: polar alignment", Run = () => { MainForm.Instance.Navigate("observatory"); _tabs.Select(4); } };
-            yield return new AppCommand { Title = "Observatory: abort all", Icon = Icons.Stop, Run = () => { _captureCts?.Cancel(); _sequencer.Stop(); try { Dm.Telescope?.AbortSlew(); } catch { } } };
+            yield return new AppCommand { Title = "Observatory: abort all", Icon = Icons.Stop, Run = () => { _captureCts?.Cancel(); _cameraJob?.Cts.Cancel(); _sequencer.Stop(); try { Dm.Telescope?.AbortSlew(); } catch { } } };
         }
     }
 }

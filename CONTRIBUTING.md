@@ -120,7 +120,7 @@ Bug fixes, new algorithms, device support, performance work and tests are all we
 | `Sidralune/MainForm.cs` | Main window, navigation rail, command palette, status bar |
 | `Sidralune/AppState.cs` | Settings, simulated time, current selection, background tasks |
 | `Sidralune/Views` | One `UserControl` per workspace (`SkyView`, `PlannerView`, `StackingView`, …) |
-| `Sidralune/UI` | Theme and palettes, custom controls, `ImageViewer`, `PlotControl`, `SkyChart` |
+| `Sidralune/UI` | Theme and palettes, custom controls, `ImageViewer`, `PlotControl`, `SkyChart`, and the hooks that theme native Windows parts (`ScrollOverlays` for scroll bars, `SystemColorHook` for text selection) |
 | `Sidralune/Scripting` | C# script host and example scripts |
 | `Sidralune.Core/Math` | Vectors, statistics, FFT, linear algebra, optimisation (Levenberg-Marquardt, Nelder-Mead, MCMC) |
 | `Sidralune.Core/Time` | Time scales, Julian dates, leap seconds, ΔT |
@@ -137,7 +137,7 @@ Bug fixes, new algorithms, device support, performance work and tests are all we
 | `Sidralune.Tests` | Console test runner and tests |
 | `Wiki` | User manual |
 
-The project files include every `.cs` file below the project folder automatically (`**\*.cs`), so you do not need to edit a `.csproj` to add a source file.
+The library and test projects (`Sidralune.Core`, `Sidralune.Imaging`, `Sidralune.Science`, `Sidralune.Devices`, `Sidralune.Tests`) include every `.cs` file below their folder automatically (`**\*.cs`), so a new source file there needs no `.csproj` change. The application project, `Sidralune/Sidralune.csproj`, lists its files one by one: add a `<Compile Include="Folder\File.cs" />` line for each new file (Visual Studio does this for you when you add the file through Solution Explorer), or the build will not see it.
 
 ### Architecture in brief
 
@@ -146,6 +146,7 @@ The project files include every `.cs` file below the project folder automaticall
 - A view that implements `ICommandSource` adds its actions to the command palette through `GetCommands()`. Every important action should be reachable there.
 - Long work runs through `Tasks.Run(name, work, onDone, onError)`. The work runs on a background thread, shows progress in the status bar and can be cancelled; `onDone` and `onError` run on the UI thread. Use `Tasks.Report(task, fraction, status)` for progress and `task.Cts.Token` for cancellation. Use `MainForm.Instance.Post(action)` to update controls from other threads.
 - Notifications use `MainForm.Instance.Toast(text, icon, colour)`. Avoid message boxes except for confirmations.
+- The camera takes one exposure at a time. In `ObservatoryView`, anything new that exposes must check `CanUseCamera()`, start through `RunCameraJob(name, work)` (or the sequence or manual-capture paths), and add its button to `_cameraButtons`, so it is disabled while another job uses the camera and **Stop** can end it.
 - `AppState` holds the active site, equipment, simulated time and the selected object. Listen to its events (`TimeChanged`, `SiteChanged`, `ObjectSelected`) rather than polling.
 - Option classes in the engines use public fields. `GridAdapter` exposes them to a `PropertyGrid`, so a new option appears in the interface without extra code.
 
@@ -181,8 +182,12 @@ If you believe a dependency is truly necessary, open an issue to discuss it befo
 ### User interface
 
 - Use the theme: colours come from `Theme.Current` (a `Palette`), fonts from `Theme.UiFont` and friends, icons from `Icons`. Never hard-code colours, so that the dark, night-vision and print palettes keep working.
+- Look colours up when you paint, not when you build data. The palette changes the moment the user switches night mode, so a colour copied from `Theme.Current` into a plot series, marker or annotation list stays in the old theme. Store a palette role instead and resolve it while painting: `PlotControl` takes one through `AddSeries(name, style, p => p.Warning)` and the `ThemeColor` of bands and markers.
+- Standard WinForms controls are themed by `Theme.Apply`, including their native parts (scroll bars, drop-down lists, selected text, property-grid buttons and glyphs). Custom controls that paint themselves implement `IThemed` and repaint in `ApplyTheme`.
 - Use the shared controls (`FlatButton`, `Card`, `FormGrid`, `TabbedPanel`, `Collapsible`, `Ui.Grid()`, `Ui.Num()`, `Ui.Combo()`) so that new screens look and behave like the rest of the program.
 - Keep the night-vision mode in mind: anything that lights up the screen in white breaks dark adaptation.
+- Make every control reachable at the minimum window size (1100 × 700). Toolbar rows (a `FlowLayoutPanel` docked to the top or bottom) wrap onto further rows automatically; give side panels `AutoScroll` so they scroll when the window is short.
+- When you fill a `DataGridView` whose `SelectionChanged` handler reads `Row.Tag`, create each row with its `Tag` set before adding it: adding the first row selects it immediately, before a `Tag` assigned afterwards exists.
 - Long operations must not freeze the window. Run them through `Tasks.Run`.
 - Write interface text in plain language, in sentence case, and explain units.
 
