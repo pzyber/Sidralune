@@ -25,6 +25,23 @@ namespace Sidralune.Views
         private readonly CaptureService _capture = new CaptureService();
         private readonly Sequencer _sequencer = new Sequencer();
         private DeviceManager Dm => DeviceManager.Instance;
+
+        private const string Phd2Hint = "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2.";
+
+        /// <summary>The device, or a clear error (shown as a toast by the buttons) when none of that kind is connected.</summary>
+        private static T Need<T>(T device, string what, string hint = null) where T : class
+        {
+            if (device == null) throw new InvalidOperationException("No " + what + " connected. " + (hint ?? "Connect one in Observatory → Equipment."));
+            return device;
+        }
+
+        /// <summary>For handlers that do not catch: show the same message as a toast and return false.</summary>
+        private static bool Have(object device, string what)
+        {
+            if (device != null) return true;
+            MainForm.Instance.Toast("No " + what + " connected. Connect one in Observatory → Equipment.", Icons.Warning);
+            return false;
+        }
         private readonly System.Windows.Forms.Timer _poll = new System.Windows.Forms.Timer { Interval = 1000 };
         private event Action Poll;
 
@@ -275,7 +292,7 @@ namespace Sidralune.Views
 
             Action<bool> run = previewLoop =>
             {
-                if (Dm.Camera == null) { MainForm.Instance.Toast("No camera connected", Icons.Warning); return; }
+                if (!Have(Dm.Camera, "camera")) return;
                 if (!CanUseCamera(true)) return;
                 var previous = ManualCapturing ? _manualTask : null; // switching between Loop and Start: let its exposure end first
                 _captureCts?.Cancel();
@@ -346,8 +363,8 @@ namespace Sidralune.Views
             Func<string, string, Action, FlatButton> mbtn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning, Theme.Current.Danger); } }); b.AutoSizeToText(); mb.Controls.Add(b); return b; };
             mbtn("Slew", Icons.Target, () => GotoObject(gotoBox.Text, false));
             _cameraButtons.Add(Tuple.Create((Control)mbtn("Center", Icons.Solve, () => GotoObject(gotoBox.Text, true)), false)); // plate solves
-            mbtn("Park", Icons.Lock, () => Tasks.Run("Parking", t => Dm.Telescope.Park()));
-            mbtn("Unpark", Icons.Play, () => Dm.Telescope.Unpark());
+            mbtn("Park", Icons.Lock, () => { var tel = Need(Dm.Telescope, "telescope"); Tasks.Run("Parking", t => tel.Park()); });
+            mbtn("Unpark", Icons.Play, () => Need(Dm.Telescope, "telescope").Unpark());
             var track = new FlatButton("Tracking", Icons.Clock) { Toggle = true, Checked = true }; track.AutoSizeToText();
             track.CheckedChanged += (s, e) => { try { if (Dm.Telescope != null) Dm.Telescope.Tracking = track.Checked; } catch { } };
             mb.Controls.Add(track);
@@ -385,7 +402,7 @@ namespace Sidralune.Views
 
         private void GotoObject(string q, bool center)
         {
-            if (Dm.Telescope == null) throw new InvalidOperationException("No telescope connected");
+            Need(Dm.Telescope, "telescope");
             double raDeg, decDeg;
             var o = CatalogManager.Instance.Find(q) ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
             Core.Ephemeris.Body b;
@@ -399,6 +416,7 @@ namespace Sidralune.Views
             }
             if (center)
             {
+                Need(Dm.Camera, "camera"); // centring plate-solves its own frames
                 if (!CanUseCamera()) return;
                 var c = new Centering { Capture = _capture };
                 c.Status += s => MainForm.Instance.SetStatus(s);
@@ -468,11 +486,14 @@ namespace Sidralune.Views
             var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
             Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
-            btn("Connect PHD2", Icons.Connect, () => Tasks.Run("Connect PHD2", t => Dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" })));
-            btn("Start guiding", Icons.Play, () => Tasks.Run("Start guiding", t => Dm.Guider.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult())).Kind = ButtonKind.Primary;
-            btn("Calibrate & guide", Icons.Target, () => Tasks.Run("Calibrate", t => Dm.Guider.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()));
-            btn("Dither", Icons.Grid, () => Tasks.Run("Dither", t => Dm.Guider.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()));
-            btn("Stop", Icons.Stop, () => Dm.Guider.StopGuiding()).Kind = ButtonKind.Danger;
+            btn("Connect PHD2", Icons.Connect, () => Tasks.Run("Connect PHD2", t => Dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" }),
+                () => MainForm.Instance.Toast("Connected to PHD2"),
+                ex => MainForm.Instance.Toast("Could not reach PHD2 on localhost:4400. " + Phd2Hint, Icons.Warning, Theme.Current.Danger)));
+            Func<IGuider> guider = () => Need(Dm.Guider, "guider", Phd2Hint);
+            btn("Start guiding", Icons.Play, () => { var g = guider(); Tasks.Run("Start guiding", t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); }).Kind = ButtonKind.Primary;
+            btn("Calibrate & guide", Icons.Target, () => { var g = guider(); Tasks.Run("Calibrate", t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
+            btn("Dither", Icons.Grid, () => { var g = guider(); Tasks.Run("Dither", t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
+            btn("Stop", Icons.Stop, () => guider().StopGuiding()).Kind = ButtonKind.Danger;
             btn("Clear graph", Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
             int n = 0;
             IGuider hooked = null;
@@ -651,7 +672,7 @@ namespace Sidralune.Views
             var go = new FlatButton("Start polar alignment", Icons.Target) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
             go.Click += (s, e) =>
             {
-                if (!CanUseCamera()) return;
+                if (!Have(Dm.Telescope, "telescope") || !Have(Dm.Camera, "camera") || !CanUseCamera()) return;
                 var pa = new PolarAlignment { Capture = _capture, StepDeg = (double)step.Value, Exposure = (double)exp.Value };
                 pa.Status += st => MainForm.Instance.SetStatus(st);
                 RunCameraJob("Polar alignment", t =>
@@ -680,10 +701,10 @@ namespace Sidralune.Views
             var az = dg.Row("Azimuth", Ui.Num(0, 0, 360, 1));
             var bar = new FlowLayoutPanel { Height = 80 };
             Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); };
-            btn("Open", Icons.Up, () => Dm.Dome.OpenShutter());
-            btn("Close", Icons.Down, () => Dm.Dome.CloseShutter());
-            btn("Slew", Icons.Target, () => Dm.Dome.SlewToAzimuth((double)az.Value));
-            btn("Park", Icons.Lock, () => Dm.Dome.Park());
+            btn("Open", Icons.Up, () => Need(Dm.Dome, "dome").OpenShutter());
+            btn("Close", Icons.Down, () => Need(Dm.Dome, "dome").CloseShutter());
+            btn("Slew", Icons.Target, () => Need(Dm.Dome, "dome").SlewToAzimuth((double)az.Value));
+            btn("Park", Icons.Lock, () => Need(Dm.Dome, "dome").Park());
             var slave = new FlatButton("Follow telescope", Icons.Refresh) { Toggle = true }; slave.AutoSizeToText();
             bar.Controls.Add(slave);
             dg.Full(bar);
