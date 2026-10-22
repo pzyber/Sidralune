@@ -467,12 +467,12 @@ namespace Sidralune.Views
             var ra = plot.AddSeries("RA"); var dec = plot.AddSeries("Dec");
             var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
-            Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); };
+            Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             btn("Connect PHD2", Icons.Connect, () => Tasks.Run("Connect PHD2", t => Dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" })));
-            btn("Start guiding", Icons.Play, () => Tasks.Run("Start guiding", t => Dm.Guider.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()));
+            btn("Start guiding", Icons.Play, () => Tasks.Run("Start guiding", t => Dm.Guider.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult())).Kind = ButtonKind.Primary;
             btn("Calibrate & guide", Icons.Target, () => Tasks.Run("Calibrate", t => Dm.Guider.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()));
             btn("Dither", Icons.Grid, () => Tasks.Run("Dither", t => Dm.Guider.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()));
-            btn("Stop", Icons.Stop, () => Dm.Guider.StopGuiding());
+            btn("Stop", Icons.Stop, () => Dm.Guider.StopGuiding()).Kind = ButtonKind.Danger;
             btn("Clear graph", Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
             int n = 0;
             IGuider hooked = null;
@@ -533,7 +533,7 @@ namespace Sidralune.Views
                 addMenu.Items.Add(GridAdapter.Words(t.Name), null, (s, e) => AddItem((SequenceItem)Activator.CreateInstance(type)));
             }
             add.Click += (s, e) => addMenu.Show(add, new Point(0, add.Height));
-            Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => a()); b.AutoSizeToText(); bar.Controls.Add(b); };
+            Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => a()); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             bar.Controls.Add(add);
             btn("Remove", Icons.Remove, RemoveItem);
             btn("Up", Icons.Up, () => MoveItem(-1));
@@ -557,7 +557,7 @@ namespace Sidralune.Views
             };
             bar.Controls.Add(run);
             _cameraButtons.Add(Tuple.Create((Control)run, false));
-            btn("Stop", Icons.Stop, () => _sequencer.Stop());
+            btn("Stop", Icons.Stop, () => _sequencer.Stop()).Kind = ButtonKind.Danger;
             _sequencer.Log += s => MainForm.Instance.Post(() => log.AppendText(DateTime.Now.ToString("HH:mm:ss ") + s + "\r\n"));
             _sequencer.Changed += () => MainForm.Instance.Post(UpdateTreeStatus);
             _seqTree.AfterSelect += (s, e) => _seqProps.SelectedObject = e.Node?.Tag != null ? new GridAdapter(e.Node.Tag, "Instruction") : null;
