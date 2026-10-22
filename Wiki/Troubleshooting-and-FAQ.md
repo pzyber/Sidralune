@@ -77,6 +77,9 @@ Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky char
 
 ## Equipment
 
+**A button says "No telescope connected" (or camera, focuser, guider, dome).**
+That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (or click **Connect PHD2** for the guider), or click **Connect simulated observatory** to try the feature without hardware.
+
 **My ASCOM device is not in the list.**
 Install the ASCOM Platform and the driver, then click **ASCOM…** in the device's row to pick it in the ASCOM Chooser. If Sidralune says the platform is not installed, reinstall it from ascom-standards.org.
 
