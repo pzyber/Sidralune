@@ -105,6 +105,7 @@ namespace Sidralune.Devices.Automation
         public async Task SetFilter(string name, CancellationToken ct)
         {
             var fw = Devices.FilterWheel;
+            if (fw == null) throw new InvalidOperationException("No filter wheel connected");
             int idx = Array.FindIndex(fw.Names, n => string.Equals(n, name, StringComparison.OrdinalIgnoreCase));
             if (idx < 0) throw new ArgumentException("Unknown filter " + name);
             if (fw.Position == idx) return;

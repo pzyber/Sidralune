@@ -72,6 +72,9 @@ namespace Sidralune.Devices.Automation
         public bool StopOnError { get; set; } = false;
         protected abstract Task Execute(SequenceContext ctx, CancellationToken ct);
 
+        /// <summary>Devices this instruction cannot run without ("camera", "telescope", "focuser", "filter wheel").</summary>
+        public virtual string[] RequiredDevices => new string[0];
+
         public virtual void Reset()
         {
             Status = ItemStatus.Pending; Error = null;
@@ -143,9 +146,26 @@ namespace Sidralune.Devices.Automation
             {
                 ct.ThrowIfCancellationRequested();
                 foreach (var it in Items) it.Reset();
+                var started = DateTime.UtcNow;
                 await base.Execute(ctx, ct);
                 Completed++;
+                // a pass in which nothing succeeded (every instruction failed or was skipped) would only repeat itself:
+                // without this the loop spins as fast as the failures come and floods the log and the window
+                if (!AnySucceeded(Items))
+                    throw new InvalidOperationException("Loop stopped: no instruction in it succeeded in the last pass (see the errors above)");
+                var elapsed = DateTime.UtcNow - started;
+                if (elapsed < TimeSpan.FromSeconds(1)) await Task.Delay(TimeSpan.FromSeconds(1) - elapsed, ct);
             }
+        }
+
+        private static bool AnySucceeded(IEnumerable<SequenceItem> items)
+        {
+            foreach (var it in items)
+            {
+                if (it.Children == null) { if (it.Status == ItemStatus.Done) return true; }
+                else if (it.Status != ItemStatus.Skipped && AnySucceeded(it.Children)) return true;
+            }
+            return false;
         }
     }
 
@@ -154,6 +174,7 @@ namespace Sidralune.Devices.Automation
     public class SlewToTarget : SequenceItem
     {
         public override string Title => "Slew to target";
+        public override string[] RequiredDevices => new[] { "telescope" };
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             var t = ctx.Target; if (t == null) throw new InvalidOperationException("No target");
@@ -169,6 +190,7 @@ namespace Sidralune.Devices.Automation
         public double Exposure { get; set; } = 5;
         public int Bin { get; set; } = 2;
         public override string Title => "Slew, plate solve & center";
+        public override string[] RequiredDevices => new[] { "telescope", "camera" };
         public override string Summary => "±" + ToleranceArcmin + "'";
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
@@ -209,6 +231,7 @@ namespace Sidralune.Devices.Automation
         public double DitherPixels { get; set; } = 5;
         public int Completed { get; private set; }
         public override string Title => "Expose " + FrameType.ToLowerInvariant() + " frames";
+        public override string[] RequiredDevices => new[] { "camera" };
         public override string Summary => string.Format("{0}/{1} × {2}s {3} bin{4}", Completed, Count, Exposure, Filter, Bin);
 
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
@@ -242,6 +265,7 @@ namespace Sidralune.Devices.Automation
         public int StepSize { get; set; } = 100;
         public int Steps { get; set; } = 9;
         public override string Title => "Autofocus";
+        public override string[] RequiredDevices => new[] { "camera", "focuser" };
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             var af = new Autofocus { Capture = ctx.Capture, Exposure = Exposure, StepSize = StepSize, Steps = Steps, Filter = ctx.CurrentFilter };
@@ -255,6 +279,7 @@ namespace Sidralune.Devices.Automation
     {
         public string Filter { get; set; } = "L";
         public override string Title => "Switch filter";
+        public override string[] RequiredDevices => new[] { "filter wheel" };
         public override string Summary => Filter;
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct) { await ctx.Capture.SetFilter(Filter, ct); ctx.CurrentFilter = Filter; }
     }
@@ -313,6 +338,7 @@ namespace Sidralune.Devices.Automation
     {
         public bool Unpark { get; set; }
         public override string Title => Unpark ? "Unpark telescope" : "Park telescope";
+        public override string[] RequiredDevices => new[] { "telescope" };
         protected override Task Execute(SequenceContext ctx, CancellationToken ct) => Task.Run(() => { if (Unpark) ctx.Devices.Telescope.Unpark(); else ctx.Devices.Telescope.Park(); }, ct);
     }
 
@@ -442,9 +468,39 @@ namespace Sidralune.Devices.Automation
         public event Action Changed;
         private CancellationTokenSource _cts;
 
+        /// <summary>Devices that enabled instructions need but that are not connected, in the order first needed.</summary>
+        public List<string> MissingDevices()
+        {
+            var dm = DeviceManager.Instance;
+            var missing = new List<string>();
+            Action<SequenceItem> walk = null;
+            walk = it =>
+            {
+                if (!it.Enabled) return;
+                foreach (var d in it.RequiredDevices)
+                {
+                    bool have = d == "camera" ? dm.Camera != null : d == "telescope" ? dm.Telescope != null : d == "focuser" ? dm.Focuser != null : d == "filter wheel" ? dm.FilterWheel != null : true;
+                    if (!have && !missing.Contains(d)) missing.Add(d);
+                }
+                if (it.Children != null) foreach (var c in it.Children) walk(c);
+            };
+            walk(Root);
+            return missing;
+        }
+
+        /// <summary>"This sequence needs a camera and a focuser. Connect them …" for the list from MissingDevices.</summary>
+        public static string DescribeMissing(List<string> missing)
+        {
+            var named = missing.Select(d => "a " + d).ToList();
+            string list = named.Count == 1 ? named[0] : string.Join(", ", named.Take(named.Count - 1)) + " and " + named[named.Count - 1];
+            return "This sequence needs " + list + ". Connect " + (named.Count == 1 ? "it" : "them") + " in Observatory → Equipment";
+        }
+
         public async Task Start(CaptureService capture)
         {
             if (Running) return;
+            var missing = MissingDevices();
+            if (missing.Count > 0) throw new InvalidOperationException(DescribeMissing(missing) + " first.");
             Running = true;
             _cts = new CancellationTokenSource();
             Root.Reset();

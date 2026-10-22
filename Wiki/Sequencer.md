@@ -90,6 +90,8 @@ Containers can be nested, for example a loop of filters inside a target inside a
 
 If an instruction fails, it is marked ✗, the error is shown in its properties and written to the log, and the sequence continues with the next instruction. Turn on **Stop on error** for instructions that must succeed (for example centring before a long series), and the sequence will stop there instead.
 
+A loop whose instructions all fail in one pass (for example because the camera stopped responding) stops instead of repeating the failure: it is marked ✗ with "Loop stopped: no instruction in it succeeded", and the sequence continues after the loop, so a closing **Park** or **Close dome** still runs.
+
 ## Triggers
 
 Triggers are checked between exposures. Tick the ones you want in the **Triggers** card:
@@ -105,6 +107,8 @@ The sequencing engine also provides **Autofocus after 1.5 °C change** (temperat
 ## Running a sequence
 
 Click **Run sequence**. The sequence runs in the background: you can keep working in other workspaces, and the task pill in the status bar shows its progress. The tree marks each instruction's status and the log records every step with its time.
+
+Before it starts, Sidralune checks that the devices the enabled instructions need are connected: a camera for exposures, centring and autofocus, a telescope for slewing, centring and parking, a focuser for autofocus, and a filter wheel for **Switch filter**. If one is missing, the sequence does not start and a message names what to connect. Guiding, cooling and dome instructions are skipped when their device is absent, so they do not block a run.
 
 Each frame the sequence takes is shown in the [Imaging tab](Observatory-and-devices#camera) as it arrives, with its star count, HFR, FWHM and file name. While the sequence runs, everything else that uses the camera is disabled so that nothing can fight over it: **Start** and **Loop** in the Imaging tab, **Run autofocus**, **Center**, and **Start polar alignment**. The sequence's own autofocus and centring instructions are not affected. If a capture, preview loop, autofocus run, centring or polar alignment is already running, **Run sequence** is disabled until it has finished or you stop it.
 
