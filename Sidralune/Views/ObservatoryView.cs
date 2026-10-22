@@ -573,6 +573,8 @@ namespace Sidralune.Views
             run.Click += (s, e) =>
             {
                 if (SequenceActive || !CanUseCamera()) return;
+                var missing = _sequencer.MissingDevices();
+                if (missing.Count > 0) { MainForm.Instance.Toast(Sequencer.DescribeMissing(missing) + ", or click Connect simulated observatory.", Icons.Warning); return; }
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
                 _sequenceTask = Tasks.Run("Sequence", t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
             };
