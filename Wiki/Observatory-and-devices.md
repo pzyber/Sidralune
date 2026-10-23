@@ -17,6 +17,8 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Optics](#optics)
 - [Imaging tab](#imaging-tab)
   - [Camera](#camera)
+    - [Deep sky](#deep-sky)
+    - [Planetary video](#planetary-video)
   - [File names](#file-names)
   - [FITS headers](#fits-headers)
   - [Cooling](#cooling)
@@ -102,9 +104,13 @@ The **Optics** card holds the **Imaging focal length (mm)** and **Aperture (mm)*
 
 ## Imaging tab
 
-The image viewer fills the centre. The readout under it shows the pixel position and value under the cursor. The panel on the right has collapsible sections.
+The image viewer fills the centre. The readout under it shows the pixel position and value under the cursor. The panel on the left holds the **Camera** and **Cooling** sections, and the panel on the right the **Mount** and **Focuser** sections; click a section heading to open or close it.
 
 ### Camera
+
+The **Camera** section has two tabs at the top, **Deep sky** and **Planetary**, and each keeps its own settings. Planetary and deep-sky settings are nearly opposite (millisecond exposures, high gain and a small region against exposures of seconds or minutes), so switching between them is one click instead of re-entering gain, offset and binning. **Cooling** below applies to both.
+
+#### Deep sky
 
 | Field | Meaning |
 |---|---|
@@ -128,7 +134,28 @@ After each frame the status line shows the number of stars, the half-flux radius
 
 The viewer shows every frame the camera takes, not only the ones started here: frames from a running [sequence](Sequencer) and from autofocus appear too, and the status line starts with "Sequence ·" for sequence frames.
 
-The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop here, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start the others are disabled and a note under the camera controls says what is using the camera. **Stop** here ends it, including autofocus, centring, polar alignment or a sequence. Switching between **Loop** and **Start** is the one exception: the new capture replaces the old one and starts as soon as its current exposure has ended.
+The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop, a video recording, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start the others are disabled and a note under the camera controls (on both tabs) says what is using the camera. **Stop** here ends it, including a video recording, autofocus, centring, polar alignment or a sequence. Switching between **Loop** and **Start** is the one exception: the new capture replaces the old one and starts as soon as its current exposure has ended.
+
+#### Planetary video
+
+The **Planetary** tab records a SER video for [planetary, lunar and solar imaging](Planetary,-lunar-and-solar-imaging): the camera takes short exposures back to back and every frame goes straight into the file, with no star analysis or separate files, so it runs as fast as the camera driver allows.
+
+| Field | Meaning |
+|---|---|
+| **Exposure (ms)** | Exposure of each frame, typically 2–15 ms for planets |
+| **Region** | Region of interest, centred on the sensor: **Full sensor** or a fixed size from 1920 × 1080 down to 320 × 240. A smaller region transfers faster, so it gives a higher frame rate |
+| **Binning**, **Gain** / **Offset**, **Filter**, **Target** | As on the Deep sky tab, but kept separately for planetary work |
+| **Max frames** / **Max seconds** | The recording stops at whichever comes first |
+
+| Button | Action |
+|---|---|
+| **Record** | Start recording. The viewer shows a frame twice a second, and the status line shows the frame count, the frame rate and the time |
+| **Stop** | End the recording early. The frames recorded so far are kept and the file is complete |
+| **Open in Planetary** | Open the last recording in **Planetary → Pre-process** |
+
+Videos are saved as 16-bit SER files (8-bit for 8-bit cameras), with a UTC time stamp at mid-exposure for every frame, under the image folder in `Planetary\<target>\`. The file is named after the recording's mid-time in the [WinJUPOS style](Planetary,-lunar-and-solar-imaging#winjupos-file-names), for example `2026-10-23-2020_2-Jupiter.ser`, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab and WinJUPOS read the time from the name.
+
+Recording works with any ASCOM, Alpaca or INDI camera. These interfaces transfer each frame whole, so the frame rate is lower than in dedicated planetary capture programs: expect a few to a few tens of frames per second, depending on the driver, the region and the exposure. For the highest frame rates, record with the camera maker's software or a program such as SharpCap or FireCapture and open the SER file in the Planetary workspace.
 
 ### File names
 
