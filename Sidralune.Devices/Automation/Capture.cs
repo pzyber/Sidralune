@@ -42,6 +42,17 @@ namespace Sidralune.Devices.Automation
         public double MaxSeconds = 60;
         public string Filter;
         public string Target = "";
+
+        /// <summary>The regions of interest offered for video, in the Imaging tab and the sequencer.</summary>
+        public static readonly string[] Regions = { "Full sensor", "1920 × 1080", "1280 × 960", "800 × 600", "640 × 480", "320 × 240" };
+
+        /// <summary>Width and height of a region such as "640 × 480"; 0 × 0 for "Full sensor" or anything unrecognised.</summary>
+        public static void ParseRegion(string region, out int width, out int height)
+        {
+            width = height = 0;
+            var m = System.Text.RegularExpressions.Regex.Match(region ?? "", @"(\d+)\s*[×x]\s*(\d+)");
+            if (m.Success) { width = int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture); height = int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture); }
+        }
     }
 
     public class VideoResult
@@ -72,6 +83,10 @@ namespace Sidralune.Devices.Automation
         public ImageSaveFormat SaveFormat = ImageSaveFormat.Fits16;
         public int FrameCounter;
         public event Action<CaptureResult> ImageCaptured;
+        /// <summary>A frame of a video recording, at most twice a second, with the recording so far (manual or sequence).</summary>
+        public event Action<AstroImage, VideoResult> VideoFrame;
+        /// <summary>A video recording ended (Path is null when nothing was saved).</summary>
+        public event Action<VideoResult> VideoRecorded;
         public event Action<string> Status;
 
         public async Task<CaptureResult> Expose(ExposureRequest r, CancellationToken ct)
@@ -244,13 +259,18 @@ namespace Sidralune.Devices.Automation
                     last = mid;
                     res.Frames++;
                     res.Elapsed = sw.Elapsed;
-                    if (preview != null && (DateTime.UtcNow - lastPreview).TotalSeconds >= 0.5) { lastPreview = DateTime.UtcNow; preview(img, res); }
+                    if ((DateTime.UtcNow - lastPreview).TotalSeconds >= 0.5)
+                    {
+                        lastPreview = DateTime.UtcNow;
+                        preview?.Invoke(img, res);
+                        VideoFrame?.Invoke(img, res);
+                    }
                 }
             }
             catch (OperationCanceledException) { res.Stopped = true; }
             finally { if (writer != null) writer.Dispose(); }
             res.Elapsed = sw.Elapsed;
-            if (res.Frames == 0) { try { File.Delete(temp); } catch { } return res; }
+            if (res.Frames == 0) { try { File.Delete(temp); } catch { } VideoRecorded?.Invoke(res); return res; }
             // name the file after the mid-time of the recording, the convention WinJUPOS and the Derotation tab read
             var midTime = first.AddTicks((last - first).Ticks / 2);
             string name = string.Format(CultureInfo.InvariantCulture, "{0:yyyy-MM-dd-HHmm}_{1}-{2}", midTime, midTime.Second / 6, safe);
@@ -258,6 +278,7 @@ namespace Sidralune.Devices.Automation
             for (int i = 2; File.Exists(path); i++) path = Path.Combine(folder, name + " (" + i + ").ser");
             File.Move(temp, path);
             res.Path = path;
+            VideoRecorded?.Invoke(res);
             return res;
         }
 

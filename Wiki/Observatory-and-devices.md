@@ -153,6 +153,8 @@ The **Planetary** tab records a SER video for [planetary, lunar and solar imagin
 | **Stop** | End the recording early. The frames recorded so far are kept and the file is complete |
 | **Open in Planetary** | Open the last recording in **Planetary → Pre-process** |
 
+Videos recorded by a [sequence](Sequencer#instructions) (the **Record video** instruction) are shown here too, with "Sequence ·" in front of the status line, and **Open in Planetary** opens them as well. A sequence with **Record video** in a loop is the way to record a rotation series unattended.
+
 Videos are saved as 16-bit SER files (8-bit for 8-bit cameras), with a UTC time stamp at mid-exposure for every frame, under the image folder in `Planetary\<target>\`. The file is named after the recording's mid-time in the [WinJUPOS style](Planetary,-lunar-and-solar-imaging#winjupos-file-names), for example `2026-10-23-2020_2-Jupiter.ser`, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab and WinJUPOS read the time from the name.
 
 Recording works with any ASCOM, Alpaca or INDI camera. These interfaces transfer each frame whole, so the frame rate is lower than in dedicated planetary capture programs: expect a few to a few tens of frames per second, depending on the driver, the region and the exposure. For the highest frame rates, record with the camera maker's software or a program such as SharpCap or FireCapture and open the SER file in the Planetary workspace.

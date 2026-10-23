@@ -305,7 +305,7 @@ namespace Sidralune.Views
             // (planetary and deep-sky settings are nearly opposite, so each tab keeps its own)
             var vid = new FormGrid(110);
             var vExp = vid.Row("Exposure (ms)", Ui.Num(10, 0.1m, 10000, 1));
-            var vRoi = vid.Row("Region", Ui.Combo("Full sensor", "1920 × 1080", "1280 × 960", "800 × 600", "640 × 480", "320 × 240"));
+            var vRoi = vid.Row("Region", Ui.Combo(VideoRequest.Regions));
             var vBin = vid.Row("Binning", Ui.Combo("1", "2", "3", "4"));
             var vGain = vid.Row("Gain", Ui.Num(100, -1, 10000));
             var vOffset = vid.Row("Offset", Ui.Num(30, -1, 10000));
@@ -341,9 +341,8 @@ namespace Sidralune.Views
             rec.Click += (s, e) =>
             {
                 if (!Have(Dm.Camera, "camera") || !CanUseCamera()) return;
-                int rw = 0, rh = 0;
-                var m = System.Text.RegularExpressions.Regex.Match((string)vRoi.SelectedItem, @"(\d+) × (\d+)");
-                if (m.Success) { rw = int.Parse(m.Groups[1].Value); rh = int.Parse(m.Groups[2].Value); }
+                int rw, rh;
+                VideoRequest.ParseRegion((string)vRoi.SelectedItem, out rw, out rh);
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
                 var req = new VideoRequest
                 {
@@ -352,27 +351,34 @@ namespace Sidralune.Views
                     Filter = string.IsNullOrWhiteSpace(vFilter.Text) ? null : vFilter.Text, Target = vTarget.Text
                 };
                 vidStatus.Text = "Starting…";
-                bool firstFrame = true;
                 RunCameraJob("Recording video", t =>
                 {
+                    // frames and the result are shown through VideoFrame and VideoRecorded below
                     var r = _capture.RecordVideo(req, (img, p) =>
-                    {
-                        Tasks.Report(t, Math.Min(1, Math.Max(p.Frames / (double)req.MaxFrames, p.Elapsed.TotalSeconds / req.MaxSeconds)), string.Format("{0} frames · {1:0.0} fps", p.Frames, p.Fps));
-                        MainForm.Instance.Post(() =>
-                        {
-                            _viewer.SetImage(img, firstFrame); firstFrame = false;
-                            vidStatus.Text = string.Format("Recording {0}×{1} · {2} frames · {3:0.0} fps · {4:0} s", p.Width, p.Height, p.Frames, p.Fps, p.Elapsed.TotalSeconds);
-                        });
-                    }, t.Cts.Token).GetAwaiter().GetResult();
-                    // posted from here rather than onDone, which does not run after Stop
-                    MainForm.Instance.Post(() =>
-                    {
-                        if (r.Path == null) { vidStatus.Text = "Stopped before the first frame; nothing saved."; return; }
-                        lastVideo = r.Path;
-                        openPl.Enabled = true;
-                        vidStatus.Text = string.Format("{0} frames {1}×{2} · {3:0.0} fps · {4:0.0} s{5}\r\nSaved {6}", r.Frames, r.Width, r.Height, r.Fps, r.Elapsed.TotalSeconds, r.Stopped ? " (stopped)" : "", System.IO.Path.GetFileName(r.Path));
-                        MainForm.Instance.Toast(string.Format("Video saved: {0} frames at {1:0.0} fps", r.Frames, r.Fps));
-                    });
+                        Tasks.Report(t, Math.Min(1, Math.Max(p.Frames / (double)req.MaxFrames, p.Elapsed.TotalSeconds / req.MaxSeconds)), string.Format("{0} frames · {1:0.0} fps", p.Frames, p.Fps)),
+                        t.Cts.Token).GetAwaiter().GetResult();
+                    if (r.Path != null) MainForm.Instance.Post(() => MainForm.Instance.Toast(string.Format("Video saved: {0} frames at {1:0.0} fps", r.Frames, r.Fps)));
+                });
+            };
+            // every video recording (manual or sequence) is shown here
+            _capture.VideoFrame += (img, p) =>
+            {
+                string from = SequenceActive ? "Sequence · " : "";
+                MainForm.Instance.Post(() =>
+                {
+                    _viewer.SetImage(img, p.Frames == 1);
+                    vidStatus.Text = string.Format("{0}Recording {1}×{2} · {3} frames · {4:0.0} fps · {5:0} s", from, p.Width, p.Height, p.Frames, p.Fps, p.Elapsed.TotalSeconds);
+                });
+            };
+            _capture.VideoRecorded += r =>
+            {
+                string from = SequenceActive ? "Sequence · " : "";
+                MainForm.Instance.Post(() =>
+                {
+                    if (r.Path == null) { vidStatus.Text = from + "Stopped before the first frame; nothing saved."; return; }
+                    lastVideo = r.Path;
+                    openPl.Enabled = true;
+                    vidStatus.Text = string.Format("{0}{1} frames {2}×{3} · {4:0.0} fps · {5:0.0} s{6}\r\nSaved {7}", from, r.Frames, r.Width, r.Height, r.Fps, r.Elapsed.TotalSeconds, r.Stopped ? " (stopped)" : "", System.IO.Path.GetFileName(r.Path));
                 });
             };
             _cameraButtons.Add(Tuple.Create((Control)rec, false));
