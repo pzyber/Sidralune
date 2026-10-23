@@ -69,6 +69,7 @@ namespace Sidralune.Views
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
+            var rowRefreshers = new List<Action>();
             var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator, DeviceKind.Guider };
             foreach (var k in kinds)
             {
@@ -78,7 +79,10 @@ namespace Sidralune.Views
                 var combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill, Margin = new Padding(4, 6, 4, 4) };
                 foreach (var d in Dm.Discover(kind, false)) combo.Items.Add(d);
                 if (combo.Items.Count > 0) combo.SelectedIndex = 0;
-                var connect = new FlatButton("Connect", Icons.Connect) { Margin = new Padding(4, 4, 4, 4) }; connect.AutoSizeToText();
+                // sized for the longer label so switching between Connect and Disconnect never re-lays out the table
+                var connect = new FlatButton("Disconnect", Icons.Connect) { Margin = new Padding(4, 4, 4, 4) }; connect.AutoSizeToText();
+                int connectWidth = connect.Width;
+                connect.Text = "Connect";
                 var setup = new FlatButton("Setup…", Icons.Settings) { Margin = new Padding(4, 4, 4, 4) }; setup.AutoSizeToText();
                 var choose = new FlatButton("ASCOM…", Icons.More) { Margin = new Padding(4, 4, 4, 4), ToolTipText = "Open the ASCOM Chooser" }; choose.AutoSizeToText();
                 var status = new Label { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "dim" };
@@ -93,14 +97,15 @@ namespace Sidralune.Views
                     var dev = Dm.Get(kind);
                     connect.Text = dev != null && dev.Connected ? "Disconnect" : "Connect";
                     connect.Kind = dev != null && dev.Connected ? ButtonKind.Danger : ButtonKind.Normal;
-                    connect.AutoSizeToText();
+                    connect.Width = connectWidth;
                     status.Text = dev != null ? (dev.Connected ? "● Connected: " + dev.Info.Name : "○ Lost connection") : "Not connected";
                     status.ForeColor = dev != null && dev.Connected ? Theme.Current.Success : Theme.Current.TextDim;
                 };
                 connect.Click += (s, e) =>
                 {
                     var dev = Dm.Get(kind);
-                    if (dev != null && dev.Connected) { Dm.Disconnect(kind); refresh(); return; }
+                    // in the background: a driver can take seconds to disconnect, and the window must keep painting
+                    if (dev != null && dev.Connected) { Tasks.Run("Disconnecting " + dev.Info.Name, t => Dm.Disconnect(kind)); return; }
                     var info = combo.SelectedItem as DeviceInfo;
                     if (info == null) return;
                     Tasks.Run("Connecting " + info.Name, t => Dm.Connect(info), () => { refresh(); MainForm.Instance.Toast("Connected " + info.Name); });
@@ -128,9 +133,19 @@ namespace Sidralune.Views
                     catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); }
                 };
                 choose.Visible = kind != DeviceKind.Guider;
-                Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(refresh);
+                rowRefreshers.Add(refresh);
                 refresh();
             }
+            // one refresh of all rows per burst of device changes (Disconnect all raises one per device), laid out once
+            int refreshPending = 0;
+            Action refreshAll = () =>
+            {
+                System.Threading.Interlocked.Exchange(ref refreshPending, 0);
+                table.SuspendLayout();
+                try { foreach (var r in rowRefreshers) r(); }
+                finally { table.ResumeLayout(true); }
+            };
+            Dm.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref refreshPending, 1) == 0) MainForm.Instance.Post(refreshAll); };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46 };
             var sim = new FlatButton("Connect simulated observatory", Icons.Observatory, (s, e) => Tasks.Run("Connecting simulators", t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast("Simulated observatory ready"))) { Kind = ButtonKind.Primary }; sim.AutoSizeToText();
             var alpaca = new FlatButton("Discover Alpaca devices", Icons.Search, (s, e) => Tasks.Run("Alpaca discovery", t =>
@@ -149,7 +164,7 @@ namespace Sidralune.Views
                 });
             })); alpaca.AutoSizeToText();
             var indi = new FlatButton("Add INDI server…", Icons.Add, (s, e) => AddIndi(table, kinds)); indi.AutoSizeToText();
-            var disc = new FlatButton("Disconnect all", Icons.Stop, (s, e) => Dm.DisconnectAll()) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
+            var disc = new FlatButton("Disconnect all", Icons.Stop, (s, e) => Tasks.Run("Disconnecting all devices", t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
             bar.Controls.AddRange(new Control[] { sim, alpaca, indi, disc });
             var optics = new FormGrid(220);
             var fl = optics.Row("Imaging focal length (mm)", Ui.Num((decimal)Dm.FocalLengthMm, 10, 20000));
