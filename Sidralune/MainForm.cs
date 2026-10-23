@@ -73,7 +73,8 @@ namespace Sidralune
             Theme.Changed += (s, e) => { _syncingNight = true; _night.Checked = Theme.Current.IsNight; _syncingNight = false; ApplyTheme(Theme.Current); };
             Log.Logged += e => Post(() => AppendLog(e));
             Tasks.Changed += UpdateTaskPill;
-            DeviceManager.Instance.DevicesChanged += (s, e) => Post(UpdateDevicePills);
+            // one update per burst of device changes (Disconnect all raises one per device)
+            DeviceManager.Instance.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref _pillsPending, 1) == 0) Post(UpdateDevicePills); };
             CatalogManager.Instance.CatalogsChanged += (s, e) => Post(UpdateDataPill);
             EphemerisManager.SourceChanged += (s, e) => Post(UpdateDataPill);
             _timer.Tick += (s, e) => Tick();
@@ -274,7 +275,18 @@ namespace Sidralune
             if (DateTime.Now.Second % 3 == 0) UpdateDevicePills();
         }
 
+        private int _pillsPending;
+
         private void UpdateDevicePills()
+        {
+            System.Threading.Interlocked.Exchange(ref _pillsPending, 0);
+            _statusLeft.SuspendLayout();
+            try { UpdateDevicePillsCore(); }
+            finally { _statusLeft.ResumeLayout(true); }
+            LayoutStatus();
+        }
+
+        private void UpdateDevicePillsCore()
         {
             var dm = DeviceManager.Instance;
             foreach (var kv in _devicePills)
