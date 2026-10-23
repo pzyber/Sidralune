@@ -259,6 +259,51 @@ namespace Sidralune.Devices.Automation
         }
     }
 
+    /// <summary>Planetary video: short exposures back to back into a SER file (see CaptureService.RecordVideo).</summary>
+    public class RecordVideo : SequenceItem
+    {
+        public double ExposureMs { get; set; } = 10;
+        /// <summary>Region of interest centred on the sensor, one of VideoRequest.Regions.</summary>
+        [System.ComponentModel.TypeConverter(typeof(VideoRegionConverter))]
+        public string Region { get; set; } = "640 × 480";
+        public int Bin { get; set; } = 1;
+        public int Gain { get; set; } = -1;
+        public int Offset { get; set; } = -1;
+        public string Filter { get; set; } = "";
+        public int MaxFrames { get; set; } = 1000;
+        public double MaxSeconds { get; set; } = 60;
+        public override string Title => "Record video";
+        public override string[] RequiredDevices => new[] { "camera" };
+        public override string Summary => string.Format("{0} ms {1}{2} · {3} frames / {4} s", ExposureMs, Region, string.IsNullOrEmpty(Filter) ? "" : " " + Filter, MaxFrames, MaxSeconds);
+
+        protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
+        {
+            foreach (var tr in ctx.Triggers.Where(t => t.Enabled)) await tr.Check(ctx, this, ct);
+            int rw, rh;
+            VideoRequest.ParseRegion(Region, out rw, out rh);
+            var r = new VideoRequest
+            {
+                ExposureMs = ExposureMs, Bin = Bin, Gain = Gain, Offset = Offset, RoiWidth = rw, RoiHeight = rh,
+                MaxFrames = Math.Max(1, MaxFrames), MaxSeconds = Math.Max(1, MaxSeconds), Filter = string.IsNullOrEmpty(Filter) ? null : Filter,
+                Target = ctx.Target != null ? ctx.Target.Name : ""
+            };
+            var res = await ctx.Capture.RecordVideo(r, null, ct);
+            if (r.Filter != null) ctx.CurrentFilter = r.Filter;
+            if (res.Path != null) ctx.Log(string.Format("Saved {0} ({1} frames {2}×{3} at {4:0.0} fps)", Path.GetFileName(res.Path), res.Frames, res.Width, res.Height, res.Fps));
+            // Stop ends the recording but keeps the file; the sequence still stops here
+            ct.ThrowIfCancellationRequested();
+            if (res.Path == null) throw new InvalidOperationException("The camera delivered no frames");
+        }
+    }
+
+    /// <summary>Shows VideoRequest.Regions as a drop-down list in the property grid.</summary>
+    public class VideoRegionConverter : System.ComponentModel.StringConverter
+    {
+        public override bool GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override bool GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override StandardValuesCollection GetStandardValues(System.ComponentModel.ITypeDescriptorContext context) => new StandardValuesCollection(VideoRequest.Regions);
+    }
+
     public class RunAutofocus : SequenceItem
     {
         public double Exposure { get; set; } = 3;
@@ -516,7 +561,7 @@ namespace Sidralune.Devices.Automation
         public static readonly Type[] ItemTypes =
         {
             typeof(TargetContainer), typeof(LoopContainer), typeof(SequenceContainer), typeof(SlewToTarget), typeof(CenterTarget), typeof(StartGuiding), typeof(StopGuiding),
-            typeof(TakeExposures), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(RunScript), typeof(Annotation)
+            typeof(TakeExposures), typeof(RecordVideo), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(RunScript), typeof(Annotation)
         };
 
         public static Dictionary<string, object> ToDict(SequenceItem item)

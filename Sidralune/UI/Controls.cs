@@ -622,12 +622,15 @@ namespace Sidralune.UI
             var list = new List<PropertyDescriptor>();
             var t = Target.GetType();
             foreach (var f in t.GetFields(BindingFlags.Public | BindingFlags.Instance))
-                if (Editable(f.FieldType)) list.Add(new MemberDescriptor(f.Name, f.FieldType, () => f.GetValue(Target), v => f.SetValue(Target, v), Category));
+                if (Editable(f.FieldType)) list.Add(new MemberDescriptor(f.Name, f.FieldType, () => f.GetValue(Target), v => f.SetValue(Target, v), Category, Attributes(f)));
             foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                 if (p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0 && Editable(p.PropertyType))
-                    list.Add(new MemberDescriptor(p.Name, p.PropertyType, () => p.GetValue(Target, null), v => p.SetValue(Target, v, null), Category));
+                    list.Add(new MemberDescriptor(p.Name, p.PropertyType, () => p.GetValue(Target, null), v => p.SetValue(Target, v, null), Category, Attributes(p)));
             return new PropertyDescriptorCollection(list.ToArray());
         }
+
+        /// <summary>The member's attributes, so that for example [TypeConverter] gives it a drop-down list.</summary>
+        private static Attribute[] Attributes(MemberInfo m) => m.GetCustomAttributes(true).OfType<Attribute>().ToArray();
 
         private static bool Editable(Type t)
         {
@@ -650,7 +653,7 @@ namespace Sidralune.UI
         private class MemberDescriptor : PropertyDescriptor
         {
             private readonly Type _type; private readonly Func<object> _get; private readonly Action<object> _set; private readonly string _cat;
-            public MemberDescriptor(string name, Type type, Func<object> get, Action<object> set, string cat) : base(name, null) { _type = type; _get = get; _set = set; _cat = cat; }
+            public MemberDescriptor(string name, Type type, Func<object> get, Action<object> set, string cat, Attribute[] attributes) : base(name, attributes) { _type = type; _get = get; _set = set; _cat = cat; }
             public override string DisplayName => Words(Name);
             public override string Category => _cat;
             public override Type ComponentType => typeof(GridAdapter);

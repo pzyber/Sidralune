@@ -79,6 +79,7 @@ Containers can be nested, for example a loop of filters inside a target inside a
 | **Start guiding** | Starts PHD2 guiding | **Force calibration** |
 | **Stop guiding** | Stops guiding | |
 | **Take exposures** ("Expose … frames") | Takes a series of frames and saves them | **Count**, **Exposure**, **Filter**, **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Frame type** (LIGHT, DARK, FLAT, BIAS), **Dither every** N frames, **Dither pixels** |
+| **Record video** | Records a [planetary SER video](Observatory-and-devices#planetary-video), named after the target and saved under `Planetary\<target>\` | **Exposure ms**, **Region** (centred on the sensor, the same choices as in the Imaging tab: **Full sensor** or 1920 × 1080 down to 320 × 240), **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Filter**, **Max frames**, **Max seconds** (stops at whichever comes first) |
 | **Run autofocus** | Runs the V-curve autofocus routine | **Exposure**, **Step size**, **Steps** |
 | **Switch filter** | Moves the filter wheel | **Filter** name |
 | **Cool camera** / **Warm camera** | Ramps the sensor temperature gradually | **Temperature**, **Minutes**, **Warm** |
@@ -87,6 +88,8 @@ Containers can be nested, for example a loop of filters inside a target inside a
 | **Dome shutter** ("Open dome" / "Close dome") | Opens or closes the dome shutter or roof | **Open** |
 | **Run script** ("Run external program") | Runs a program or batch file, for example to switch dew heaters or send a notification | **Command**, **Arguments**, **Timeout sec** |
 | **Annotation** ("Note") | Writes a note to the log; does nothing else | **Text** |
+
+For a planetary rotation series, put **Record video** in a **Loop** with a **Wait** after it, for example a 90-second video every 5 minutes until the planet sinks below 25°. With a filter wheel, use one **Record video** per filter (R, G, B) in the loop. The videos are named in the WinJUPOS style, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab can combine them later.
 
 If an instruction fails, it is marked ✗, the error is shown in its properties and written to the log, and the sequence continues with the next instruction. Turn on **Stop on error** for instructions that must succeed (for example centring before a long series), and the sequence will stop there instead.
 
@@ -108,9 +111,9 @@ The sequencing engine also provides **Autofocus after 1.5 °C change** (temperat
 
 Click **Run sequence**. The sequence runs in the background: you can keep working in other workspaces, and the task pill in the status bar shows its progress. The tree marks each instruction's status and the log records every step with its time.
 
-Before it starts, Sidralune checks that the devices the enabled instructions need are connected: a camera for exposures, centring and autofocus, a telescope for slewing, centring and parking, a focuser for autofocus, and a filter wheel for **Switch filter**. If one is missing, the sequence does not start and a message names what to connect. Guiding, cooling and dome instructions are skipped when their device is absent, so they do not block a run.
+Before it starts, Sidralune checks that the devices the enabled instructions need are connected: a camera for exposures, videos, centring and autofocus, a telescope for slewing, centring and parking, a focuser for autofocus, and a filter wheel for **Switch filter**. If one is missing, the sequence does not start and a message names what to connect. Guiding, cooling and dome instructions are skipped when their device is absent, so they do not block a run.
 
-Each frame the sequence takes is shown in the [Imaging tab](Observatory-and-devices#camera) as it arrives, with its star count, HFR, FWHM and file name. While the sequence runs, everything else that uses the camera is disabled so that nothing can fight over it: **Start** and **Loop** in the Imaging tab, **Run autofocus**, **Center**, and **Start polar alignment**. The sequence's own autofocus and centring instructions are not affected. If a capture, preview loop, autofocus run, centring or polar alignment is already running, **Run sequence** is disabled until it has finished or you stop it.
+Each frame the sequence takes is shown in the [Imaging tab](Observatory-and-devices#camera) as it arrives, with its star count, HFR, FWHM and file name. Videos are shown there too while they record, with the frame count and frame rate, and **Open in Planetary** opens the last one. Stopping the sequence during a video ends the recording and keeps the frames so far. While the sequence runs, everything else that uses the camera is disabled so that nothing can fight over it: **Start** and **Loop** in the Imaging tab, **Run autofocus**, **Center**, and **Start polar alignment**. The sequence's own autofocus and centring instructions are not affected. If a capture, preview loop, autofocus run, centring or polar alignment is already running, **Run sequence** is disabled until it has finished or you stop it.
 
 Click **Stop**, or run the `Observatory: abort all` command, to stop. The current exposure is aborted and the mount stops slewing; it does not park automatically, so park it yourself if you are ending the night.
 

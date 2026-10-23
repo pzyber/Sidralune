@@ -126,7 +126,7 @@ WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM
 
 ## A complete Jupiter workflow
 
-1. Record five 90-second SER videos in a row with a colour camera.
+1. Record five 90-second SER videos in a row with a colour camera (a [sequence](Sequencer#instructions) with **Record video** in a loop can do this unattended).
 2. **Pre-process** each: Object mode Planetary, Centre object, Reject edge frames, Keep best percent 100, Format Ser, Win jupos naming on.
 3. **Lucky stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
 4. **Derotation**: add the five stacks, planet Jupiter, target time in the middle, **Derotate & stack to target time**, **Save result…**.
