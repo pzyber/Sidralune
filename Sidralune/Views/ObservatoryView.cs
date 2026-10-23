@@ -267,18 +267,16 @@ namespace Sidralune.Views
             var target = cam.Row("Target", new TextBox { Text = "Untitled" });
             var save = cam.Row("Save", new CheckBox { Text = "Save frames", Checked = true });
             var pattern = cam.Row("File pattern", new TextBox { Text = _capture.FilePattern });
-            var btns = new FlowLayoutPanel { Height = 76 };
+            // button rows and status lines size to their content, so an empty status or a single row of buttons takes no extra space
+            var btns = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
             var start = new FlatButton("Start", Icons.Play) { Kind = ButtonKind.Primary }; start.AutoSizeToText();
             var loop = new FlatButton("Loop", Icons.Refresh) { ToolTipText = "Continuous preview (not saved)" }; loop.AutoSizeToText();
             var stop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; stop.AutoSizeToText();
             btns.Controls.AddRange(new Control[] { start, loop, stop });
             cam.Full(btns);
-            var busyNote = _busyNote = new Label { Tag = "dim", AutoSize = true, Visible = false, Text = "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." };
-            busyNote.MaximumSize = new Size(270, 0);
-            cam.Full(busyNote);
-            var camStatus = new Label { Tag = "dim", AutoSize = false, Height = 60 };
+            var camStatus = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(270, 0), Visible = false };
+            camStatus.TextChanged += (s, e) => camStatus.Visible = camStatus.Text.Length > 0; // an empty line would still take a row
             cam.Full(camStatus);
-            var camCard = new Collapsible("Camera", cam);
             // cooling
             var cool = new FormGrid(110);
             var setT = cool.Row("Set point (°C)", Ui.Num(-10, -60, 30, 1));
@@ -287,6 +285,90 @@ namespace Sidralune.Views
             setT.ValueChanged += (s, e) => { if (Dm.Camera != null && Dm.Camera.CanSetTemperature) Dm.Camera.SetTemperature = (double)setT.Value; };
             coolOn.CheckedChanged += (s, e) => { if (Dm.Camera != null && Dm.Camera.CanSetTemperature) { Dm.Camera.SetTemperature = (double)setT.Value; Dm.Camera.CoolerOn = coolOn.Checked; } };
             var coolCard = new Collapsible("Cooling", cool);
+
+            // planetary tab: video of short exposures back to back into a SER file, with its own camera settings
+            // (planetary and deep-sky settings are nearly opposite, so each tab keeps its own)
+            var vid = new FormGrid(110);
+            var vExp = vid.Row("Exposure (ms)", Ui.Num(10, 0.1m, 10000, 1));
+            var vRoi = vid.Row("Region", Ui.Combo("Full sensor", "1920 × 1080", "1280 × 960", "800 × 600", "640 × 480", "320 × 240"));
+            var vBin = vid.Row("Binning", Ui.Combo("1", "2", "3", "4"));
+            var vGain = vid.Row("Gain", Ui.Num(100, -1, 10000));
+            var vOffset = vid.Row("Offset", Ui.Num(30, -1, 10000));
+            var vFilter = vid.Row("Filter", new ComboBox { DropDownStyle = ComboBoxStyle.DropDown });
+            var vTarget = vid.Row("Target", new TextBox { Text = "Untitled" });
+            var vFrames = vid.Row("Max frames", Ui.Num(1000, 1, 100000));
+            var vSecs = vid.Row("Max seconds", Ui.Num(60, 1, 3600));
+            var vBtns = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
+            var rec = new FlatButton("Record", Icons.Play) { Kind = ButtonKind.Primary }; rec.AutoSizeToText();
+            var vStop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; vStop.AutoSizeToText();
+            var openPl = new FlatButton("Open in Planetary", Icons.Planet) { Enabled = false }; openPl.AutoSizeToText();
+            vBtns.Controls.AddRange(new Control[] { rec, vStop, openPl });
+            vStop.Click += (s, e) => { if (_cameraJob != null && _cameraJobName == "Recording video") _cameraJob.Cts.Cancel(); };
+            vid.Full(vBtns);
+            var vidStatus = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(270, 0), Visible = false };
+            vidStatus.TextChanged += (s, e) => vidStatus.Visible = vidStatus.Text.Length > 0;
+            vid.Full(vidStatus);
+            vid.Full(Ui.Hint("Records a SER video for the Planetary workspace. A small region gives the highest frame rate. Stop ends the recording and keeps the frames so far."));
+
+            // Camera section: a Deep sky | Planetary switch over the two sets of settings, then the busy note for both
+            var mode = new SegmentedTabs();
+            mode.Tabs.AddRange(new[] { "Deep sky", "Planetary" });
+            var busyNote = _busyNote = new Label { Tag = "dim", AutoSize = true, Visible = false, MaximumSize = new Size(270, 0), Text = "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." };
+            var camBox = new FormGrid(110);
+            camBox.Full(mode);
+            camBox.Full(cam);
+            camBox.Full(vid);
+            camBox.Full(busyNote);
+            vid.Visible = false;
+            mode.SelectedChanged += i => { cam.Visible = i == 0; vid.Visible = i == 1; };
+            var camCard = new Collapsible("Camera", camBox);
+            string lastVideo = null;
+            rec.Click += (s, e) =>
+            {
+                if (!Have(Dm.Camera, "camera") || !CanUseCamera()) return;
+                int rw = 0, rh = 0;
+                var m = System.Text.RegularExpressions.Regex.Match((string)vRoi.SelectedItem, @"(\d+) × (\d+)");
+                if (m.Success) { rw = int.Parse(m.Groups[1].Value); rh = int.Parse(m.Groups[2].Value); }
+                _capture.ImageFolder = AppState.Settings.ImageFolder;
+                var req = new VideoRequest
+                {
+                    ExposureMs = (double)vExp.Value, Bin = int.Parse((string)vBin.SelectedItem), Gain = (int)vGain.Value, Offset = (int)vOffset.Value,
+                    RoiWidth = rw, RoiHeight = rh, MaxFrames = (int)vFrames.Value, MaxSeconds = (double)vSecs.Value,
+                    Filter = string.IsNullOrWhiteSpace(vFilter.Text) ? null : vFilter.Text, Target = vTarget.Text
+                };
+                vidStatus.Text = "Starting…";
+                bool firstFrame = true;
+                RunCameraJob("Recording video", t =>
+                {
+                    var r = _capture.RecordVideo(req, (img, p) =>
+                    {
+                        Tasks.Report(t, Math.Min(1, Math.Max(p.Frames / (double)req.MaxFrames, p.Elapsed.TotalSeconds / req.MaxSeconds)), string.Format("{0} frames · {1:0.0} fps", p.Frames, p.Fps));
+                        MainForm.Instance.Post(() =>
+                        {
+                            _viewer.SetImage(img, firstFrame); firstFrame = false;
+                            vidStatus.Text = string.Format("Recording {0}×{1} · {2} frames · {3:0.0} fps · {4:0} s", p.Width, p.Height, p.Frames, p.Fps, p.Elapsed.TotalSeconds);
+                        });
+                    }, t.Cts.Token).GetAwaiter().GetResult();
+                    // posted from here rather than onDone, which does not run after Stop
+                    MainForm.Instance.Post(() =>
+                    {
+                        if (r.Path == null) { vidStatus.Text = "Stopped before the first frame; nothing saved."; return; }
+                        lastVideo = r.Path;
+                        openPl.Enabled = true;
+                        vidStatus.Text = string.Format("{0} frames {1}×{2} · {3:0.0} fps · {4:0.0} s{5}\r\nSaved {6}", r.Frames, r.Width, r.Height, r.Fps, r.Elapsed.TotalSeconds, r.Stopped ? " (stopped)" : "", System.IO.Path.GetFileName(r.Path));
+                        MainForm.Instance.Toast(string.Format("Video saved: {0} frames at {1:0.0} fps", r.Frames, r.Fps));
+                    });
+                });
+            };
+            _cameraButtons.Add(Tuple.Create((Control)rec, false));
+            openPl.Click += (s, e) =>
+            {
+                if (lastVideo == null) return;
+                MainForm.Instance.Navigate("planetary");
+                var pv = MainForm.Instance.GetView<PlanetaryView>("planetary");
+                if (pv != null) pv.OpenVideo(lastVideo);
+            };
+
             left.Controls.Add(coolCard);
             left.Controls.Add(camCard);
 
@@ -390,7 +472,7 @@ namespace Sidralune.Views
                     try { coolStatus.Text = string.Format("{0:0.0} °C · power {1:0}%", c.CcdTemperature, c.CoolerPower); } catch { }
                 }
                 var fw = Dm.FilterWheel;
-                if (fw != null && fw.Connected && filter.Items.Count == 0) { try { filter.Items.AddRange(fw.Names); } catch { } }
+                if (fw != null && fw.Connected && filter.Items.Count == 0) { try { filter.Items.AddRange(fw.Names); vFilter.Items.AddRange(fw.Names); } catch { } }
             };
 
             panel.Controls.Add(_viewer);

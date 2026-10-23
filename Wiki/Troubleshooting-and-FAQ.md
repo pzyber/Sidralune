@@ -89,6 +89,9 @@ Close other programs that use the device (most drivers allow only one connection
 **Alpaca discovery finds nothing.**
 Make sure the Alpaca server is running, the computer is on the same network, and Windows Firewall allows UDP port 32227 for Sidralune. Some routers block broadcasts on Wi-Fi.
 
+**Video recording has a low frame rate.**
+ASCOM, Alpaca and INDI transfer every frame whole. Choose a smaller **Region** (640 × 480 or 320 × 240 for planets), use 8-bit mode in the driver's **Setup…** if it offers one, and check the driver's USB speed setting. For the highest frame rates, record with the camera maker's software or SharpCap or FireCapture and open the SER file in Planetary.
+
 **PHD2 does not connect.**
 In PHD2, choose **Tools → Enable Server**. If you run several PHD2 instances, the first uses port 4400.
 
