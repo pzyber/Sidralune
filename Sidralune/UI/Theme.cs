@@ -184,6 +184,19 @@ namespace Sidralune.UI
         [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
         [DllImport("user32.dll")] private static extern bool RedrawWindow(IntPtr hwnd, IntPtr rect, IntPtr rgn, uint flags);
         [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+        [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
+        [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr hwnd, out RECT r);
+        [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr hwnd, ref POINT p);
+        [DllImport("user32.dll")] private static extern bool ValidateRect(IntPtr hwnd, ref RECT r);
+
+        /// <summary>The four strips of a frame <paramref name="t"/> pixels wide around a window of size <paramref name="sz"/>.</summary>
+        private static Rectangle[] Frame(Size sz, int t) => new[]
+        {
+            new Rectangle(0, 0, sz.Width, t), new Rectangle(0, sz.Height - t, sz.Width, t),
+            new Rectangle(0, 0, t, sz.Height), new Rectangle(sz.Width - t, 0, t, sz.Height)
+        };
+
+        private static Rectangle[] Whole(Size sz) => new[] { new Rectangle(Point.Empty, sz) };
 
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, object> Hooked = new System.Runtime.CompilerServices.ConditionalWeakTable<Control, object>();
 
@@ -203,9 +216,17 @@ namespace Sidralune.UI
         private sealed class OverPainter : NativeWindow
         {
             private readonly Action<Graphics, Size> _paint;
-            public OverPainter(Control c, Action<Graphics, Size> paint)
+            private readonly Func<Size, Rectangle[]> _owned;
+
+            /// <param name="owned">
+            /// Optional: the parts of the window (in window coordinates) that <paramref name="paint"/> covers completely. They
+            /// are taken out of the update region before the control paints, so its own grey borders and hot (hover) states
+            /// never reach the screen in those parts, not even for the moment before they are painted over.
+            /// </param>
+            public OverPainter(Control c, Action<Graphics, Size> paint, Func<Size, Rectangle[]> owned = null)
             {
                 _paint = paint;
+                _owned = owned;
                 if (c.IsHandleCreated) AssignHandle(c.Handle);
                 c.HandleCreated += (s, e) => AssignHandle(c.Handle);
                 c.HandleDestroyed += (s, e) => ReleaseHandle();
@@ -213,9 +234,11 @@ namespace Sidralune.UI
 
             protected override void WndProc(ref Message m)
             {
+                if (m.Msg == 0x000F && _owned != null) ValidateOwned();
                 base.WndProc(ref m);
-                // WM_PAINT, WM_NCPAINT, WM_SETFOCUS, WM_KILLFOCUS, WM_ENABLE, CB_SETCURSEL: paint on the window
-                if (m.Msg == 0x000F || m.Msg == 0x0085 || m.Msg == 0x0007 || m.Msg == 0x0008 || m.Msg == 0x000A || m.Msg == 0x014E) Draw();
+                // WM_PAINT, WM_NCPAINT, WM_SETFOCUS, WM_KILLFOCUS, WM_ENABLE, CB_SETCURSEL, WM_MOUSEMOVE, WM_MOUSELEAVE: paint
+                // on the window (mouse messages: some controls draw a hot border directly when the pointer enters or leaves)
+                if (m.Msg == 0x000F || m.Msg == 0x0085 || m.Msg == 0x0007 || m.Msg == 0x0008 || m.Msg == 0x000A || m.Msg == 0x014E || m.Msg == 0x0200 || m.Msg == 0x02A3) Draw();
                 // WM_PRINT (used by DrawToBitmap and print previews): paint into the supplied device context
                 else if (m.Msg == 0x0317 && m.WParam != IntPtr.Zero && ((long)m.LParam & 0x0002) != 0)
                 {
@@ -223,6 +246,25 @@ namespace Sidralune.UI
                     if (!GetWindowRect(Handle, out r)) return;
                     try { using (var g = Graphics.FromHdc(m.WParam)) _paint(g, new Size(r.Right - r.Left, r.Bottom - r.Top)); } catch { }
                 }
+            }
+
+            private void ValidateOwned()
+            {
+                RECT wr, cr;
+                if (!GetWindowRect(Handle, out wr) || !GetClientRect(Handle, out cr)) return;
+                var origin = new POINT();
+                ClientToScreen(Handle, ref origin);
+                // only when the client area is the whole window: then window and client coordinates are the same
+                if (origin.X != wr.Left || origin.Y != wr.Top || cr.Right != wr.Right - wr.Left || cr.Bottom != wr.Bottom - wr.Top) return;
+                try
+                {
+                    foreach (var r in _owned(new Size(cr.Right, cr.Bottom)))
+                    {
+                        var rr = new RECT { Left = r.Left, Top = r.Top, Right = r.Right, Bottom = r.Bottom };
+                        ValidateRect(Handle, ref rr);
+                    }
+                }
+                catch { }
             }
 
             private void Draw()
@@ -468,7 +510,7 @@ namespace Sidralune.UI
                     if (right < sz.Width - 1) g.DrawLine(pen, right - 1, 0, right - 1, bottom - 1);
                     if (bottom < sz.Height - 1) g.DrawLine(pen, 0, bottom - 1, right - 1, bottom - 1);
                 }
-            });
+            }, sz => Frame(sz, 1));
         }
 
         private static void HookComboBox(ComboBox cb)
@@ -480,7 +522,12 @@ namespace Sidralune.UI
                 var btn = new Rectangle(sz.Width - bw - 1, 1, bw, sz.Height - 2);
                 using (var b = new SolidBrush(cb.Enabled ? p.SurfaceRaised : p.Surface)) g.FillRectangle(b, btn);
                 DrawChevron(g, btn, false, cb.Enabled ? p.TextDim : p.TextFaint);
+                using (var pen = new Pen(cb.Enabled ? p.SurfaceRaised : p.Surface)) g.DrawRectangle(pen, 1, 1, sz.Width - 3, sz.Height - 3);
                 using (var pen = new Pen(BorderFor(cb))) g.DrawRectangle(pen, 0, 0, sz.Width - 1, sz.Height - 1);
+            }, sz =>
+            {
+                int bw = Math.Max(SystemInformation.HorizontalScrollBarArrowWidth, (int)(17 * cb.DeviceDpi / 96.0)) + 2;
+                var f = Frame(sz, 2); return new[] { f[0], f[1], f[2], f[3], new Rectangle(sz.Width - bw - 1, 1, bw, sz.Height - 2) };
             });
         }
 
@@ -503,7 +550,7 @@ namespace Sidralune.UI
                     var col = n.Enabled ? p.TextDim : p.TextFaint;
                     DrawChevron(g, new RectangleF(1, 0, sz.Width - 1, sz.Height / 2f), true, col);
                     DrawChevron(g, new RectangleF(1, sz.Height / 2f, sz.Width - 1, sz.Height / 2f), false, col);
-                });
+                }, Whole);
             }
         }
 
@@ -863,7 +910,7 @@ namespace Sidralune.UI
                         var btn = view.GetType().GetProperty(name, Any).GetValue(view, null) as Button;
                         if (btn == null) continue;
                         bool dialog = name == "DialogButton";
-                        new OverPainter(btn, (bg, sz) => PaintValueButton(bg, sz, btn, dialog));
+                        new OverPainter(btn, (bg, sz) => PaintValueButton(bg, sz, btn, dialog), Whole);
                     }
                     // the value drop-down list: draw its items and the border of the pop-up that holds it in the palette
                     var list = view.GetType().GetProperty("DropDownListBox", Any).GetValue(view, null) as ListBox;
