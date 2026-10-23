@@ -31,7 +31,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Area | Highlights |
 |---|---|
 | Planning | Tonight dashboard, planetarium and atlas charts, printable finder charts, comets and asteroids on every chart, observing lists that rank targets by predicted visibility, logbook |
-| Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers |
+| Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, planetary video (SER) recording, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers |
 | Deep-sky imaging | Calibration with masters, star registration, 12 pixel-combine methods, drizzle, comet stacking, mosaics |
 | Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history |
 | Planetary, lunar and solar | Video pre-processing (centring, cropping, frame rejection), stacking with alignment points, wavelet sharpening, deconvolution, field derotation for alt-az mounts, planetary rotation correction across several videos, solar and lunar tools, mosaic stitching |
@@ -85,7 +85,7 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 | Tonight | Darkness times, Moon, planets, best targets, upcoming events, Jupiter's moons, bright comets | [Tonight](https://github.com/pzyber/Sidralune/wiki/Tonight) |
 | Sky | Planetarium and atlas chart, object information, printing | [Sky chart](https://github.com/pzyber/Sidralune/wiki/Sky-chart) |
 | Planner | Observing lists, visibility ranking, altitude graph, logbook | [Observation planning](https://github.com/pzyber/Sidralune/wiki/Observation-planning) |
-| Observatory | Equipment, imaging, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices), [Sequencer](https://github.com/pzyber/Sidralune/wiki/Sequencer) |
+| Observatory | Equipment, imaging and planetary video recording, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices), [Sequencer](https://github.com/pzyber/Sidralune/wiki/Sequencer) |
 | Deep sky | Calibrate, register and stack deep-sky frames | [Deep-sky stacking](https://github.com/pzyber/Sidralune/wiki/Deep-sky-stacking) |
 | Process | Post-processing of stacked images | [Image processing](https://github.com/pzyber/Sidralune/wiki/Image-processing) |
 | Planetary | Pre-process, Lucky stacking, Sharpen & deconvolve, Derotation, Solar & lunar | [Planetary, lunar and solar imaging](https://github.com/pzyber/Sidralune/wiki/Planetary,-lunar-and-solar-imaging) |

@@ -24,7 +24,8 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 
 ## Recording tips
 
-- Use a planetary camera and record SER files (most planetary capture programs can write them). SER keeps the full bit depth and a time stamp for every frame. AVI and image sequences also work.
+- Use a planetary camera and record SER files. SER keeps the full bit depth and a time stamp for every frame. AVI and image sequences also work.
+- Sidralune can record SER videos itself in **Observatory → Imaging → Camera → [Planetary](Observatory-and-devices#planetary-video)** with any ASCOM, Alpaca or INDI camera, and **Open in Planetary** brings the result straight into the Pre-process tab. Those interfaces transfer whole frames, so for the highest frame rates record with the camera maker's software or a dedicated capture program (SharpCap, FireCapture) and open the file here.
 - Choose a focal ratio of about 5 × the pixel size in micrometres (f/15 for 2.9 µm pixels). **Settings → Equipment** shows the Nyquist focal ratio for your camera.
 - Keep exposures short (2–15 ms) and gain high enough for a histogram around 50–70%.
 - Limit each video to the time the planet takes to rotate noticeably: about 60–90 seconds for Jupiter, 3 minutes for Saturn and Mars. [Derotation](#derotation) lets you combine several such videos.

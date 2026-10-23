@@ -328,7 +328,7 @@ namespace Sidralune.Devices.Simulators
 
         private AstroImage Render(double exp, bool light, double raH, double decD)
         {
-            int w = Math.Max(16, NumX / BinX), h = Math.Max(16, NumY / BinY);
+            int w = Math.Max(16, NumX), h = Math.Max(16, NumY); // NumX/NumY are in binned pixels (ASCOM convention)
             double scale = 206.265 * PixelSizeX * BinX / FocalLengthMm; // arcsec/px
             double fwhmPx = SeeingArcsec / scale * (Focuser != null ? Focuser.FwhmFactor : 1);
             var img = new AstroImage(w, h, 1);

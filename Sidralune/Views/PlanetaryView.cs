@@ -40,11 +40,26 @@ namespace Sidralune.Views
             using (var d = new OpenFileDialog { Filter = "Video & images|*.ser;*.avi;*.fit;*.fits;*.tif;*.tiff;*.png;*.bmp;*.jpg|All|*.*", Multiselect = true })
             {
                 if (d.ShowDialog() != DialogResult.OK) return false;
-                _source?.Dispose();
-                _source = FrameSourceFactory.Open(d.FileNames.OrderBy(f => f).ToList());
-                MainForm.Instance.Toast(string.Format("{0}: {1} frames, {2}×{3}, {4}-bit{5}", Path.GetFileName(_source.Path), _source.FrameCount, _source.Width, _source.Height, _source.BitDepth, _source.Bayer != BayerPattern.None ? ", Bayer " + _source.Bayer : ""));
+                SetSource(FrameSourceFactory.Open(d.FileNames.OrderBy(f => f).ToList()));
                 return true;
             }
+        }
+
+        private void SetSource(IFrameSource source)
+        {
+            _source?.Dispose();
+            _source = source;
+            MainForm.Instance.Toast(string.Format("{0}: {1} frames, {2}×{3}, {4}-bit{5}", Path.GetFileName(_source.Path), _source.FrameCount, _source.Width, _source.Height, _source.BitDepth, _source.Bayer != BayerPattern.None ? ", Bayer " + _source.Bayer : ""));
+        }
+
+        private Action _showPreprocessSource;
+
+        /// <summary>Open a recorded video in the Pre-process tab (Observatory → Imaging → Open in Planetary).</summary>
+        public void OpenVideo(string path)
+        {
+            SetSource(FrameSourceFactory.Open(path));
+            _tabs.Select(0);
+            _showPreprocessSource?.Invoke();
         }
 
         // ================================================================== PIPP
@@ -62,7 +77,8 @@ namespace Sidralune.Views
             var planet = Ui.Combo("(no derotation target)", "Jupiter", "Saturn", "Mars", "Venus", "Moon", "Sun", "Mercury", "Uranus", "Neptune");
             planet.Width = 200;
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); };
-            btn("Open source…", Icons.Open, () => { if (OpenSource()) { scrub.Maximum = Math.Max(0, _source.FrameCount - 1); scrub.Value = 0; viewer.SetImage(Preprocessor.PrepareFrame(_source, 0, opt)); } }, ButtonKind.Normal);
+            _showPreprocessSource = () => { scrub.Maximum = Math.Max(0, _source.FrameCount - 1); scrub.Value = 0; viewer.SetImage(Preprocessor.PrepareFrame(_source, 0, opt)); };
+            btn("Open source…", Icons.Open, () => { if (OpenSource()) _showPreprocessSource(); }, ButtonKind.Normal);
             btn("Output folder…", Icons.Open, () => { using (var d = new FolderBrowserDialog { SelectedPath = opt.OutputFolder }) if (d.ShowDialog() == DialogResult.OK) { opt.OutputFolder = d.SelectedPath; props.Refresh(); } }, ButtonKind.Subtle);
             bar.Controls.Add(new Label { Text = "Field derotation target:", AutoSize = true, Margin = new Padding(0, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(planet);

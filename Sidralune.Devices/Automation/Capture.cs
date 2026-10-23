@@ -30,6 +30,29 @@ namespace Sidralune.Devices.Automation
         public int[] SubFrame; // x, y, w, h
     }
 
+    /// <summary>Planetary video recording: short exposures back to back, written straight to a SER file.</summary>
+    public class VideoRequest
+    {
+        public double ExposureMs = 10;
+        public int Bin = 1;
+        public int Gain = -1, Offset = -1;
+        /// <summary>Region of interest in binned pixels, centred on the sensor; 0 means the full sensor.</summary>
+        public int RoiWidth, RoiHeight;
+        public int MaxFrames = 1000;
+        public double MaxSeconds = 60;
+        public string Filter;
+        public string Target = "";
+    }
+
+    public class VideoResult
+    {
+        public string Path;
+        public int Frames, Width, Height;
+        public TimeSpan Elapsed;
+        public bool Stopped;
+        public double Fps => Elapsed.TotalSeconds > 0 ? Frames / Elapsed.TotalSeconds : 0;
+    }
+
     public class CaptureResult
     {
         public AstroImage Image;
@@ -154,6 +177,88 @@ namespace Sidralune.Devices.Automation
             if (Devices.Focuser != null) { h.Set("FOCPOS", Devices.Focuser.Position); if (!double.IsNaN(Devices.Focuser.Temperature)) h.Set("FOCTEMP", Devices.Focuser.Temperature); }
             if (Devices.Weather != null) { try { h.Set("AMBTEMP", Devices.Weather.Temperature); h.Set("HUMIDITY", Devices.Weather.Humidity); } catch { } }
             h.Set("SWCREATE", "Sidralune");
+        }
+
+        /// <summary>
+        /// Record a SER video through the camera driver: short exposures back to back, no per-frame analysis or files,
+        /// so the frame rate is what the driver can deliver (ASCOM transfers whole frames, so expect a few to a few tens of
+        /// frames per second; a small region of interest helps most). Each frame is time-stamped at mid-exposure. Stopping
+        /// (cancellation) ends the recording and still finalises the file. The file is named after the recording's
+        /// mid-time in the WinJUPOS style, YYYY-MM-DD-HHMM_T-target.ser, under ImageFolder\Planetary\target.
+        /// </summary>
+        public async Task<VideoResult> RecordVideo(VideoRequest r, Action<AstroImage, VideoResult> preview, CancellationToken ct)
+        {
+            var cam = Devices.Camera;
+            if (cam == null) throw new InvalidOperationException("No camera connected");
+            if (!string.IsNullOrEmpty(r.Filter) && Devices.FilterWheel != null) await SetFilter(r.Filter, ct);
+            int bin = cam.MaxBin >= r.Bin ? r.Bin : 1;
+            cam.BinX = bin; cam.BinY = bin;
+            int fullW = cam.SensorWidth / bin, fullH = cam.SensorHeight / bin;
+            // even sizes and offsets keep the Bayer pattern of colour sensors in phase
+            int w = r.RoiWidth > 0 ? Math.Min(r.RoiWidth, fullW) & ~1 : fullW, h = r.RoiHeight > 0 ? Math.Min(r.RoiHeight, fullH) & ~1 : fullH;
+            cam.StartX = ((fullW - w) / 2) & ~1; cam.StartY = ((fullH - h) / 2) & ~1; cam.NumX = w; cam.NumY = h;
+            if (r.Gain >= 0 && cam.HasGain) cam.Gain = r.Gain;
+            if (r.Offset >= 0 && cam.HasOffset) cam.Offset = r.Offset;
+
+            string target = string.IsNullOrWhiteSpace(r.Target) ? "Untitled" : r.Target.Trim();
+            string safe = new string(target.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+            string folder = Path.Combine(ImageFolder, "Planetary", safe);
+            Directory.CreateDirectory(folder);
+            string temp = Path.Combine(folder, "recording-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture) + ".ser.part");
+            var res = new VideoResult { Width = w, Height = h };
+            double seconds = Math.Max(0, r.ExposureMs / 1000.0);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            DateTime first = DateTime.MinValue, last = DateTime.MinValue;
+            var lastPreview = DateTime.MinValue;
+            SerWriter writer = null;
+            Status?.Invoke(string.Format("Recording {0}×{1} at {2:0.###} ms", w, h, r.ExposureMs));
+            try
+            {
+                while (res.Frames < r.MaxFrames && sw.Elapsed.TotalSeconds < r.MaxSeconds)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var start = DateTime.UtcNow;
+                    cam.StartExposure(seconds, true);
+                    using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
+                    {
+                        if (seconds > 0.03) await Task.Delay(TimeSpan.FromSeconds(seconds - 0.02), ct);
+                        var until = DateTime.UtcNow.AddSeconds(30 + seconds * 2);
+                        while (!cam.ImageReady)
+                        {
+                            ct.ThrowIfCancellationRequested();
+                            if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver a frame");
+                            if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
+                            Thread.Sleep(1);
+                        }
+                    }
+                    var img = cam.GetImage();
+                    if (img == null) throw new InvalidOperationException("Camera returned no image");
+                    var mid = start.AddSeconds(seconds / 2);
+                    if (writer == null)
+                    {
+                        res.Width = img.Width; res.Height = img.Height;
+                        writer = new SerWriter(temp, img.Width, img.Height, cam.BitDepth > 8 ? 16 : 8, img.Channels, img.Bayer, "", cam.Info != null ? cam.Info.Name : "", "");
+                        first = mid;
+                    }
+                    writer.Write(img, mid);
+                    last = mid;
+                    res.Frames++;
+                    res.Elapsed = sw.Elapsed;
+                    if (preview != null && (DateTime.UtcNow - lastPreview).TotalSeconds >= 0.5) { lastPreview = DateTime.UtcNow; preview(img, res); }
+                }
+            }
+            catch (OperationCanceledException) { res.Stopped = true; }
+            finally { if (writer != null) writer.Dispose(); }
+            res.Elapsed = sw.Elapsed;
+            if (res.Frames == 0) { try { File.Delete(temp); } catch { } return res; }
+            // name the file after the mid-time of the recording, the convention WinJUPOS and the Derotation tab read
+            var midTime = first.AddTicks((last - first).Ticks / 2);
+            string name = string.Format(CultureInfo.InvariantCulture, "{0:yyyy-MM-dd-HHmm}_{1}-{2}", midTime, midTime.Second / 6, safe);
+            string path = Path.Combine(folder, name + ".ser");
+            for (int i = 2; File.Exists(path); i++) path = Path.Combine(folder, name + " (" + i + ").ser");
+            File.Move(temp, path);
+            res.Path = path;
+            return res;
         }
 
         public string BuildPath(AstroImage img, ExposureRequest r, double hfr)
