@@ -88,7 +88,7 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 | Observatory | Equipment, imaging, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices), [Sequencer](https://github.com/pzyber/Sidralune/wiki/Sequencer) |
 | Deep sky | Calibrate, register and stack deep-sky frames | [Deep-sky stacking](https://github.com/pzyber/Sidralune/wiki/Deep-sky-stacking) |
 | Process | Post-processing of stacked images | [Image processing](https://github.com/pzyber/Sidralune/wiki/Image-processing) |
-| Planetary | Pre-process, Stacking, Sharpen & deconvolve, Derotation, Solar & lunar | [Planetary, lunar and solar imaging](https://github.com/pzyber/Sidralune/wiki/Planetary,-lunar-and-solar-imaging) |
+| Planetary | Pre-process, Lucky stacking, Sharpen & deconvolve, Derotation, Solar & lunar | [Planetary, lunar and solar imaging](https://github.com/pzyber/Sidralune/wiki/Planetary,-lunar-and-solar-imaging) |
 | Astrometry | Plate solving, framing and mosaics, exposure planner | [Astrometry and framing](https://github.com/pzyber/Sidralune/wiki/Astrometry-and-framing) |
 | Photometry | Measuring, light-curve analysis, transits, transit predictions | [Photometry and exoplanets](https://github.com/pzyber/Sidralune/wiki/Photometry-and-exoplanets) |
 | Spectra | 2D reduction and 1D analysis | [Spectroscopy](https://github.com/pzyber/Sidralune/wiki/Spectroscopy) |

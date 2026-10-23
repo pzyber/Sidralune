@@ -27,7 +27,7 @@ namespace Sidralune.Views
         {
             Controls.Add(_tabs);
             _tabs.AddPage("Pre-process", BuildPipp());
-            _tabs.AddPage("Stacking", BuildLucky());
+            _tabs.AddPage("Lucky stacking", BuildLucky());
             _tabs.AddPage("Sharpen & deconvolve", BuildSharpen());
             _tabs.AddPage("Derotation", BuildDerotation());
             _tabs.AddPage("Solar & lunar", BuildSolar());
@@ -115,7 +115,7 @@ namespace Sidralune.Views
             var panel = new Panel { Dock = DockStyle.Fill };
             var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a SER/AVI (ideally centred in Pre-process) and press Stack" };
             var stacker = new LuckyStacker();
-            var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(stacker.Options, "Stacking"), PropertySort = PropertySort.NoSort };
+            var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(stacker.Options, "Lucky stacking"), PropertySort = PropertySort.NoSort };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 160, Title = "Frame quality (sorted)", XLabel = "frames (%)", YLabel = "quality" };
             var percents = new TextBox { Text = "10, 25, 50", Width = 120 };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
@@ -402,7 +402,7 @@ namespace Sidralune.Views
         public IEnumerable<AppCommand> GetCommands()
         {
             yield return new AppCommand { Title = "Planetary: open video (SER/AVI)", Icon = Icons.Open, Run = () => { MainForm.Instance.Navigate("planetary"); _tabs.Select(0); } };
-            yield return new AppCommand { Title = "Planetary: stacking", Run = () => { MainForm.Instance.Navigate("planetary"); _tabs.Select(1); } };
+            yield return new AppCommand { Title = "Planetary: lucky stacking", Run = () => { MainForm.Instance.Navigate("planetary"); _tabs.Select(1); } };
             yield return new AppCommand { Title = "Planetary: wavelet sharpening", Run = () => { MainForm.Instance.Navigate("planetary"); _tabs.Select(2); } };
             yield return new AppCommand { Title = "Planetary: derotation", Run = () => { MainForm.Instance.Navigate("planetary"); _tabs.Select(3); } };
         }
