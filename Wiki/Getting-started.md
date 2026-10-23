@@ -133,7 +133,7 @@ You can learn the observatory tools without any hardware:
 | See what is up tonight | **Tonight**, then **Sky** |
 | Plan a session at the eyepiece | **Planner → Generate best for tonight…**, then print finder charts from **Sky** |
 | Image a galaxy with a cooled camera | **Astrometry → Framing & mosaics**, then **Observatory → Sequencer**, then **Deep sky**, then **Process** |
-| Image Jupiter with a planetary camera | Record a SER video, then **Planetary → Pre-process → Stacking → Sharpen & deconvolve**, and **Derotation** for several videos |
+| Image Jupiter with a planetary camera | Record a SER video, then **Planetary → Pre-process → Lucky stacking → Sharpen & deconvolve**, and **Derotation** for several videos |
 | Measure a variable star | **Photometry → Measure**, then **Light curve analysis**, then export an AAVSO report |
 | Time an exoplanet transit | **Photometry → Transit predictions**, observe, then **Measure** and **Exoplanet transits** |
 | Report asteroid positions | **Astrometry** to plate solve, then **Solar sys. → MPC astrometry** |

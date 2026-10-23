@@ -3,7 +3,7 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 | Tab | Does what |
 |---|---|
 | **Pre-process** | Centre, crop, debayer, sort and reject frames; correct field rotation |
-| **Stacking** | Analyse frame quality, align with many alignment points, stack the best frames |
+| **Lucky stacking** | Analyse frame quality, align with many alignment points, stack the best frames |
 | **Sharpen & deconvolve** | Wavelet sharpening and deconvolution |
 | **Derotation** | Combine images taken minutes apart by undoing the planet's rotation |
 | **Solar & lunar** | Limb tools, prominences, colourising, mosaics |
@@ -14,7 +14,7 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 
 - [Recording tips](#recording-tips)
 - [Pre-process](#pre-process)
-- [Stacking](#stacking)
+- [Lucky stacking](#lucky-stacking)
 - [Sharpen & deconvolve](#sharpen--deconvolve)
 - [Derotation](#derotation)
 - [Solar & lunar](#solar--lunar)
@@ -48,13 +48,13 @@ The **Pre-process** tab prepares a video for stacking. Click **Open source…** 
 | Quality | **Estimate quality** with **Metric** (Laplacian, Gradient or LocalContrast), **Keep best percent** or **Keep best count**, **Order** (Original or Quality) |
 | Output | **Format** (Ser, Avi, Fits, Tiff, Png, Bmp, Jpeg), **Output bit depth**, **Output folder**, **Output name**, **Max frames per file** (split long videos), **Win jupos naming** and **Planet code** |
 
-Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. If the output is a SER file, it is opened automatically, ready for the Stacking tab.
+Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. If the output is a SER file, it is opened automatically, ready for the Lucky stacking tab.
 
 Pre-processing is optional for good videos of planets, but it shrinks files dramatically (a cropped 300 × 300 video instead of full frame), removes bad frames, and is essential for field derotation.
 
-## Stacking
+## Lucky stacking
 
-The **Stacking** tab is a lucky-imaging stacker with multi-point alignment.
+The **Lucky stacking** tab is a lucky-imaging stacker with multi-point alignment.
 
 1. Click **Open source…** (the Pre-process output is already loaded).
 2. Enter the percentages of frames to stack in **Stack %**, for example `10, 25, 50`; one stack is made for each.
@@ -128,7 +128,7 @@ WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM
 
 1. Record five 90-second SER videos in a row with a colour camera.
 2. **Pre-process** each: Object mode Planetary, Centre object, Reject edge frames, Keep best percent 100, Format Ser, Win jupos naming on.
-3. **Stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
+3. **Lucky stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
 4. **Derotation**: add the five stacks, planet Jupiter, target time in the middle, **Derotate & stack to target time**, **Save result…**.
 5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, **Save…**.
 6. Optionally fine-tune colour and levels in [Process](Image-processing).
