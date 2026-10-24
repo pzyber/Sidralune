@@ -91,7 +91,7 @@ Containers can be nested, for example a loop of filters inside a target inside a
 
 For a planetary rotation series, put **Record video** in a **Loop** with a **Wait** after it, for example a 90-second video every 5 minutes until the planet sinks below 25°. With a filter wheel, use one **Record video** per filter (R, G, B) in the loop. The videos are named in the WinJUPOS style, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab can combine them later.
 
-If an instruction fails, it is marked ✗, the error is shown in its properties and written to the log, and the sequence continues with the next instruction. Turn on **Stop on error** for instructions that must succeed (for example centring before a long series), and the sequence will stop there instead.
+If an instruction fails, it is marked ✗, the error is shown in its properties and written to the log, and the sequence continues with the next instruction. Turn on **Stop on error** for instructions that must succeed (for example centring before a long series): when one fails, the rest of the container it is in is skipped (the rest of that target, say), and the sequence continues after that container, so a closing **Park** or **Close dome** still runs. An instruction directly in the sequence's top level ends the whole sequence.
 
 A loop whose instructions all fail in one pass (for example because the camera stopped responding) stops instead of repeating the failure: it is marked ✗ with "Loop stopped: no instruction in it succeeded", and the sequence continues after the loop, so a closing **Park** or **Close dome** still runs.
 

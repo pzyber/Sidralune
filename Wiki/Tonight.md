@@ -63,7 +63,7 @@ The list depends on the active telescope and eyepiece in **Settings → Equipmen
 The next 30 events over the coming weeks:
 
 - Moon phases (new, first quarter, full, last quarter),
-- planetary conjunctions with the Sun, oppositions and greatest elongations of Mercury and Venus,
+- conjunctions of the planets with the Sun (inferior and superior conjunctions for Mercury and Venus), oppositions of the outer planets and greatest elongations of Mercury and Venus,
 - lunar perigee and apogee,
 - the next lunar and solar eclipses within about a year,
 - peaks of the major meteor showers within 90 days, with their ZHR.

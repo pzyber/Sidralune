@@ -43,6 +43,8 @@ Sidralune has no third-party dependencies, so building is a single step.
 
 4. Start `Sidralune\bin\Release\Sidralune.exe`.
 
+The solution also contains the unit tests (`Sidralune.Tests` and `Sidralune.AppTests`), which need Visual Studio's MSTest framework. With only the Build Tools, build just the program: `msbuild Sidralune\Sidralune.csproj /p:Configuration=Release`.
+
 To move Sidralune to another computer, copy the whole `bin\Release` folder. The program keeps its settings and downloads in `%LOCALAPPDATA%\Sidralune`, not next to the executable.
 
 ## First run
