@@ -109,8 +109,8 @@ namespace Sidralune.Imaging.IO
     public static class ImageFile
     {
         public static readonly string[] FitsExt = { ".fit", ".fits", ".fts", ".fz" };
-        public static readonly string[] RawExt = { ".dng", ".cr2", ".cr3" };
-        public const string OpenFilter = "All supported|*.fit;*.fits;*.fts;*.xisf;*.tif;*.tiff;*.png;*.jpg;*.jpeg;*.bmp;*.dng;*.cr2;*.cr3;*.ser;*.avi|FITS|*.fit;*.fits;*.fts|XISF|*.xisf|TIFF|*.tif;*.tiff|Camera RAW (DNG, CR2, CR3)|*.dng;*.cr2;*.cr3|Bitmap|*.png;*.jpg;*.jpeg;*.bmp|Video (SER, AVI)|*.ser;*.avi|All files|*.*";
+        public static readonly string[] RawExt = { ".dng", ".crw", ".cr2", ".cr3" };
+        public const string OpenFilter = "All supported|*.fit;*.fits;*.fts;*.xisf;*.tif;*.tiff;*.png;*.jpg;*.jpeg;*.bmp;*.dng;*.crw;*.cr2;*.cr3;*.ser;*.avi|FITS|*.fit;*.fits;*.fts|XISF|*.xisf|TIFF|*.tif;*.tiff|Camera RAW (DNG, CRW, CR2, CR3)|*.dng;*.crw;*.cr2;*.cr3|Bitmap|*.png;*.jpg;*.jpeg;*.bmp|Video (SER, AVI)|*.ser;*.avi|All files|*.*";
         public const string SaveFilter = "FITS 32-bit float|*.fits|FITS 16-bit|*.fits|XISF 32-bit float|*.xisf|TIFF 16-bit|*.tif|TIFF 32-bit float|*.tif|PNG 8-bit (stretched)|*.png|JPEG 8-bit (stretched)|*.jpg";
 
         public static bool IsSupported(string path)
@@ -127,6 +127,7 @@ namespace Sidralune.Imaging.IO
             else if (e == ".xisf") img = XisfIO.Read(path);
             else if (e == ".tif" || e == ".tiff" || e == ".dng" || e == ".cr2") img = TiffIO.Read(path);
             else if (e == ".cr3") img = Cr3IO.Read(path);
+            else if (e == ".crw") img = CrwIO.Read(path);
             else if (e == ".ser" || e == ".avi")
             {
                 using (var src = FrameSourceFactory.Open(path)) img = src.ReadFrame(0);

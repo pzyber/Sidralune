@@ -78,28 +78,32 @@ namespace Sidralune.Imaging.IO
             for (int i = 0; i < dst.Length; i++) dst[i] = px[i] / maxV;
             img.Bayer = new[] { BayerPattern.RGGB, BayerPattern.GRBG, BayerPattern.GBRG, BayerPattern.BGGR }[h.Cfa];
 
-            // Canon SensorInfo (maker note 0xE0): the visible area inside the masked border, inclusive coordinates
-            var sensor = cmt3 != null ? TiffIO.FirstIfdTag(cmt3, 0xE0) : null;
-            if (sensor != null && sensor.Length > 8)
-            {
-                int left = (int)sensor[5], top = (int)sensor[6], right = (int)sensor[7], bottom = (int)sensor[8];
-                if (left >= 0 && top >= 0 && left < right && top < bottom && right < h.Width && bottom < h.Height)
-                {
-                    // black level from the masked columns to the left of the picture, as for CR2
-                    if (left >= 8)
-                    {
-                        double s = 0; long n = 0;
-                        for (int y = top; y <= bottom; y++) for (int x = 2; x < left - 2; x++) { s += dst[y * h.Width + x]; n++; }
-                        float bl = (float)(s / n);
-                        for (int i = 0; i < dst.Length; i++) dst[i] = Math.Max(0, (dst[i] - bl) / (1 - bl));
-                        img.Header.Set("BLKLEVEL", Math.Round(bl * maxV, 1));
-                    }
-                    img = Geometry.Crop(img, left, top, right - left + 1, bottom - top + 1);
-                }
-            }
+            // Canon SensorInfo (maker note 0xE0): the visible area inside the masked border
+            img = CropToSensor(img, cmt3 != null ? TiffIO.FirstIfdTag(cmt3, 0xE0) : null, maxV);
             TiffIO.ApplyExif(img, cmt1, cmt2);
             if (!img.Header.Has("INSTRUME")) img.Header.Set("INSTRUME", "Canon camera");
             return img;
+        }
+
+        /// <summary>
+        /// Crops a Canon raw frame to the visible area of its SensorInfo (left, top, right and bottom at 5-8, inclusive)
+        /// after removing the black level measured in the masked columns to the left of it, as for CR2.
+        /// </summary>
+        internal static AstroImage CropToSensor(AstroImage img, long[] sensor, float maxV)
+        {
+            if (sensor == null || sensor.Length <= 8) return img;
+            int left = (int)sensor[5], top = (int)sensor[6], right = (int)sensor[7], bottom = (int)sensor[8], w = img.Width;
+            if (left < 0 || top < 0 || left >= right || top >= bottom || right >= w || bottom >= img.Height) return img;
+            var dst = img.Data[0];
+            if (left >= 8)
+            {
+                double s = 0; long n = 0;
+                for (int y = top; y <= bottom; y++) for (int x = 2; x < left - 2; x++) { s += dst[y * w + x]; n++; }
+                float bl = (float)(s / n);
+                for (int i = 0; i < dst.Length; i++) dst[i] = Math.Max(0, (dst[i] - bl) / (1 - bl));
+                img.Header.Set("BLKLEVEL", Math.Round(bl * maxV, 1));
+            }
+            return Geometry.Crop(img, left, top, right - left + 1, bottom - top + 1);
         }
 
         // ------------------------------------------------------------------ container
