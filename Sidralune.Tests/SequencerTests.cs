@@ -382,6 +382,21 @@ namespace Sidralune.Tests
             CheckTrue("Settings round trip", ((Wait)back.Items.Single(i => i is Wait)).Kind == WaitKind.UntilNauticalDusk && ((LoopContainer)back.Items.Single(i => i is LoopContainer)).Iterations == 7
                 && ((RunScript)back.Items.Single(i => i is RunScript)).Arguments == "--flag \"quoted\"" && ((TargetContainer)back.Items.Single(i => i is TargetContainer)).Target.Name == "NGC 7000"
                 && !back.Items[3].Enabled && back.Items[4].StopOnError && back.Name == "All");
+            var frameType = new FrameTypeConverter();
+            CheckTrue("Frame type is a drop-down of the saved frame types", frameType.GetStandardValuesSupported(null) && frameType.GetStandardValuesExclusive(null)
+                && frameType.GetStandardValues(null).Cast<string>().SequenceEqual(new[] { "LIGHT", "DARK", "FLAT", "BIAS" }));
+            var typeAttr = typeof(TakeExposures).GetProperty("FrameType").GetCustomAttributes(typeof(System.ComponentModel.TypeConverterAttribute), false).Cast<System.ComponentModel.TypeConverterAttribute>().FirstOrDefault();
+            CheckTrue("Take exposures uses it", typeAttr != null && typeAttr.ConverterTypeName.StartsWith(typeof(FrameTypeConverter).FullName));
+            var filters = new FilterConverter().GetStandardValues(null).Cast<string>().ToList();
+            var optional = new OptionalFilterConverter().GetStandardValues(null).Cast<string>().ToList();
+            CheckTrue("Filter drop-down offers the wheel's names (the simulator's without a wheel), typing still allowed",
+                (DeviceManager.Instance.FilterWheel != null || filters.SequenceEqual(FilterConverter.DefaultNames)) && !new FilterConverter().GetStandardValuesExclusive(null));
+            CheckTrue("Optional filters start with an empty choice", optional[0] == "" && optional.Skip(1).SequenceEqual(filters));
+            Func<Type, string, Type> converterOf = (ty, prop) => Type.GetType(ty.GetProperty(prop).GetCustomAttributes(typeof(System.ComponentModel.TypeConverterAttribute), false).Cast<System.ComponentModel.TypeConverterAttribute>().Single().ConverterTypeName);
+            CheckTrue("Filters of the instructions use the drop-downs", converterOf(typeof(TakeExposures), "Filter") == typeof(OptionalFilterConverter)
+                && converterOf(typeof(RecordVideo), "Filter") == typeof(OptionalFilterConverter) && converterOf(typeof(SwitchFilter), "Filter") == typeof(FilterConverter));
+            var editor = typeof(RunScript).GetProperty("Command").GetCustomAttributes(typeof(System.ComponentModel.EditorAttribute), false).Cast<System.ComponentModel.EditorAttribute>().SingleOrDefault();
+            CheckTrue("Program path has a file picker", editor != null && Type.GetType(editor.EditorTypeName) != null && Type.GetType(editor.EditorTypeName).Name == "FileNameEditor");
             var unknown = Sequencer.FromDict(new Dictionary<string, object> { { "$type", "TeleportTelescope" } });
             CheckTrue("Unknown instruction loads as a note", unknown is Annotation && ((Annotation)unknown).Text.Contains("TeleportTelescope"));
             var template = Sequencer.Template("M 31", 10.684, 41.269);

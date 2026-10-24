@@ -222,10 +222,12 @@ namespace Sidralune.Devices.Automation
     {
         public int Count { get; set; } = 10;
         public double Exposure { get; set; } = 120;
+        [System.ComponentModel.TypeConverter(typeof(OptionalFilterConverter))]
         public string Filter { get; set; } = "";
         public int Bin { get; set; } = 1;
         public int Gain { get; set; } = -1;
         public int Offset { get; set; } = -1;
+        [System.ComponentModel.TypeConverter(typeof(FrameTypeConverter))]
         public string FrameType { get; set; } = "LIGHT";
         public int DitherEvery { get; set; } = 1;
         public double DitherPixels { get; set; } = 5;
@@ -269,6 +271,7 @@ namespace Sidralune.Devices.Automation
         public int Bin { get; set; } = 1;
         public int Gain { get; set; } = -1;
         public int Offset { get; set; } = -1;
+        [System.ComponentModel.TypeConverter(typeof(OptionalFilterConverter))]
         public string Filter { get; set; } = "";
         public int MaxFrames { get; set; } = 1000;
         public double MaxSeconds { get; set; } = 60;
@@ -294,6 +297,47 @@ namespace Sidralune.Devices.Automation
             ct.ThrowIfCancellationRequested();
             if (res.Path == null) throw new InvalidOperationException("The camera delivered no frames");
         }
+    }
+
+    /// <summary>
+    /// The filter wheel's filter names as a drop-down list (the simulator's names when no wheel is connected). Typing
+    /// another name stays possible, for a wheel that is not connected while the sequence is edited.
+    /// </summary>
+    public class FilterConverter : System.ComponentModel.StringConverter
+    {
+        public static readonly string[] DefaultNames = { "L", "R", "G", "B", "Ha", "OIII", "SII" };
+
+        public static string[] Names()
+        {
+            try
+            {
+                var fw = DeviceManager.Instance.FilterWheel;
+                var names = fw != null ? fw.Names : null;
+                if (names != null && names.Length > 0) return names;
+            }
+            catch { }
+            return DefaultNames;
+        }
+
+        protected virtual bool Optional => false;
+        public override bool GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override bool GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext context) => false;
+        public override StandardValuesCollection GetStandardValues(System.ComponentModel.ITypeDescriptorContext context) =>
+            new StandardValuesCollection(Optional ? new[] { "" }.Concat(Names()).ToArray() : Names());
+    }
+
+    /// <summary>A filter that may be left empty (keep the current filter).</summary>
+    public class OptionalFilterConverter : FilterConverter
+    {
+        protected override bool Optional => true;
+    }
+
+    /// <summary>Shows ExposureRequest.FrameTypes as a drop-down list in the property grid.</summary>
+    public class FrameTypeConverter : System.ComponentModel.StringConverter
+    {
+        public override bool GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override bool GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override StandardValuesCollection GetStandardValues(System.ComponentModel.ITypeDescriptorContext context) => new StandardValuesCollection(ExposureRequest.FrameTypes);
     }
 
     /// <summary>Shows VideoRequest.Regions as a drop-down list in the property grid.</summary>
@@ -322,6 +366,7 @@ namespace Sidralune.Devices.Automation
 
     public class SwitchFilter : SequenceItem
     {
+        [System.ComponentModel.TypeConverter(typeof(FilterConverter))]
         public string Filter { get; set; } = "L";
         public override string Title => "Switch filter";
         public override string[] RequiredDevices => new[] { "filter wheel" };
@@ -403,6 +448,9 @@ namespace Sidralune.Devices.Automation
 
     public class RunScript : SequenceItem
     {
+        // a "…" button that opens a file dialog (named by type so this library needs no Windows Forms reference)
+        [System.ComponentModel.Editor("System.Windows.Forms.Design.FileNameEditor, System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+            "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public string Command { get; set; } = "";
         public string Arguments { get; set; } = "";
         public int TimeoutSec { get; set; } = 300;

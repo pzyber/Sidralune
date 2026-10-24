@@ -274,7 +274,7 @@ namespace Sidralune.Views
             var cam = new FormGrid(110);
             var exp = cam.Row("Exposure (s)", Ui.Num(5, 0, 3600, 3, 1));
             var count = cam.Row("Count", Ui.Num(1, 1, 9999));
-            var type = cam.Row("Frame type", Ui.Combo("LIGHT", "DARK", "FLAT", "BIAS", "SNAPSHOT"));
+            var type = cam.Row("Frame type", Ui.Combo(ExposureRequest.FrameTypes.Concat(new[] { "SNAPSHOT" }).ToArray()));
             var bin = cam.Row("Binning", Ui.Combo("1", "2", "3", "4"));
             var gain = cam.Row("Gain", Ui.Num(100, -1, 10000));
             var offset = cam.Row("Offset", Ui.Num(30, -1, 10000));
