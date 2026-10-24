@@ -213,8 +213,8 @@ The solution has two MSTest projects (Visual Studio's own test framework, no NuG
 
 | Project | Tests | Runs |
 |---|---|---|
-| `Sidralune.Tests` | Every library: about a hundred tests with a thousand checks, in two to three minutes | Before the application is built |
-| `Sidralune.AppTests` | The application: settings, background tasks, scripting, planner, controls, the Observatory workspace and every workspace in day and night mode, in about a minute | After the application is built |
+| `Sidralune.Tests` | Every library: about a hundred tests with a thousand checks | Before the application is built, in two to three minutes |
+| `Sidralune.AppTests` | The application: settings, background tasks, scripting, planner, controls, the Observatory workspace and every workspace in day and night mode | After the application is built, in about a minute |
 
 In Visual Studio, build the solution, open **Test Explorer** from the **Test** menu and choose **Run All**. On the command line, run the library tests, build the application only when they pass, then run the application tests:
 

@@ -88,6 +88,8 @@ The **Nightly planner — altitude** graph plots, for the selected objects (up t
 
 Select several rows in the table to compare objects and decide the order of the night.
 
+Times on the axis are the site's local clock. On the night the clocks change, time still runs evenly along the axis: when summer time ends, the repeated hour is labelled twice (for example 02:00 appears two times), and when it begins, the skipped hour is missing from the labels. The Sky chart's altitude graph works the same way.
+
 ## The logbook
 
 Select an object to see its earlier observations in the **Logbook** on the right: date, a rating in stars, the instrument and your notes.

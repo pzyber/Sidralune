@@ -317,7 +317,9 @@ namespace Sidralune.Views
             _plot.Clear();
             if (_twilight == null) return;
             var site = AppState.Site;
-            Action<AstroTime?, AstroTime?, int> band = (a, b, alpha) => { if (a.HasValue && b.HasValue) _plot.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b.Value.ToDateTimeUtc()).ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) }); };
+            // UTC on the axis, labelled with the site's clock: a daylight saving change must not fold the curves
+            _plot.TimeZone = site.TimeZone;
+            Action<AstroTime?, AstroTime?, int> band = (a, b, alpha) => { if (a.HasValue && b.HasValue) _plot.Bands.Add(new PlotBand { X0 = a.Value.ToDateTimeUtc().ToOADate(), X1 = b.Value.ToDateTimeUtc().ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) }); };
             band(_twilight.SunSet, _twilight.SunRise, 16); band(_twilight.NauticalDusk, _twilight.NauticalDawn, 16); band(_twilight.AstronomicalDusk, _twilight.AstronomicalDawn, 22);
             var sel = _grid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(8).ToList();
             if (sel.Count == 0) sel = _grid.Rows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(5).ToList();
@@ -326,7 +328,7 @@ namespace Sidralune.Views
             for (int i = 0; i <= 96; i++)
             {
                 var t = _noon.AddMinutes(i * 15);
-                moonS.Add(site.ToLocal(t.ToDateTimeUtc()).ToOADate(), AstroEvents.BodyAltitude(Body.Moon, site, t));
+                moonS.Add(t.ToDateTimeUtc().ToOADate(), AstroEvents.BodyAltitude(Body.Moon, site, t));
             }
             foreach (var e in sel)
             {
@@ -336,11 +338,11 @@ namespace Sidralune.Views
                 {
                     var t = _noon.AddMinutes(i * 15);
                     double alt = so.Planet.HasValue ? AstroEvents.BodyAltitude(so.Planet.Value, site, t) : AstroEvents.FixedAltitude(so.RaDeg * AstroMath.Deg2Rad, so.DecDeg * AstroMath.Deg2Rad, site, t);
-                    s.Add(site.ToLocal(t.ToDateTimeUtc()).ToOADate(), alt);
+                    s.Add(t.ToDateTimeUtc().ToOADate(), alt);
                 }
             }
             _plot.FixedYMin = 0; _plot.FixedYMax = 90;
-            _plot.Markers.Add(new PlotMarker { X = site.ToLocal(AppState.Now.ToDateTimeUtc()).ToOADate(), Label = "now" });
+            _plot.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = "now" });
             _plot.Markers.Add(new PlotMarker { X = 30, Horizontal = true, Label = "30°", ThemeColor = pal => pal.TextFaint });
             _plot.Invalidate();
         }

@@ -32,6 +32,12 @@ namespace Sidralune.AppTests
             Root = Path.Combine(Path.GetTempPath(), "SidraluneAppTests");
             try { if (Directory.Exists(Root)) Directory.Delete(Root, true); } catch { }
             AppPaths.Root = Path.Combine(Root, "AppData");
+            // an exception on a background thread ends the test process, and Visual Studio 2015's runner then waits for
+            // ever: keep a record of it so a stuck run can be explained
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                try { File.AppendAllText(Path.Combine(Path.GetTempPath(), "SidraluneAppTests-crash.txt"), DateTime.Now + Environment.NewLine + e.ExceptionObject + Environment.NewLine + Environment.NewLine); } catch { }
+            };
             var ready = new ManualResetEvent(false);
             Exception error = null;
             _ui = new Thread(() =>
@@ -65,9 +71,16 @@ namespace Sidralune.AppTests
         }
 
         /// <summary>Run on the UI thread.</summary>
-        public static void OnUi(Action a) => App.Invoke(a);
+        public static void OnUi(Action a) => OnUi<object>(() => { a(); return null; });
 
-        public static T OnUi<T>(Func<T> f) => (T)App.Invoke(f);
+        /// <summary>Run on the UI thread and return the result; a UI thread that does not answer fails the test instead of hanging the run.</summary>
+        public static T OnUi<T>(Func<T> f)
+        {
+            if (!App.InvokeRequired) return f();
+            var call = App.BeginInvoke(f);
+            if (!call.AsyncWaitHandle.WaitOne(60000)) throw new TimeoutException("The UI thread did not answer within a minute (a deadlock or a modal dialog?)");
+            return (T)App.EndInvoke(call);
+        }
 
         /// <summary>Wait (off the UI thread) until a condition, evaluated on the UI thread, holds.</summary>
         public static bool WaitFor(Func<bool> cond, int ms = 5000)

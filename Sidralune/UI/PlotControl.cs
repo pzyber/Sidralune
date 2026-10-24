@@ -41,7 +41,12 @@ namespace Sidralune.UI
         public string Title, XLabel, YLabel;
         public bool InvertY;
         public AxisFormat XFormat = AxisFormat.Number;
-        /// <summary>For AxisFormat.Time: X values are OADate (DateTime.ToOADate) in local time.</summary>
+        /// <summary>
+        /// For AxisFormat.Time, X values are OADates (DateTime.ToOADate). Without a time zone they are clock times as they
+        /// are; with one they are UTC and labelled with that zone's clock, so a change to or from daylight saving time
+        /// neither folds the curves back (autumn) nor tears a gap in them (spring).
+        /// </summary>
+        public TimeZoneInfo TimeZone;
         public double? FixedXMin, FixedXMax, FixedYMin, FixedYMax;
         public bool ShowLegend = true;
         public event Action<double, double> PlotClick;
@@ -119,11 +124,46 @@ namespace Sidralune.UI
         {
             switch (XFormat)
             {
-                case AxisFormat.Time: try { return DateTime.FromOADate(v).ToString(step < 1.0 / 24 ? "HH:mm" : step < 1 ? "HH:mm" : "MM-dd"); } catch { return ""; }
+                case AxisFormat.Time: try { return Clock(v).ToString(step < 1 ? "HH:mm" : "MM-dd"); } catch { return ""; }
                 case AxisFormat.Hours: { double h = ((v % 24) + 24) % 24; return ((int)h).ToString("00") + ":" + ((int)((h - (int)h) * 60)).ToString("00"); }
                 case AxisFormat.Jd: return v.ToString(step < 0.01 ? "0.0000" : "0.00", CultureInfo.InvariantCulture);
             }
             return Fmt(v, step);
+        }
+
+        /// <summary>The clock time shown for an X value of a time axis.</summary>
+        public DateTime Clock(double v)
+        {
+            var d = DateTime.FromOADate(v);
+            return TimeZone == null ? d : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(d, DateTimeKind.Utc), TimeZone);
+        }
+
+        /// <summary>
+        /// Grid lines of a time axis: where the clock shows a whole multiple of the step. With a time zone these follow
+        /// the local clock, so they stay on whole hours across a clock change (an autumn hour is then labelled twice).
+        /// </summary>
+        public List<double> TimeTicks(double x0, double x1, double step)
+        {
+            if (TimeZone == null) return LinearTicks(x0, x1, step);
+            var ticks = new List<double>();
+            // every quarter hour (zones are offset by whole quarter hours) or finer steps, kept where the local clock fits
+            double scan = Math.Min(step, 0.25 / 24);
+            double stepMin = Math.Round(step * 1440);
+            for (double u = Math.Ceiling(x0 / scan - 1e-9) * scan; u <= x1 + 1e-12; u += scan)
+            {
+                var c = Clock(u);
+                double min = Math.Round(c.TimeOfDay.TotalMinutes);
+                bool on = stepMin < 1440 ? min % stepMin == 0 : min == 0 && (int)(c.Date - new DateTime(2000, 1, 1)).TotalDays % (int)(stepMin / 1440) == 0;
+                if (on) ticks.Add(u);
+            }
+            return ticks;
+        }
+
+        private static List<double> LinearTicks(double x0, double x1, double step)
+        {
+            var ticks = new List<double>();
+            for (double x = Math.Ceiling(x0 / step) * step; x <= x1 + 1e-12; x += step) ticks.Add(x);
+            return ticks;
         }
 
         private static string Fmt(double v, double step)
@@ -168,7 +208,7 @@ namespace Sidralune.UI
             }
             using (var gp = new Pen(p.ChartGrid) { DashStyle = DashStyle.Dot })
             {
-                for (double x = Math.Ceiling(_x0 / xs) * xs; x <= _x1 + 1e-12; x += xs)
+                foreach (var x in XFormat == AxisFormat.Time ? TimeTicks(_x0, _x1, xs) : LinearTicks(_x0, _x1, xs))
                 {
                     float sx = Sx(x);
                     g.DrawLine(gp, sx, _plot.Top, sx, _plot.Bottom);
