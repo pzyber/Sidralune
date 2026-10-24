@@ -121,9 +121,12 @@ namespace Sidralune.Devices.Indi
                         prop.State = xr.GetAttribute("state") ?? prop.State;
                         if (el.StartsWith("def")) { prop.Label = xr.GetAttribute("label"); prop.Group = xr.GetAttribute("group"); prop.Perm = xr.GetAttribute("perm"); }
                         var sub = xr.ReadSubtree();
-                        while (sub.Read())
+                        sub.Read(); // the vector element itself
+                        while (!sub.EOF)
                         {
-                            if (sub.NodeType != XmlNodeType.Element || sub.Depth != 1) continue;
+                            if (sub.NodeType != XmlNodeType.Element || sub.Depth != 1) { sub.Read(); continue; }
+                            // ReadElementContentAsString leaves the reader on the next node: reading again here would
+                            // skip every second element of the vector
                             string en = sub.GetAttribute("name");
                             if (sub.Name == "oneBLOB")
                             {
@@ -172,7 +175,16 @@ namespace Sidralune.Devices.Indi
             C.Connect(hp[0], hp.Length > 1 ? int.Parse(hp[1]) : 7624);
             Thread.Sleep(500);
             C.SetSwitch(Dev, "CONNECTION", Tuple.Create("CONNECT", true), Tuple.Create("DISCONNECT", false));
-            C.WaitIdle(Dev, "CONNECTION", 10000);
+            // the property is usually still Idle from before the request, so waiting for "not busy" returned at once:
+            // wait until the device reports CONNECT on
+            var until = DateTime.UtcNow.AddSeconds(10);
+            while (!Sw("CONNECTION", "CONNECT"))
+            {
+                var p = C.Get(Dev, "CONNECTION");
+                if (p != null && p.State == "Alert") { Disconnect(); throw new InvalidOperationException("INDI device " + Dev + " could not connect"); }
+                if (DateTime.UtcNow > until) { Disconnect(); throw new TimeoutException("INDI device " + Dev + " did not connect (is it on the server?)"); }
+                Thread.Sleep(100);
+            }
             Connected = true;
         }
 

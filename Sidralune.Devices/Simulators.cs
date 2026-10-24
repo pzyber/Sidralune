@@ -118,7 +118,7 @@ namespace Sidralune.Devices.Simulators
         }
 
         public void AbortSlew() { lock (_lock) { _slewing = false; _axisRate[0] = _axisRate[1] = 0; } RaiseStateChanged(); }
-        public void Park() { SlewToCoordinatesAsync(Lst(), 90); while (Slewing) Thread.Sleep(100); _atPark = true; _tracking = false; RaiseStateChanged(); }
+        public void Park() { if (_atPark) return; SlewToCoordinatesAsync(Lst(), 90); while (Slewing) Thread.Sleep(100); _atPark = true; _tracking = false; RaiseStateChanged(); }
         public void Unpark() { _atPark = false; _tracking = true; RaiseStateChanged(); }
         public void SetPark() { }
 

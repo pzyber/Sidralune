@@ -548,7 +548,7 @@ namespace Sidralune.Views
             var af = new FlatButton("Run autofocus", Icons.Target) { Kind = ButtonKind.Primary }; af.AutoSizeToText();
             af.Click += (s, e) =>
             {
-                if (Dm.Focuser == null || Dm.Camera == null) { MainForm.Instance.Toast("Focuser and camera required", Icons.Warning); return; }
+                if (!Have(Dm.Camera, "camera") || !Have(Dm.Focuser, "focuser")) return;
                 if (!CanUseCamera()) return;
                 plot.Clear();
                 var pts = plot.AddSeries("HFR", SeriesStyle.Scatter);

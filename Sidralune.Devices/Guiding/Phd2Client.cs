@@ -90,6 +90,13 @@ namespace Sidralune.Devices.Guiding
             }
             catch { }
             Connected = false;
+            // nothing more will arrive: fail the calls and the settle wait still outstanding instead of leaving them hanging
+            foreach (var id in _pending.Keys.ToList())
+            {
+                TaskCompletionSource<object> tcs;
+                if (_pending.TryRemove(id, out tcs)) tcs.TrySetException(new IOException("PHD2 connection closed"));
+            }
+            _settle?.TrySetException(new IOException("PHD2 connection closed"));
         }
 
         private void HandleEvent(string ev, Dictionary<string, object> m)
@@ -127,13 +134,23 @@ namespace Sidralune.Devices.Guiding
 
         public Task<object> Call(string method, object parameters = null)
         {
+            if (_writer == null || !Connected) throw new InvalidOperationException("PHD2 is not connected");
             int id = Interlocked.Increment(ref _id);
             var tcs = new TaskCompletionSource<object>();
             _pending[id] = tcs;
             var req = new Dictionary<string, object> { { "method", method }, { "id", id } };
             if (parameters != null) req["params"] = parameters;
-            lock (_writer) _writer.WriteLine(Json.Serialize(req));
+            try { lock (_writer) _writer.WriteLine(Json.Serialize(req)); }
+            catch { TaskCompletionSource<object> t; _pending.TryRemove(id, out t); throw; }
             return tcs.Task;
+        }
+
+        /// <summary>A call's reply, or cancellation (the reply may never come if PHD2 hangs).</summary>
+        private static async Task<object> WithCancel(Task<object> call, CancellationToken ct)
+        {
+            var cancelled = new TaskCompletionSource<object>();
+            using (ct.Register(() => cancelled.TrySetCanceled()))
+                return await await Task.WhenAny(call, cancelled.Task);
         }
 
         private static Dictionary<string, object> Settle(double pixels, double time, double timeout) =>
@@ -142,7 +159,7 @@ namespace Sidralune.Devices.Guiding
         public async Task StartGuiding(bool recalibrate, CancellationToken ct)
         {
             _settle = new TaskCompletionSource<bool>();
-            await Call("guide", new Dictionary<string, object> { { "settle", Settle(1.5, 10, 120) }, { "recalibrate", recalibrate } });
+            await WithCancel(Call("guide", new Dictionary<string, object> { { "settle", Settle(1.5, 10, 120) }, { "recalibrate", recalibrate } }), ct);
             using (ct.Register(() => _settle.TrySetCanceled()))
                 if (!await _settle.Task) throw new InvalidOperationException("PHD2 failed to settle after starting guiding");
         }
@@ -152,7 +169,7 @@ namespace Sidralune.Devices.Guiding
         public async Task Dither(double pixels, bool raOnly, double settlePixels, double settleTime, double timeout, CancellationToken ct)
         {
             _settle = new TaskCompletionSource<bool>();
-            await Call("dither", new Dictionary<string, object> { { "amount", pixels }, { "raOnly", raOnly }, { "settle", Settle(settlePixels, settleTime, timeout) } });
+            await WithCancel(Call("dither", new Dictionary<string, object> { { "amount", pixels }, { "raOnly", raOnly }, { "settle", Settle(settlePixels, settleTime, timeout) } }), ct);
             using (ct.Register(() => _settle.TrySetCanceled()))
                 if (!await _settle.Task) Log.Warn("PHD2", "Dither settle timed out");
         }

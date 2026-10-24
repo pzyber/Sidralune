@@ -47,7 +47,8 @@ namespace Sidralune.Imaging.Planetary
                 double between = wB * wF * (mB - mF) * (mB - mF);
                 if (between > best) { best = between; bt = t; }
             }
-            return mn + (mx - mn) * bt / (bins - 1.0);
+            // the upper edge of the last background bin: its own pixels belong to the background
+            return mn + (mx - mn) * (bt + 1) / (bins - 1.0);
         }
 
         /// <summary>

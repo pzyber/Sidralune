@@ -120,19 +120,23 @@ namespace Sidralune.Imaging.Analysis
             int nx = Math.Max(1, w / cell), ny = Math.Max(1, h / cell);
             var bg = new float[nx * ny];
             var rms = new float[nx * ny];
+            const int maxSamples = 4096;
             Parallel.For(0, ny, j =>
             {
-                var buf = new float[cell * cell];
+                float[] buf = null;
                 for (int i = 0; i < nx; i++)
                 {
                     int x0 = i * w / nx, x1 = (i + 1) * w / nx, y0 = j * h / ny, y1 = (j + 1) * h / ny;
+                    // the same stride in x and y, so a large cell is thinned evenly instead of losing its last rows
+                    int step = Math.Max(1, (int)Math.Ceiling(Math.Sqrt((x1 - x0) * (double)(y1 - y0) / maxSamples)));
+                    int need = ((x1 - x0 + step - 1) / step) * ((y1 - y0 + step - 1) / step);
+                    if (buf == null || buf.Length < need) buf = new float[need];
                     int k = 0;
-                    int stepY = Math.Max(1, (y1 - y0) * (x1 - x0) / buf.Length);
-                    for (int y = y0; y < y1; y += 1)
-                        for (int x = x0; x < x1; x += stepY)
+                    for (int y = y0; y < y1; y += step)
+                        for (int x = x0; x < x1; x += step)
                         {
                             float v = d[y * w + x];
-                            if (!float.IsNaN(v) && k < buf.Length) buf[k++] = v;
+                            if (!float.IsNaN(v)) buf[k++] = v;
                         }
                     float med = Stats.MedianInPlace(buf, k);
                     float sig = 0;
@@ -168,11 +172,13 @@ namespace Sidralune.Imaging.Analysis
                 for (int i = 0; i < nx; i++)
                 {
                     int k = 0;
+                    // the edge is repeated outside the mesh: a lopsided neighbourhood at the border would pull a
+                    // gradient towards the centre by half a cell
                     for (int dj = -1; dj <= 1; dj++)
                         for (int di = -1; di <= 1; di++)
                         {
-                            int ii = i + di, jj = j + dj;
-                            if (ii >= 0 && jj >= 0 && ii < nx && jj < ny) buf[k++] = m[jj * nx + ii];
+                            int ii = Math.Max(0, Math.Min(nx - 1, i + di)), jj = Math.Max(0, Math.Min(ny - 1, j + dj));
+                            buf[k++] = m[jj * nx + ii];
                         }
                     r[j * nx + i] = Stats.MedianInPlace(buf, k);
                 }

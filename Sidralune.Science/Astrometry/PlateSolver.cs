@@ -170,7 +170,9 @@ namespace Sidralune.Science.Astrometry
             }
             if (proj.Count < 6) return null;
             var saveN = StarMatcher.MaxStars;
-            StarMatcher.MaxStars = Math.Min(60, Math.Max(imgStars.Count, proj.Count));
+            // the whole cone, not just its 60 brightest: the cone covers about 2.4 times the frame, so its brightest 60 hold
+            // only part of the frame's stars and the triangles of the two lists rarely agree (most fields then failed)
+            StarMatcher.MaxStars = Math.Min(150, Math.Max(imgStars.Count, proj.Count));
             // tolerance scaled: matching in mixed units (pixels vs arcsec) is fine as RANSAC fits the similarity scale
             double thr = !double.IsNaN(opt.ScaleHint) ? 3.0 * opt.ScaleHint : 15.0;
             var m = StarMatcher.Match(proj, imgStars, TransformModel.Similarity, thr / 2);

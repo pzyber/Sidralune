@@ -92,9 +92,10 @@ namespace Sidralune.Imaging.Analysis
                     if (s != null) stars.Add(s);
                 }
             }
-            // reject hot pixels / cosmic rays: very compact sources with small FWHM
+            // reject hot pixels / cosmic rays: sources narrower than a pixel. The detection smoothing spreads a bright
+            // hot pixel over many pixels, so its area says nothing; even an undersampled star measures about 1 px
             if (opt.RejectHotPixels)
-                stars = stars.Where(s => s.Fwhm >= 1.0 || s.Area >= 9).ToList();
+                stars = stars.Where(s => s.Fwhm >= 0.8).ToList();
             stars = stars.Where(s => s.Eccentricity <= opt.MaxEccentricity || s.Saturated).ToList();
             stars.Sort((a, b) => b.Flux.CompareTo(a.Flux));
             if (stars.Count > opt.MaxStars) stars = stars.Take(opt.MaxStars).ToList();

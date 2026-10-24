@@ -96,7 +96,8 @@ namespace Sidralune.Devices.Alpaca
         protected object Get(string member)
         {
             int tx = Interlocked.Increment(ref _tx);
-            var text = Net.GetString(Base + member + "?ClientID=" + _clientId + "&ClientTransactionID=" + tx, 30000);
+            // members may carry their own query parameters (destinationsideofpier?RightAscension=…)
+            var text = Net.GetString(Base + member + (member.Contains("?") ? "&" : "?") + "ClientID=" + _clientId + "&ClientTransactionID=" + tx, 30000);
             return Check(text);
         }
 
@@ -169,7 +170,7 @@ namespace Sidralune.Devices.Alpaca
         public void MoveAxis(int axis, double rate) => Put("moveaxis", "Axis", axis.ToString(), "Rate", S(rate));
         public PierSide DestinationSideOfPier(double ra, double dec)
         {
-            try { return (PierSide)Convert.ToInt32(Get("destinationsideofpier?RightAscension=" + S(ra) + "&Declination=" + S(dec) + "&dummy=")); } catch { return PierSide.Unknown; }
+            try { return (PierSide)Convert.ToInt32(Get("destinationsideofpier?RightAscension=" + S(ra) + "&Declination=" + S(dec))); } catch { return PierSide.Unknown; }
         }
     }
 
@@ -250,7 +251,8 @@ namespace Sidralune.Devices.Alpaca
             int rank = BitConverter.ToInt32(b, 28), d1 = BitConverter.ToInt32(b, 32), d2 = BitConverter.ToInt32(b, 36), d3 = BitConverter.ToInt32(b, 40);
             int planes = rank == 3 ? d3 : 1;
             var img = new AstroImage(d1, d2, planes);
-            int size = xmitType == 1 || xmitType == 9 ? 2 : xmitType == 2 || xmitType == 4 ? 4 : xmitType == 6 ? 1 : xmitType == 3 ? 8 : 2;
+            // ASCOM ImageArrayElementTypes: 1 Int16, 2 Int32, 3 Double, 4 Single, 6 Byte, 7 Int64, 8 UInt16, 9 UInt32, 10 UInt64
+            int size = xmitType == 6 ? 1 : xmitType == 2 || xmitType == 4 || xmitType == 9 ? 4 : xmitType == 3 || xmitType == 7 || xmitType == 10 ? 8 : 2;
             double s = 1.0 / Math.Max(1, maxAdu);
             int p = dataStart;
             for (int x = 0; x < d1; x++)
@@ -266,6 +268,9 @@ namespace Sidralune.Devices.Alpaca
                             case 6: v = b[p]; break;
                             case 4: v = BitConverter.ToSingle(b, p); break;
                             case 3: v = BitConverter.ToDouble(b, p); break;
+                            case 7: v = BitConverter.ToInt64(b, p); break;
+                            case 9: v = BitConverter.ToUInt32(b, p); break;
+                            case 10: v = BitConverter.ToUInt64(b, p); break;
                             default: v = BitConverter.ToUInt16(b, p); break;
                         }
                         if (xmitType == 1 && elemType == 2) v += 32768; // int16 transmission of uint16 data

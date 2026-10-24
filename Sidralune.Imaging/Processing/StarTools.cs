@@ -238,16 +238,24 @@ namespace Sidralune.Imaging
             {
                 var d = img.Data[c];
                 var st = ImageStatistics.Compute(d, w, 0);
-                double clip = st.Background + 3 * st.BackgroundSigma;
+                double sigma = Math.Max(st.BackgroundSigma, 1e-6);
+                // each line's level: the median of its pixels, then again without the stars above it (clipping around
+                // the line's own level, so lines offset by more than a few sigma are still corrected)
+                Func<List<double>, double> level = buf =>
+                {
+                    double med = Stats.Median(buf);
+                    var bg = buf.Where(v => v < med + 3 * sigma).ToList();
+                    return bg.Count >= 10 ? Stats.Median(bg) : med;
+                };
                 if (rows)
                 {
                     var buf = new List<double>(w);
                     for (int y = 0; y < h; y++)
                     {
                         buf.Clear();
-                        for (int x = 0; x < w; x++) { float v = d[y * w + x]; if (v < clip) buf.Add(v); }
+                        for (int x = 0; x < w; x++) { float v = d[y * w + x]; if (!float.IsNaN(v)) buf.Add(v); }
                         if (buf.Count < 10) continue;
-                        float off = (float)((Stats.Median(buf) - st.Background) * amount);
+                        float off = (float)((level(buf) - st.Background) * amount);
                         for (int x = 0; x < w; x++) d[y * w + x] -= off;
                     }
                 }
@@ -257,9 +265,9 @@ namespace Sidralune.Imaging
                     for (int x = 0; x < w; x++)
                     {
                         buf.Clear();
-                        for (int y = 0; y < h; y++) { float v = d[y * w + x]; if (v < clip) buf.Add(v); }
+                        for (int y = 0; y < h; y++) { float v = d[y * w + x]; if (!float.IsNaN(v)) buf.Add(v); }
                         if (buf.Count < 10) continue;
-                        float off = (float)((Stats.Median(buf) - st.Background) * amount);
+                        float off = (float)((level(buf) - st.Background) * amount);
                         for (int y = 0; y < h; y++) d[y * w + x] -= off;
                     }
                 }

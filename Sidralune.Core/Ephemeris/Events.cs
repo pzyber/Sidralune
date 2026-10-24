@@ -295,10 +295,20 @@ namespace Sidralune.Core.Ephemeris
             for (double t = jd1 + step; t <= jd2; t += step)
             {
                 double cur = lonDiff(t);
-                if (prev < 0 && cur >= 0 && cur - prev < 90)
+                if (Math.Sign(prev) != Math.Sign(cur) && Math.Abs(prev) < 90 && Math.Abs(cur) < 90)
                 {
                     double r = Roots.Brent(lonDiff, t - step, t, 1e-6);
-                    list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Conjunction, Description = b + " in conjunction with the Sun" });
+                    if (!double.IsNaN(r))
+                    {
+                        string what = " in conjunction with the Sun";
+                        if (inferior)
+                        {
+                            Vec3 e, v;
+                            EphemerisManager.EarthHeliocentric(r, out e, out v);
+                            what = (EphemerisManager.Heliocentric(b, r) - e).Length < e.Length ? " at inferior conjunction" : " at superior conjunction";
+                        }
+                        list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Conjunction, Description = b + what });
+                    }
                 }
                 if (!inferior && Math.Abs(prev) > 170 && Math.Sign(prev) != Math.Sign(cur) && Math.Abs(cur) > 170)
                 {

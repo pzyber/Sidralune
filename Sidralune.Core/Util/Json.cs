@@ -54,15 +54,16 @@ namespace Sidralune.Core.Util
                 SkipWs(s, ref i);
                 string key = ParseStr(s, ref i);
                 SkipWs(s, ref i);
-                if (s[i] != ':') throw new FormatException("Expected ':' at " + i);
+                if (i >= s.Length || s[i] != ':') throw new FormatException("Expected ':' at " + i);
                 i++;
                 d[key] = ParseValue(s, ref i);
                 SkipWs(s, ref i);
+                if (i >= s.Length) break;
                 if (s[i] == ',') { i++; continue; }
                 if (s[i] == '}') { i++; return d; }
                 throw new FormatException("Expected ',' or '}' at " + i);
             }
-            return d;
+            throw new FormatException("Unexpected end of JSON inside an object");
         }
 
         private static List<object> ParseArr(string s, ref int i)
@@ -75,16 +76,17 @@ namespace Sidralune.Core.Util
             {
                 l.Add(ParseValue(s, ref i));
                 SkipWs(s, ref i);
+                if (i >= s.Length) break;
                 if (s[i] == ',') { i++; continue; }
                 if (s[i] == ']') { i++; return l; }
                 throw new FormatException("Expected ',' or ']' at " + i);
             }
-            return l;
+            throw new FormatException("Unexpected end of JSON inside an array");
         }
 
         private static string ParseStr(string s, ref int i)
         {
-            if (s[i] != '"') throw new FormatException("Expected string at " + i);
+            if (i >= s.Length || s[i] != '"') throw new FormatException("Expected string at " + i);
             i++;
             var sb = new StringBuilder();
             while (i < s.Length)
@@ -93,6 +95,7 @@ namespace Sidralune.Core.Util
                 if (c == '"') return sb.ToString();
                 if (c == '\\')
                 {
+                    if (i >= s.Length) break;
                     char e = s[i++];
                     switch (e)
                     {

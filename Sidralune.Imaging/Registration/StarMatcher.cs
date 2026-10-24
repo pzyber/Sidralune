@@ -144,7 +144,9 @@ namespace Sidralune.Imaging.Registration
             var full = Refine(pairs, model, res);
             for (int pass = 0; pass < 2 && full != null; pass++)
             {
-                var all = new List<Tuple<DetectedStar, DetectedStar>>();
+                // one target star per reference star (the closest): a degenerate fit that squeezes the field onto a
+                // few points would otherwise pair every target star with the same reference star
+                var closest = new Dictionary<DetectedStar, Tuple<DetectedStar, double>>();
                 foreach (var ts in target)
                 {
                     double u, v;
@@ -155,8 +157,10 @@ namespace Sidralune.Imaging.Registration
                         double dd = Sq(rs.X - u) + Sq(rs.Y - v);
                         if (dd < bd) { bd = dd; best = rs; }
                     }
-                    if (best != null) all.Add(Tuple.Create(ts, best));
+                    Tuple<DetectedStar, double> prev;
+                    if (best != null && (!closest.TryGetValue(best, out prev) || bd < prev.Item2)) closest[best] = Tuple.Create(ts, bd);
                 }
+                var all = closest.Select(kv => Tuple.Create(kv.Value.Item1, kv.Key)).ToList();
                 if (all.Count >= pairs.Count) { pairs = all; full = Refine(pairs, model, res); }
             }
             return res;
@@ -230,7 +234,8 @@ namespace Sidralune.Imaging.Registration
                     if (res.PolyX == null || res.PolyY == null) res.PolyX = res.PolyY = null;
                 }
             }
-            if (t == null) return null;
+            // a fit that collapses the field (zero or undefined scale) is not an alignment
+            if (t == null || !(t.Scale > 1e-6) || double.IsInfinity(t.Scale) || t.M.Any(double.IsNaN)) { res.Transform = null; res.Matches = 0; return null; }
             res.Transform = t;
             res.Pairs = pairs;
             res.Matches = pairs.Count;
