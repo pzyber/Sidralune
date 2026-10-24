@@ -48,6 +48,7 @@ Hints make solving faster and more reliable:
 | **Search radius (°)** | How far from the hint to search |
 | **Scale ("/px, 0=auto)** | Image scale in arcseconds per pixel. Filled in from `FOCALLEN` and `XPIXSZ` when present. 0 means unknown |
 | **SIP order** | Distortion polynomial order: 0 (none) to 4. 2 suits most telescopes; use 3–4 for camera lenses and wide fields |
+| **Minor body labels** | Which minor bodies a solved image labels: **All in the field** (the default), **Bright enough to show**, or **None**. Changing it relabels the image at once, without solving again, and the choice is remembered |
 
 Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by Sidralune's [Observatory](Observatory-and-devices#fits-headers) already contain everything needed.
 
@@ -63,7 +64,9 @@ With a rough position hint, solving usually takes about a second. A blind solve 
 
 ### Results and annotation
 
-The result panel reports the centre, the scale, the rotation angle (and "flipped" for mirror-reversed images), the field size, the number of stars detected and matched, the RMS residual in arcseconds and the time taken.
+The result panel reports the centre, the scale, the rotation angle (and "flipped" for mirror-reversed images), the field size, the number of stars detected and matched, the RMS residual in arcseconds, the time taken (split into finding the stars, solving, placing the labels and measuring the depth; the brightest 1000 stars are used for solving), and the image depth: roughly the magnitude of the faintest stars it shows.
+
+The depth comes from the stars themselves. Catalogue stars are found where the solution puts them and their brightness in the image gives the zero point, which is applied to the faintest 5 % of all the stars detected, so the depth can reach beyond the catalogue's own limit. Every star is measured by fitting the image's own star profile, taken from unsaturated stars: a star whose core is saturated is measured from its wings, so the local catalogue works too, even though its stars are all bright enough to saturate in a deep exposure. **Bright enough to show** labels the asteroids and comets whose predicted magnitude is at or above that depth. When too few catalogue stars are in the field to tell the depth, all of them are labelled and the result panel says so.
 
 On the image:
 
@@ -72,7 +75,7 @@ On the image:
 - deep-sky objects, named and Bayer stars, and comets and asteroids in the field (positions computed for the image's `DATE-OBS`) are marked and labelled, with the minor bodies' predicted magnitudes,
 - the readout under the image shows RA and Dec at the cursor.
 
-The list of objects in the field is also printed in the result panel.
+The list of objects in the field is also printed in the result panel, following the **Minor body labels** choice.
 
 ### Using the solution
 

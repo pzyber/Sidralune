@@ -39,6 +39,8 @@ namespace Sidralune
         public double UiScale = 1.0;
         public bool UseRefraction = true;
         public double SkyChartMagLimit = 6.5;
+        /// <summary>Asteroid and comet labels on solved images: "All" in the field, those "Visible" (bright enough to show) or "None".</summary>
+        public string MinorBodyLabels = "All";
     }
 
     /// <summary>Central application state shared by all views.</summary>

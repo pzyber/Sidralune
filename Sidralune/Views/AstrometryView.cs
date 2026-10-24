@@ -26,8 +26,30 @@ namespace Sidralune.Views
         private SolveResult _solve;
         // one solve at a time: opening another image or solving again waits for it
         private readonly JobSlot _solveJob = new JobSlot();
-        // colours are palette roles, resolved when painting so the annotations follow day/night switches
-        private List<Tuple<string, double, double, Func<Palette, Color>>> _annotations = new List<Tuple<string, double, double, Func<Palette, Color>>>();
+        private List<Annotation> _annotations = new List<Annotation>();
+        private ImageDepth.Result _depthInfo;
+        private TimeSpan[] _steps = new TimeSpan[4]; // finding the stars, solving, placing the labels, measuring the depth
+        private double DepthLimit => _depthInfo != null ? _depthInfo.Limit : double.NaN; // the faintest magnitude the solved image shows, NaN when unknown
+        private static readonly string[] LabelModes = { "All", "Visible", "None" };
+
+        /// <summary>A label on the solved image; colours are palette roles, resolved when painting so they follow day/night switches.</summary>
+        private class Annotation
+        {
+            public string Name;
+            public double X, Y, Mag = double.NaN;
+            public bool MinorBody;
+            public Func<Palette, Color> Color;
+        }
+
+        /// <summary>The labels to show: asteroids and comets as the Minor body labels option says.</summary>
+        private IEnumerable<Annotation> ShownAnnotations
+        {
+            get
+            {
+                string mode = AppState.Settings.MinorBodyLabels;
+                return _annotations.Where(a => !a.MinorBody || mode == "All" || mode == "Visible" && (double.IsNaN(DepthLimit) || a.Mag <= DepthLimit));
+            }
+        }
         private readonly TextBox _result = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Bottom, Height = 150, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
         private readonly SkyChart _frameChart = new SkyChart { Dock = DockStyle.Fill, Mode = ChartMode.Atlas, FovDeg = 6 };
         private SelectedObject _frameTarget;
@@ -54,6 +76,15 @@ namespace Sidralune.Views
             var radius = g.Row("Search radius (°)", Ui.Num(5, 0.5m, 90, 1));
             var scale = g.Row("Scale (\"/px, 0=auto)", Ui.Num(0, 0, 200, 3, 0.1m));
             var sip = g.Row("SIP order", Ui.Num(2, 0, 4));
+            var labels = g.Row("Minor body labels", Ui.Combo("All in the field", "Bright enough to show", "None"));
+            labels.SelectedIndex = Math.Max(0, Array.IndexOf(LabelModes, AppState.Settings.MinorBodyLabels));
+            labels.SelectedIndexChanged += (s, e) =>
+            {
+                AppState.Settings.MinorBodyLabels = LabelModes[labels.SelectedIndex];
+                AppState.Save();
+                ShowSolveText();
+                _viewer.Invalidate();
+            };
             var buttons = new FlowLayoutPanel { Height = 200, FlowDirection = FlowDirection.TopDown };
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; buttons.Controls.Add(b); return b; };
             var open = btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) { var img = ImageFile.Load(d.FileName); SetImage(img, ra, dec, scale); } }, ButtonKind.Normal);
@@ -123,7 +154,7 @@ namespace Sidralune.Views
         private void SetImage(AstroImage img, TextBox ra, TextBox dec, NumericUpDown scale)
         {
             if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.SuperPixel);
-            _img = img; _solve = null; _annotations.Clear();
+            _img = img; _solve = null; _annotations.Clear(); _depthInfo = null; _steps = new TimeSpan[4];
             _viewer.SetImage(img);
             var h = img.Header;
             double r = h.GetDouble("RA"), d = h.GetDouble("DEC");
@@ -142,7 +173,10 @@ namespace Sidralune.Views
             var img = _img;
             double ra = AstroMath.ParseRaHours(raText) * 15, dec = AstroMath.ParseSexagesimal(decText);
             SolveResult solved = null;
-            List<Tuple<string, double, double, Func<Palette, Color>>> annotations = null;
+            List<Annotation> annotations = null;
+            ImageDepth.Result depth = null;
+            var steps = new TimeSpan[4];
+            List<Imaging.Analysis.DetectedStar> stars = null;
             _solveJob.Run("Plate solving", t =>
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -156,7 +190,10 @@ namespace Sidralune.Views
                 }
                 else
                 {
-                    var opt = new SolveOptions { HintRa = ra, HintDec = dec, SearchRadius = radius, ScaleHint = scale > 0 ? scale : double.NaN, SipOrder = sip };
+                    // every star is found once: the solver takes the brightest, the depth measurement all of them
+                    stars = ImageDepth.DetectAll(img.Luminance(), img.Width, img.Height);
+                    steps[0] = sw.Elapsed;
+                    var opt = new SolveOptions { HintRa = ra, HintDec = dec, SearchRadius = radius, ScaleHint = scale > 0 ? scale : double.NaN, SipOrder = sip, Stars = stars };
                     opt.Catalog = solver == 0 ? (IStarCatalogProvider)new VizierProvider() : new LocalCatalogProvider();
                     if (double.IsNaN(ra) && solver == 0) opt.Catalog = new LocalCatalogProvider(); // blind solving uses the local catalog
                     solved = PlateSolver.Solve(img, opt, new Progress<string>(s => t.Status = s), t.Cts.Token);
@@ -164,24 +201,61 @@ namespace Sidralune.Views
                 if (solved.Success)
                 {
                     solved.Wcs.WriteToHeader(img.Header);
+                    steps[1] = sw.Elapsed - steps[0];
                     annotations = BuildAnnotations(solved.Wcs, img);
+                    steps[2] = sw.Elapsed - steps[0] - steps[1];
+                    depth = Depth(solved, img, stars);
+                    steps[3] = sw.Elapsed - steps[0] - steps[1] - steps[2];
                 }
+                else steps[1] = sw.Elapsed - steps[0];
+                solved.Elapsed = sw.Elapsed; // all of it: the steps are shown separately
             }, () =>
             {
                 // results are applied here, on the UI thread, to the image they were found for
                 _solve = solved;
-                _annotations = annotations ?? new List<Tuple<string, double, double, Func<Palette, Color>>>();
+                _annotations = annotations ?? new List<Annotation>();
+                _depthInfo = depth;
+                _steps = steps;
                 _viewer.Wcs = _solve.Success ? _solve.Wcs : null;
                 _viewer.Invalidate();
-                _result.Text = _solve.Message + string.Format("\r\nElapsed {0:0.0} s, {1} stars detected, {2} matched, rms {3:0.00}\"", _solve.Elapsed.TotalSeconds, _solve.ImageStars, _solve.Wcs != null ? _solve.Wcs.MatchedStars : 0, _solve.Wcs != null ? _solve.Wcs.RmsArcsec : double.NaN)
-                    + (_solve.Success ? "\r\nObjects in field: " + string.Join(", ", _annotations.Select(a => a.Item1).Take(40)) : "");
+                ShowSolveText();
                 MainForm.Instance.Toast(_solve.Success ? "Plate solved" : "No solution: " + _solve.Message, _solve.Success ? Icons.Check : Icons.Warning, _solve.Success ? Theme.Current.Success : Theme.Current.Warning);
             });
         }
 
-        private static List<Tuple<string, double, double, Func<Palette, Color>>> BuildAnnotations(Wcs w, AstroImage img)
+        private void ShowSolveText()
         {
-            var list = new List<Tuple<string, double, double, Func<Palette, Color>>>();
+            if (_solve == null) return;
+            _result.Text = _solve.Message + string.Format("\r\nElapsed {0:0.0} s{1}, {2} stars used for solving, {3} matched, rms {4:0.00}\"", _solve.Elapsed.TotalSeconds, StepsText(),
+                _solve.ImageStars, _solve.Wcs != null ? _solve.Wcs.MatchedStars : 0, _solve.Wcs != null ? _solve.Wcs.RmsArcsec : double.NaN)
+                + (_solve.Success ? (double.IsNaN(DepthLimit) ? "\r\nImage depth: unknown (too few catalogue stars could be measured), so all asteroids and comets are labelled"
+                    : string.Format("\r\nImage depth: about magnitude {0:0.0} ({1} catalogue stars, {2} stars detected)", DepthLimit, _depthInfo.Calibrators, _depthInfo.Stars))
+                    + "\r\nObjects in field: " + string.Join(", ", ShownAnnotations.Select(a => a.Name).Take(40)) : "");
+        }
+
+        /// <summary>Where the time went, e.g. " (finding stars 7.1 s, solving 13.9 s, labels 0.4 s, image depth 1.6 s)"; empty when not timed in parts.</summary>
+        private string StepsText()
+        {
+            if (_steps.All(x => x == TimeSpan.Zero)) return "";
+            var parts = new[] { "finding stars", "solving", "labels", "image depth" }.Zip(_steps, (n, x) => new { n, x }).Where(p => p.x > TimeSpan.Zero)
+                .Select(p => string.Format("{0} {1:0.0} s", p.n, p.x.TotalSeconds));
+            return " (" + string.Join(", ", parts) + ")";
+        }
+
+        /// <summary>How faint the solved image reaches, calibrated on catalogue stars where the solution puts them.</summary>
+        private static ImageDepth.Result Depth(SolveResult solved, AstroImage img, List<Imaging.Analysis.DetectedStar> stars)
+        {
+            var w = solved.Wcs;
+            double cra, cdec; w.Centre(out cra, out cdec);
+            var refs = new LocalCatalogProvider().Cone(cra, cdec, Math.Sqrt(w.FieldWidthDeg * w.FieldWidthDeg + w.FieldHeightDeg * w.FieldHeightDeg) / 2, 20, 3000);
+            // an online solve brings deeper catalogue stars of its own: use them when there are more of them
+            var solverRefs = solved.Matches.Select(m => m.Item2).ToList();
+            return ImageDepth.Measure(img.Luminance(), img.Width, img.Height, w, solverRefs.Count > refs.Count ? solverRefs : refs, stars);
+        }
+
+        private static List<Annotation> BuildAnnotations(Wcs w, AstroImage img)
+        {
+            var list = new List<Annotation>();
             double cra, cdec; w.Centre(out cra, out cdec);
             double r = Math.Sqrt(w.FieldWidthDeg * w.FieldWidthDeg + w.FieldHeightDeg * w.FieldHeightDeg) / 2 * AstroMath.Deg2Rad;
             var dsos = new List<DeepSkyObject>();
@@ -189,14 +263,14 @@ namespace Sidralune.Views
             foreach (var d in dsos)
             {
                 double x, y;
-                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(d.DisplayName, x, y, (Func<Palette, Color>)(pal => pal.Nebula)));
+                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(new Annotation { Name = d.DisplayName, X = x, Y = y, Color = pal => pal.Nebula });
             }
             var stars = new List<Star>();
             CatalogManager.Instance.Stars.Cone(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, r, 12, stars);
             foreach (var s in stars.Where(s => s.Name != null || s.Bayer != null).Take(60))
             {
                 double x, y;
-                if (w.WorldToPixel(s.RaHours * 15, s.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(s.DisplayName, x, y, (Func<Palette, Color>)(pal => pal.Warning)));
+                if (w.WorldToPixel(s.RaHours * 15, s.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(new Annotation { Name = s.DisplayName, X = x, Y = y, Color = pal => pal.Warning });
             }
             var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(img.DateObs ?? DateTime.UtcNow));
             foreach (var mb in Core.MinorBodies.MinorBodyStore.Instance.All)
@@ -206,7 +280,7 @@ namespace Sidralune.Views
                     var p = Core.MinorBodies.MinorBodyStore.Place(ctx, mb);
                     double x, y;
                     if (w.WorldToPixel(p.Astrometric.RaHours * 15, p.Astrometric.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight)
-                        list.Add(Tuple.Create(mb.DisplayName + string.Format(" ({0:0.0})", p.Magnitude), x, y, mb.IsComet ? (Func<Palette, Color>)(pal => pal.Comet) : pal => pal.Asteroid));
+                        list.Add(new Annotation { Name = mb.DisplayName + string.Format(" ({0:0.0})", p.Magnitude), X = x, Y = y, Mag = p.Magnitude, MinorBody = true, Color = mb.IsComet ? (Func<Palette, Color>)(pal => pal.Comet) : pal => pal.Asteroid });
                 }
                 catch { }
             }
@@ -220,12 +294,12 @@ namespace Sidralune.Views
                 using (var pen = new Pen(Theme.WithAlpha(Theme.Current.Success, 160)))
                     foreach (var m in _solve.Matches.Take(400)) { var p = map(m.Item1.X, m.Item1.Y); g.DrawEllipse(pen, p.X - 6, p.Y - 6, 12, 12); }
             }
-            foreach (var a in _annotations)
+            foreach (var a in ShownAnnotations)
             {
-                var p = map(a.Item2, a.Item3);
-                var col = a.Item4(Theme.Current);
+                var p = map(a.X, a.Y);
+                var col = a.Color(Theme.Current);
                 using (var pen = new Pen(col, 1.5f)) { g.DrawLine(pen, p.X - 14, p.Y, p.X - 5, p.Y); g.DrawLine(pen, p.X, p.Y - 14, p.X, p.Y - 5); }
-                TextRenderer.DrawText(g, a.Item1, Theme.UiFont, new Point((int)p.X + 4, (int)p.Y - 20), col);
+                TextRenderer.DrawText(g, a.Name, Theme.UiFont, new Point((int)p.X + 4, (int)p.Y - 20), col);
             }
         }
 

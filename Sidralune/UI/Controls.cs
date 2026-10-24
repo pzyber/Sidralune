@@ -542,7 +542,7 @@ namespace Sidralune.UI
         {
             int r = RowCount++;
             RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            var l = new Label { Text = label, AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "dim", Margin = new Padding(0, 3, 6, 3) };
+            var l = new Label { Text = label, AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "dim", Margin = new Padding(0, 3, 6, 3), UseMnemonic = false }; // "&" is text here, not a shortcut marker
             editor.Dock = DockStyle.Fill;
             editor.Margin = new Padding(0, 3, 0, 3);
             Controls.Add(l, 0, r);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
+using Sidralune.Imaging.Analysis;
 using Sidralune.Science.Astrometry;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static Sidralune.Tests.Checks;
@@ -31,6 +32,47 @@ namespace Sidralune.Tests
             public List<RefStar> Cone(double ra, double dec, double radius, double mag, int max) =>
                 Stars.Where(s => AstroMath.Separation(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, s.Ra * AstroMath.Deg2Rad, s.Dec * AstroMath.Deg2Rad) * AstroMath.Rad2Deg < radius && s.Mag < mag)
                      .OrderBy(s => s.Mag).Take(max).ToList();
+        }
+
+        [TestMethod]
+        public void TestImageDepth()
+        {
+            // magnitude = 10 - 2.5 log10(flux). The catalogue holds only stars of magnitude 6-7, all clipped at the top like
+            // the bright stars of a deep exposure; the image shows 3000 stars down to about magnitude 13-14
+            int w = 1600, h = 1200;
+            var wcs = Wcs.Create(83.8, -5.4, 6.0, 20, w, h);
+            var rnd = new Random(7);
+            var stars = new List<Synthetic.SynthStar>();
+            var mags = new List<double>();
+            var refs = new List<RefStar>();
+            Action<double, bool> add = (mag, inCatalogue) =>
+            {
+                var st = new Synthetic.SynthStar { X = 15 + rnd.NextDouble() * (w - 30), Y = 15 + rnd.NextDouble() * (h - 30), Flux = Math.Pow(10, -0.4 * (mag - 10)) };
+                stars.Add(st); mags.Add(mag);
+                if (!inCatalogue) return;
+                double ra, dec;
+                wcs.PixelToWorld(st.X, st.Y, out ra, out dec);
+                refs.Add(new RefStar { Ra = ra, Dec = dec, Mag = mag });
+            };
+            for (int i = 0; i < 60; i++) add(6 + rnd.NextDouble(), true);
+            for (int i = 0; i < 3000; i++) add(7 + 7 * rnd.NextDouble(), false);
+            var img = Synthetic.Render(w, h, stars, Transform2D.Identity, 3, 0.05, 0.002, 3);
+            var lum = img.Data[0];
+            CheckTrue("The catalogue stars are clipped", refs.Count(r => { double x, y; wcs.WorldToPixel(r.Ra, r.Dec, out x, out y); return lum[(int)Math.Round(y) * w + (int)Math.Round(x)] >= 0.999f; }) > 50);
+
+            var res = ImageDepth.Measure(lum, w, h, wcs, refs);
+            CheckTrue("All stars are measured, not only the brightest 2000", res.Stars > 2000, res.Stars + " stars");
+            CheckTrue("Clipped catalogue stars calibrate from their wings", res.Calibrators >= 40, res.Calibrators + " calibrators");
+            Check("Zero point", res.ZeroPoint, 10, 0.1);
+            // the true magnitude of the faintest 5 % of the stars that were detected
+            var found = StarDetector.Detect(lum, w, h, new StarDetectionOptions { MaxStars = int.MaxValue });
+            var trueMags = found.Select(f => { int k = 0; double best = 2.25; for (int i = 0; i < stars.Count; i++) { double d = (stars[i].X - f.X) * (stars[i].X - f.X) + (stars[i].Y - f.Y) * (stars[i].Y - f.Y); if (d < best) { best = d; k = i + 1; } } return k > 0 ? mags[k - 1] : double.NaN; })
+                .Where(m => !double.IsNaN(m)).OrderBy(m => m).ToList();
+            Check("Limiting magnitude: the faintest stars detected, beyond the catalogue's depth", res.Limit, trueMags[trueMags.Count * 19 / 20], 0.4);
+            CheckTrue("Unknown without catalogue stars", double.IsNaN(ImageDepth.Measure(lum, w, h, wcs, refs.Take(3)).Limit));
+            CheckTrue("Stars found beforehand give the same depth", ImageDepth.Measure(lum, w, h, wcs, refs, found).Limit == res.Limit);
+            var pairs = ImageDepth.Match(wcs, found, refs);
+            CheckTrue("Catalogue stars are matched where the solution puts them", pairs.Count >= 55 && pairs.All(m => { double x, y; wcs.WorldToPixel(m.Item2.Ra, m.Item2.Dec, out x, out y); return Math.Abs(m.Item1.X - x) < 2.5 && Math.Abs(m.Item1.Y - y) < 2.5; }), pairs.Count + " matches");
         }
 
         [TestMethod]
@@ -79,6 +121,11 @@ namespace Sidralune.Tests
                 Check("Solved scale", res.Wcs.PixelScale, 3.2, 0.01);
                 Check("Solved rotation", res.Wcs.RotationDeg, 117, 0.1);
                 CheckTrue("Solved parity", res.Wcs.Flipped == flip);
+                // stars found once beforehand (for the image depth as well) give the same solution
+                var shared = PlateSolver.Solve(img, new SolveOptions { HintRa = ra0, HintDec = dec0, SearchRadius = 2, Catalog = cat, MagLimit = 13, Stars = ImageDepth.DetectAll(img.Data[0], W, H) });
+                double pr, pd;
+                if (shared.Success) shared.Wcs.Centre(out pr, out pd); else { pr = double.NaN; pd = double.NaN; }
+                CheckTrue("Stars handed to the solver give the same solution", shared.Success && AstroMath.Separation(sr * AstroMath.Deg2Rad, sd * AstroMath.Deg2Rad, pr * AstroMath.Deg2Rad, pd * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec < 0.5);
             }
         }
     }
