@@ -32,6 +32,8 @@ namespace Sidralune.Views
     public class SolarSystemView : UserControl, ICommandSource
     {
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+        // tables and lists keep the newest calculation; the online look-ups (Horizons, SBDB, CNEOS) run one at a time
+        private readonly JobSlot _ephemJob = new JobSlot(), _positionsJob = new JobSlot(), _galileanJob = new JobSlot(), _occJob = new JobSlot(), _passJob = new JobSlot(), _onlineJob = new JobSlot();
 
         public SolarSystemView()
         {
@@ -126,7 +128,7 @@ namespace Sidralune.Views
             var rows = new List<object[]>();
             var site = AppState.Site;
             double t0 = AstroTime.FromDateTime(startUtc).JdUtc;
-            Tasks.Run("Ephemeris", t =>
+            _ephemJob.Replace("Ephemeris", t =>
             {
                 for (int i = 0; i < n; i++)
                 {
@@ -153,7 +155,7 @@ namespace Sidralune.Views
             string cmd = o is Body ? HorizonsId((Body)o) : ((MinorBody)o).IsComet ? ((MinorBody)o).Designation + ";" : (((MinorBody)o).Number > 0 ? ((MinorBody)o).Number + ";" : ((MinorBody)o).Designation + ";");
             string start = startUtc.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), stop = startUtc.AddMinutes(1).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
             List<string> lines = null;
-            Tasks.Run("JPL Horizons", t => lines = OnlineServices.HorizonsEphemeris(cmd, start, stop, "1m", "500@399", "1"), () =>
+            _onlineJob.Run("JPL Horizons", t => lines = OnlineServices.HorizonsEphemeris(cmd, start, stop, "1m", "500@399", "1"), () =>
             {
                 if (lines == null || lines.Count == 0) { MainForm.Instance.Toast("Horizons returned no data", Icons.Warning); return; }
                 var ctx = new SkyContext(new Observer { LatitudeDeg = 0, LongitudeDeg = 0, ElevationM = -6378137 }, AstroTime.FromDateTime(startUtc));
@@ -207,7 +209,7 @@ namespace Sidralune.Views
                 var des = PlannerView.Prompt("JPL Small-Body Database", "Designation or name (e.g. 433, 2024 YR4, 12P)", find.Text);
                 if (string.IsNullOrWhiteSpace(des)) return;
                 MinorBody mb = null;
-                Tasks.Run("SBDB lookup", t => mb = OnlineServices.SbdbElements(des), () =>
+                _onlineJob.Run("SBDB lookup", t => mb = OnlineServices.SbdbElements(des), () =>
                 {
                     if (mb == null) { MainForm.Instance.Toast("Not found", Icons.Warning); return; }
                     MinorBodyStore.Instance.Add(mb);
@@ -251,7 +253,7 @@ namespace Sidralune.Views
             var list = src.ToList();
             var ctx = new SkyContext(AppState.Site, AppState.Now);
             var rows = new List<Tuple<MinorBody, BodyPlace>>();
-            Tasks.Run("Minor body positions", t =>
+            _positionsJob.Replace("Minor body positions", t =>
             {
                 int i = 0;
                 foreach (var m in list)
@@ -298,7 +300,7 @@ namespace Sidralune.Views
         private void CloseApproaches()
         {
             DataTable tab = null;
-            Tasks.Run("JPL close approaches", t => tab = OnlineServices.CloseApproaches(0.05), () =>
+            _onlineJob.Run("JPL close approaches", t => tab = OnlineServices.CloseApproaches(0.05), () =>
             {
                 if (tab == null) return;
                 var sb = new System.Text.StringBuilder("Close approaches to Earth within 0.05 AU in the next 60 days (JPL CNEOS):\r\n\r\n");
@@ -442,7 +444,7 @@ namespace Sidralune.Views
             {
                 List<AstroEvent> ev = null;
                 double jd = AppState.Now.JdTT;
-                Tasks.Run("Galilean moon phenomena", t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
+                _galileanJob.Replace("Galilean moon phenomena", t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
                 {
                     var site = AppState.Site;
                     phen.Text = "Transits and occultations (local time); ✓ = Jupiter above 10° in a dark sky\r\n\r\n" + string.Join("\r\n", ev.Select(x =>
@@ -505,7 +507,7 @@ namespace Sidralune.Views
                 List<OccultationEvent> ev = null;
                 var st = AppState.Now; var en = new AstroTime(st.JdUtc + (double)days.Value);
                 double ml = (double)mag.Value;
-                Tasks.Run("Occultation search", t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml), () =>
+                _occJob.Replace("Occultation search", t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml), () =>
                 {
                     grid.Rows.Clear();
                     foreach (var x in ev) grid.Rows.Add(x.Body.DisplayName + " → " + (x.Star.Id ?? "star"), x.Time.ToString(), F(x.StarMag, "0.0"), F(x.MagDrop, "0.0"), F(x.DurationSec, "0.0"), F(x.ShadowWidthKm, "0"), F(x.ObserverOffsetKm, "0"));
@@ -517,7 +519,7 @@ namespace Sidralune.Views
             {
                 List<LunarOccultation> ev = null;
                 var st = AppState.Now; double d = (double)days.Value, ml = Math.Min(9, (double)mag.Value);
-                Tasks.Run("Lunar occultations", t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml), () =>
+                _occJob.Replace("Lunar occultations", t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml), () =>
                 {
                     grid.Rows.Clear();
                     foreach (var x in ev)
@@ -594,7 +596,7 @@ namespace Sidralune.Views
                 var rows = new List<Tuple<string, SatellitePass>>();
                 var site = AppState.Site; var now = AppState.Now; double d = (double)days.Value, ma = (double)minAlt.Value; bool vo = visOnly.Checked;
                 var sats = _sats.ToList();
-                Tasks.Run("Satellite passes", t =>
+                _passJob.Replace("Satellite passes", t =>
                 {
                     int i = 0;
                     foreach (var sat in sats)

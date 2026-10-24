@@ -46,6 +46,8 @@ namespace Sidralune.Views
     {
         private PlannerData _data = new PlannerData();
         private static string DataPath => Path.Combine(AppPaths.Settings, "planner.json");
+        // the table follows the time and the list: the newest calculation wins; a generated list is made one at a time
+        private readonly JobSlot _fillJob = new JobSlot(), _generateJob = new JobSlot();
         private readonly ListBox _lists = new ListBox { Dock = DockStyle.Fill };
         private readonly DataGridView _grid = Ui.Grid();
         private readonly PlotControl _plot = new PlotControl { Dock = DockStyle.Fill, XFormat = AxisFormat.Time, Title = "Nightly planner — altitude", YLabel = "Altitude (°)" };
@@ -233,7 +235,7 @@ namespace Sidralune.Views
             var tw = AstroEvents.Twilight(site, noon);
             var entries = Active.Entries.ToList();
             var ins = AppState.Instrument; var eye = AppState.Eye;
-            Tasks.Run("Planning " + Active.Name, t =>
+            _fillJob.Replace("Planning " + Active.Name, t =>
             {
                 var rows = new List<object[]>();
                 var ctxNow = new SkyContext(site, now);
@@ -276,7 +278,7 @@ namespace Sidralune.Views
                         hz.AltDeg.ToString("0") + "°", best > double.MinValue ? rating.ToString() : (so.Planet.HasValue ? "planet" : "—"),
                         double.IsNaN(bestMag) ? "" : "×" + bestMag.ToString("0"), moonSep.ToString("0") + "°", e.Notes });
                 }
-                MainForm.Instance.Post(() => ShowRows(rows, tw, noon));
+                MainForm.Instance.Post(() => { if (!t.Cts.IsCancellationRequested) ShowRows(rows, tw, noon); });
             });
         }
 
@@ -415,6 +417,7 @@ namespace Sidralune.Views
 
         private void Generate()
         {
+            if (_generateJob.Refuse()) return;
             var types = new[] { "All deep-sky", "Galaxies", "Nebulae", "Clusters", "Planetary nebulae", "Double stars" };
             var choice = Prompt("Generate observing list", "Type (All deep-sky, Galaxies, Nebulae, Clusters, Planetary nebulae):", "All deep-sky");
             if (choice == null) return;
@@ -423,7 +426,7 @@ namespace Sidralune.Views
             var local = site.ToLocal(now.ToDateTimeUtc());
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
             var ins = AppState.Instrument; var eye = AppState.Eye;
-            Tasks.Run("Generating list", t =>
+            _generateJob.Run("Generating list", t =>
             {
                 var tw = AstroEvents.Twilight(site, noon);
                 var start = tw.AstronomicalDusk ?? tw.NauticalDusk ?? noon.AddHours(8);

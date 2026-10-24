@@ -184,13 +184,23 @@ namespace Sidralune
     /// <summary>Runs long operations off the UI thread with progress, cancellation and error reporting.</summary>
     public static class Tasks
     {
+        /// <summary>Loading, downloading and reloading the catalogues and ephemerides: one at a time, app-wide.</summary>
+        public static readonly JobSlot Data = new JobSlot();
+
         public static readonly List<BackgroundTask> Running = new List<BackgroundTask>();
         public static event Action Changed;
         public static Control UiContext;
 
-        public static BackgroundTask Run(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null)
+        /// <summary>
+        /// Runs work off the UI thread. On the UI thread afterwards: onFinished always, then, unless it was cancelled, onDone
+        /// when it succeeded or onError (a notification when not given) when it failed.
+        /// </summary>
+        public static BackgroundTask Run(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null, Action onFinished = null)
+            => Start(new BackgroundTask { Name = name }, work, onDone, onError, onFinished);
+
+        internal static BackgroundTask Start(BackgroundTask t, Action<BackgroundTask> work, Action onDone, Action<Exception> onError, Action onFinished)
         {
-            var t = new BackgroundTask { Name = name };
+            string name = t.Name;
             lock (Running) Running.Add(t);
             Changed?.Invoke();
             Task.Run(() =>
@@ -205,8 +215,10 @@ namespace Sidralune
                     Post(() =>
                     {
                         Changed?.Invoke();
+                        onFinished?.Invoke();
+                        if (t.Cts.IsCancellationRequested) return; // neither the result nor the error of a cancelled job matters now
                         if (t.Error != null) { if (onError != null) onError(t.Error); else MainForm.Instance?.Toast(name + " failed: " + t.Error.Message, UI.Icons.Warning, UI.Theme.Current.Danger); }
-                        else if (!t.Cts.IsCancellationRequested) onDone?.Invoke();
+                        else onDone?.Invoke();
                     });
                 }
             });
@@ -225,6 +237,69 @@ namespace Sidralune
             var c = UiContext;
             if (c == null || c.IsDisposed || !c.IsHandleCreated) { a(); return; }
             if (c.InvokeRequired) c.BeginInvoke(a); else a();
+        }
+    }
+
+    /// <summary>
+    /// The background job of one part of a view. Run allows one job at a time: while it runs, the controls handed to
+    /// Guard are disabled and another start is refused with a message, so nothing the job works on can change under it.
+    /// Replace suits recalculations and lookups: it cancels the job still running, whose result is then dropped, so an
+    /// older result never overwrites a newer one.
+    /// </summary>
+    public sealed class JobSlot
+    {
+        private readonly List<Control> _controls = new List<Control>();
+        private BackgroundTask _job;
+
+        /// <summary>The running job's name, or null.</summary>
+        public string Name => _job?.Name;
+        public bool Busy => _job != null;
+        public BackgroundTask Current => _job;
+
+        /// <summary>Raised on the UI thread when a job starts or finishes.</summary>
+        public event Action Changed;
+
+        /// <summary>Controls disabled while a job runs: those that start one, and those that change what it works on.</summary>
+        public JobSlot Guard(params Control[] controls)
+        {
+            _controls.AddRange(controls.Where(c => c != null));
+            Sync();
+            return this;
+        }
+
+        /// <summary>True, after telling the user, when a job is running; for actions that must wait for it.</summary>
+        public bool Refuse()
+        {
+            if (_job == null) return false;
+            MainForm.Instance?.Toast(_job.Name + " is still running. Wait for it, or cancel it from the task list.", UI.Icons.Info);
+            return true;
+        }
+
+        /// <summary>Starts a job unless one is running (then the user is told and null returned).</summary>
+        public BackgroundTask Run(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null)
+            => Refuse() ? null : Start(name, work, onDone, onError);
+
+        /// <summary>Starts a job, cancelling the one running: only the newest result is used.</summary>
+        public BackgroundTask Replace(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null)
+        {
+            Cancel();
+            return Start(name, work, onDone, onError);
+        }
+
+        public void Cancel() { if (_job != null) _job.Cts.Cancel(); }
+
+        private BackgroundTask Start(string name, Action<BackgroundTask> work, Action onDone, Action<Exception> onError)
+        {
+            var t = new BackgroundTask { Name = name };
+            _job = t;
+            Sync();
+            return Tasks.Start(t, work, onDone, onError, () => { if (_job == t) { _job = null; Sync(); } });
+        }
+
+        private void Sync()
+        {
+            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = _job == null;
+            Changed?.Invoke();
         }
     }
 }

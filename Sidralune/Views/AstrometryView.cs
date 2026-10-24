@@ -24,6 +24,8 @@ namespace Sidralune.Views
         private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open an image to plate solve (FITS headers with RA/DEC, FOCALLEN and XPIXSZ speed things up)" };
         private AstroImage _img;
         private SolveResult _solve;
+        // one solve at a time: opening another image or solving again waits for it
+        private readonly JobSlot _solveJob = new JobSlot();
         // colours are palette roles, resolved when painting so the annotations follow day/night switches
         private List<Tuple<string, double, double, Func<Palette, Color>>> _annotations = new List<Tuple<string, double, double, Func<Palette, Color>>>();
         private readonly TextBox _result = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Bottom, Height = 150, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
@@ -53,16 +55,16 @@ namespace Sidralune.Views
             var scale = g.Row("Scale (\"/px, 0=auto)", Ui.Num(0, 0, 200, 3, 0.1m));
             var sip = g.Row("SIP order", Ui.Num(2, 0, 4));
             var buttons = new FlowLayoutPanel { Height = 200, FlowDirection = FlowDirection.TopDown };
-            Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; buttons.Controls.Add(b); };
-            btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) { var img = ImageFile.Load(d.FileName); SetImage(img, ra, dec, scale); } }, ButtonKind.Normal);
-            btn("Solve", Icons.Target, () => Solve(solver.SelectedIndex, ra.Text, dec.Text, (double)radius.Value, (double)scale.Value, (int)sip.Value), ButtonKind.Primary);
-            btn("Write WCS to FITS…", Icons.Save, () =>
+            Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; buttons.Controls.Add(b); return b; };
+            var open = btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) { var img = ImageFile.Load(d.FileName); SetImage(img, ra, dec, scale); } }, ButtonKind.Normal);
+            var solve = btn("Solve", Icons.Target, () => Solve(solver.SelectedIndex, ra.Text, dec.Text, (double)radius.Value, (double)scale.Value, (int)sip.Value), ButtonKind.Primary);
+            var write = btn("Write WCS to FITS…", Icons.Save, () =>
             {
                 if (_solve == null || !_solve.Success) return;
                 using (var d = new SaveFileDialog { Filter = "FITS|*.fits", FileName = Path.GetFileNameWithoutExtension(_img.SourcePath ?? "solved") + "_wcs.fits" })
                     if (d.ShowDialog() == DialogResult.OK) { _solve.Wcs.WriteToHeader(_img.Header); FitsIO.Write(d.FileName, _img); }
             }, ButtonKind.Normal);
-            btn("Sync telescope to solution", Icons.Observatory, () =>
+            var sync = btn("Sync telescope to solution", Icons.Observatory, () =>
             {
                 var tel = DeviceManager.Instance.Telescope;
                 if (tel == null || _solve == null || !_solve.Success) { MainForm.Instance.Toast("Needs a solution and a connected telescope", Icons.Info); return; }
@@ -89,12 +91,13 @@ namespace Sidralune.Views
                 MainForm.Instance.Navigate("sky");
                 sky.ShowField("Solved field", outline, cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, Math.Max(w.FieldWidthDeg, w.FieldHeightDeg) * 2.5);
             }, ButtonKind.Subtle);
+            _solveJob.Guard(open, solve, write, sync);
             g.Full(buttons);
             g.Full(Ui.Hint("The internal solver matches triangles of stars (scale and rotation invariant) against catalogue stars, then fits a TAN-SIP world coordinate system. Without hints it tries field sizes from 0.25° to 60°. Gaia DR3 queries are cached for offline re-use."));
             side.Controls.Add(g);
             _viewer.ShowWcsGrid = true;
             _viewer.PaintOverlay += PaintSolveOverlay;
-            _viewer.FilesDropped += f => { if (f.Length > 0) SetImage(ImageFile.Load(f[0]), ra, dec, scale); };
+            _viewer.FilesDropped += f => { if (f.Length > 0 && !_solveJob.Refuse()) SetImage(ImageFile.Load(f[0]), ra, dec, scale); };
             var readout = new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim" };
             _viewer.ReadoutChanged += s => readout.Text = s;
             panel.Controls.Add(_viewer);
@@ -112,6 +115,7 @@ namespace Sidralune.Views
         public void SolveImage(AstroImage img)
         {
             _tabs.Select(0);
+            if (_solveJob.Refuse()) return;
             SetImage(img.Clone(), _hintRa, _hintDec, _hintScale);
             Solve(_solverCombo.SelectedIndex, _hintRa.Text, _hintDec.Text, (double)_radius.Value, (double)_hintScale.Value, (int)_sip.Value);
         }
@@ -137,7 +141,9 @@ namespace Sidralune.Views
             if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
             var img = _img;
             double ra = AstroMath.ParseRaHours(raText) * 15, dec = AstroMath.ParseSexagesimal(decText);
-            Tasks.Run("Plate solving", t =>
+            SolveResult solved = null;
+            List<Tuple<string, double, double, Func<Palette, Color>>> annotations = null;
+            _solveJob.Run("Plate solving", t =>
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 if (solver == 2 || solver == 3)
@@ -146,22 +152,25 @@ namespace Sidralune.Views
                     FitsIO.Write(tmp, img, 16);
                     Wcs w = solver == 2 ? ExternalSolvers.SolveWithAstap(tmp, img.Width, img.Height, ra, dec, scale > 0 ? img.Height * scale / 3600 : double.NaN, radius)
                         : ExternalSolvers.SolveWithNova(tmp, AppState.Settings.NovaApiKey, img.Width, img.Height, new Progress<string>(s => t.Status = s), t.Cts.Token);
-                    _solve = new SolveResult { Success = w != null, Wcs = w, Message = w != null ? "Solved: " + w : "No solution", Elapsed = sw.Elapsed };
+                    solved = new SolveResult { Success = w != null, Wcs = w, Message = w != null ? "Solved: " + w : "No solution", Elapsed = sw.Elapsed };
                 }
                 else
                 {
                     var opt = new SolveOptions { HintRa = ra, HintDec = dec, SearchRadius = radius, ScaleHint = scale > 0 ? scale : double.NaN, SipOrder = sip };
                     opt.Catalog = solver == 0 ? (IStarCatalogProvider)new VizierProvider() : new LocalCatalogProvider();
                     if (double.IsNaN(ra) && solver == 0) opt.Catalog = new LocalCatalogProvider(); // blind solving uses the local catalog
-                    _solve = PlateSolver.Solve(img, opt, new Progress<string>(s => t.Status = s), t.Cts.Token);
+                    solved = PlateSolver.Solve(img, opt, new Progress<string>(s => t.Status = s), t.Cts.Token);
                 }
-                if (_solve.Success)
+                if (solved.Success)
                 {
-                    _solve.Wcs.WriteToHeader(img.Header);
-                    BuildAnnotations(_solve.Wcs);
+                    solved.Wcs.WriteToHeader(img.Header);
+                    annotations = BuildAnnotations(solved.Wcs, img);
                 }
             }, () =>
             {
+                // results are applied here, on the UI thread, to the image they were found for
+                _solve = solved;
+                _annotations = annotations ?? new List<Tuple<string, double, double, Func<Palette, Color>>>();
                 _viewer.Wcs = _solve.Success ? _solve.Wcs : null;
                 _viewer.Invalidate();
                 _result.Text = _solve.Message + string.Format("\r\nElapsed {0:0.0} s, {1} stars detected, {2} matched, rms {3:0.00}\"", _solve.Elapsed.TotalSeconds, _solve.ImageStars, _solve.Wcs != null ? _solve.Wcs.MatchedStars : 0, _solve.Wcs != null ? _solve.Wcs.RmsArcsec : double.NaN)
@@ -170,7 +179,7 @@ namespace Sidralune.Views
             });
         }
 
-        private void BuildAnnotations(Wcs w)
+        private static List<Tuple<string, double, double, Func<Palette, Color>>> BuildAnnotations(Wcs w, AstroImage img)
         {
             var list = new List<Tuple<string, double, double, Func<Palette, Color>>>();
             double cra, cdec; w.Centre(out cra, out cdec);
@@ -189,7 +198,7 @@ namespace Sidralune.Views
                 double x, y;
                 if (w.WorldToPixel(s.RaHours * 15, s.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(Tuple.Create(s.DisplayName, x, y, (Func<Palette, Color>)(pal => pal.Warning)));
             }
-            var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(_img.DateObs ?? DateTime.UtcNow));
+            var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(img.DateObs ?? DateTime.UtcNow));
             foreach (var mb in Core.MinorBodies.MinorBodyStore.Instance.All)
             {
                 try
@@ -201,7 +210,7 @@ namespace Sidralune.Views
                 }
                 catch { }
             }
-            _annotations = list;
+            return list;
         }
 
         private void PaintSolveOverlay(Graphics g, Func<double, double, PointF> map)

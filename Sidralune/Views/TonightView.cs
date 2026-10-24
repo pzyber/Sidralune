@@ -23,6 +23,9 @@ namespace Sidralune.Views
     {
         private readonly FlowLayoutPanel _flow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(10), WrapContents = true };
         private readonly Card _night = new Card("Tonight");
+        // time and site changes come quickly: the newest calculation wins, and a full one is not lost to a partial one
+        private readonly JobSlot _job = new JobSlot();
+        private bool _runningFull;
         private readonly NightTimeline _timeline = new NightTimeline { Dock = DockStyle.Top, Height = 76 };
         private readonly Label _nightText = new Label { Dock = DockStyle.Fill, Font = Theme.UiFont };
         private readonly Card _moon = new Card("Moon");
@@ -122,7 +125,9 @@ namespace Sidralune.Views
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
             _night.Title = "Tonight at " + site.Name;
             _night.Subtitle = noon.AddDays(0.5).ToDateTimeUtc().ToString("ddd d MMM yyyy");
-            Tasks.Run("Computing tonight's sky", t =>
+            if (_job.Busy && _runningFull) full = true;
+            _runningFull = full;
+            _job.Replace("Computing tonight's sky", t =>
             {
                 var d = new NightData { Noon = noon, JdTT = now.JdTT };
                 d.Tw = AstroEvents.Twilight(site, noon);
@@ -213,7 +218,7 @@ namespace Sidralune.Views
                 }
                 d.Minor = d.Minor.OrderBy(r => double.Parse((string)r[2], System.Globalization.CultureInfo.InvariantCulture)).Take(20).ToList();
                 t.Status = "done";
-                MainForm.Instance.Post(() => Show(d, full));
+                MainForm.Instance.Post(() => { if (!t.Cts.IsCancellationRequested) Show(d, full); });
             });
         }
 

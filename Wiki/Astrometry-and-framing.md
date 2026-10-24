@@ -57,7 +57,7 @@ Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by
 2. Check or enter the hints.
 3. Choose the **Solver** and click **Solve**.
 
-The solve runs in the background; the status bar shows progress.
+The solve runs in the background; the status bar shows progress. While it runs, **Open image…**, **Solve**, **Write WCS to FITS…** and **Sync telescope to solution** wait for it, so the solution always belongs to the image shown.
 
 With a rough position hint, solving usually takes about a second. A blind solve (no hints) searches the whole sky and can take a few minutes; entering only the scale already makes it several times faster.
 

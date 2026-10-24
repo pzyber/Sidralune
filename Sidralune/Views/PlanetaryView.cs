@@ -22,6 +22,9 @@ namespace Sidralune.Views
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         private IFrameSource _source;
         private AstroImage _stacked;
+        // Pre-process and Lucky stacking read the same video, so opening another one waits for them; each other tool
+        // runs one job at a time, and the wavelet preview keeps the newest
+        private readonly JobSlot _sourceJob = new JobSlot(), _sharpJob = new JobSlot(), _waveletJob = new JobSlot(), _deroJob = new JobSlot(), _solarJob = new JobSlot();
 
         public PlanetaryView()
         {
@@ -37,6 +40,7 @@ namespace Sidralune.Views
 
         private bool OpenSource()
         {
+            if (_sourceJob.Refuse()) return false;
             using (var d = new OpenFileDialog { Filter = "Video & images|*.ser;*.avi;*.fit;*.fits;*.tif;*.tiff;*.png;*.bmp;*.jpg|All|*.*", Multiselect = true })
             {
                 if (d.ShowDialog() != DialogResult.OK) return false;
@@ -57,6 +61,7 @@ namespace Sidralune.Views
         /// <summary>Open a recorded video in the Pre-process tab (Observatory → Imaging → Open in Planetary).</summary>
         public void OpenVideo(string path)
         {
+            if (_sourceJob.Refuse()) return;
             SetSource(FrameSourceFactory.Open(path));
             _tabs.Select(0);
             _showPreprocessSource?.Invoke();
@@ -95,7 +100,7 @@ namespace Sidralune.Views
                 }
                 var src = _source;
                 PippResult res = null;
-                Tasks.Run("Pre-processing", t => res = Preprocessor.Run(src, opt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
+                _sourceJob.Run("Pre-processing", t => res = Preprocessor.Run(src, opt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
                     plot.Clear();
                     var all = plot.AddSeries("quality", SeriesStyle.Scatter);
@@ -116,6 +121,7 @@ namespace Sidralune.Views
                 using (var pen = new Pen(Theme.Current.Success, 1.5f)) { g.DrawRectangle(pen, a.X, a.Y, b2.X - a.X, b2.Y - a.Y); g.DrawLine(pen, c.X - 8, c.Y, c.X + 8, c.Y); g.DrawLine(pen, c.X, c.Y - 8, c.X, c.Y + 8); }
             };
             side.Controls.Add(props);
+            _sourceJob.Guard(bar, props, scrub);
             panel.Controls.Add(viewer);
             panel.Controls.Add(scrub);
             panel.Controls.Add(plot);
@@ -146,7 +152,7 @@ namespace Sidralune.Views
                 if (_source == null) { MainForm.Instance.Toast("Open a source first", Icons.Info); return; }
                 stacker.Options.StackPercents = percents.Text.Split(',').Select(p => AstroMath.ParseInvariant(p)).Where(p => !double.IsNaN(p) && p > 0 && p <= 100).DefaultIfEmpty(25).ToArray();
                 var src = _source;
-                Tasks.Run("Lucky stacking", t => result = stacker.Run(src, new Progress<string>(s => t.Status = s), new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
+                _sourceJob.Run("Lucky stacking", t => result = stacker.Run(src, new Progress<string>(s => t.Status = s), new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
                     shown = 0;
                     _stacked = result.Stacks[0];
@@ -186,6 +192,7 @@ namespace Sidralune.Views
             };
             var side = Side("Stacking options", 360);
             side.Controls.Add(props);
+            _sourceJob.Guard(bar, props);
             panel.Controls.Add(viewer);
             panel.Controls.Add(plot);
             panel.Controls.Add(side);
@@ -201,7 +208,11 @@ namespace Sidralune.Views
         private Slider _denoise;
         private System.Windows.Forms.Timer _sharpDebounce;
 
-        private void SetSharpenImage(AstroImage img) { _sharpSource = img; _sharpViewer.SetImage(img); UpdateSharpen(); }
+        private void SetSharpenImage(AstroImage img)
+        {
+            if (_sharpJob.Refuse()) return;
+            _sharpSource = img; _sharpViewer.SetImage(img); UpdateSharpen();
+        }
 
         private Control BuildSharpen()
         {
@@ -229,7 +240,7 @@ namespace Sidralune.Views
             {
                 if (_sharpSource == null) return;
                 var src = _sharpSource.Clone(); double fw = (double)decFwhm.Value; int it = (int)decIt.Value;
-                Tasks.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }), () => { _sharpSource = src; UpdateSharpen(); });
+                _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }), () => { _sharpSource = src; UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn("Align RGB channels (ADC)", Icons.Check, () => { if (_sharpSource != null && _sharpSource.Channels == 3) { var s = _sharpSource.Clone(); ColorOps.AlignChannels(s); _sharpSource = s; UpdateSharpen(); } }, ButtonKind.Normal);
             btn("Save result…", Icons.Save, () =>
@@ -238,6 +249,7 @@ namespace Sidralune.Views
                 using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "planet.tif", FilterIndex = 4 })
                     if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
             }, ButtonKind.Primary);
+            _sharpJob.Guard(buttons);
             g.Full(buttons);
             g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
             side.Controls.Add(g);
@@ -252,13 +264,12 @@ namespace Sidralune.Views
             var src = _sharpSource;
             var amt = _layers.Select(l => l.Value / 100.0).ToArray();
             double dn = _denoise.Value / 100.0;
-            Tasks.Run("Wavelets", t =>
+            var o = src.Clone();
+            _waveletJob.Replace("Wavelets", t =>
             {
-                var o = src.Clone();
                 for (int c = 0; c < o.Channels; c++) o.Data[c] = Wavelets.Sharpen(src.Data[c], src.Width, src.Height, amt, new[] { dn, dn * 0.5, 0, 0, 0, 0 });
                 o.Clip(0, 1);
-                MainForm.Instance.Post(() => _sharpViewer.SetImage(o, false));
-            });
+            }, () => _sharpViewer.SetImage(o, false));
         }
 
         // ================================================================== derotation
@@ -286,9 +297,8 @@ namespace Sidralune.Views
                 if (!m.Success) return null;
                 return new DateTime(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value), int.Parse(m.Groups[3].Value), int.Parse(m.Groups[4].Value), int.Parse(m.Groups[5].Value), int.Parse(m.Groups[6].Value) * 6, DateTimeKind.Utc);
             };
-            Func<DeroItem, DiscGeometry> geometry = it =>
+            Func<DeroItem, Body, double, bool, DiscGeometry> geometry = (it, b, northDeg, mirrored) =>
             {
-                Body b; Enum.TryParse((string)planet.SelectedItem, out b);
                 var lum = it.Image.Luminance();
                 var ob = ObjectDetection.Detect(lum, it.Image.Width, it.Image.Height);
                 var circ = ObjectDetection.FitLimb(lum, it.Image.Width, it.Image.Height, ob) ?? new[] { ob.Cx, ob.Cy, ob.Radius };
@@ -297,7 +307,7 @@ namespace Sidralune.Views
                 double cm, lat, pa;
                 PlanetPhysics.Orientation(b, ctx.JdTDB, pl.Astrometric.ToVector(), pl.LightTimeDays, out cm, out lat, out pa);
                 double flat = PlanetPhysics.PolarRadiusKm(b) / PlanetPhysics.EquatorialRadiusKm(b);
-                return new DiscGeometry { Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = flat, PoleAngleDeg = pa + (double)north.Value, SubObserverLatDeg = lat, Mirrored = mirror.Checked };
+                return new DiscGeometry { Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = flat, PoleAngleDeg = pa + northDeg, SubObserverLatDeg = lat, Mirrored = mirrored };
             };
             var bar = new FlowLayoutPanel { Height = 120, FlowDirection = FlowDirection.TopDown };
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; bar.Controls.Add(b); };
@@ -325,9 +335,10 @@ namespace Sidralune.Views
                 if (!DateTime.TryParse(target.Text, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out tt)) { MainForm.Instance.Toast("Invalid target time", Icons.Warning); return; }
                 Body b; Enum.TryParse((string)planet.SelectedItem, out b);
                 AstroImage res = null;
-                Tasks.Run("Derotating", t =>
+                double nd = (double)north.Value; bool mr = mirror.Checked;
+                _deroJob.Run("Derotating", t =>
                 {
-                    foreach (var it in items) it.Geo = geometry(it);
+                    foreach (var it in items) it.Geo = geometry(it, b, nd, mr);
                     var imgs = items.Select(i => i.Image).ToList(); var geos = items.Select(i => i.Geo).ToList(); var times = items.Select(i => i.Time).ToList();
                     res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b));
                 }, () =>
@@ -342,6 +353,7 @@ namespace Sidralune.Views
             g.Full(bar);
             g.Full(Ui.Hint("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up."));
             list.SelectedIndexChanged += (s, e) => { var it = list.SelectedItem as DeroItem; if (it != null) viewer.SetImage(it.Image); };
+            _deroJob.Guard(g);
             var side = Side("Derotation", 380);
             side.Controls.Add(g);
             side.Controls.Add(list);
@@ -388,15 +400,16 @@ namespace Sidralune.Views
                     int n; if (!int.TryParse(cols, out n) || n < 1) n = 2;
                     var tiles = new List<MosaicStitcher.Tile>();
                     var files = d.FileNames.OrderBy(f => f).ToList();
-                    Tasks.Run("Stitching mosaic", t =>
+                    AstroImage stitched = null;
+                    _solarJob.Run("Stitching mosaic", t =>
                     {
                         for (int i = 0; i < files.Count; i++)
                         {
                             var ti = ImageFile.Load(files[i]);
                             tiles.Add(new MosaicStitcher.Tile { Image = ti, X = (i % n) * ti.Width * 0.8, Y = (i / n) * ti.Height * 0.8 });
                         }
-                        img = MosaicStitcher.Stitch(tiles);
-                    }, () => viewer.SetImage(img));
+                        stitched = MosaicStitcher.Stitch(tiles);
+                    }, () => { img = stitched; limb = null; viewer.SetImage(img); });
                 }
             }, ButtonKind.Normal);
             btn("Save…", Icons.Save, () => { if (img == null) return; using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "solar.tif", FilterIndex = 4 }) if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex)); }, ButtonKind.Primary);
@@ -408,6 +421,7 @@ namespace Sidralune.Views
                 float r = e.X - c.X;
                 using (var pen = new Pen(Theme.Current.Warning, 1.2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash }) gr.DrawEllipse(pen, c.X - r, c.Y - r, 2 * r, 2 * r);
             };
+            _solarJob.Guard(bar);
             var side = Side("Solar & lunar tools", 360);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);

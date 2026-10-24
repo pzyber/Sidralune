@@ -196,11 +196,14 @@ namespace Sidralune.Views
             return panel;
         }
 
+        // the online lookups share one result area: the newest request wins
+        private readonly JobSlot _query = new JobSlot();
+
         private void Resolve(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return;
             ResolvedName r = null;
-            Tasks.Run("Sesame", t => r = OnlineServices.Sesame(name), () =>
+            _query.Replace("Sesame", t => r = OnlineServices.Sesame(name), () =>
             {
                 if (r == null || double.IsNaN(r.RaDeg)) { _onInfo.Text = "Not resolved: " + name; return; }
                 _onInfo.Text = string.Format("{0}\r\nType: {1}\r\nRA  {2}\r\nDec {3}\r\nV = {4}\r\nSp. {5}\r\n\r\nAliases:\r\n{6}", r.Name, r.Type, AstroMath.FormatHms(r.RaDeg / 15, 2, true), AstroMath.FormatDms(r.RaDeg == r.RaDeg ? r.DecDeg : 0, 1, true, true),
@@ -213,7 +216,7 @@ namespace Sidralune.Views
         {
             if (string.IsNullOrWhiteSpace(name)) return;
             Dictionary<string, object> d = null;
-            Tasks.Run("AAVSO VSX", t => d = OnlineServices.VsxObject(name), () =>
+            _query.Replace("AAVSO VSX", t => d = OnlineServices.VsxObject(name), () =>
                 _onInfo.Text = d == null ? "Not in VSX: " + name : "AAVSO VSX\r\n\r\n" + string.Join("\r\n", d.Select(kv => kv.Key + ": " + Convert.ToString(kv.Value, CultureInfo.InvariantCulture))),
                 ex => _onInfo.Text = "VSX error: " + ex.Message);
         }
@@ -228,7 +231,7 @@ namespace Sidralune.Views
         private void RunTable(string title, Func<DataTable> query)
         {
             DataTable tab = null;
-            Tasks.Run(title, t => tab = query(), () =>
+            _query.Replace(title, t => tab = query(), () =>
             {
                 _last = tab;
                 _onGrid.Columns.Clear(); _onGrid.Rows.Clear();

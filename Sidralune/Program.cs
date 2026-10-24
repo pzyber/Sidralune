@@ -67,7 +67,7 @@ namespace Sidralune
                 return;
             }
             // load catalogs and ephemerides in the background so the window appears immediately
-            Tasks.Run("Loading catalogs", t => AppState.LoadData(), () => MainForm.Instance?.Toast("Catalogs and ephemerides loaded"));
+            Tasks.Data.Run("Loading catalogs", t => AppState.LoadData(), () => MainForm.Instance?.Toast("Catalogs and ephemerides loaded"));
             form.Shown += (s, e) => form.Start();
             Application.Run(form);
         }
