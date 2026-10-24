@@ -9,7 +9,7 @@ namespace Sidralune.Imaging.IO
 {
     /// <summary>
     /// TIFF reader (8/16/32-bit integer and 32/64-bit float, chunky or planar, strips or tiles, none/LZW/Deflate/PackBits,
-    /// horizontal and floating-point predictors) plus DNG (CFA, lossless JPEG, black/white levels) and Canon CR2 raw.
+    /// horizontal and floating-point predictors) plus DNG (CFA, lossless JPEG, black/white levels) and Canon CR2 raw (CR3 is in Cr3IO).
     /// Writer produces uncompressed 16-bit or 32-bit float TIFF.
     /// </summary>
     public static class TiffIO
@@ -442,6 +442,23 @@ namespace Sidralune.Imaging.IO
             return img;
         }
 
+        private static List<Ifd> EmbeddedIfds(byte[] tiff)
+        {
+            if (tiff == null || tiff.Length < 8 || (tiff[0] != 'I' && tiff[0] != 'M')) return new List<Ifd>();
+            var r = new Reader { D = tiff, Big = tiff[0] == 'M' };
+            return ParseIfds(r, r.U32(4));
+        }
+
+        /// <summary>A numeric tag of the first IFD of a TIFF block embedded in another format (a CR3's maker notes), or null.</summary>
+        internal static long[] FirstIfdTag(byte[] tiff, int tag)
+        {
+            var ifds = EmbeddedIfds(tiff);
+            return ifds.Count > 0 ? ifds[0].GetArr(tag) : null;
+        }
+
+        /// <summary>Camera, date, exposure and ISO from TIFF blocks embedded in another format (a CR3's CMT1 and CMT2).</summary>
+        internal static void ApplyExif(AstroImage img, params byte[][] tiffs) => ApplyExif(tiffs.SelectMany(EmbeddedIfds).ToList(), img);
+
         private static void ApplyExif(List<Ifd> ifds, AstroImage img)
         {
             foreach (var ifd in ifds)
@@ -450,7 +467,9 @@ namespace Sidralune.Imaging.IO
                 if (ifd.Strings.TryGetValue(271, out make) || ifd.Strings.TryGetValue(272, out model))
                 {
                     string m = ifd.Strings.ContainsKey(272) ? ifd.Strings[272] : "";
-                    if (!img.Header.Has("INSTRUME")) img.Header.Set("INSTRUME", ((ifd.Strings.ContainsKey(271) ? ifd.Strings[271] : "") + " " + m).Trim());
+                    string mk = ifd.Strings.ContainsKey(271) ? ifd.Strings[271].Trim() : "";
+                    // Canon and others repeat the make in the model ("Canon" + "Canon EOS Ra")
+                    if (!img.Header.Has("INSTRUME")) img.Header.Set("INSTRUME", m.StartsWith(mk, StringComparison.OrdinalIgnoreCase) ? m.Trim() : (mk + " " + m).Trim());
                 }
                 if (ifd.Strings.TryGetValue(306, out dt))
                 {
