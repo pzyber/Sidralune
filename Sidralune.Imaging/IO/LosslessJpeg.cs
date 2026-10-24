@@ -190,24 +190,30 @@ namespace Sidralune.Imaging.IO
             Samples = new ushort[w * h * nc];
             int initial = 1 << (Precision - pt - 1);
             int mcu = 0;
+            // T.81 H.1.2.1: the scan and every restart interval start with 2^(P-Pt-1), and their first line is
+            // predicted from the left (Ra) only; later lines start from the sample above (Rb)
+            bool firstLine = true;
             for (int y = 0; y < h; y++)
             {
                 for (int x = 0; x < w; x++)
                 {
+                    bool intervalStart = mcu == 0;
                     if (restart > 0 && mcu > 0 && mcu % restart == 0)
                     {
                         // re-sync: skip to RST marker
                         _bitBuf = 0; _bitCnt = 0; _hitMarker = false;
                         while (_pos + 1 < _d.Length && !(_d[_pos] == 0xFF && _d[_pos + 1] >= 0xD0 && _d[_pos + 1] <= 0xD7)) _pos++;
                         _pos += 2;
+                        intervalStart = true;
                     }
+                    if (intervalStart) firstLine = true;
+                    else if (x == 0) firstLine = false;
                     for (int c = 0; c < nc; c++)
                     {
                         int pred;
                         int idx = (y * w + x) * nc + c;
-                        bool restartRow = restart > 0 && mcu % restart == 0 && false;
-                        if (x == 0 && y == 0 || restartRow) pred = initial;
-                        else if (y == 0) pred = Samples[idx - nc];
+                        if (intervalStart) pred = initial;
+                        else if (firstLine && x > 0) pred = Samples[idx - nc];
                         else if (x == 0) pred = Samples[idx - w * nc];
                         else
                         {

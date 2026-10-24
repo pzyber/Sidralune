@@ -51,7 +51,7 @@ You need:
 
 - Windows 10 or 11 (64-bit recommended).
 - .NET Framework 4.8.1. It is included with recent Windows 11 builds; otherwise install the runtime from Microsoft.
-- To build: the .NET Framework 4.8.1 Developer Pack and either Visual Studio (2015 or later) or MSBuild 14 or later.
+- To build: the .NET Framework 4.8.1 Developer Pack and either Visual Studio (2015 or later) or MSBuild 14 or later. The unit tests need Visual Studio's MSTest framework, which comes with Visual Studio 2015 or later; without Visual Studio, build only the program (`msbuild Sidralune\Sidralune.csproj`).
 
 No other software is required. ASCOM, ASTAP, PHD2 and SDR software are optional and only needed for the features that use them.
 
@@ -209,13 +209,25 @@ The test suite compares positions against JPL Horizons, Meeus worked examples an
 
 ## Running the tests
 
-The tests are a self-contained console program with no test framework:
+The solution has two MSTest projects (Visual Studio's own test framework, no NuGet packages):
+
+| Project | Tests | Runs |
+|---|---|---|
+| `Sidralune.Tests` | Every library: about a hundred tests with a thousand checks, in two to three minutes | Before the application is built |
+| `Sidralune.AppTests` | The application: settings, background tasks, scripting, planner, controls, the Observatory workspace and every workspace in day and night mode, in about a minute | After the application is built |
+
+In Visual Studio, build the solution, open **Test Explorer** from the **Test** menu and choose **Run All**. On the command line, run the library tests, build the application only when they pass, then run the application tests:
 
 ```
-Sidralune.Tests\bin\Release\Sidralune.Tests.exe
+msbuild Sidralune.Tests\Sidralune.Tests.csproj
+"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.Tests\bin\Debug\Sidralune.Tests.dll
+msbuild Sidralune.AppTests\Sidralune.AppTests.csproj
+"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.AppTests\bin\Debug\Sidralune.AppTests.dll
 ```
 
-Pass part of a test name to run a subset, for example `Sidralune.Tests.exe Photometry`. The program prints each check and returns a non-zero exit code if any check fails. A few tests are skipped, with a note, when an optional dataset is not installed.
+Building `Sidralune.AppTests` builds the application first. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there.
+
+The tests need no network or equipment: devices are tested against the simulators and against stand-in servers on the local machine, and the application tests keep their settings in a temporary folder, never in yours. A few tests are skipped, with a note, when an optional dataset is not installed.
 
 ## Repository layout
 
@@ -226,7 +238,8 @@ Pass part of a test name to run a subset, for example `Sidralune.Tests.exe Photo
 | `Sidralune.Imaging` | Image model, file formats, debayering, analysis, processing, registration, stacking, planetary tools |
 | `Sidralune.Science` | Astrometry, photometry, spectroscopy, solar-system science, radio astronomy, online databases |
 | `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, PHD2, capture and automation |
-| `Sidralune.Tests` | Console test runner and tests |
+| `Sidralune.Tests` | Library tests (MSTest) |
+| `Sidralune.AppTests` | Application tests (MSTest) |
 | `Wiki` | The user manual |
 
 ## Documentation

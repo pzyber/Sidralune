@@ -7,11 +7,13 @@ using Sidralune.Core.MinorBodies;
 using Sidralune.Core.Observing;
 using Sidralune.Core.Satellites;
 using Sidralune.Core.Time;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class MinorBodyTests
+    [TestClass]
+    public class MinorBodyTests : TestBase
     {
         private static double VestaSep(double jd, double raDeg, double decDeg, bool perturbed, out double mag)
         {
@@ -27,7 +29,8 @@ namespace Sidralune.Tests
             return AstroMath.Separation(eq.Ra, eq.Dec, raDeg * AstroMath.Deg2Rad, decDeg * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec;
         }
 
-        public static void TestVestaVsHorizons()
+        [TestMethod]
+        public void TestVestaVsHorizons()
         {
             double mag;
             double s1 = VestaSep(2461331.5, 21.39126, -3.73930, false, out mag);
@@ -40,7 +43,8 @@ namespace Sidralune.Tests
             CheckTrue("Perturbed propagation improves 3-yr prediction", s3 < s2 && s3 < 120);
         }
 
-        public static void TestMpcPacked()
+        [TestMethod]
+        public void TestMpcPacked()
         {
             Check("Packed epoch K24AH", MpcFormats.UnpackEpoch("K24AH"), AstroTime.CalendarToJd(2024, 10, 17), 1e-9);
             CheckTrue("Packed number A0001", MpcFormats.UnpackDesignation("A0001") == "100001", MpcFormats.UnpackDesignation("A0001"));
@@ -48,7 +52,8 @@ namespace Sidralune.Tests
             CheckTrue("Pack 100001", MpcFormats.PackDesignationNumber(100001) == "A0001");
         }
 
-        public static void TestSgp4Vallado()
+        [TestMethod]
+        public void TestSgp4Vallado()
         {
             // Vallado et al. 2006 verification case 00005
             var tle = Tle.Parse("TEST",
@@ -66,7 +71,8 @@ namespace Sidralune.Tests
             Check("SGP4 t=360 z", p.Z, -3536.19412294, 1e-2);
         }
 
-        public static void TestVisibilityModel()
+        [TestMethod]
+        public void TestVisibilityModel()
         {
             double nelm = VisibilityModel.NakedEyeLimit(21.8);
             Info("NELM at 21.8 mag/arcsec² = " + nelm.ToString("0.00"));

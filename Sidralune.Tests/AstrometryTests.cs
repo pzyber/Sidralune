@@ -4,11 +4,13 @@ using System.Linq;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Science.Astrometry;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class AstrometryTests
+    [TestClass]
+    public class AstrometryTests : TestBase
     {
         /// <summary>Synthetic catalog of random stars around a centre.</summary>
         private class FakeCatalog : IStarCatalogProvider
@@ -31,7 +33,8 @@ namespace Sidralune.Tests
                      .OrderBy(s => s.Mag).Take(max).ToList();
         }
 
-        public static void TestWcsRoundtrip()
+        [TestMethod]
+        public void TestWcsRoundtrip()
         {
             var w = Wcs.Create(83.8, -5.4, 2.5, 33, 1000, 800);
             double ra, dec, x, y;
@@ -48,7 +51,8 @@ namespace Sidralune.Tests
             Check("WCS header roundtrip", AstroMath.Separation(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, x * AstroMath.Deg2Rad, y * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec, 0, 1e-3);
         }
 
-        public static void TestPlateSolveSynthetic()
+        [TestMethod]
+        public void TestPlateSolveSynthetic()
         {
             foreach (var flip in new[] { false, true })
             {

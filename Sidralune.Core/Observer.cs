@@ -99,7 +99,8 @@ namespace Sidralune.Core
 
         public static double BortleToSqm(int b)
         {
-            double[] v = { 22.0, 21.95, 21.8, 21.4, 20.6, 19.8, 19.1, 18.6, 18.1, 17.5 };
+            // a typical zenith SQM inside each class's range in SqmToBortle (index 0 unused)
+            double[] v = { 22.0, 22.0, 21.95, 21.8, 20.6, 19.8, 19.1, 18.6, 18.1, 17.5 };
             return v[AstroMath.Clamp(b, 1, 9)];
         }
 

@@ -3,12 +3,14 @@ using Sidralune.Core.Coordinates;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
     /// <summary>Analytic ephemeris vs JPL Horizons astrometric geocentric RA/Dec (0h TT).</summary>
-    public static class HorizonsTests
+    [TestClass]
+    public class HorizonsTests : TestBase
     {
         // jd, ra, dec
         private static readonly double[,] Saturn = {
@@ -34,7 +36,8 @@ namespace Sidralune.Tests
             return Math.Sqrt(s / n);
         }
 
-        public static void TestAnalyticVsHorizons()
+        [TestMethod]
+        public void TestAnalyticVsHorizons()
         {
             double j = Rms(Body.Jupiter, Jupiter), sa = Rms(Body.Saturn, Saturn);
             Info(string.Format("Jupiter rms {0:0.0}\"  Saturn rms {1:0.0}\"", j, sa));

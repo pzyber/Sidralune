@@ -136,7 +136,6 @@ namespace Sidralune.Scripting
             headerLines += 2;
             sb.AppendLine(body);
             sb.AppendLine("}");
-            int membersOffset = headerLines + body.Split('\n').Length + 1;
             sb.AppendLine(members);
             sb.AppendLine("}");
 
@@ -150,8 +149,10 @@ namespace Sidralune.Scripting
             int bodyLines = body.Split('\n').Length;
             foreach (CompilerError e in res.Errors)
             {
+                // the body fills generated lines 1..bodyLines after the header (its last one is the start of the //@members
+                // line), then comes the closing brace of Run(), then the members, which begin on that same //@members line
                 int line = e.Line - headerLines;
-                if (line > bodyLines) line = e.Line - membersOffset + bodyLines + 1;
+                if (line > bodyLines + 1) line -= 2;
                 errors.Add(new CompileError { Line = line, Column = e.Column, Text = e.ErrorText, Warning = e.IsWarning });
             }
             if (res.Errors.HasErrors) return null;

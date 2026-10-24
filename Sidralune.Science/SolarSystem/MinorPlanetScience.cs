@@ -229,6 +229,7 @@ namespace Sidralune.Science.SolarSystem
         public static List<LunarOccultation> Predict(Observer obs, AstroTime start, double days, IStarCatalogProvider catalog, double magLimit = 7.5)
         {
             var res = new List<LunarOccultation>();
+            var open = new Dictionary<string, LunarOccultation>(); // star → event whose reappearance is still to come
             double step = 1.0 / 24;
             for (double jd = start.JdUtc; jd < start.JdUtc + days; jd += step)
             {
@@ -237,7 +238,10 @@ namespace Sidralune.Science.SolarSystem
                 var stars = catalog.Cone(moon.Astrometric.RaHours * 15, moon.Astrometric.DecDeg, 1.0, magLimit, 500);
                 foreach (var s in stars)
                 {
-                    if (res.Any(r => r.Star == (s.Id ?? s.Ra.ToString("0.0000"))) ) continue;
+                    string id = s.Id ?? s.Ra.ToString("0.0000", CultureInfo.InvariantCulture);
+                    LunarOccultation pending;
+                    open.TryGetValue(id, out pending);
+                    if (pending == null && res.Any(r => r.Star == id)) continue;
                     double sra = s.Ra * AstroMath.Deg2Rad, sdec = s.Dec * AstroMath.Deg2Rad;
                     Func<double, double> f = t =>
                     {
@@ -248,7 +252,7 @@ namespace Sidralune.Science.SolarSystem
                     };
                     var roots = Roots.FindAll(f, jd, jd + step, 2.0 / 1440, 1e-8);
                     if (roots.Count == 0) continue;
-                    var lo = new LunarOccultation { Star = s.Id ?? s.Ra.ToString("0.0000", CultureInfo.InvariantCulture), StarMag = s.Mag };
+                    var lo = pending ?? new LunarOccultation { Star = id, StarMag = s.Mag };
                     foreach (var r in roots)
                     {
                         bool entering = f(r + 1e-4) < 0;
@@ -261,7 +265,9 @@ namespace Sidralune.Science.SolarSystem
                         lo.MoonIlluminated = m.IlluminatedFraction;
                         lo.SunAltitude = c.BodyPlace(Body.Sun).Horizontal.AltDeg;
                     }
-                    if (lo.MoonAltitude > 0) res.Add(lo);
+                    bool ended = lo.Reappearance.JdUtc > 0 || roots.All(r => f(r + 1e-4) > 0);
+                    if (!ended) open[id] = lo; else open.Remove(id);
+                    if (pending == null && lo.MoonAltitude > 0) res.Add(lo);
                 }
             }
             return res.OrderBy(r => (r.Disappearance.JdUtc > 0 ? r.Disappearance : r.Reappearance).JdUtc).ToList();
@@ -354,9 +360,24 @@ namespace Sidralune.Science.SolarSystem
         public AstroTime PeakIn(int year)
         {
             double guess = AstroTime.CalendarToJd(year, 3, 20) + AstroMath.NormalizeDeg(PeakSolarLongitude) / 360.0 * 365.2422;
-            Func<double, double> f = jd => { double l, b, r; PlanetPhysics.SunApparentEcliptic(jd, out l, out b, out r); return AstroMath.NormalizeDeg180(l - PeakSolarLongitude); };
+            // solar longitudes past ~280° fall in the next January from the March equinox: the year's own peak is a year earlier
+            if (guess >= AstroTime.CalendarToJd(year + 1, 1, 1)) guess -= 365.2422;
+            // IMO solar longitudes are referred to the equinox of J2000.0, not of date (the difference grows by
+            // 50″ a year, about 9 hours of time by 2025)
+            Func<double, double> f = jd => AstroMath.NormalizeDeg180(SolarLongitudeJ2000(jd) - PeakSolarLongitude);
             double root = Roots.Brent(f, guess - 15, guess + 15, 1e-5);
             return AstroTime.FromTT(double.IsNaN(root) ? guess : root);
+        }
+
+        /// <summary>The Sun's geocentric ecliptic longitude (deg) on the J2000.0 ecliptic and equinox, with aberration.</summary>
+        public static double SolarLongitudeJ2000(double jdTT)
+        {
+            Vec3 e, v;
+            EphemerisManager.EarthHeliocentric(jdTT, out e, out v);
+            var sun = Core.Coordinates.Transforms.EquatorialToEcliptic(-e, Core.Coordinates.Precession.ObliquityJ2000);
+            double lon, lat;
+            sun.ToSpherical(out lon, out lat);
+            return AstroMath.NormalizeDeg(lon * AstroMath.Rad2Deg - 20.4898 / 3600.0 / e.Length);
         }
 
         /// <summary>Expected hourly rate for an observer: ZHR × sin(h_radiant)^1.0 / r^((6.5 - LM)) (IMO formula).</summary>

@@ -484,6 +484,8 @@ namespace Sidralune.Devices.Automation
 
     public class SafetyTrigger : SequenceTrigger
     {
+        /// <summary>How often (seconds) the safety monitor is read again while waiting for safe conditions.</summary>
+        public double RecheckSeconds { get; set; } = 30;
         public override string Title => "Park and close when unsafe";
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
@@ -493,7 +495,7 @@ namespace Sidralune.Devices.Automation
             ctx.Devices.Guider?.StopGuiding();
             if (ctx.Devices.Telescope != null) await Task.Run(() => ctx.Devices.Telescope.Park(), ct);
             if (ctx.Devices.Dome != null) await new DomeShutter { Open = false }.Run(ctx, ct);
-            while (!s.IsSafe) await Task.Delay(30000, ct);
+            while (!s.IsSafe) await Task.Delay(TimeSpan.FromSeconds(Math.Max(0.05, RecheckSeconds)), ct);
             ctx.Log("Conditions safe again: resuming");
             if (ctx.Devices.Dome != null) await new DomeShutter { Open = true }.Run(ctx, ct);
             ctx.Devices.Telescope?.Unpark();

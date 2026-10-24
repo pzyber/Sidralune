@@ -5,11 +5,13 @@ using System.Linq;
 using Sidralune.Imaging;
 using Sidralune.Imaging.IO;
 using Sidralune.Imaging.Planetary;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class PlanetaryTests
+    [TestClass]
+    public class PlanetaryTests : TestBase
     {
         private static double Rmse(float[] a, float[] b, int w, int h, int border)
         {
@@ -18,7 +20,8 @@ namespace Sidralune.Tests
             return Math.Sqrt(s / n);
         }
 
-        public static void TestLuckyStacking()
+        [TestMethod]
+        public void TestLuckyStacking()
         {
             int w = 160, h = 160;
             var truth = Synthetic.Planet(w, h, 80, 80, 50, 0, 0, 0, 1);
@@ -54,7 +57,8 @@ namespace Sidralune.Tests
             }
         }
 
-        public static void TestRotationEstimator()
+        [TestMethod]
+        public void TestRotationEstimator()
         {
             int w = 200, h = 200;
             var a = Synthetic.Planet(w, h, 100, 100, 70, 0, 1, 0.005, 3);
@@ -66,7 +70,8 @@ namespace Sidralune.Tests
             CheckTrue("Rotation correction restores image", Rmse(a.Data[0], back.Data[0], w, h, 40) < 0.02);
         }
 
-        public static void TestSphereDerotationRoundtrip()
+        [TestMethod]
+        public void TestSphereDerotationRoundtrip()
         {
             int w = 200, h = 200;
             var a = Synthetic.Planet(w, h, 100, 100, 80, 0, 0.5, 0, 1);
@@ -79,7 +84,8 @@ namespace Sidralune.Tests
             CheckTrue("Derotation changes image", Rmse(a.Data[0], f.Data[0], w, h, 45) > 0.003);
         }
 
-        public static void TestDeconvolution()
+        [TestMethod]
+        public void TestDeconvolution()
         {
             int w = 128, h = 128;
             var truth = Synthetic.Planet(w, h, 64, 64, 40, 0, 0, 0, 2);
@@ -99,7 +105,8 @@ namespace Sidralune.Tests
             }
         }
 
-        public static void TestPreprocessor()
+        [TestMethod]
+        public void TestPreprocessor()
         {
             int w = 200, h = 160;
             string p = Path.Combine(Path.GetTempPath(), "SidraluneTests", "pipp_in.ser");

@@ -6,11 +6,13 @@ using Sidralune.Imaging.Analysis;
 using Sidralune.Imaging.IO;
 using Sidralune.Imaging.Registration;
 using Sidralune.Imaging.Stacking;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class ImagingTests
+    [TestClass]
+    public class ImagingTests : TestBase
     {
         private static string TempDir()
         {
@@ -19,7 +21,8 @@ namespace Sidralune.Tests
             return d;
         }
 
-        public static void TestFitsRoundtrip()
+        [TestMethod]
+        public void TestFitsRoundtrip()
         {
             var img = Synthetic.Render(200, 150, Synthetic.RandomStars(50, 200, 150, 1), Transform2D.Identity, 3, 0.1, 0.01, 2);
             img.Header.Set("OBJECT", "Test field");
@@ -46,7 +49,8 @@ namespace Sidralune.Tests
             Check("TIFF16 pixel", bt.Data[0][999], img.Data[0][999], 1.0 / 65535);
         }
 
-        public static void TestSerRoundtrip()
+        [TestMethod]
+        public void TestSerRoundtrip()
         {
             string p = Path.Combine(TempDir(), "rt.ser");
             var a = Synthetic.Planet(120, 100, 60, 50, 35, 0, 1, 0.01, 1);
@@ -66,7 +70,8 @@ namespace Sidralune.Tests
             }
         }
 
-        public static void TestStarDetectionAndMatching()
+        [TestMethod]
+        public void TestStarDetectionAndMatching()
         {
             int w = 800, h = 600;
             var stars = Synthetic.RandomStars(300, w, h, 7);
@@ -76,7 +81,9 @@ namespace Sidralune.Tests
             var sa = StarDetector.Detect(a);
             var sb = StarDetector.Detect(b);
             Info(string.Format("detected {0} / {1} stars", sa.Count, sb.Count));
-            CheckTrue("Detected enough stars", sa.Count > 80 && sb.Count > 80);
+            // the frames also hold 30 hot pixels each, which must not count as stars
+            CheckTrue("Detected enough stars", sa.Count > 70 && sb.Count > 70);
+            CheckTrue("No hot pixels among the stars", sa.All(s => s.Fwhm >= 0.8) && sb.All(s => s.Fwhm >= 0.8));
             double fwhm, hfr, ecc;
             StarDetector.Summary(sa, out fwhm, out hfr, out ecc);
             Check("Measured FWHM", fwhm, 3.0, 0.35);
@@ -91,7 +98,8 @@ namespace Sidralune.Tests
             Check("Recovered transform y", v1, v2, 0.1);
         }
 
-        public static void TestStackingPipeline()
+        [TestMethod]
+        public void TestStackingPipeline()
         {
             int w = 400, h = 300, n = 8;
             var dir = Path.Combine(TempDir(), "stack");
@@ -135,7 +143,8 @@ namespace Sidralune.Tests
             }
         }
 
-        public static void TestPhaseCorrelation()
+        [TestMethod]
+        public void TestPhaseCorrelation()
         {
             var a = Synthetic.Planet(128, 128, 64, 64, 40, 0, 1.0, 0.005, 1);
             var b = Geometry.Shift(a, 3.4, -2.2);

@@ -112,6 +112,8 @@ Bug fixes, new algorithms, device support, performance work and tests are all we
 
 5. Run the tests (see [Unit tests](#unit-tests)) to make sure everything passes before you start.
 
+Always build and run the library tests before building the application, build the application only when they all pass, and then run the application tests (see [Unit tests](#unit-tests)).
+
 ### Repository layout
 
 | Path | Contents |
@@ -134,10 +136,11 @@ Bug fixes, new algorithms, device support, performance work and tests are all we
 | `Sidralune.Imaging` | Image model, file formats (`IO`), analysis, processing, registration, stacking, planetary tools |
 | `Sidralune.Science` | Astrometry, photometry, spectroscopy, solar system, radio, online databases |
 | `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, PHD2, capture, sequencer |
-| `Sidralune.Tests` | Console test runner and tests |
+| `Sidralune.Tests` | Library tests (MSTest) |
+| `Sidralune.AppTests` | Application tests (MSTest): settings, scripting, planner, controls and every workspace |
 | `Wiki` | User manual |
 
-The library and test projects (`Sidralune.Core`, `Sidralune.Imaging`, `Sidralune.Science`, `Sidralune.Devices`, `Sidralune.Tests`) include every `.cs` file below their folder automatically (`**\*.cs`), so a new source file there needs no `.csproj` change. The application project, `Sidralune/Sidralune.csproj`, lists its files one by one: add a `<Compile Include="Folder\File.cs" />` line for each new file (Visual Studio does this for you when you add the file through Solution Explorer), or the build will not see it.
+The library and test projects (`Sidralune.Core`, `Sidralune.Imaging`, `Sidralune.Science`, `Sidralune.Devices`, `Sidralune.Tests`, `Sidralune.AppTests`) include every `.cs` file below their folder automatically (`**\*.cs`), so a new source file there needs no `.csproj` change. The application project, `Sidralune/Sidralune.csproj`, lists its files one by one: add a `<Compile Include="Folder\File.cs" />` line for each new file (Visual Studio does this for you when you add the file through Solution Explorer), or the build will not see it.
 
 ### Architecture in brief
 
@@ -198,25 +201,67 @@ If you believe a dependency is truly necessary, open an issue to discuss it befo
 
 ### Unit tests
 
-The tests are a small console program in `Sidralune.Tests`. Every `public static void Test…()` method in that project runs automatically. Use the helpers in `Program.cs`:
+The tests use MSTest, Visual Studio's own test framework (`Microsoft.VisualStudio.QualityTools.UnitTestFramework`, included with Visual Studio 2015 or later; no NuGet packages). There are two test projects, run in this order:
+
+1. `Sidralune.Tests` tests the libraries. It does not depend on the application, so it runs before the application is built.
+2. `Sidralune.AppTests` tests the application. It references `Sidralune.exe`, so building it builds the application first.
+
+A test class derives from `TestBase` and is marked `[TestClass]`; each test is a `[TestMethod]`. A test makes many checks with the helpers in `Checks.cs` (shared by both projects). Every check is printed in the test's output, a failed check does not stop the test, and the test fails at the end with the list of every failed check:
 
 ```csharp
-public static void TestMyFeature()
+[TestClass]
+public class MyFeatureTests : TestBase
 {
-    Check("Mars distance (AU)", actual, 0.523456, 1e-5);   // value with tolerance
-    CheckTrue("Solution found", result != null);          // condition
-    Info("Optional extra output");
+    [TestMethod]
+    public void TestMyFeature()
+    {
+        Check("Mars distance (AU)", actual, 0.523456, 1e-5);   // value with tolerance
+        CheckTrue("Solution found", result != null);          // condition
+        Info("Optional extra output");
+    }
 }
 ```
 
-Build the solution, then run all tests or a subset:
+In Visual Studio, build the solution, open **Test Explorer** from the **Test** menu and choose **Run All**; you can also run, rerun or debug a single test from there. On the command line:
 
 ```
-Sidralune.Tests\bin\Debug\Sidralune.Tests.exe
-Sidralune.Tests\bin\Debug\Sidralune.Tests.exe Horizons
+msbuild Sidralune.Tests\Sidralune.Tests.csproj
+"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.Tests\bin\Debug\Sidralune.Tests.dll
+msbuild Sidralune.AppTests\Sidralune.AppTests.csproj
+"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.AppTests\bin\Debug\Sidralune.AppTests.dll
 ```
 
-The filter matches part of `ClassName.MethodName`. The exit code is 0 when every check passes and 1 otherwise, so it can be used in scripts. Tests must run offline; if a test needs an optional dataset, skip it with an `Info` message when the dataset is missing, as `CatalogTests.TestConstellationBoundaries` does.
+Run a subset while you work with a filter, for example `/TestCaseFilter:"FullyQualifiedName~Horizons"` or `/Tests:TestPhd2`. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there. The library tests take two to three minutes, the application tests about one.
+
+Every part of the libraries has tests, grouped by area:
+
+| File | Covers |
+|---|---|
+| `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
+| `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs` | Image files, debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
+| `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
+| `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture and video recording, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
+
+The application tests (`Sidralune.AppTests`) start the real main window once, off screen, on a UI thread of its own (`AppHost.cs`), with its settings and data in `%TEMP%\SidraluneAppTests`. Tests run code on that thread with `OnUi(…)`, wait for background work with `WaitFor(…)`, open a workspace with `View<T>(key)`, click with `PerformClick()`, read notifications with `Toasts()` and check the log for errors with `LogMark()` and `ErrorsSince(…)`:
+
+| File | Covers |
+|---|---|
+| `AppStateTests.cs` | Settings saving and loading (including damaged files), profiles, time control, selection, background tasks |
+| `ScriptingTests.cs` | Script compilation and error lines, helper members, cancellation, every example, the Scripts workspace |
+| `PlannerAndSettingsTests.cs` | Observing lists, sites, night mode in sync everywhere and the night palette |
+| `ControlsTests.cs` | Buttons, tabs, collapsible sections, form grids, time fields, sliders, status pills, notifications, the property-grid adapter |
+| `ViewTests.cs` | Every workspace opens without errors, in night mode and at the smallest window size, and the commands |
+| `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, messages for missing devices, sequence editing |
+
+Rules for tests:
+
+- A new feature or fix comes with tests in the same change, and a fixed bug gets a test that fails without the fix.
+- Tests must run offline and without equipment. Test devices against the simulators, protocols against a stand-in server on `127.0.0.1` (see `DeviceProtocolTests.cs`), and ASCOM drivers against a stand-in object (the wrappers call drivers through `dynamic`).
+- Write files only under `%TEMP%\SidraluneTests` (or `%TEMP%\SidraluneAppTests` for the application tests), never in the user's image folder or settings; set `AppPaths.Root` to a temporary folder when a test needs it, and restore it afterwards.
+- A change to a workspace comes with an application test, and a new workspace is added to the checks in `ViewTests.cs`.
+- Compare numbers with a tolerance and format expected text with the current culture or `CultureInfo.InvariantCulture`, so the tests pass on any system language.
+- Prefer independent references (published examples, a brute-force computation, a round trip) over the code's own output.
+- If a test needs an optional dataset, skip it with an `Info` message when the dataset is missing, as `CatalogTests.TestConstellationBoundaries` does.
 
 All tests must pass before a pull request is merged.
 

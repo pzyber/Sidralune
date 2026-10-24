@@ -74,7 +74,7 @@ Every calculation in Sidralune is based on published methods. This page lists th
 | Moon phases, perigee and apogee | Root finding on elongation and distance |
 | Conjunctions, oppositions, elongations | Root finding on the planets' ecliptic longitude difference from the Sun |
 | Eclipses | Lunar: the Moon's distance from the Earth's shadow axis at each full Moon, with umbra and penumbra radii from Danjon's rule. Solar: geocentric Sun-Moon separation against the sum of their radii plus parallax at each new Moon |
-| Meteor shower peaks | Solar longitude of the peak (IMO calendar values) |
+| Meteor shower peaks | Solar longitude of the peak (IMO calendar values, on the J2000.0 ecliptic and equinox as the IMO gives them) |
 
 ## Comets and asteroids
 
@@ -226,16 +226,23 @@ Fast Fourier transform (radix-2 and Bluestein), cubic splines, LU and QR linear 
 
 ## How accuracy is tested
 
-The test suite (`Sidralune.Tests`) checks results against independent references, including:
+The test suite (`Sidralune.Tests`, about a thousand checks across every library, plus `Sidralune.AppTests` for the application itself) checks results against independent references, including:
 
-- Julian dates, sidereal time, nutation, precession and Kepler's equation against Meeus' worked examples,
+- Julian dates, sidereal time, nutation, precession and Kepler's equation against Meeus' worked examples, and coordinate transforms, refraction, the Sun's orientation and the Moon's libration against Meeus' examples,
 - planetary positions against JPL Horizons at many dates (the analytic theory's error budget is measured, not assumed),
-- SGP4 against the Vallado test cases,
-- MPC format packing and unpacking against MPC documentation examples,
-- plate solving, registration and stacking on synthetic star fields with known transforms, including rotated and mirrored fields without hints,
-- star FWHM against synthetic stars of known width,
-- photometry, period searches, transit fitting and spectral line measurement on synthetic data with known answers,
-- constellation identification of known stars,
-- autofocus and device behaviour with the simulators.
+- seasons, eclipses, conjunctions, oppositions, elongations and twilight against published times, and meteor shower peaks against the IMO calendar,
+- SGP4 against the Vallado test cases, and satellite passes for consistency,
+- reading JPL SPK kernels (both byte orders) from small kernels with known Chebyshev series,
+- MPC format packing and unpacking against MPC documentation examples, and ADES and AAVSO report formats,
+- plate solving, centring, polar alignment, registration (every transform model) and stacking on synthetic star fields with known transforms, including rotated and mirrored fields without hints,
+- calibration (bias, dark scaling, flats, hot and cold pixels), every pixel rejection method, drizzle and mosaics,
+- debayering, background extraction, colour tools, filters, wavelets, PixelMath, star tools and stretches,
+- every image and video format Sidralune writes, and raw (lossless JPEG) decoding, read back and compared,
+- star FWHM and PSF fits against synthetic stars of known width,
+- photometry, period searches, transit fitting, spectral extraction and line measurement on synthetic data with known answers,
+- radio tools (IQ files in every format, dedispersion, drift scans) and an rtl_tcp server,
+- constellation identification of known stars, and catalogue searches against a brute-force search,
+- device protocols against stand-in servers (LX200/OnStep, PHD2, INDI, ASCOM Alpaca) and stand-in ASCOM drivers,
+- every sequencer instruction, loops, triggers, autofocus and device behaviour with the simulators.
 
 See [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#scientific-correctness) for the rules new algorithms must follow.
