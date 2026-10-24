@@ -243,7 +243,7 @@ Every part of the libraries has tests, grouped by area:
 |---|---|
 | `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
 | `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `CrwTests.cs`, `Cr3Tests.cs` | Image files (including Canon CRW and CR3 through small writers of each), debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
-| `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
+| `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, image depth, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
 | `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture and video recording, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
 
 The application tests (`Sidralune.AppTests`) start the real main window once, off screen, on a UI thread of its own (`AppHost.cs`), with its settings and data in `%TEMP%\SidraluneAppTests`. Tests run code on that thread with `OnUi(…)`, wait for background work with `WaitFor(…)`, open a workspace with `View<T>(key)`, click with `PerformClick()`, read notifications with `Toasts()` and check the log for errors with `LogMark()` and `ErrorsSince(…)`:
@@ -256,6 +256,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `ControlsTests.cs` | Buttons, tabs, collapsible sections, form grids, time fields, sliders, status pills, notifications, the property-grid adapter |
 | `ViewTests.cs` | Every workspace opens without errors, in night mode and at the smallest window size, and the commands |
 | `TimeAxisTests.cs` | Time axes across daylight saving changes: the altitude charts never run backwards, ticks follow the local clock |
+| `AstrometryViewTests.cs` | Which minor body (asteroid and comet) labels a solved image shows, and the image depth in the result panel |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, messages for missing devices, sequence editing |
 

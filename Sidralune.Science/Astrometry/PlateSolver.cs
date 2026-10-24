@@ -29,6 +29,8 @@ namespace Sidralune.Science.Astrometry
         public double DetectionSigma = 5;
         public IStarCatalogProvider Catalog;
         public bool AllowBlind = true;
+        /// <summary>Stars already detected in the image, brightest first (found with DetectionSigma); null to detect them here.</summary>
+        public List<DetectedStar> Stars;
     }
 
     public class SolveResult
@@ -52,7 +54,7 @@ namespace Sidralune.Science.Astrometry
         public static SolveResult Solve(AstroImage img, SolveOptions opt, IProgress<string> status = null, CancellationToken ct = default(CancellationToken))
         {
             var sw = Stopwatch.StartNew();
-            var stars = StarDetector.Detect(img, new StarDetectionOptions { Sigma = opt.DetectionSigma, MaxStars = 1000 });
+            var stars = opt.Stars != null ? opt.Stars.Take(1000).ToList() : StarDetector.Detect(img, new StarDetectionOptions { Sigma = opt.DetectionSigma, MaxStars = 1000 });
             var r = Solve(stars, img.Width, img.Height, opt, status, ct);
             r.Elapsed = sw.Elapsed;
             r.ImageStars = stars.Count;
