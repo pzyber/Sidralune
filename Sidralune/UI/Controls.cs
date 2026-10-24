@@ -582,6 +582,18 @@ namespace Sidralune.UI
             return c;
         }
 
+        /// <summary>The display stretches to choose from (Custom needs a stretch set in code, so it is not offered).</summary>
+        public static readonly DisplayStretch[] StretchChoices = { DisplayStretch.AutoLinked, DisplayStretch.AutoUnlinked, DisplayStretch.None };
+
+        /// <summary>A Display drop-down: Auto linked, Auto unlinked or None; changed is called with the choice.</summary>
+        public static ComboBox StretchCombo(DisplayStretch value, Action<DisplayStretch> changed)
+        {
+            var c = Combo("Auto linked", "Auto unlinked", "None");
+            c.SelectedIndex = Math.Max(0, Array.IndexOf(StretchChoices, value));
+            c.SelectedIndexChanged += (s, e) => changed(StretchChoices[c.SelectedIndex]);
+            return c;
+        }
+
         public static FlowLayoutPanel Toolbar(params Control[] items)
         {
             var f = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(4, 6, 4, 2), WrapContents = false, AutoScroll = false };

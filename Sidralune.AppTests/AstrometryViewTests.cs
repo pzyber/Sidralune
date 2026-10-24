@@ -20,6 +20,24 @@ namespace Sidralune.AppTests
     public class AstrometryViewTests : TestBase
     {
         [TestMethod]
+        public void TestDisplayStretch()
+        {
+            foreach (var view in new Control[] { View<AstrometryView>("astrometry"), View<ProcessingView>("processing") })
+            {
+                string name = view.GetType().Name;
+                var combo = OnUi(() => Find<ComboBox>(view, c => c.Items.Contains("Auto unlinked")));
+                var viewer = OnUi(() => All(view).OfType<ImageViewer>().First());
+                CheckTrue(name + ": Display offers Auto linked, Auto unlinked and None, starting with Auto linked", combo != null
+                    && OnUi(() => combo.Items.Cast<string>().SequenceEqual(new[] { "Auto linked", "Auto unlinked", "None" }) && viewer.Stretch == DisplayStretch.AutoLinked));
+                OnUi(() => combo.SelectedIndex = 2);
+                CheckTrue(name + ": None shows the image as stored", OnUi(() => viewer.Stretch == DisplayStretch.None));
+                OnUi(() => combo.SelectedIndex = 1);
+                CheckTrue(name + ": Auto unlinked", OnUi(() => viewer.Stretch == DisplayStretch.AutoUnlinked));
+                OnUi(() => combo.SelectedIndex = 0);
+            }
+        }
+
+        [TestMethod]
         public void TestAsteroidLabelOption()
         {
             var view = View<AstrometryView>("astrometry");

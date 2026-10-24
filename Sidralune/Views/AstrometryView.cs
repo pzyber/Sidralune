@@ -76,6 +76,9 @@ namespace Sidralune.Views
             var radius = g.Row("Search radius (°)", Ui.Num(5, 0.5m, 90, 1));
             var scale = g.Row("Scale (\"/px, 0=auto)", Ui.Num(0, 0, 200, 3, 0.1m));
             var sip = g.Row("SIP order", Ui.Num(2, 0, 4));
+            // linear (unstretched) data is mostly black: the automatic stretch shows the faint stars the solution is checked against;
+            // None suits images that are already stretched
+            g.Row("Display", Ui.StretchCombo(_viewer.Stretch, v => _viewer.Stretch = v));
             var labels = g.Row("Minor body labels", Ui.Combo("All in the field", "Bright enough to show", "None"));
             labels.SelectedIndex = Math.Max(0, Array.IndexOf(LabelModes, AppState.Settings.MinorBodyLabels));
             labels.SelectedIndexChanged += (s, e) =>

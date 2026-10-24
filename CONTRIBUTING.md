@@ -256,7 +256,8 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `ControlsTests.cs` | Buttons, tabs, collapsible sections, form grids, time fields, sliders, status pills, notifications, the property-grid adapter |
 | `ViewTests.cs` | Every workspace opens without errors, in night mode and at the smallest window size, and the commands |
 | `TimeAxisTests.cs` | Time axes across daylight saving changes: the altitude charts never run backwards, ticks follow the local clock |
-| `AstrometryViewTests.cs` | Which minor body (asteroid and comet) labels a solved image shows, and the image depth in the result panel |
+| `AstrometryViewTests.cs` | Which minor body (asteroid and comet) labels a solved image shows, the image depth and step times in the result panel, and the Display stretch in Astrometry and Process |
+| `PlanetaryViewTests.cs` | Planetary frames are shown as recorded, without a display stretch |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, messages for missing devices, sequence editing |
 

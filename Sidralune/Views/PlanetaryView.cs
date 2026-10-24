@@ -72,7 +72,8 @@ namespace Sidralune.Views
         private Control BuildPipp()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a SER/AVI video or an image sequence" };
+            // frames as recorded, like every planetary tab: an automatic stretch would blow the black sky up into noise
+            var viewer = new ImageViewer { Dock = DockStyle.Fill, Stretch = DisplayStretch.None, EmptyText = "Open a SER/AVI video or an image sequence" };
             var scrub = new Slider { Dock = DockStyle.Bottom, Height = 30, TickStyle = TickStyle.None };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 150, Title = "Frame quality", XLabel = "frame", ShowLegend = true };
             var opt = new PippOptions { OutputFolder = Path.Combine(AppState.Settings.ImageFolder, "Planetary") };
@@ -135,7 +136,7 @@ namespace Sidralune.Views
         private Control BuildLucky()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a SER/AVI (ideally centred in Pre-process) and press Stack" };
+            var viewer = new ImageViewer { Dock = DockStyle.Fill, Stretch = DisplayStretch.None, EmptyText = "Open a SER/AVI (ideally centred in Pre-process) and press Stack" };
             var stacker = new LuckyStacker();
             var props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = false, SelectedObject = new GridAdapter(stacker.Options, "Lucky stacking"), PropertySort = PropertySort.NoSort };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 160, Title = "Frame quality (sorted)", XLabel = "frames (%)", YLabel = "quality" };

@@ -44,9 +44,11 @@ The **Pre-process** tab prepares a video for stacking. Click **Open source…** 
 | Orientation | **Rotate deg**, **Flip horizontal**, **Flip vertical** |
 | Field rotation | **Field derotation** (rotate frames to undo alt-az field rotation), **Field derotation measure** (estimate the rotation from the images instead of computing it), **Alt az mount**. Choose the target in **Field derotation target** on the toolbar |
 | Dispersion | **Align RGB channels**: corrects atmospheric dispersion (colour fringes) at low altitude |
-| Levels | **Gain**, **Gamma** |
+| Levels | **Gain**, **Gamma** (also brighten the preview of dim videos) |
 | Quality | **Estimate quality** with **Metric** (Laplacian, Gradient or LocalContrast), **Keep best percent** or **Keep best count**, **Order** (Original or Quality) |
 | Output | **Format** (Ser, Avi, Fits, Tiff, Png, Bmp, Jpeg), **Output bit depth**, **Output folder**, **Output name**, **Max frames per file** (split long videos), **Win jupos naming** and **Planet code** |
+
+Frames are shown as recorded, without the automatic stretch of the deep-sky workspaces, which would turn the black sky around a planet into noise. The same goes for every tab of the Planetary workspace.
 
 Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. If the output is a SER file, it is opened automatically, ready for the Lucky stacking tab.
 
