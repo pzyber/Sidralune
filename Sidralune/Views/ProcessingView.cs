@@ -25,16 +25,18 @@ namespace Sidralune.Views
         private string _name = "";
         private List<BackgroundSample> _samples;
         private readonly PlotControl _hist = new PlotControl { Height = 130, ShowLegend = false };
+        // one edit at a time, so a slow step cannot land on an image opened or changed meanwhile; histograms keep the newest
+        private readonly JobSlot _job = new JobSlot(), _histJob = new JobSlot();
 
         public ProcessingView()
         {
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(4, 6, 4, 0), WrapContents = false };
-            Action<string, string, string, Action> btn = (t, i, tip, a) => { var b = new FlatButton(t, i, (s, e) => a()) { ToolTipText = tip }; if (t == null) b.Width = 34; else b.AutoSizeToText(); bar.Controls.Add(b); };
-            btn("Open", Icons.Open, "Open image (Ctrl+O)", Open);
+            Func<string, string, string, Action, FlatButton> btn = (t, i, tip, a) => { var b = new FlatButton(t, i, (s, e) => a()) { ToolTipText = tip }; if (t == null) b.Width = 34; else b.AutoSizeToText(); bar.Controls.Add(b); return b; };
+            var open = btn("Open", Icons.Open, "Open image (Ctrl+O)", Open);
             btn("Save as", Icons.Save, "Save image", SaveAs);
             bar.Controls.Add(Ui.Separator());
-            btn(null, Icons.Undo, "Undo (Ctrl+Z)", Undo);
-            btn(null, Icons.Redo, "Redo (Ctrl+Y)", Redo);
+            var undo = btn(null, Icons.Undo, "Undo (Ctrl+Z)", Undo);
+            var redo = btn(null, Icons.Redo, "Redo (Ctrl+Y)", Redo);
             bar.Controls.Add(Ui.Separator());
             var stretch = Ui.EnumCombo(DisplayStretch.AutoLinked);
             stretch.Width = 130;
@@ -63,6 +65,7 @@ namespace Sidralune.Views
                     foreach (var s in _samples) { var p = map(s.X, s.Y); g.DrawRectangle(pen, p.X - 5, p.Y - 5, 10, 10); }
             };
             BuildTools();
+            _job.Guard(open, undo, redo, _tools);
             Controls.Add(_viewer);
             Controls.Add(_readout);
             Controls.Add(_tools);
@@ -71,9 +74,11 @@ namespace Sidralune.Views
 
         // ------------------------------------------------------------------ document
 
+        /// <summary>Opens an image sent from elsewhere; an edit still running is dropped, as it was made for the old image.</summary>
         public void OpenImage(AstroImage img, string name)
         {
             if (img == null) return;
+            _job.Cancel();
             if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.EdgeDirected);
             _img = img.Clone();
             _name = name;
@@ -86,15 +91,16 @@ namespace Sidralune.Views
 
         private void Open()
         {
+            if (_job.Refuse()) return;
             using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
                 if (d.ShowDialog() == DialogResult.OK) OpenFile(d.FileName);
         }
 
-        public void OpenFile(string path) => Tasks.Run("Opening " + Path.GetFileName(path), t =>
+        public void OpenFile(string path)
         {
-            var img = ImageFile.Load(path);
-            MainForm.Instance.Post(() => OpenImage(img, Path.GetFileName(path)));
-        });
+            AstroImage img = null;
+            _job.Run("Opening " + Path.GetFileName(path), t => img = ImageFile.Load(path), () => OpenImage(img, Path.GetFileName(path)));
+        }
 
         private void SaveAs()
         {
@@ -133,7 +139,7 @@ namespace Sidralune.Views
 
         private void Undo()
         {
-            if (_undo.Count < 2) return;
+            if (_undo.Count < 2 || _job.Refuse()) return;
             _redo.Add(_undo[_undo.Count - 1]);
             _undo.RemoveAt(_undo.Count - 1);
             _img = _undo[_undo.Count - 1].Item2.Clone();
@@ -142,7 +148,7 @@ namespace Sidralune.Views
 
         private void Redo()
         {
-            if (_redo.Count == 0) return;
+            if (_redo.Count == 0 || _job.Refuse()) return;
             var r = _redo[_redo.Count - 1];
             _redo.RemoveAt(_redo.Count - 1);
             _undo.Add(r);
@@ -155,7 +161,7 @@ namespace Sidralune.Views
         {
             if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
             var work = _img.Clone();
-            Tasks.Run(label, t => op(work), () =>
+            _job.Run(label, t => op(work), () =>
             {
                 _img = work;
                 Push(label);
@@ -169,7 +175,7 @@ namespace Sidralune.Views
             if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
             var src = _img;
             AstroImage res = null;
-            Tasks.Run(label, t => res = op(src.Clone()), () =>
+            _job.Run(label, t => res = op(src.Clone()), () =>
             {
                 if (res == null) return;
                 _img = res;
@@ -184,24 +190,23 @@ namespace Sidralune.Views
             _hist.Clear();
             if (_img == null) return;
             var img = _img;
-            Tasks.Run("Histogram", t =>
+            var res = new List<int[]>();
+            _histJob.Replace("Histogram", t =>
             {
-                var res = new List<int[]>();
                 for (int c = 0; c < img.Channels; c++) res.Add(Stats.Histogram(img.Data[c], 256, 0, 1));
-                MainForm.Instance.Post(() =>
+            }, () =>
+            {
+                // resolved from the palette at draw time so the histogram follows day/night switches
+                var rgb = new[] { Color.FromArgb(230, 90, 90), Color.FromArgb(90, 200, 120), Color.FromArgb(100, 140, 240) };
+                var night = new[] { 0, 2, 3 };
+                for (int c = 0; c < res.Count; c++)
                 {
-                    // resolved from the palette at draw time so the histogram follows day/night switches
-                    var rgb = new[] { Color.FromArgb(230, 90, 90), Color.FromArgb(90, 200, 120), Color.FromArgb(100, 140, 240) };
-                    var night = new[] { 0, 2, 3 };
-                    for (int c = 0; c < res.Count; c++)
-                    {
-                        int ch = Math.Min(c, 2);
-                        Func<Palette, Color> col = img.Channels == 1 ? (Func<Palette, Color>)(pal => pal.TextDim) : pal => pal.IsNight ? pal.Series[night[ch]] : rgb[ch];
-                        var s = _hist.AddSeries(null, SeriesStyle.Line, col);
-                        for (int i = 0; i < 256; i++) s.Add(i / 255.0, Math.Log10(1 + res[c][i]));
-                    }
-                    _hist.Invalidate();
-                });
+                    int ch = Math.Min(c, 2);
+                    Func<Palette, Color> col = img.Channels == 1 ? (Func<Palette, Color>)(pal => pal.TextDim) : pal => pal.IsNight ? pal.Series[night[ch]] : rgb[ch];
+                    var s = _hist.AddSeries(null, SeriesStyle.Line, col);
+                    for (int i = 0; i < 256; i++) s.Add(i / 255.0, Math.Log10(1 + res[c][i]));
+                }
+                _hist.Invalidate();
             });
         }
 
@@ -394,7 +399,7 @@ namespace Sidralune.Views
             if (_img == null) return;
             var work = _img.Clone();
             AstroImage stars = null;
-            Tasks.Run("Star removal", t => stars = StarTools.RemoveStars(work), () =>
+            _job.Run("Star removal", t => stars = StarTools.RemoveStars(work), () =>
             {
                 _img = work; Push("Star removal"); _viewer.SetImage(_img, false);
                 using (var d = new SaveFileDialog { Filter = "FITS|*.fits", FileName = "stars.fits", Title = "Save the star layer (for screen blending later)" })

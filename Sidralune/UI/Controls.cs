@@ -54,7 +54,7 @@ namespace Sidralune.UI
 
         public void ApplyTheme(Palette p) => Invalidate();
         public void NotifyDefault(bool value) { }
-        public void PerformClick() => OnClick(EventArgs.Empty);
+        public void PerformClick() { if (Enabled) OnClick(EventArgs.Empty); } // like Button.PerformClick: a disabled button does nothing
 
         protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
         protected override void OnMouseLeave(EventArgs e) { _hover = false; _down = false; Invalidate(); base.OnMouseLeave(e); }

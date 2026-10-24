@@ -29,6 +29,7 @@ namespace Sidralune.AppTests
                 CheckTrue("Rows show Disconnect for connected devices", WaitFor(() => All(view).OfType<FlatButton>().Count(b => b.Text == "Disconnect") >= 6));
                 var widths = OnUi(() => All(view).OfType<FlatButton>().Where(b => b.Text == "Disconnect" || b.Text == "Connect").Select(b => b.Width).Distinct().ToList());
                 CheckTrue("Connect and Disconnect buttons keep one width", widths.Count == 1, string.Join(", ", widths));
+                CheckTrue("Equipment buttons wait while the simulators connect, then come back", WaitFor(() => OnUi(() => Button(view, "Disconnect all").Enabled), 15000));
                 OnUi(() => Button(view, "Disconnect all").PerformClick());
                 CheckTrue("Disconnect all disconnects every device", WaitFor(() => !Dm.All.Any(), 15000));
                 CheckTrue("Rows back to Connect and Not connected", WaitFor(() => All(view).OfType<FlatButton>().All(b => b.Text != "Disconnect") && All(view).OfType<Label>().Count(l => l.Text == "Not connected") >= 6));

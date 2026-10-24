@@ -29,6 +29,8 @@ namespace Sidralune.Views
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         private readonly DifferentialPhotometry _phot = new DifferentialPhotometry();
         private readonly List<string> _frames = new List<string>();
+        // each tab runs one job at a time; measuring locks the frames, stars and aperture it is working with
+        private readonly JobSlot _measureJob = new JobSlot(), _analysisJob = new JobSlot(), _transitJob = new JobSlot(), _predictJob = new JobSlot();
 
         // the light curve currently being analysed (shared by the analysis and transit tabs)
         private readonly List<double> _t = new List<double>(), _y = new List<double>(), _e = new List<double>();
@@ -107,6 +109,7 @@ namespace Sidralune.Views
             var csv = new FlatButton("CSV…", Icons.Save, (s, e) => ExportCsv());
             csv.AutoSizeToText();
             g.Full(Bar(run, aavso, csv));
+            _measureJob.Guard(addFrames, clear, addSel, vsp, _targets, props, run, aavso, csv);
             g.Full(Ui.Hint("Frames without a WCS are plate solved first. Ensemble differential photometry uses every comparison star, weighted by its error; the check star monitors the ensemble."));
             side.Controls.Add(g);
 
@@ -140,7 +143,7 @@ namespace Sidralune.Views
             var name = PlannerView.Prompt("AAVSO comparison stars", "Variable star name (e.g. SS Cyg)", AppState.Selection != null ? AppState.Selection.Name : "");
             if (string.IsNullOrWhiteSpace(name)) return;
             DataTable tab = null;
-            Tasks.Run("AAVSO VSP query", t => tab = OnlineServices.AavsoComparisonStars(name, 60, 15), () =>
+            _measureJob.Run("AAVSO VSP query", t => tab = OnlineServices.AavsoComparisonStars(name, 60, 15), () =>
             {
                 if (tab == null || tab.Rows.Count == 0) { MainForm.Instance.Toast("No comparison stars returned", Icons.Warning); return; }
                 for (int i = 0; i < tab.Rows.Count; i++)
@@ -179,6 +182,7 @@ namespace Sidralune.Views
 
         private void RunPhotometry()
         {
+            if (_measureJob.Refuse()) return; // the measurement below would be cleared under it
             var targets = ReadTargets();
             if (_frames.Count == 0 || targets.Count == 0) { MainForm.Instance.Toast("Add frames and at least one target and comparison star", Icons.Info); return; }
             if (!targets.Any(t => t.IsComparison)) { MainForm.Instance.Toast("At least one comparison star is required", Icons.Info); return; }
@@ -188,7 +192,7 @@ namespace Sidralune.Views
             var frames = _frames.ToList();
             var site = AppState.Site;
             int failed = 0;
-            Tasks.Run("Differential photometry", task =>
+            _measureJob.Run("Differential photometry", task =>
             {
                 for (int i = 0; i < frames.Count; i++)
                 {
@@ -290,6 +294,7 @@ namespace Sidralune.Views
             var kvw = new FlatButton("Time minimum (Kwee-van Woerden)", Icons.Clock, (s, e) => TimeMinimum()); kvw.Width = 300;
             var oc = new FlatButton("O−C from minima list…", Icons.Chart, (s, e) => OcDiagram()); oc.Width = 300;
             g.Full(kvw); g.Full(oc);
+            _analysisJob.Guard(load, demo, go, clip, kvw, oc);
             g.Full(Ui.Hint("Drag across the light curve to select an eclipse or transit for minimum timing. Click the periodogram to try another peak."));
             _anaOut = new TextBox { Multiline = true, ReadOnly = true, Height = 170, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             g.Full(_anaOut);
@@ -410,7 +415,7 @@ namespace Sidralune.Views
             var t = _t.ToList(); var y = AnalysisY(); var e = _e.ToList();
             if (method == 1 && !_isFlux) y = y.Select(m => Math.Pow(10, -0.4 * (m - y.Average()))).ToList(); // BLS works on flux
             Periodogram pg = null;
-            Tasks.Run("Period search", task =>
+            _analysisJob.Run("Period search", task =>
             {
                 pg = method == 0 ? PeriodSearch.LombScargle(t, y, e.Any(v => v > 0) ? e : null, pmin, pmax)
                     : method == 1 ? PeriodSearch.Bls(t, y, pmin, pmax) : PeriodSearch.Pdm(t, y, pmin, pmax);
@@ -512,6 +517,7 @@ namespace Sidralune.Views
             var fit = new FlatButton("Fit (Levenberg-Marquardt)", Icons.Chart, (s, e) => FitTransit(false)) { Kind = ButtonKind.Primary }; fit.Width = 300;
             var mc = new FlatButton("Posterior (MCMC)", Icons.Layers, (s, e) => FitTransit(true)); mc.Width = 300;
             g.Full(fit); g.Full(mc);
+            _transitJob.Guard(fit, mc);
             _tfOut = new TextBox { Multiline = true, ReadOnly = true, Height = 260, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             g.Full(_tfOut);
             side.Controls.Add(g);
@@ -554,7 +560,7 @@ namespace Sidralune.Views
             var t = _t.ToList();
             string report = "";
             FitResult fr = null;
-            Tasks.Run(mcmc ? "Transit MCMC" : "Transit fit", task =>
+            _transitJob.Run(mcmc ? "Transit MCMC" : "Transit fit", task =>
             {
                 fr = m.Fit(t, f, df, ld);
                 var sb = new System.Text.StringBuilder();
@@ -622,6 +628,7 @@ namespace Sidralune.Views
             var days = Ui.Num(7, 1, 60);
             var fetch = new FlatButton("Predict transits", Icons.Download, (s, e) => Predict((double)vmax.Value, (double)depth.Value, (int)days.Value)) { Kind = ButtonKind.Primary };
             fetch.AutoSizeToText();
+            _predictJob.Guard(fetch);
             var bar = Ui.Toolbar(new Label { Text = "Host V ≤", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, vmax,
                 new Label { Text = "Depth ≥ (ppt)", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, depth,
                 new Label { Text = "Nights", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, days, fetch);
@@ -647,7 +654,7 @@ namespace Sidralune.Views
             var site = AppState.Site;
             var start = AppState.Now;
             var rows = new List<object[]>();
-            Tasks.Run("Exoplanet transit predictions", task =>
+            _predictJob.Run("Exoplanet transit predictions", task =>
             {
                 if (_exo == null)
                 {

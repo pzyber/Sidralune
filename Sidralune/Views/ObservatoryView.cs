@@ -101,14 +101,16 @@ namespace Sidralune.Views
                     status.Text = dev != null ? (dev.Connected ? "● Connected: " + dev.Info.Name : "○ Lost connection") : "Not connected";
                     status.ForeColor = dev != null && dev.Connected ? Theme.Current.Success : Theme.Current.TextDim;
                 };
+                // one connect or disconnect at a time per device: a second click while a driver is connecting would connect twice
+                var job = new JobSlot().Guard(connect, combo);
                 connect.Click += (s, e) =>
                 {
                     var dev = Dm.Get(kind);
                     // in the background: a driver can take seconds to disconnect, and the window must keep painting
-                    if (dev != null && dev.Connected) { Tasks.Run("Disconnecting " + dev.Info.Name, t => Dm.Disconnect(kind)); return; }
+                    if (dev != null && dev.Connected) { job.Run("Disconnecting " + dev.Info.Name, t => Dm.Disconnect(kind)); return; }
                     var info = combo.SelectedItem as DeviceInfo;
                     if (info == null) return;
-                    Tasks.Run("Connecting " + info.Name, t => Dm.Connect(info), () => { refresh(); MainForm.Instance.Toast("Connected " + info.Name); });
+                    job.Run("Connecting " + info.Name, t => Dm.Connect(info), () => { refresh(); MainForm.Instance.Toast("Connected " + info.Name); });
                 };
                 setup.Click += (s, e) =>
                 {
@@ -147,8 +149,9 @@ namespace Sidralune.Views
             };
             Dm.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref refreshPending, 1) == 0) MainForm.Instance.Post(refreshAll); };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46 };
-            var sim = new FlatButton("Connect simulated observatory", Icons.Observatory, (s, e) => Tasks.Run("Connecting simulators", t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast("Simulated observatory ready"))) { Kind = ButtonKind.Primary }; sim.AutoSizeToText();
-            var alpaca = new FlatButton("Discover Alpaca devices", Icons.Search, (s, e) => Tasks.Run("Alpaca discovery", t =>
+            var equipment = new JobSlot(); // connecting the simulators, discovery and disconnecting all: one at a time
+            var sim = new FlatButton("Connect simulated observatory", Icons.Observatory, (s, e) => equipment.Run("Connecting simulators", t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast("Simulated observatory ready"))) { Kind = ButtonKind.Primary }; sim.AutoSizeToText();
+            var alpaca = new FlatButton("Discover Alpaca devices", Icons.Search, (s, e) => equipment.Run("Alpaca discovery", t =>
             {
                 var servers = Devices.Alpaca.AlpacaDiscovery.FindServers(2000);
                 var found = servers.SelectMany(sv => { try { return Devices.Alpaca.AlpacaDiscovery.Devices(sv); } catch { return new List<DeviceInfo>(); } }).ToList();
@@ -164,8 +167,9 @@ namespace Sidralune.Views
                 });
             })); alpaca.AutoSizeToText();
             var indi = new FlatButton("Add INDI server…", Icons.Add, (s, e) => AddIndi(table, kinds)); indi.AutoSizeToText();
-            var disc = new FlatButton("Disconnect all", Icons.Stop, (s, e) => Tasks.Run("Disconnecting all devices", t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
+            var disc = new FlatButton("Disconnect all", Icons.Stop, (s, e) => equipment.Run("Disconnecting all devices", t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
             bar.Controls.AddRange(new Control[] { sim, alpaca, indi, disc });
+            equipment.Guard(sim, alpaca, disc);
             var optics = new FormGrid(220);
             var fl = optics.Row("Imaging focal length (mm)", Ui.Num((decimal)Dm.FocalLengthMm, 10, 20000));
             var ap = optics.Row("Aperture (mm)", Ui.Num((decimal)Dm.ApertureMm, 10, 2000));

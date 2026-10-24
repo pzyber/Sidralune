@@ -187,8 +187,9 @@ namespace Sidralune.Views
             var upd = new FlatButton("Update installed", Icons.Refresh); upd.AutoSizeToText();
             var rem = new FlatButton("Remove selected", Icons.Remove) { Kind = ButtonKind.Danger }; rem.AutoSizeToText();
             var open = new FlatButton("Open data folder", Icons.Open, (s, e) => System.Diagnostics.Process.Start(AppPaths.Data)); open.AutoSizeToText();
-            var reloadBtn = new FlatButton("Reload catalogs", Icons.Refresh, (s, e) => Tasks.Run("Reloading catalogs", t => AppState.LoadData(), () => MainForm.Instance.Toast("Catalogs reloaded"))); reloadBtn.AutoSizeToText();
+            var reloadBtn = new FlatButton("Reload catalogs", Icons.Refresh, (s, e) => Tasks.Data.Run("Reloading catalogs", t => AppState.LoadData(), () => MainForm.Instance.Toast("Catalogs reloaded"))); reloadBtn.AutoSizeToText();
             bar.Controls.AddRange(new Control[] { dl, upd, rem, open, reloadBtn });
+            Tasks.Data.Guard(dl, upd, rem, reloadBtn);
             var status = new Label { Dock = DockStyle.Top, Height = 60, Padding = new Padding(4, 8, 4, 0) };
             Action refreshStatus = () => status.Text = "Ephemeris: " + EphemerisManager.Describe() + "\r\nStars: " + Core.Catalogs.CatalogManager.Instance.StarSource + "   ·   Deep sky: " + Core.Catalogs.CatalogManager.Instance.DeepSkySource +
                 "   ·   Minor bodies: " + Core.MinorBodies.MinorBodyStore.Instance.Asteroids.Count + " asteroids, " + Core.MinorBodies.MinorBodyStore.Instance.Comets.Count + " comets\r\nData folder: " + AppPaths.Data;
@@ -196,9 +197,10 @@ namespace Sidralune.Views
             {
                 var list = sets.ToList();
                 if (list.Count == 0) { MainForm.Instance.Toast("Nothing selected"); return; }
+                if (Tasks.Data.Refuse()) return;
                 long total = list.Sum(d => d.ApproxBytes);
                 if (MessageBox.Show(this, string.Format("Download {0} dataset(s), about {1:0.0} MB, from public archives (JPL, MPC, GitHub, CelesTrak)?", list.Count, total / 1048576.0), "Download data", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
-                Tasks.Run("Downloading data", t =>
+                Tasks.Data.Run("Downloading data", t =>
                 {
                     for (int i = 0; i < list.Count; i++)
                     {

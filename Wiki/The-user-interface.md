@@ -108,6 +108,8 @@ If Sidralune hits an unexpected error, it keeps running, shows a toast and write
 
 Anything that takes more than a moment (loading catalogues, stacking, plate solving, period searches, online queries, downloads, scripts) runs in the background. The window stays responsive, the task pill shows progress, and a toast appears when the task finishes. You can keep working in other workspaces meanwhile. Tasks that control equipment can be stopped with their **Stop** buttons or with the `Observatory: abort all` command.
 
+A task that works on something you could change runs one at a time: while a plate solve, a processing step, a stacking run, a pre-processing or lucky-stacking run, a photometry measurement or a data download is busy, the buttons that would start another one or change its input (for example **Open image…** and **Solve** during a plate solve) are greyed out, and a message says what is still running. They come back when the task finishes or is cancelled. Look-ups and recalculations that simply refresh a table or chart (Tonight, the planner, online database queries, ephemerides, satellite passes) never wait: a new request replaces the one still running, so you always see the result of the latest one.
+
 ## Night vision mode
 
 Night vision mode replaces every colour with deep reds on black, so the screen does not ruin your dark adaptation at the telescope. Switch it with the moon button, **Ctrl+Shift+N**, **Settings → Appearance**, or the `Toggle night vision mode` command. The moon button and the setting always show the same state, and the choice is remembered.

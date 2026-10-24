@@ -44,6 +44,7 @@ namespace Sidralune.Views
         private TextBox _pointing, _specOut;
         private double _exLo = double.NaN, _exHi = double.NaN;
         private System.Threading.CancellationTokenSource _liveCts;
+        private readonly JobSlot _iqJob = new JobSlot(); // one recording is processed at a time
 
         private Control BuildSpectrum()
         {
@@ -61,9 +62,9 @@ namespace Sidralune.Views
             _axis = g.Row("X axis", Ui.Combo("Frequency (MHz)", "Velocity LSR (km/s)"));
             _axis.SelectedIndexChanged += (s, e) => PlotSpectrum();
             _baseDeg = g.Row("Baseline degree", Ui.Num(3, 0, 8));
-            Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); };
-            btn("Open ON recording…", Icons.Open, () => OpenIq(true), ButtonKind.Primary);
-            btn("Open OFF / reference recording…", Icons.Open, () => OpenIq(false), ButtonKind.Normal);
+            Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); return b; };
+            _iqJob.Guard(btn("Open ON recording…", Icons.Open, () => OpenIq(true), ButtonKind.Primary),
+                btn("Open OFF / reference recording…", Icons.Open, () => OpenIq(false), ButtonKind.Normal));
             btn("Live capture (rtl_tcp, 127.0.0.1:1234)", Icons.Connect, () => ToggleLive(), ButtonKind.Normal);
             btn("Use selected object as pointing", Icons.Target, () =>
             {
@@ -88,6 +89,7 @@ namespace Sidralune.Views
 
         private void OpenIq(bool on)
         {
+            if (_iqJob.Refuse()) return;
             using (var d = new OpenFileDialog { Filter = "IQ recordings|*.bin;*.iq;*.raw;*.cu8;*.cs8;*.cs16;*.cf32;*.wav|All files|*.*" })
             {
                 if (d.ShowDialog() != DialogResult.OK) return;
@@ -98,7 +100,7 @@ namespace Sidralune.Views
                 int n = FftSize; double fc = (double)_centre.Value * 1e6, sr = (double)_rate.Value * 1e6; int maxB = (int)_maxBlocks.Value;
                 var rows = new List<double[]>();
                 RadioSpectrum spec = null;
-                Tasks.Run("Processing IQ recording", t =>
+                _iqJob.Run("Processing IQ recording", t =>
                 {
                     int every = 1, count = 0;
                     long bytes = new FileInfo(path).Length;
@@ -158,7 +160,7 @@ namespace Sidralune.Views
                             MainForm.Instance.Post(() => { _on = snapshot; PlotSpectrum(); lock (rows) ShowWaterfall(rows.ToList(), n); });
                     }
                 }
-            }, () => { _liveCts = null; MainForm.Instance.Toast("Live capture stopped"); }, ex => { _liveCts = null; MainForm.Instance.Toast("rtl_tcp: " + ex.Message + " (start rtl_tcp first)", Icons.Warning); });
+            }, () => { if (_liveCts == cts) _liveCts = null; MainForm.Instance.Toast("Live capture stopped"); }, ex => { if (_liveCts == cts) _liveCts = null; MainForm.Instance.Toast("rtl_tcp: " + ex.Message + " (start rtl_tcp first)", Icons.Warning); });
         }
 
         private bool TryPointing(out double ra, out double dec)

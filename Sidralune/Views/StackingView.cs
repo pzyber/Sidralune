@@ -23,6 +23,9 @@ namespace Sidralune.Views
         private AstroImage _resultBase;
         private bool _markComet;
         private CalibrationSet _cal;
+        // reading, registering and stacking work on the frame list and settings, so they run one at a time and lock both;
+        // previews keep the newest
+        private readonly JobSlot _job = new JobSlot(), _previewJob = new JobSlot();
         private readonly Slider _sat = new Slider { Minimum = 0, Maximum = 300, Value = 100, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
         private readonly Slider _black = new Slider { Minimum = 0, Maximum = 200, Value = 0, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
         private readonly Slider _mid = new Slider { Minimum = 1, Maximum = 99, Value = 50, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
@@ -95,6 +98,13 @@ namespace Sidralune.Views
             pg.Row("Black point", _black); pg.Row("Midtones", _mid); pg.Row("Saturation", _sat);
             foreach (var tb in new[] { _black, _mid, _sat }) tb.ValueChanged += (s, e) => ApplyPost();
             post.Controls.Add(pg);
+            _job.Guard(actions, _props, post);
+            _job.Changed += () =>
+            {
+                // the frame list stays visible for previews, but its check boxes wait for the job
+                _grid.ReadOnly = _job.Busy;
+                if (!_job.Busy) for (int i = 0; i < _grid.Columns.Count; i++) _grid.Columns[i].ReadOnly = i > 0;
+            };
             var right = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8, 0, 0, 0) };
             right.Controls.Add(settingsCard);
             right.Controls.Add(post);
@@ -121,7 +131,7 @@ namespace Sidralune.Views
         private void AddPaths(IEnumerable<string> paths, FrameKind? kind)
         {
             var list = paths.Where(ImageFile.IsSupported).ToList();
-            Tasks.Run("Reading " + list.Count + " file headers", t => _engine.AddFiles(list, kind), RefreshGrid);
+            _job.Run("Reading " + list.Count + " file headers", t => _engine.AddFiles(list, kind), RefreshGrid);
         }
 
         private void LoadMasters()
@@ -197,18 +207,18 @@ namespace Sidralune.Views
             var fr = _grid.SelectedRows[0].Tag as StackFrame;
             if (fr == null || fr == _previewFrame) return; // refreshing the list keeps the frame already shown
             _previewFrame = fr;
-            Tasks.Run("Loading preview", t =>
+            AstroImage img = null;
+            _previewJob.Replace("Loading preview", t =>
             {
-                var img = ImageFile.Load(fr.Path);
+                img = ImageFile.Load(fr.Path);
                 if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.SuperPixel);
-                MainForm.Instance.Post(() => { _preview = img; _viewer.SetImage(img); });
-            });
+            }, () => { _preview = img; _viewer.SetImage(img); });
         }
 
         private void Register()
         {
             if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
-            Tasks.Run("Registering", t =>
+            _job.Run("Registering", t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
                 _cal = _engine.BuildCalibration(prog, t.Cts.Token);
@@ -219,7 +229,8 @@ namespace Sidralune.Views
         private void Stack()
         {
             if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
-            Tasks.Run("Stacking", t =>
+            StackResult result = null;
+            _job.Run("Stacking", t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
                 var start = DateTime.Now;
@@ -228,10 +239,11 @@ namespace Sidralune.Views
                     _cal = _engine.BuildCalibration(prog, t.Cts.Token);
                     _engine.Register(_cal, prog, t.Cts.Token);
                 }
-                _result = _engine.Stack(_cal, prog, t.Cts.Token, start);
-                _resultBase = _result.Image;
+                result = _engine.Stack(_cal, prog, t.Cts.Token, start);
             }, () =>
             {
+                _result = result;
+                _resultBase = result.Image;
                 _black.Value = 0; _mid.Value = 50; _sat.Value = 100;
                 _viewer.SetImage(_result.Image);
                 RefreshGrid();
