@@ -6,13 +6,16 @@ using Sidralune.Science.Photometry;
 using Sidralune.Science.Radio;
 using Sidralune.Science.SolarSystem;
 using Sidralune.Science.Spectroscopy;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class ScienceTests
+    [TestClass]
+    public class ScienceTests : TestBase
     {
-        public static void TestGalileanMoons()
+        [TestMethod]
+        public void TestGalileanMoons()
         {
             // Meeus example 44.a, 1992 Dec 16 0h UT (JDE 2448972.50068)
             var m = GalileanMoons.Positions(2448972.50068);
@@ -22,7 +25,8 @@ namespace Sidralune.Tests
             Check("Callisto X", m[3].X, 7.08, 0.02); Check("Callisto Y", m[3].Y, 1.10, 0.02);
         }
 
-        public static void TestPeriodograms()
+        [TestMethod]
+        public void TestPeriodograms()
         {
             var rng = new Random(2);
             var t = new List<double>(); var y = new List<double>(); var e = new List<double>();
@@ -45,7 +49,8 @@ namespace Sidralune.Tests
             Check("Depth ≈ p² (limb darkened slightly deeper)", model.Depth, 0.0144 * 1.15, 0.004);
         }
 
-        public static void TestTransitFit()
+        [TestMethod]
+        public void TestTransitFit()
         {
             var truth = new TransitModel { T0 = 0.0, Period = 2.2, Rp = 0.1, A = 8, Inclination = 87.5, U1 = 0.45, U2 = 0.2 };
             var rng = new Random(4);
@@ -58,7 +63,8 @@ namespace Sidralune.Tests
             Check("Transit Rp/Rs", fit.Rp, 0.1, 0.004);
         }
 
-        public static void TestKweeVanWoerden()
+        [TestMethod]
+        public void TestKweeVanWoerden()
         {
             var t = new List<double>(); var m = new List<double>();
             for (double ti = 0.4; ti <= 0.6; ti += 0.002) { t.Add(ti); m.Add(10 + 0.8 * Math.Exp(-Math.Pow((ti - 0.5123) / 0.02, 2))); }
@@ -67,7 +73,8 @@ namespace Sidralune.Tests
             Check("KvW time of minimum", tmin, 0.5123, 0.0005);
         }
 
-        public static void TestSpectroscopy()
+        [TestMethod]
+        public void TestSpectroscopy()
         {
             // synthetic neon lamp with dispersion 2.1 Å/px starting at 5800 Å plus slight curvature
             int n = 1200;
@@ -97,7 +104,8 @@ namespace Sidralune.Tests
             Check("Blackbody temperature", SpectroTools.BlackbodyTemperature(bb, out scale), 9500, 200);
         }
 
-        public static void TestRadio()
+        [TestMethod]
+        public void TestRadio()
         {
             Check("HPBW 3 m dish at 1420 MHz (deg)", RadioMath.BeamWidthDeg(1420.405751768e6, 3.0), 4.93, 0.05);
             var d = VelocityFrames.KinematicDistances(30, VelocityFrames.ModelVlsr(30, 0, 4.0));
@@ -106,7 +114,8 @@ namespace Sidralune.Tests
             Check("Dispersion delay (DM 10, 400->800 MHz)", TimeDomainRadio.DispersionDelay(10, 400, 800), 0.1944, 0.001);
         }
 
-        public static void TestMpcFormat()
+        [TestMethod]
+        public void TestMpcFormat()
         {
             var o = new AstrometricObservation { PackedNumber = "00433", TimeUtc = new DateTime(2025, 3, 10, 21, 34, 56, DateTimeKind.Utc), RaDeg = 123.456789, DecDeg = -12.345678, Mag = 14.2, Band = "G", Station = "Z80" };
             string line = MpcReporting.Obs80(o);

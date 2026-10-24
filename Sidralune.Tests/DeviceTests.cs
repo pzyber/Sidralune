@@ -6,13 +6,16 @@ using Sidralune.Core.Catalogs;
 using Sidralune.Devices;
 using Sidralune.Devices.Automation;
 using Sidralune.Devices.Simulators;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class DeviceTests
+    [TestClass]
+    public class DeviceTests : TestBase
     {
-        public static void TestSimulatedObservatory()
+        [TestMethod]
+        public void TestSimulatedObservatory()
         {
             CatalogManager.Instance.LoadBuiltIn();
             var dm = new DeviceManager();
@@ -39,7 +42,8 @@ namespace Sidralune.Tests
             dm.DisconnectAll();
         }
 
-        public static void TestSequenceSerialization()
+        [TestMethod]
+        public void TestSequenceSerialization()
         {
             var seq = Sequencer.Template("M 31", 10.684, 41.269);
             string p = Path.Combine(Path.GetTempPath(), "SidraluneTests", "seq.json");
@@ -72,7 +76,8 @@ namespace Sidralune.Tests
             return folder;
         }
 
-        public static void TestVideoRegions()
+        [TestMethod]
+        public void TestVideoRegions()
         {
             int w, h;
             VideoRequest.ParseRegion("Full sensor", out w, out h);
@@ -92,7 +97,8 @@ namespace Sidralune.Tests
                 && conv.GetStandardValues(null).Cast<string>().SequenceEqual(VideoRequest.Regions));
         }
 
-        public static void TestVideoRecording()
+        [TestMethod]
+        public void TestVideoRecording()
         {
             var dm = VideoObservatory();
             string folder = EmptyFolder("video");
@@ -133,7 +139,8 @@ namespace Sidralune.Tests
             dm.DisconnectAll();
         }
 
-        public static void TestVideoRecordingStop()
+        [TestMethod]
+        public void TestVideoRecordingStop()
         {
             var dm = VideoObservatory();
             string folder = EmptyFolder("video-stop");
@@ -160,7 +167,8 @@ namespace Sidralune.Tests
             CheckTrue("Recording without a camera fails", cap.RecordVideo(req, null, CancellationToken.None).Exception?.InnerException is InvalidOperationException);
         }
 
-        public static void TestRecordVideoInstruction()
+        [TestMethod]
+        public void TestRecordVideoInstruction()
         {
             var dm = VideoObservatory();
             string folder = EmptyFolder("video-sequence");

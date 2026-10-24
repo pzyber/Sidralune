@@ -4,13 +4,16 @@ using System.IO;
 using Sidralune.Core.Catalogs;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Util;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class CatalogTests
+    [TestClass]
+    public class CatalogTests : TestBase
     {
-        public static void TestInsideSphericalAntipode()
+        [TestMethod]
+        public void TestInsideSphericalAntipode()
         {
             // 10° square around RA 0h, Dec 0°: the point itself is inside, its antipode must not be
             var sq = new List<double[]>();
@@ -21,7 +24,8 @@ namespace Sidralune.Tests
             CheckTrue("Far point outside", !CatalogManager.InsideSpherical(20 * AstroMath.Deg2Rad, 0, sq));
         }
 
-        public static void TestConstellationBoundaries()
+        [TestMethod]
+        public void TestConstellationBoundaries()
         {
             var ds = DataManager.Get("bounds");
             if (ds == null || !ds.Installed) { Info("constellation_boundaries.dat not installed, skipped"); return; }

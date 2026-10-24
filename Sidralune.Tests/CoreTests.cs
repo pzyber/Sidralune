@@ -4,13 +4,16 @@ using Sidralune.Core.Coordinates;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
-using static Sidralune.Tests.Program;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Sidralune.Tests.Checks;
 
 namespace Sidralune.Tests
 {
-    public static class CoreTests
+    [TestClass]
+    public class CoreTests : TestBase
     {
-        public static void TestJulianDate()
+        [TestMethod]
+        public void TestJulianDate()
         {
             Check("JD 1957-10-04.81", AstroTime.CalendarToJd(1957, 10, 4.81), 2436116.31, 1e-6);
             Check("JD 333-01-27.5", AstroTime.CalendarToJd(333, 1, 27.5), 1842713.0, 1e-6);
@@ -19,7 +22,8 @@ namespace Sidralune.Tests
             Check("Cal year", y, 1957, 0); Check("Cal month", m, 10, 0); Check("Cal day", d, 4.81, 1e-6);
         }
 
-        public static void TestSiderealTime()
+        [TestMethod]
+        public void TestSiderealTime()
         {
             // Meeus 12.a: 1987 April 10, 0h UT -> GMST 13h10m46.3668s
             var t = new AstroTime(2446895.5);
@@ -27,7 +31,8 @@ namespace Sidralune.Tests
             Check("GMST 1987-04-10 (h)", gmstH, 13 + 10 / 60.0 + 46.3668 / 3600.0, 2.0 / 3600.0);
         }
 
-        public static void TestNutation()
+        [TestMethod]
+        public void TestNutation()
         {
             double T = (2446895.5 - 2451545.0) / 36525.0;
             double dpsi, deps;
@@ -37,7 +42,8 @@ namespace Sidralune.Tests
             Check("ε0 (deg)", Precession.MeanObliquity(T) * AstroMath.Rad2Deg, 23 + 26 / 60.0 + 27.407 / 3600.0, 0.5 / 3600.0);
         }
 
-        public static void TestPrecession()
+        [TestMethod]
+        public void TestPrecession()
         {
             // Meeus 21.b: θ Persei J2000 RA 2h44m11.986s Dec +49°13'42.48" (with PM) -> 2028 Nov 13.19
             // without PM check: precess and back must be identity
@@ -55,7 +61,8 @@ namespace Sidralune.Tests
             Check("θ Per Dec 2028 (deg)", d2 * AstroMath.Rad2Deg, 49.348483, 0.0005);
         }
 
-        public static void TestMoon()
+        [TestMethod]
+        public void TestMoon()
         {
             // Meeus 47.a: 1992 April 12, 0h TD
             double lon, lat, dist;
@@ -65,7 +72,8 @@ namespace Sidralune.Tests
             Check("Moon Δ (km)", dist, 368409.7, 0.2);
         }
 
-        public static void TestSun()
+        [TestMethod]
+        public void TestSun()
         {
             // Meeus 25.a/b: 1992 Oct 13.0 TD: apparent λ = 199°54'21.818" (VSOP87: 199.907372)
             double l, b, r;
@@ -74,7 +82,8 @@ namespace Sidralune.Tests
             Check("Sun R (AU)", r, 0.99760775, 0.0001);
         }
 
-        public static void TestVenusApparent()
+        [TestMethod]
+        public void TestVenusApparent()
         {
             // Meeus 33.a: Venus 1992 Dec 20 0h TD apparent RA 21h04m41.454s, Dec -18°53'16.84"
             var t = AstroTime.FromTT(2448976.5);
@@ -92,7 +101,8 @@ namespace Sidralune.Tests
             Check("Venus Δ (AU)", d.Length, 0.910845, 0.0005);
         }
 
-        public static void TestKepler()
+        [TestMethod]
+        public void TestKepler()
         {
             // Meeus 30.a: e=0.100, M=5° -> E = 5.554589°
             Check("Kepler E (deg)", Kepler.SolveElliptic(5 * AstroMath.Deg2Rad, 0.1) * AstroMath.Rad2Deg, 5.554589, 1e-6);
@@ -118,7 +128,8 @@ namespace Sidralune.Tests
             Check("Hyperbolic vis-viva", v2, AstroMath.GM_Sun * (2 / r - 1 / a), 1e-12);
         }
 
-        public static void TestOrbitRoundtrip()
+        [TestMethod]
+        public void TestOrbitRoundtrip()
         {
             var el = OrbitalElements.FromMeanAnomaly(2451545.0, 2.7, 0.25, 12, 80, 70, 33);
             Vec3 p, v;
@@ -132,7 +143,8 @@ namespace Sidralune.Tests
             Check("Tp roundtrip", el2.PerihelionTime, el.PerihelionTime, 1e-5);
         }
 
-        public static void TestRiseSet()
+        [TestMethod]
+        public void TestRiseSet()
         {
             // Sanity: Sun at Greenwich around equinox rises ~6h UT, sets ~18h UT
             var obs = new Observer { LatitudeDeg = 51.4769, LongitudeDeg = 0, ElevationM = 0 };
@@ -142,7 +154,8 @@ namespace Sidralune.Tests
             if (rs.Set.HasValue) Check("Sunset UT hour", (rs.Set.Value.JdUtc - AstroTime.CalendarToJd(2024, 3, 20.0)) * 24, 18.22, 0.15);
         }
 
-        public static void TestMoonPhases()
+        [TestMethod]
+        public void TestMoonPhases()
         {
             // Meeus 49.a: New Moon 1977 Feb 18 03:37:42 TD -> JDE 2443192.65118
             var ph = Events.MoonPhases(2443190, 2443195);
@@ -153,7 +166,8 @@ namespace Sidralune.Tests
             if (seasons.Count > 1) Check("June solstice 1962 JDE", seasons[1].Time.JdTT, 2437837.39245, 0.002);
         }
 
-        public static void TestSexagesimal()
+        [TestMethod]
+        public void TestSexagesimal()
         {
             Check("Parse hms", AstroMath.ParseSexagesimal("12h 30m 36s"), 12.51, 1e-9);
             Check("Parse dms", AstroMath.ParseSexagesimal("-05° 30' 00\""), -5.5, 1e-9);
@@ -162,7 +176,8 @@ namespace Sidralune.Tests
             CheckTrue("Format hms", AstroMath.FormatHms(5.5, 1) == "05h 30m 00.0s", AstroMath.FormatHms(5.5, 1));
         }
 
-        public static void TestFft()
+        [TestMethod]
+        public void TestFft()
         {
             int n = 100; // non power of two -> Bluestein
             var re = new double[n]; var im = new double[n];
@@ -173,7 +188,8 @@ namespace Sidralune.Tests
             Check("IFFT roundtrip", re[3], Math.Cos(2 * Math.PI * 7 * 3 / n), 1e-9);
         }
 
-        public static void TestLevenbergMarquardt()
+        [TestMethod]
+        public void TestLevenbergMarquardt()
         {
             // fit gaussian
             int n = 50;
@@ -185,7 +201,8 @@ namespace Sidralune.Tests
             Check("LM sigma", Math.Abs(r.Parameters[2]), 4.1, 1e-5);
         }
 
-        public static void TestCoordinateTransforms()
+        [TestMethod]
+        public void TestCoordinateTransforms()
         {
             double l, b;
             // Galactic centre approx RA 17h45m40s Dec -29°00'28"
