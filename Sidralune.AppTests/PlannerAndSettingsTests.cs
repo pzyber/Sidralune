@@ -97,6 +97,11 @@ namespace Sidralune.AppTests
                 var colours = typeof(Palette).GetFields().Where(f => f.FieldType == typeof(System.Drawing.Color)).Select(f => new { f.Name, C = (System.Drawing.Color)f.GetValue(p) }).ToList();
                 var bad = colours.Where(c => c.C.G > c.C.R || c.C.B > c.C.R).Select(c => c.Name).ToList();
                 CheckTrue("Night palette has no colour with more green or blue than red", bad.Count == 0, string.Join(", ", bad));
+                // the Milky Way band must stand out from the night sky at least as much as it does by day
+                var day = Palette.Dark();
+                Func<System.Drawing.Color, int> top = c => Math.Max(c.R, Math.Max(c.G, c.B));
+                int dayLift = top(day.MilkyWay) - top(day.SkyNight), nightLift = p.MilkyWay.R - p.SkyNight.R;
+                CheckTrue("Milky Way as visible at night as by day", nightLift >= dayLift, nightLift + " vs " + dayLift);
             }
             finally { OnUi(() => App.SetNightMode(false)); }
             CheckTrue("Day palette back", OnUi(() => !Theme.Current.IsNight && !check.Checked));

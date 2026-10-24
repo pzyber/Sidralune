@@ -55,7 +55,7 @@ namespace Sidralune.UI
                 Success = r(0xC0), Warning = r(0xE0), Danger = r(0xFF), Info = r(0xB0), Focus = r(0xFF),
                 ChartBackground = C(0x05, 0, 0), ChartGrid = r(0x30), ChartText = r(0xA0),
                 SkyDay = r(0x30), SkyNight = C(0x03, 0, 0), Ground = C(0x10, 0, 0), Horizon = r(0x60),
-                ConstellationLine = r(0x60), ConstellationBoundary = r(0x38), ConstellationName = r(0x80), GridEquatorial = r(0x30), GridAltAz = r(0x2C), Ecliptic = r(0x50), GalacticEquator = r(0x40), MilkyWay = r(0x14),
+                ConstellationLine = r(0x60), ConstellationBoundary = r(0x38), ConstellationName = r(0x80), GridEquatorial = r(0x30), GridAltAz = r(0x2C), Ecliptic = r(0x50), GalacticEquator = r(0x40), MilkyWay = r(0x30), // as far above the night sky as the day band is
                 Planet = r(0xFF), Moon = r(0xE0), Sun = r(0xFF), Galaxy = r(0xC0), Nebula = r(0xB0), Cluster = r(0xD0), PlanetaryNebula = r(0xC8), Comet = r(0xD0), Asteroid = r(0xB8),
                 Selection = r(0xFF), FovOverlay = r(0xE8),
                 Series = new[] { r(0xFF), r(0xB0), r(0xD8), r(0x88), r(0xE8), r(0xA0), r(0xC0) }
