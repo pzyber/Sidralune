@@ -38,9 +38,8 @@ namespace Sidralune.Views
             var undo = btn(null, Icons.Undo, "Undo (Ctrl+Z)", Undo);
             var redo = btn(null, Icons.Redo, "Redo (Ctrl+Y)", Redo);
             bar.Controls.Add(Ui.Separator());
-            var stretch = Ui.EnumCombo(DisplayStretch.AutoLinked);
+            var stretch = Ui.StretchCombo(DisplayStretch.AutoLinked, v => _viewer.Stretch = v);
             stretch.Width = 130;
-            stretch.SelectedIndexChanged += (s, e) => _viewer.Stretch = (DisplayStretch)stretch.SelectedItem;
             bar.Controls.Add(new Label { Text = "Display", AutoSize = true, Margin = new Padding(4, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(stretch);
             var inv = new FlatButton { Text = "Invert", Toggle = true }; inv.AutoSizeToText();

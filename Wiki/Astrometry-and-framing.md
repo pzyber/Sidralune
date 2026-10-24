@@ -48,6 +48,7 @@ Hints make solving faster and more reliable:
 | **Search radius (°)** | How far from the hint to search |
 | **Scale ("/px, 0=auto)** | Image scale in arcseconds per pixel. Filled in from `FOCALLEN` and `XPIXSZ` when present. 0 means unknown |
 | **SIP order** | Distortion polynomial order: 0 (none) to 4. 2 suits most telescopes; use 3–4 for camera lenses and wide fields |
+| **Display** | How the image is shown: **Auto linked** (the default: an automatic stretch that brings out the faint stars of unprocessed data), **Auto unlinked** (each colour stretched separately) or **None** (as stored, for images that are already processed). Solving always uses the image's own values |
 | **Minor body labels** | Which minor bodies a solved image labels: **All in the field** (the default), **Bright enough to show**, or **None**. Changing it relabels the image at once, without solving again, and the choice is remembered |
 
 Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by Sidralune's [Observatory](Observatory-and-devices#fits-headers) already contain everything needed.

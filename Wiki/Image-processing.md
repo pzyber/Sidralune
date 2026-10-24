@@ -39,7 +39,7 @@ Display controls change only what you see, never the data.
 
 | Control | Effect |
 |---|---|
-| **Display** | None (raw values), AutoLinked (automatic stretch, same for all channels), AutoUnlinked (each channel stretched separately, which hides colour casts) or Custom |
+| **Display** | **Auto linked** (automatic stretch, the same for all colours, so the colour balance is kept), **Auto unlinked** (each colour stretched separately, which hides colour casts such as the green of a raw image) or **None** (the values as they are, best for images that are already stretched). It only changes what you see, not the image |
 | **Invert** | Show a negative, useful for spotting faint nebulosity and gradients |
 | **False colour** | Map brightness to a colour scale to reveal gradients and faint structure |
 | **WCS grid** | Draw an RA/Dec grid on plate-solved images |
