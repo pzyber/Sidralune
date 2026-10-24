@@ -78,16 +78,18 @@ Containers can be nested, for example a loop of filters inside a target inside a
 | **Center target** ("Slew, plate solve & center") | Slews, plate-solves, syncs and re-slews until the target is centred | **Tolerance arcmin** (1), **Exposure** (5 s), **Bin** (2) |
 | **Start guiding** | Starts PHD2 guiding | **Force calibration** |
 | **Stop guiding** | Stops guiding | |
-| **Take exposures** ("Expose … frames") | Takes a series of frames and saves them | **Count**, **Exposure**, **Filter**, **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Frame type** (LIGHT, DARK, FLAT, BIAS), **Dither every** N frames, **Dither pixels** |
+| **Take exposures** ("Expose … frames") | Takes a series of frames and saves them | **Count**, **Exposure**, **Filter**, **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Frame type** (chosen from a list: LIGHT, DARK, FLAT, BIAS), **Dither every** N frames, **Dither pixels** |
 | **Record video** | Records a [planetary SER video](Observatory-and-devices#planetary-video), named after the target and saved under `Planetary\<target>\` | **Exposure ms**, **Region** (centred on the sensor, the same choices as in the Imaging tab: **Full sensor** or 1920 × 1080 down to 320 × 240), **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Filter**, **Max frames**, **Max seconds** (stops at whichever comes first) |
 | **Run autofocus** | Runs the V-curve autofocus routine | **Exposure**, **Step size**, **Steps** |
-| **Switch filter** | Moves the filter wheel | **Filter** name |
+| **Switch filter** | Moves the filter wheel | **Filter** name, chosen from the wheel's filters |
 | **Cool camera** / **Warm camera** | Ramps the sensor temperature gradually | **Temperature**, **Minutes**, **Warm** |
 | **Wait** | Pauses | **Kind**: Seconds, UntilTime, UntilAltitude (target above **Altitude deg**), UntilAstronomicalDusk, UntilNauticalDusk, UntilSafe (safety monitor reports safe) |
 | **Park telescope** / **Unpark telescope** | Parks or unparks the mount | **Unpark** |
 | **Dome shutter** ("Open dome" / "Close dome") | Opens or closes the dome shutter or roof | **Open** |
-| **Run script** ("Run external program") | Runs a program or batch file, for example to switch dew heaters or send a notification | **Command**, **Arguments**, **Timeout sec** |
+| **Run script** ("Run external program") | Runs a program or batch file, for example to switch dew heaters or send a notification | **Command** (click **…** to choose the file), **Arguments**, **Timeout sec** |
 | **Annotation** ("Note") | Writes a note to the log; does nothing else | **Text** |
+
+The **Filter** of an instruction is chosen from the connected filter wheel's filters (the simulator's L, R, G, B, Ha, OIII and SII when no wheel is connected), and another name can still be typed for a wheel that is not connected while you edit. In **Take exposures** and **Record video** the empty choice keeps the current filter.
 
 For a planetary rotation series, put **Record video** in a **Loop** with a **Wait** after it, for example a 90-second video every 5 minutes until the planet sinks below 25°. With a filter wheel, use one **Record video** per filter (R, G, B) in the loop. The videos are named in the WinJUPOS style, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab can combine them later.
 

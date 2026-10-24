@@ -28,6 +28,9 @@ namespace Sidralune.Devices.Automation
         public string Target = "";
         public bool Save = true;
         public int[] SubFrame; // x, y, w, h
+
+        /// <summary>Frame types of saved frames, in the Imaging tab and the sequencer (Imaging also offers SNAPSHOT).</summary>
+        public static readonly string[] FrameTypes = { "LIGHT", "DARK", "FLAT", "BIAS" };
     }
 
     /// <summary>Planetary video recording: short exposures back to back, written straight to a SER file.</summary>

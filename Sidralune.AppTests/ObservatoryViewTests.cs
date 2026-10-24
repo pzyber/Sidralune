@@ -96,6 +96,26 @@ namespace Sidralune.AppTests
                 tree.SelectedNode = tree.Nodes[0].Nodes[0];
             });
             CheckTrue("The selected instruction's properties are shown", OnUi(() => grid.SelectedObject is GridAdapter));
+            var take = new TakeExposures();
+            var frameType = System.ComponentModel.TypeDescriptor.GetProperties(new GridAdapter(take, "Instruction"))["FrameType"];
+            CheckTrue("Frame type is a drop-down in the properties", frameType.Converter is FrameTypeConverter && frameType.Converter.GetStandardValuesExclusive());
+            try
+            {
+                OnUi(() => Devices.DeviceManager.Instance.Connect(new Devices.DeviceInfo { Kind = Devices.DeviceKind.FilterWheel, Protocol = Devices.DeviceProtocol.Simulator }));
+                var filter = System.ComponentModel.TypeDescriptor.GetProperties(new GridAdapter(new SwitchFilter(), "Instruction"))["Filter"];
+                var names = filter.Converter.GetStandardValues().Cast<string>().ToList();
+                CheckTrue("Filter drop-down lists the connected wheel's filters", names.SequenceEqual(Devices.DeviceManager.Instance.FilterWheel.Names) && !filter.Converter.GetStandardValuesExclusive(), string.Join(", ", names));
+            }
+            finally { Devices.DeviceManager.Instance.Disconnect(Devices.DeviceKind.FilterWheel); }
+            var command = System.ComponentModel.TypeDescriptor.GetProperties(new GridAdapter(new RunScript(), "Instruction"))["Command"];
+            CheckTrue("Program path opens a file picker", command.GetEditor(typeof(System.Drawing.Design.UITypeEditor)) != null && command.GetEditor(typeof(System.Drawing.Design.UITypeEditor)).GetType().Name == "FileNameEditor");
+            var imagingTypes = OnUi(() =>
+            {
+                var label = Find<Label>(view, l => l.Text == "Frame type");
+                var row = (TableLayoutPanel)label.Parent;
+                return ((ComboBox)row.GetControlFromPosition(1, row.GetRow(label))).Items.Cast<object>().Select(o => o.ToString()).ToList();
+            });
+            CheckTrue("Imaging offers the same frame types plus SNAPSHOT", imagingTypes.SequenceEqual(ExposureRequest.FrameTypes.Concat(new[] { "SNAPSHOT" })), string.Join(", ", imagingTypes));
         }
 
         private static int Count(TreeNodeCollection n) => n.Cast<TreeNode>().Sum(x => 1 + Count(x.Nodes));
