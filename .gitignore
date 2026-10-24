@@ -429,3 +429,5 @@ FodyWeavers.xsd
 
 #
 References/
+# Optional camera files for Cr3Tests (large, kept local)
+Sidralune.Tests/TestData/

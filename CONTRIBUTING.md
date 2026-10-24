@@ -241,7 +241,7 @@ Every part of the libraries has tests, grouped by area:
 | File | Covers |
 |---|---|
 | `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
-| `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs` | Image files, debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
+| `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `Cr3Tests.cs` | Image files (including Canon CR3 through a small CR3 writer), debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
 | `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
 | `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture and video recording, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
 
@@ -265,7 +265,7 @@ Rules for tests:
 - A change to a workspace comes with an application test, and a new workspace is added to the checks in `ViewTests.cs`. Run the affected test class while you work on it, for example `/TestCaseFilter:"FullyQualifiedName~PlannerAndSettingsTests"`.
 - Compare numbers with a tolerance and format expected text with the current culture or `CultureInfo.InvariantCulture`, so the tests pass on any system language.
 - Prefer independent references (published examples, a brute-force computation, a round trip) over the code's own output.
-- If a test needs an optional dataset, skip it with an `Info` message when the dataset is missing, as `CatalogTests.TestConstellationBoundaries` does.
+- If a test needs an optional dataset, skip it with an `Info` message when the dataset is missing, as `CatalogTests.TestConstellationBoundaries` does. `Cr3Tests.TestCr3CameraFiles` reads any camera files in `Sidralune.Tests\TestData\Cr3` the same way; that folder is ignored by git, so large sample files stay on your own machine.
 
 All tests must pass before a pull request is merged.
 

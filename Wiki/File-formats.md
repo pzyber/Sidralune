@@ -19,6 +19,7 @@ Sidralune reads and writes the standard formats of amateur and professional astr
 | TIFF | `.tif`, `.tiff` | Yes | Yes | 8-, 16- and 32-bit integer and 32/64-bit float, mono and RGB, chunky or planar, strips or tiles, uncompressed, LZW, Deflate and PackBits. Written as 16-bit or 32-bit float |
 | DNG | `.dng` | Yes | | Raw CFA data, including lossless-JPEG compressed tiles |
 | Canon CR2 | `.cr2` | Yes | | Raw sensor data (lossless JPEG with slices) |
+| Canon CR3 | `.cr3` | Yes | | Full-size RAW (tested with the EOS Ra), read with Sidralune's own decoder. The masked border is cropped off and its level subtracted as the black level; exposure, ISO, date and camera come from the file. Compressed C-RAW files, and files written with the newer revision of Canon's codec, are not read yet: convert those to DNG with Adobe DNG Converter |
 | PNG | `.png` | Yes | Yes | 8-bit; written with the display stretch applied |
 | JPEG | `.jpg`, `.jpeg` | Yes | Yes | 8-bit; written with the display stretch applied |
 | BMP | `.bmp` | Yes | | |
