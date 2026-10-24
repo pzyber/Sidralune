@@ -86,6 +86,9 @@ The user manual is the `Wiki` folder, written in GitHub-flavoured Markdown and p
 
 ## Contributing code
 
+> [!NOTE]  
+> Pull requsts will be locked until December 14th.
+
 Bug fixes, new algorithms, device support, performance work and tests are all welcome. For anything larger than a small fix, open an issue first and describe what you plan to do. That avoids two people working on the same thing, or work that does not fit the project.
 
 ### Setting up
