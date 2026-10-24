@@ -203,8 +203,8 @@ If you believe a dependency is truly necessary, open an issue to discuss it befo
 
 The tests use MSTest, Visual Studio's own test framework (`Microsoft.VisualStudio.QualityTools.UnitTestFramework`, included with Visual Studio 2015 or later; no NuGet packages). There are two test projects, run in this order:
 
-1. `Sidralune.Tests` tests the libraries. It does not depend on the application, so it runs before the application is built.
-2. `Sidralune.AppTests` tests the application. It references `Sidralune.exe`, so building it builds the application first.
+1. `Sidralune.Tests` tests the libraries (two to three minutes). It does not depend on the application, so it runs before the application is built.
+2. `Sidralune.AppTests` tests the application (about a minute). It references `Sidralune.exe`, so building it builds the application first.
 
 A test class derives from `TestBase` and is marked `[TestClass]`; each test is a `[TestMethod]`. A test makes many checks with the helpers in `Checks.cs` (shared by both projects). Every check is printed in the test's output, a failed check does not stop the test, and the test fails at the end with the list of every failed check:
 
@@ -231,7 +231,7 @@ msbuild Sidralune.AppTests\Sidralune.AppTests.csproj
 "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.AppTests\bin\Debug\Sidralune.AppTests.dll
 ```
 
-Run a subset while you work with a filter, for example `/TestCaseFilter:"FullyQualifiedName~Horizons"` or `/Tests:TestPhd2`. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there. The library tests take two to three minutes, the application tests about one.
+Run a subset while you work with a filter, for example `/TestCaseFilter:"FullyQualifiedName~Horizons"` or `/Tests:TestPhd2`. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there. The library tests take two to three minutes, the application tests about one. Visual Studio 2015's command-line runner waits for ever if a test process dies; the application tests record such a crash in `%TEMP%\SidraluneAppTests-crash.txt`, and a test whose UI thread stops answering fails after a minute.
 
 Every part of the libraries has tests, grouped by area:
 
@@ -251,6 +251,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `PlannerAndSettingsTests.cs` | Observing lists, sites, night mode in sync everywhere and the night palette |
 | `ControlsTests.cs` | Buttons, tabs, collapsible sections, form grids, time fields, sliders, status pills, notifications, the property-grid adapter |
 | `ViewTests.cs` | Every workspace opens without errors, in night mode and at the smallest window size, and the commands |
+| `TimeAxisTests.cs` | Time axes across daylight saving changes: the altitude charts never run backwards, ticks follow the local clock |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, messages for missing devices, sequence editing |
 
 Rules for tests:
@@ -258,7 +259,7 @@ Rules for tests:
 - A new feature or fix comes with tests in the same change, and a fixed bug gets a test that fails without the fix.
 - Tests must run offline and without equipment. Test devices against the simulators, protocols against a stand-in server on `127.0.0.1` (see `DeviceProtocolTests.cs`), and ASCOM drivers against a stand-in object (the wrappers call drivers through `dynamic`).
 - Write files only under `%TEMP%\SidraluneTests` (or `%TEMP%\SidraluneAppTests` for the application tests), never in the user's image folder or settings; set `AppPaths.Root` to a temporary folder when a test needs it, and restore it afterwards.
-- A change to a workspace comes with an application test, and a new workspace is added to the checks in `ViewTests.cs`.
+- A change to a workspace comes with an application test, and a new workspace is added to the checks in `ViewTests.cs`. Run the affected test class while you work on it, for example `/TestCaseFilter:"FullyQualifiedName~PlannerAndSettingsTests"`.
 - Compare numbers with a tolerance and format expected text with the current culture or `CultureInfo.InvariantCulture`, so the tests pass on any system language.
 - Prefer independent references (published examples, a brute-force computation, a round trip) over the code's own output.
 - If a test needs an optional dataset, skip it with an `Info` message when the dataset is missing, as `CatalogTests.TestConstellationBoundaries` does.

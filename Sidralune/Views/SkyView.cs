@@ -279,22 +279,24 @@ namespace Sidralune.Views
             var local = site.ToLocal(start.ToDateTimeUtc());
             var noon = site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12));
             var series = _alt.AddSeries(o.Name);
+            // UTC on the axis, labelled with the site's clock: a daylight saving change must not fold the curve
+            _alt.TimeZone = site.TimeZone;
             for (int i = 0; i <= 96; i++)
             {
                 var t = AstroTime.FromDateTime(noon).AddMinutes(i * 15);
                 double alt = AltitudeAt(o, t);
-                series.Add(site.ToLocal(t.ToDateTimeUtc()).ToOADate(), alt);
+                series.Add(t.ToDateTimeUtc().ToOADate(), alt);
             }
             var tw = AstroEvents.Twilight(site, AstroTime.FromDateTime(noon));
             Action<AstroTime?, AstroTime?, int> band = (a, b2, alpha) =>
             {
-                if (a.HasValue && b2.HasValue) _alt.Bands.Add(new PlotBand { X0 = site.ToLocal(a.Value.ToDateTimeUtc()).ToOADate(), X1 = site.ToLocal(b2.Value.ToDateTimeUtc()).ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) });
+                if (a.HasValue && b2.HasValue) _alt.Bands.Add(new PlotBand { X0 = a.Value.ToDateTimeUtc().ToOADate(), X1 = b2.Value.ToDateTimeUtc().ToOADate(), ThemeColor = pal => Theme.WithAlpha(pal.Accent, alpha) });
             };
             band(tw.SunSet, tw.SunRise, 18);
             band(tw.NauticalDusk, tw.NauticalDawn, 18);
             band(tw.AstronomicalDusk, tw.AstronomicalDawn, 22);
             _alt.FixedYMin = 0; _alt.FixedYMax = 90;
-            _alt.Markers.Add(new PlotMarker { X = site.ToLocal(AppState.Now.ToDateTimeUtc()).ToOADate(), Label = "now" });
+            _alt.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = "now" });
             _alt.Invalidate();
         }
 
