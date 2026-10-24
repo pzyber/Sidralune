@@ -63,7 +63,7 @@ You need either dark flats or bias frames for the flats. With cooled cameras you
 | **Bias / offset frames…** | Bias frames |
 | **Master frames (FITS)…** | Ready-made master bias, dark or flat files. The type is taken from the file name (it must contain "bias", "dark" or "flat") |
 
-Supported formats are FITS, XISF, TIFF, DNG, CR2 and CR3 raw files, and PNG, JPEG and BMP. Colour (Bayer) sensors are detected from the FITS `BAYERPAT` keyword or the raw file, and debayered after calibration. You can also drag files onto the preview.
+Supported formats are FITS, XISF, TIFF, DNG, CRW, CR2 and CR3 raw files, and PNG, JPEG and BMP. Colour (Bayer) sensors are detected from the FITS `BAYERPAT` keyword or the raw file, and debayered after calibration. You can also drag files onto the preview.
 
 ## The frame list
 

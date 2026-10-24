@@ -134,7 +134,7 @@ See [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observato
 
 | Kind | Read | Write |
 |---|---|---|
-| Images | FITS (8/16/32-bit integer, 32/64-bit float), XISF (including zlib and LZ4 compression), TIFF, PNG, JPEG, BMP, DNG, CR2, CR3 | FITS, XISF, TIFF, PNG, JPEG |
+| Images | FITS (8/16/32-bit integer, 32/64-bit float), XISF (including zlib and LZ4 compression), TIFF, PNG, JPEG, BMP, DNG, CRW, CR2, CR3 | FITS, XISF, TIFF, PNG, JPEG |
 | Video | SER, AVI (uncompressed RGB or grey, YUY2, MJPEG), image sequences | SER, AVI, FITS/TIFF/PNG sequences |
 | Spectra | FITS 1D, text and CSV | BeSS FITS, text |
 | Data | CSV, text tables, MPC 1-line orbits, CelesTrak TLE, JPL SPK (.bsp) | CSV, AAVSO extended format, MPC 80-column, ADES PSV |

@@ -18,6 +18,7 @@ Sidralune reads and writes the standard formats of amateur and professional astr
 | XISF | `.xisf` | Yes | Yes | Extensible Image Serialization Format, including zlib and LZ4 (and LZ4-HC) compressed data blocks and byte shuffling. Written as 16-bit or 32-bit float, compressed |
 | TIFF | `.tif`, `.tiff` | Yes | Yes | 8-, 16- and 32-bit integer and 32/64-bit float, mono and RGB, chunky or planar, strips or tiles, uncompressed, LZW, Deflate and PackBits. Written as 16-bit or 32-bit float |
 | DNG | `.dng` | Yes | | Raw CFA data, including lossless-JPEG compressed tiles |
+| Canon CRW | `.crw` | Yes | | Raw sensor data from Canon's cameras of 2000-2004, in 10 or 12 bits (tested with the EOS D30, D60, 10D and 300D and the PowerShot G5 and Pro1; older files that do not record their sensor size are not read). Cropped to the visible area with the black level from the masked border subtracted; exposure, ISO, date and camera come from the file |
 | Canon CR2 | `.cr2` | Yes | | Raw sensor data (lossless JPEG with slices) |
 | Canon CR3 | `.cr3` | Yes | | Full-size RAW (tested with the EOS Ra), read with Sidralune's own decoder. The masked border is cropped off and its level subtracted as the black level; exposure, ISO, date and camera come from the file. Compressed C-RAW files, and files written with the newer revision of Canon's codec, are not read yet: convert those to DNG with Adobe DNG Converter |
 | PNG | `.png` | Yes | Yes | 8-bit; written with the display stretch applied |

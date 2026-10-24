@@ -28,7 +28,7 @@ The image fills the centre. The toolbar above it has file, undo and display cont
 
 | Action | How |
 |---|---|
-| Open | **Open** or Ctrl+O. FITS, XISF, TIFF, PNG, JPEG, BMP, DNG, CR2 and CR3 files. Raw colour files are debayered. You can also drop a file on the image, or send an image from **Deep sky → Open in Process**, **Planetary**, or a script |
+| Open | **Open** or Ctrl+O. FITS, XISF, TIFF, PNG, JPEG, BMP, DNG, CRW, CR2 and CR3 files. Raw colour files are debayered. You can also drop a file on the image, or send an image from **Deep sky → Open in Process**, **Planetary**, or a script |
 | Save | **Save as** or Ctrl+S. FITS (16-bit or 32-bit float), XISF (16-bit or 32-bit float, compressed), TIFF (16-bit or 32-bit float), PNG and JPEG (8-bit) |
 
 When you save to PNG or JPEG while the display is auto-stretched, the stretch is applied to the saved file so it looks the same as on screen. FITS, XISF and TIFF files keep the actual data; save the linear image in one of these before you stretch it permanently.
