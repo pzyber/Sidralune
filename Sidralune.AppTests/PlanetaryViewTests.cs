@@ -28,6 +28,20 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestDerotationPanelLayout()
+        {
+            var view = View<PlanetaryView>("planetary");
+            OnUi(() => ((TabbedPanel)typeof(PlanetaryView).GetField("_tabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(view)).Select(3));
+            Settle();
+            var add = OnUi(() => Button(view, "Add images…"));
+            var first = OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "Limb darkening comp."));
+            CheckTrue("Without images the panel says so and shows no empty list", OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "No images yet") != null
+                && !All(add.Parent.Parent).OfType<ListBox>().Any(l => l.Visible)));
+            int gap = OnUi(() => add.Parent.PointToScreen(add.Location).Y - first.Parent.PointToScreen(first.Location).Y);
+            CheckTrue("The buttons follow the options without a blank stretch", gap > 0 && gap < 120, gap + " px");
+        }
+
+        [TestMethod]
         public void TestPreprocessResultToLuckyStacking()
         {
             var view = View<PlanetaryView>("planetary");

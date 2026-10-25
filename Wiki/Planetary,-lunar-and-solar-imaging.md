@@ -91,7 +91,7 @@ Stacked planetary images look soft until they are sharpened. Open an image with 
 
 Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of minutes. The **Derotation** tab combines several stacked images taken over 10–30 minutes, which raises the signal-to-noise ratio and allows stronger sharpening.
 
-1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below).
+1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below). The images appear in a list in time order; click one to view it.
 2. Choose the **Planet** (Jupiter, Saturn, Mars or Venus).
 3. Set the **Target time (UTC)**, normally the middle of the series.
 4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal).

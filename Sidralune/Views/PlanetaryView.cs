@@ -294,7 +294,9 @@ namespace Sidralune.Views
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             var viewer = new ImageViewer { Dock = DockStyle.Fill, Stretch = DisplayStretch.None, EmptyText = "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)" };
-            var list = new ListBox { Dock = DockStyle.Top, Height = 150 };
+            // the list shows once there are images (an empty list is just blank space); its heading counts them
+            var list = new ListBox { Height = 120, IntegralHeight = false, Visible = false };
+            var heading = new Label { Text = "No images yet", Tag = "dim", AutoSize = true };
             var items = new List<DeroItem>();
             var g = new FormGrid(140);
             var planet = g.Row("Planet", Ui.Combo("Jupiter", "Saturn", "Mars", "Venus"));
@@ -302,8 +304,7 @@ namespace Sidralune.Views
             var mirror = g.Row("Mirrored", new CheckBox { Text = "Image is mirror-reversed" });
             var target = g.Row("Target time (UTC)", new TextBox());
             var ld = g.Row("Limb darkening comp.", new CheckBox { Text = "Compensate", Checked = true });
-            var info = new Label { Tag = "dim", Height = 70, AutoSize = false };
-            g.Full(info);
+            var info = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0), Visible = false }; // the last result, once there is one
             Func<string, DateTime?> timeFromName = n =>
             {
                 // WinJUPOS: YYYY-MM-DD-HHMM_T
@@ -339,6 +340,8 @@ namespace Sidralune.Views
                     }
                     items.Sort((a, b2) => a.Time.CompareTo(b2.Time));
                     list.Items.Clear(); foreach (var it in items) list.Items.Add(it);
+                    list.Visible = items.Count > 0;
+                    heading.Text = items.Count == 0 ? "No images yet" : items.Count == 1 ? "1 image" : items.Count + " images, in time order";
                     if (items.Count > 0) target.Text = new DateTime((long)items.Average(i => (double)i.Time.Ticks), DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss");
                 }
             }, ButtonKind.Normal);
@@ -359,18 +362,21 @@ namespace Sidralune.Views
                 {
                     viewer.SetImage(res);
                     var g0 = items[0].Geo;
+                    info.Visible = true;
                     info.Text = string.Format("Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min", g0.Radius, g0.PoleAngleDeg, g0.SubObserverLatDeg, (items.Last().Time - items.First().Time).TotalMinutes);
                     _stacked = res;
                 });
             }, ButtonKind.Primary);
             btn("Save result…", Icons.Save, () => { if (viewer.Image == null) return; using (var d = new SaveFileDialog { Filter = "TIFF 16-bit|*.tif", FileName = "derotated.tif" }) if (d.ShowDialog() == DialogResult.OK) TiffIO.Write(d.FileName, viewer.Image); }, ButtonKind.Normal);
+            g.Full(heading);
+            g.Full(list);
             g.Full(bar);
+            g.Full(info);
             g.Full(Ui.Hint("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up."));
             list.SelectedIndexChanged += (s, e) => { var it = list.SelectedItem as DeroItem; if (it != null) viewer.SetImage(it.Image); };
             _deroJob.Guard(g);
             var side = Side("Derotation", 380);
             side.Controls.Add(g);
-            side.Controls.Add(list);
             panel.Controls.Add(viewer);
             panel.Controls.Add(side);
             return panel;
