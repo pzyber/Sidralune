@@ -298,10 +298,41 @@ namespace Sidralune.Core.MinorBodies
             Asteroids = map.Values.ToList();
         }
 
+        // bodies added by hand (pasted elements, JPL SBDB) for this session, each with the catalogue body it replaced, if any
+        private readonly Dictionary<MinorBody, MinorBody> _added = new Dictionary<MinorBody, MinorBody>();
+
+        /// <summary>True for a body added by hand (Add), which Remove can take away again.</summary>
+        public bool IsAdded(MinorBody b) => b != null && _added.ContainsKey(b);
+
+        /// <summary>Adds a body by hand; one with the same designation is replaced rather than listed twice.</summary>
         public void Add(MinorBody b)
         {
-            if (b.IsComet) Comets.Add(b); else Asteroids.Add(b);
+            var list = b.IsComet ? Comets : Asteroids;
+            int i = string.IsNullOrEmpty(b.Designation) ? -1 : list.FindIndex(x => x.Designation == b.Designation);
+            MinorBody replaced = null;
+            if (i >= 0)
+            {
+                var old = list[i];
+                // replacing a body added earlier keeps the catalogue body that one replaced
+                if (_added.TryGetValue(old, out replaced)) _added.Remove(old); else replaced = old;
+                list[i] = b;
+            }
+            else list.Add(b);
+            _added[b] = replaced;
             if (Changed != null) Changed(this, EventArgs.Empty);
+        }
+
+        /// <summary>Removes a body added by hand, putting back the catalogue body it replaced; false for catalogue bodies.</summary>
+        public bool Remove(MinorBody b)
+        {
+            MinorBody replaced;
+            if (b == null || !_added.TryGetValue(b, out replaced)) return false;
+            _added.Remove(b);
+            var list = b.IsComet ? Comets : Asteroids;
+            int i = list.IndexOf(b);
+            if (i >= 0) { if (replaced != null) list[i] = replaced; else list.RemoveAt(i); }
+            if (Changed != null) Changed(this, EventArgs.Empty);
+            return true;
         }
 
         public MinorBody Find(string name)

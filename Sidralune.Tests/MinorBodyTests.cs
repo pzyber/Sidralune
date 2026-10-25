@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Sidralune.Core;
 using Sidralune.Core.Coordinates;
 using Sidralune.Core.Ephemeris;
@@ -41,6 +42,37 @@ namespace Sidralune.Tests
             double s3 = VestaSep(2462500.5, 326.15088, -18.54960, true, out mag);
             Info(string.Format("Vesta 2029-12-30 two-body {0:0.0}\", perturbed {1:0.0}\"", s2, s3));
             CheckTrue("Perturbed propagation improves 3-yr prediction", s3 < s2 && s3 < 120);
+        }
+
+        [TestMethod]
+        public void TestAddedBodies()
+        {
+            var store = new MinorBodyStore();
+            var catalogue = MinorBodyStore.BuiltInAsteroids();
+            store.Asteroids.AddRange(catalogue);
+            var ceres = catalogue[0];
+            Func<string, MinorBody> body = des => new MinorBody { Designation = des, Name = des + " (added)", Elements = ceres.Elements };
+
+            var newcomer = body("2026 AB1");
+            store.Add(newcomer);
+            var again = body("2026 AB1");
+            store.Add(again);
+            CheckTrue("Adding the same body twice keeps one copy, the newest", store.Asteroids.Count(a => a.Designation == "2026 AB1") == 1 && store.Asteroids.Contains(again) && store.IsAdded(again) && !store.IsAdded(newcomer));
+            CheckTrue("Catalogue bodies cannot be removed", !store.Remove(catalogue[1]) && store.Asteroids.Contains(catalogue[1]) && !store.IsAdded(catalogue[1]));
+            CheckTrue("An added body is removed", store.Remove(again) && !store.Asteroids.Any(a => a.Designation == "2026 AB1") && !store.IsAdded(again));
+
+            // fresh elements for a catalogue body (as from JPL SBDB) replace it until they are removed
+            var sbdb = body(ceres.Designation);
+            store.Add(sbdb);
+            var newer = body(ceres.Designation);
+            store.Add(newer);
+            CheckTrue("Added elements replace the catalogue body", store.Asteroids.Count(a => a.Designation == ceres.Designation) == 1 && store.Asteroids.Contains(newer) && !store.Asteroids.Contains(ceres));
+            CheckTrue("Removing them brings the catalogue body back", store.Remove(newer) && store.Asteroids.Contains(ceres) && store.Asteroids.Count(a => a.Designation == ceres.Designation) == 1 && store.Asteroids.Count == catalogue.Count);
+            int changes = 0;
+            store.Changed += (o, e) => changes++;
+            store.Add(body("2026 CD2"));
+            store.Remove(store.Asteroids.Last());
+            CheckTrue("Adding and removing tell the views", changes == 2);
         }
 
         [TestMethod]

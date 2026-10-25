@@ -68,6 +68,8 @@ You can also add individual objects without downloading the large files:
 - **Solar sys. → Minor bodies → Fetch from JPL SBDB** looks up any comet or asteroid by name or designation in JPL's Small-Body Database.
 - **Solar sys. → Minor bodies → Add elements…** accepts one line in MPCORB or CometEls format, for example copied from an MPC circular or the MPC's orbit pages.
 
+Objects added this way last until Sidralune is closed. Adding an object that is already listed replaces its orbit rather than listing it twice, and **Remove added** takes added objects away again.
+
 ## Satellites
 
 Satellite passes use the SGP4 model with CelesTrak two-line elements. Elements age quickly (low satellites drift by kilometres per day), so update them before each session. See [Solar system → Satellites](Solar-system#satellites).

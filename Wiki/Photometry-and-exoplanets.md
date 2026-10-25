@@ -23,7 +23,7 @@ The **Photometry** workspace measures the brightness of stars in image sequences
 
 ### Frames
 
-Click **Add frames…** to add calibrated images of the field (FITS is best, since it carries the observation time). **Clear** empties the list. Colour raw frames are debayered automatically.
+Click **Add frames…** to add calibrated images of the field (FITS is best, since it carries the observation time). **Remove selected** (or the Delete key) takes out the frames selected in the list, and **Clear** empties it. Colour raw frames are debayered automatically.
 
 Frames that have no WCS in their header are plate solved before measuring, using the first star's position as the hint. Frames without a `DATE-OBS` time are skipped.
 
@@ -42,6 +42,8 @@ Enter **Name**, **RA**, **Dec** (J2000, sexagesimal or decimal), **Cat. mag** (c
 - **Add selected object** adds the object selected in the Sky chart or Planner as a target.
 - **AAVSO comps…** asks for a variable star's name and downloads the AAVSO comparison-star sequence for it (VSP), with V magnitudes and B−V colours, as comparison stars.
 - Type rows directly, or paste them.
+
+**Remove selected** (or the Delete key in the table) removes the selected stars.
 
 ### Aperture settings
 
