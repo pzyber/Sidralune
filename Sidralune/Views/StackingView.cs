@@ -136,19 +136,31 @@ namespace Sidralune.Views
 
         private void LoadMasters()
         {
+            if (_job.Refuse()) return;
             using (var d = new OpenFileDialog { Multiselect = true, Filter = ImageFile.OpenFilter, Title = "Master bias / dark / flat (named accordingly)" })
             {
                 if (d.ShowDialog() != DialogResult.OK) return;
-                foreach (var f in d.FileNames)
+                var files = d.FileNames;
+                var loaded = new List<Tuple<string, FrameKind, AstroImage>>();
+                // loaded in the background; they become the masters when all are in
+                _job.Run("Loading " + files.Length + " master frame(s)", t =>
                 {
-                    var img = ImageFile.Load(f);
-                    var k = StackingEngine.GuessKind(f, img);
-                    if (k == FrameKind.Bias) _engine.MasterBias = img;
-                    else if (k == FrameKind.Dark) _engine.MasterDark = img;
-                    else if (k == FrameKind.Flat) _engine.MasterFlat = img;
-                    else if (k == FrameKind.DarkFlat) _engine.MasterDarkFlat = img;
-                    MainForm.Instance.Toast("Loaded master " + k + ": " + Path.GetFileName(f));
-                }
+                    foreach (var f in files)
+                    {
+                        var img = ImageFile.Load(f);
+                        loaded.Add(Tuple.Create(f, StackingEngine.GuessKind(f, img), img));
+                    }
+                }, () =>
+                {
+                    foreach (var m in loaded)
+                    {
+                        if (m.Item2 == FrameKind.Bias) _engine.MasterBias = m.Item3;
+                        else if (m.Item2 == FrameKind.Dark) _engine.MasterDark = m.Item3;
+                        else if (m.Item2 == FrameKind.Flat) _engine.MasterFlat = m.Item3;
+                        else if (m.Item2 == FrameKind.DarkFlat) _engine.MasterDarkFlat = m.Item3;
+                        MainForm.Instance.Toast("Loaded master " + m.Item2 + ": " + Path.GetFileName(m.Item1));
+                    }
+                });
             }
         }
 

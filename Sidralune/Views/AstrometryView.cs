@@ -90,7 +90,7 @@ namespace Sidralune.Views
             };
             var buttons = new FlowLayoutPanel { Height = 200, FlowDirection = FlowDirection.TopDown };
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; buttons.Controls.Add(b); return b; };
-            var open = btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) { var img = ImageFile.Load(d.FileName); SetImage(img, ra, dec, scale); } }, ButtonKind.Normal);
+            var open = btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) OpenFile(d.FileName, ra, dec, scale); }, ButtonKind.Normal);
             var solve = btn("Solve", Icons.Target, () => Solve(solver.SelectedIndex, ra.Text, dec.Text, (double)radius.Value, (double)scale.Value, (int)sip.Value), ButtonKind.Primary);
             var write = btn("Write WCS to FITS…", Icons.Save, () =>
             {
@@ -131,7 +131,7 @@ namespace Sidralune.Views
             side.Controls.Add(g);
             _viewer.ShowWcsGrid = true;
             _viewer.PaintOverlay += PaintSolveOverlay;
-            _viewer.FilesDropped += f => { if (f.Length > 0 && !_solveJob.Refuse()) SetImage(ImageFile.Load(f[0]), ra, dec, scale); };
+            _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0], ra, dec, scale); };
             var readout = new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim" };
             _viewer.ReadoutChanged += s => readout.Text = s;
             panel.Controls.Add(_viewer);
@@ -154,9 +154,18 @@ namespace Sidralune.Views
             Solve(_solverCombo.SelectedIndex, _hintRa.Text, _hintDec.Text, (double)_radius.Value, (double)_hintScale.Value, (int)_sip.Value);
         }
 
+        /// <summary>Loads (and debayers) an image in the background as the solve job, so a solve waits for it and it for a solve.</summary>
+        private void OpenFile(string path, TextBox ra, TextBox dec, NumericUpDown scale)
+        {
+            AstroImage img = null;
+            _solveJob.Run("Opening " + Path.GetFileName(path), t => img = Debayered(ImageFile.Load(path)), () => SetImage(img, ra, dec, scale));
+        }
+
+        private static AstroImage Debayered(AstroImage img) => img.Channels == 1 && img.Bayer != BayerPattern.None ? Debayer.Apply(img, DebayerMethod.SuperPixel) : img;
+
         private void SetImage(AstroImage img, TextBox ra, TextBox dec, NumericUpDown scale)
         {
-            if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.SuperPixel);
+            img = Debayered(img);
             _img = img; _solve = null; _annotations.Clear(); _depthInfo = null; _steps = new TimeSpan[4];
             _viewer.SetImage(img);
             var h = img.Header;

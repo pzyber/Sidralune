@@ -74,6 +74,7 @@ namespace Sidralune.AppTests
                     CheckTrue(button + " says when nothing is stacked yet", WaitFor(() => Toasts().Count(t => t.StartsWith("Nothing stacked yet")) > shown || Toasts().Any(t => t.StartsWith("Nothing stacked yet")) && shown > 0));
                 }
                 OnUi(() => view.OpenVideo(video));
+                CheckTrue("The video opens in the background", WaitFor(() => OnUi(() => !Field<JobSlot>(view, "_ppJob").Busy) && Field<object>(view, "_ppSource") != null, 15000));
                 OnUi(() => Button(view, "Stacking →").PerformClick());
                 CheckTrue("Before processing the button says what to do", WaitFor(() => Toasts().Any(t => t.Contains("Process the video first"))));
                 CheckTrue("Nothing is sent to Lucky stacking on its own", Field<object>(view, "_luckySource") == null || !((IFrameSource)Field<object>(view, "_luckySource")).Path.StartsWith(outDir));
@@ -81,8 +82,9 @@ namespace Sidralune.AppTests
                 CheckTrue("Pre-processing writes its video", WaitFor(() => OnUi(() => !Field<JobSlot>(view, "_ppJob").Busy) && Directory.GetFiles(outDir, "*.ser").Length > 0, 60000));
                 CheckTrue("Still nothing loaded in Lucky stacking until asked", Field<object>(view, "_luckySource") == null || !((IFrameSource)Field<object>(view, "_luckySource")).Path.StartsWith(outDir));
                 OnUi(() => Button(view, "Stacking →").PerformClick());
-                var src = (IFrameSource)Field<object>(view, "_luckySource");
-                CheckTrue("Stacking → opens the result in Lucky stacking", src != null && src.Path.StartsWith(outDir) && src.FrameCount > 0, src != null ? src.Path : "nothing");
+                Func<IFrameSource> opened = () => (IFrameSource)Field<object>(view, "_luckySource");
+                CheckTrue("Stacking → opens the result in Lucky stacking", WaitFor(() => opened() != null && opened().Path.StartsWith(outDir) && opened().FrameCount > 0, 15000), opened() != null ? opened().Path : "nothing");
+                CheckTrue("Its first frame is shown there", WaitFor(() => OnUi(() => !lucky.Busy)));
                 CheckTrue("The button waits while Lucky stacking runs", OnUi(() =>
                 {
                     var gate = new System.Threading.ManualResetEventSlim();
