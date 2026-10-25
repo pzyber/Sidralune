@@ -59,18 +59,64 @@ namespace Sidralune.AppTests
             try
             {
                 OnUi(() => Dm.ConnectSimulators());
-                FlatButton loop = OnUi(() => Button(view, "Loop")), record = OnUi(() => Button(view, "Record")), af = OnUi(() => Button(view, "Run autofocus")),
+                FlatButton loop = OnUi(() => Button(view, "Loop")), start = OnUi(() => Button(view, "Start")), record = OnUi(() => Button(view, "Record")), af = OnUi(() => Button(view, "Run autofocus")),
                     polar = OnUi(() => Button(view, "Start polar alignment")), run = OnUi(() => Button(view, "Run sequence"));
                 var stop = OnUi(() => All(loop.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
                 CheckTrue("All camera jobs available when idle", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled));
                 OnUi(() => loop.PerformClick());
-                CheckTrue("A preview loop blocks the other camera jobs", WaitFor(() => !record.Enabled && !af.Enabled && !polar.Enabled && !run.Enabled && loop.Enabled));
+                CheckTrue("A preview loop blocks the other camera jobs", WaitFor(() => !record.Enabled && !af.Enabled && !polar.Enabled && !run.Enabled));
+                CheckTrue("Start and Loop stay available, to replace each other's capture", WaitFor(() => loop.Enabled && start.Enabled));
                 CheckTrue("Frames arrive in the viewer", WaitFor(() => Field<ImageViewer>(view, "_viewer").Image != null, 15000));
                 OnUi(() => stop.PerformClick());
-                CheckTrue("Stop frees the camera", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled, 15000));
+                CheckTrue("Stop frees the camera", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled && loop.Enabled && start.Enabled, 15000));
+                OnUi(() => { var e = Find<Label>(view, l => l.Text == "Exposure (s)"); var row = (TableLayoutPanel)e.Parent; ((NumericUpDown)row.GetControlFromPosition(1, row.GetRow(e))).Value = 0.5m; });
+                OnUi(() => loop.PerformClick());
+                CheckTrue("Loop again", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name == "Preview loop")));
+                OnUi(() => start.PerformClick());
+                CheckTrue("Start replaces the loop, and both stay available", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name.StartsWith("Capturing")) && start.Enabled && loop.Enabled, 15000));
+                CheckTrue("When the capture is done the camera is free", WaitFor(() => start.Enabled && loop.Enabled && record.Enabled, 20000));
                 CheckTrue("Mount controls stay usable", OnUi(() => Button(view, "Tracking") == null || Button(view, "Tracking").Enabled));
             }
             finally { OnUi(() => { foreach (var b in All(App).OfType<FlatButton>().Where(x => x.Text == "Stop")) { } }); Dm.DisconnectAll(); }
+        }
+
+        [TestMethod]
+        public void TestPlanetaryLiveView()
+        {
+            var view = View<ObservatoryView>("observatory");
+            try
+            {
+                OnUi(() => Dm.ConnectSimulators());
+                FlatButton live = OnUi(() => Button(view, "Live view")), record = OnUi(() => Button(view, "Record")), loop = OnUi(() => Button(view, "Loop"));
+                var stop = OnUi(() => All(record.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
+                Func<string> status = () => OnUi(() => All(record.Parent.Parent).OfType<Label>().Select(l => l.Text).FirstOrDefault(t => t.StartsWith("Live view") || t.StartsWith("Recording") || t.Contains("Saved")) ?? "");
+                Func<string> job = () => OnUi(() => { var j = Field<BackgroundTask>(view, "_cameraJob"); return j != null && !j.Done ? Field<string>(view, "_cameraJobName") : null; });
+                OnUi(() => { var region = Find<Label>(view, l => l.Text == "Region"); var row = (TableLayoutPanel)region.Parent; ((ComboBox)row.GetControlFromPosition(1, row.GetRow(region))).SelectedItem = "320 × 240"; });
+                CheckTrue("Camera available", WaitFor(() => OnUi(() => live.Enabled && record.Enabled), 15000));
+                var tabs = OnUi(() => All(view).OfType<SegmentedTabs>().First(t => t.Tabs.Contains("Planetary")));
+                var viewer = Field<ImageViewer>(view, "_viewer");
+                OnUi(() => tabs.SelectedIndex = 1);
+                CheckTrue("The Planetary tab shows frames as recorded", OnUi(() => viewer.Stretch == DisplayStretch.None));
+                OnUi(() => tabs.SelectedIndex = 0);
+                CheckTrue("The Deep sky tab stretches them", OnUi(() => viewer.Stretch == DisplayStretch.AutoLinked));
+                OnUi(() => tabs.SelectedIndex = 1);
+                OnUi(() => live.PerformClick());
+                CheckTrue("Live view shows frames with their frame rate, brightness and focus", WaitFor(() => status().StartsWith("Live view 320×240") && status().Contains("fps") && status().Contains("Focus"), 15000), status());
+                CheckTrue("Frames arrive in the viewer", OnUi(() => Field<ImageViewer>(view, "_viewer").Image != null));
+                CheckTrue("While it runs, Record stays available and other camera work waits", OnUi(() => record.Enabled && !live.Enabled && !loop.Enabled));
+                OnUi(() => record.PerformClick());
+                CheckTrue("Record takes over from live view", WaitFor(() => job() == "Recording video" && status().StartsWith("Recording"), 15000), job() + " / " + status());
+                OnUi(() => stop.PerformClick());
+                CheckTrue("Stop ends the recording and keeps it", WaitFor(() => job() == null && status().Contains("Saved"), 15000), status());
+                Func<int> videos = () => System.IO.Directory.GetFiles(System.IO.Path.Combine(AppState.Settings.ImageFolder, "Planetary"), "*", System.IO.SearchOption.AllDirectories).Length;
+                int saved = videos();
+                OnUi(() => live.PerformClick());
+                CheckTrue("Live view again", WaitFor(() => job() == "Live view", 15000));
+                OnUi(() => stop.PerformClick());
+                CheckTrue("Stop ends live view too", WaitFor(() => job() == null && OnUi(() => live.Enabled && loop.Enabled), 15000));
+                CheckTrue("Live view saves nothing", videos() == saved, saved + " → " + videos());
+            }
+            finally { Dm.DisconnectAll(); }
         }
 
         [TestMethod]

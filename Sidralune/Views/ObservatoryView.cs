@@ -230,20 +230,27 @@ namespace Sidralune.Views
         private string _cameraJobName;
         // buttons that start camera work; true marks Imaging's Start/Loop, which may replace a running manual capture
         private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
+        // buttons that may take over the camera from a live view (Record): the live view stops and they start
+        private readonly HashSet<Control> _replacesLiveView = new HashSet<Control>();
+        private const string LiveViewJob = "Live view";
+        private bool LiveViewRunning => _cameraJob != null && !_cameraJob.Done && _cameraJobName == LiveViewJob;
         private Label _busyNote;
 
-        /// <summary>What is using the camera, or null when it is free.</summary>
-        private string CameraBusyReason(bool ignoreManual = false)
+        /// <summary>
+        /// What is using the camera, or null when it is free. Start and Loop replace each other's capture (ignoreManual), and
+        /// Record takes over from a live view (ignoreLiveView).
+        /// </summary>
+        private string CameraBusyReason(bool ignoreManual = false, bool ignoreLiveView = false)
         {
             if (SequenceActive) return "A sequence is running and using the camera";
-            if (_cameraJob != null && !_cameraJob.Done) return _cameraJobName + " is running and using the camera";
+            if (_cameraJob != null && !_cameraJob.Done && !(ignoreLiveView && LiveViewRunning)) return _cameraJobName + " is running and using the camera";
             if (!ignoreManual && ManualCapturing) return "A capture or preview loop is running in Imaging";
             return null;
         }
 
-        private bool CanUseCamera(bool ignoreManual = false)
+        private bool CanUseCamera(bool ignoreManual = false, bool ignoreLiveView = false)
         {
-            var why = CameraBusyReason(ignoreManual);
+            var why = CameraBusyReason(ignoreManual, ignoreLiveView);
             if (why != null) MainForm.Instance.Toast(why + ". Stop it first.", Icons.Info);
             return why == null;
         }
@@ -258,11 +265,19 @@ namespace Sidralune.Views
 
         private void SyncCameraButtons()
         {
-            foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2) == null;
+            foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2, _replacesLiveView.Contains(b.Item1)) == null;
             if (_busyNote == null) return;
             var why = CameraBusyReason(true);
             _busyNote.Visible = why != null;
             if (why != null) _busyNote.Text = SequenceActive ? "A sequence is running and using the camera. Its frames are shown here as they arrive; Stop ends the sequence." : why + ". Stop ends it.";
+        }
+
+        /// <summary>The live view's status line: size, frame rate, brightness and clipping, and focus against the best so far.</summary>
+        internal static string LiveViewText(int width, int height, double fps, Imaging.Planetary.LiveStats st, double best)
+        {
+            string clip = st.Saturated > 0.001 ? string.Format(" · ⚠ {0:0.#}% clipped", st.Saturated * 100) : "";
+            return string.Format("Live view {0}×{1} · {2:0.0} fps · peak {3:0}%{4}\r\nFocus {5:0.000} · best {6:0.000}{7}",
+                width, height, fps, st.Peak * 100, clip, st.Focus * 1000, best * 1000, st.ObjectFound ? "" : " (no planet found)");
         }
 
         private Control BuildImaging()
@@ -319,15 +334,16 @@ namespace Sidralune.Views
             var vSecs = vid.Row("Max seconds", Ui.Num(60, 1, 3600));
             var vBtns = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
             var rec = new FlatButton("Record", Icons.Play) { Kind = ButtonKind.Primary }; rec.AutoSizeToText();
+            var live = new FlatButton("Live view", Icons.Eye) { ToolTipText = "Continuous frames with these settings, for framing, focus and exposure (not saved)" }; live.AutoSizeToText();
             var vStop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; vStop.AutoSizeToText();
             var openPl = new FlatButton("Open in Planetary", Icons.Planet) { Enabled = false }; openPl.AutoSizeToText();
-            vBtns.Controls.AddRange(new Control[] { rec, vStop, openPl });
-            vStop.Click += (s, e) => { if (_cameraJob != null && _cameraJobName == "Recording video") _cameraJob.Cts.Cancel(); };
+            vBtns.Controls.AddRange(new Control[] { rec, live, vStop, openPl });
+            vStop.Click += (s, e) => { if (_cameraJob != null && (_cameraJobName == "Recording video" || _cameraJobName == LiveViewJob)) _cameraJob.Cts.Cancel(); };
             vid.Full(vBtns);
             var vidStatus = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(270, 0), Visible = false };
             vidStatus.TextChanged += (s, e) => vidStatus.Visible = vidStatus.Text.Length > 0;
             vid.Full(vidStatus);
-            vid.Full(Ui.Hint("Records a SER video for the Planetary workspace. A small region gives the highest frame rate. Stop ends the recording and keeps the frames so far."));
+            vid.Full(Ui.Hint("Live view shows frames with these settings without saving them, with the frame rate, clipping and a focus number that rises as focus improves. Record saves a SER video for the Planetary workspace (from live view it takes over straight away). A small region gives the highest frame rate. Stop ends either and keeps the frames recorded so far."));
 
             // Camera section: a Deep sky | Planetary switch over the two sets of settings, then the busy note for both
             var mode = new SegmentedTabs();
@@ -339,24 +355,68 @@ namespace Sidralune.Views
             camBox.Full(vid);
             camBox.Full(busyNote);
             vid.Visible = false;
-            mode.SelectedChanged += i => { cam.Visible = i == 0; vid.Visible = i == 1; };
+            // planets are shown as recorded: an automatic stretch would blow the black sky up into noise
+            mode.SelectedChanged += i => { cam.Visible = i == 0; vid.Visible = i == 1; _viewer.Stretch = i == 1 ? DisplayStretch.None : DisplayStretch.AutoLinked; };
             var camCard = new Collapsible("Camera", camBox);
             string lastVideo = null;
-            rec.Click += (s, e) =>
+            // the settings of the Planetary tab, for live view and recording alike
+            Func<VideoRequest> videoRequest = () =>
             {
-                if (!Have(Dm.Camera, "camera") || !CanUseCamera()) return;
                 int rw, rh;
                 VideoRequest.ParseRegion((string)vRoi.SelectedItem, out rw, out rh);
-                _capture.ImageFolder = AppState.Settings.ImageFolder;
-                var req = new VideoRequest
+                return new VideoRequest
                 {
                     ExposureMs = (double)vExp.Value, Bin = int.Parse((string)vBin.SelectedItem), Gain = (int)vGain.Value, Offset = (int)vOffset.Value,
                     RoiWidth = rw, RoiHeight = rh, MaxFrames = (int)vFrames.Value, MaxSeconds = (double)vSecs.Value,
                     Filter = string.IsNullOrWhiteSpace(vFilter.Text) ? null : vFilter.Text, Target = vTarget.Text
                 };
+            };
+            live.Click += (s, e) =>
+            {
+                if (!Have(Dm.Camera, "camera") || !CanUseCamera()) return;
+                var req = videoRequest();
+                vidStatus.Text = "Starting live view…";
+                double best = 0;
+                int measuring = 0;
+                RunCameraJob(LiveViewJob, t =>
+                {
+                    _capture.LiveView(req, (img, p) =>
+                    {
+                        // measured beside the capture, so the frame rate does not suffer; a frame is skipped while one is measured
+                        if (System.Threading.Interlocked.Exchange(ref measuring, 1) == 1) return;
+                        double fps = p.Fps; int frames = p.Frames, fw = p.Width, fh = p.Height;
+                        Task.Run(() =>
+                        {
+                            try
+                            {
+                                var st = Imaging.Planetary.LiveStats.Measure(img);
+                                MainForm.Instance.Post(() =>
+                                {
+                                    if (t.Done || t.Cts.IsCancellationRequested) return;
+                                    _viewer.SetImage(img, frames == 1 || _viewer.Image == null || _viewer.Image.Width != fw);
+                                    best = Math.Max(best, st.Focus);
+                                    vidStatus.Text = LiveViewText(fw, fh, fps, st, best);
+                                });
+                            }
+                            finally { System.Threading.Interlocked.Exchange(ref measuring, 0); }
+                        });
+                    }, t.Cts.Token).GetAwaiter().GetResult();
+                    MainForm.Instance.Post(() => { if (_cameraJob == t) vidStatus.Text = "Live view stopped"; }); // unless Record took over
+                });
+            };
+            _cameraButtons.Add(Tuple.Create((Control)live, false));
+            rec.Click += (s, e) =>
+            {
+                if (!Have(Dm.Camera, "camera") || !CanUseCamera(false, true)) return;
+                // a live view gives way: it stops, and the recording starts as soon as its last frame is in
+                var liveJob = LiveViewRunning ? _cameraJob : null;
+                liveJob?.Cts.Cancel();
+                _capture.ImageFolder = AppState.Settings.ImageFolder;
+                var req = videoRequest();
                 vidStatus.Text = "Starting…";
                 RunCameraJob("Recording video", t =>
                 {
+                    while (liveJob != null && !liveJob.Done && !t.Cts.IsCancellationRequested) Thread.Sleep(20);
                     // frames and the result are shown through VideoFrame and VideoRecorded below
                     var r = _capture.RecordVideo(req, (img, p) =>
                         Tasks.Report(t, Math.Min(1, Math.Max(p.Frames / (double)req.MaxFrames, p.Elapsed.TotalSeconds / req.MaxSeconds)), string.Format("{0} frames · {1:0.0} fps", p.Frames, p.Fps)),
@@ -386,6 +446,7 @@ namespace Sidralune.Views
                 });
             };
             _cameraButtons.Add(Tuple.Create((Control)rec, false));
+            _replacesLiveView.Add(rec);
             openPl.Click += (s, e) =>
             {
                 if (lastVideo == null) return;
