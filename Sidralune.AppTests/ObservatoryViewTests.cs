@@ -75,6 +75,11 @@ namespace Sidralune.AppTests
                 OnUi(() => start.PerformClick());
                 CheckTrue("Start replaces the loop, and both stay available", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name.StartsWith("Capturing")) && start.Enabled && loop.Enabled, 15000));
                 CheckTrue("When the capture is done the camera is free", WaitFor(() => start.Enabled && loop.Enabled && record.Enabled, 20000));
+                var planetaryStop = OnUi(() => All(record.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
+                OnUi(() => loop.PerformClick());
+                CheckTrue("Loop once more", WaitFor(() => !record.Enabled));
+                OnUi(() => planetaryStop.PerformClick());
+                CheckTrue("The Planetary tab's Stop ends a Deep sky loop too", WaitFor(() => record.Enabled && af.Enabled, 15000));
                 CheckTrue("Mount controls stay usable", OnUi(() => Button(view, "Tracking") == null || Button(view, "Tracking").Enabled));
             }
             finally { OnUi(() => { foreach (var b in All(App).OfType<FlatButton>().Where(x => x.Text == "Stop")) { } }); Dm.DisconnectAll(); }
@@ -112,8 +117,8 @@ namespace Sidralune.AppTests
                 int saved = videos();
                 OnUi(() => live.PerformClick());
                 CheckTrue("Live view again", WaitFor(() => job() == "Live view", 15000));
-                OnUi(() => stop.PerformClick());
-                CheckTrue("Stop ends live view too", WaitFor(() => job() == null && OnUi(() => live.Enabled && loop.Enabled), 15000));
+                OnUi(() => All(loop.Parent).OfType<FlatButton>().First(b => b.Text == "Stop").PerformClick());
+                CheckTrue("The Deep sky tab's Stop ends live view too", WaitFor(() => job() == null && OnUi(() => live.Enabled && loop.Enabled), 15000));
                 CheckTrue("Live view saves nothing", videos() == saved, saved + " → " + videos());
             }
             finally { Dm.DisconnectAll(); }

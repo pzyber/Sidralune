@@ -248,6 +248,17 @@ namespace Sidralune.Views
             return null;
         }
 
+        /// <summary>
+        /// What Stop does on both camera tabs: end whatever uses the camera, as the note under the camera controls says
+        /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment or a sequence).
+        /// </summary>
+        private void StopCameraWork()
+        {
+            _captureCts?.Cancel();
+            _cameraJob?.Cts.Cancel();
+            _sequencer.Stop();
+        }
+
         private bool CanUseCamera(bool ignoreManual = false, bool ignoreLiveView = false)
         {
             var why = CameraBusyReason(ignoreManual, ignoreLiveView);
@@ -338,7 +349,7 @@ namespace Sidralune.Views
             var vStop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; vStop.AutoSizeToText();
             var openPl = new FlatButton("Open in Planetary", Icons.Planet) { Enabled = false }; openPl.AutoSizeToText();
             vBtns.Controls.AddRange(new Control[] { rec, live, vStop, openPl });
-            vStop.Click += (s, e) => { if (_cameraJob != null && (_cameraJobName == "Recording video" || _cameraJobName == LiveViewJob)) _cameraJob.Cts.Cancel(); };
+            vStop.Click += (s, e) => StopCameraWork();
             vid.Full(vBtns);
             var vidStatus = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(270, 0), Visible = false };
             vidStatus.TextChanged += (s, e) => vidStatus.Visible = vidStatus.Text.Length > 0;
@@ -501,7 +512,7 @@ namespace Sidralune.Views
             };
             Tasks.Changed += SyncCameraButtons;
             _sequencer.Changed += () => MainForm.Instance.Post(SyncCameraButtons);
-            stop.Click += (s, e) => { _captureCts?.Cancel(); _cameraJob?.Cts.Cancel(); _sequencer.Stop(); };
+            stop.Click += (s, e) => StopCameraWork();
 
             // mount pad
             var mount = new FormGrid(90);
