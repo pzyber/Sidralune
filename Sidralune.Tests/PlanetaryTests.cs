@@ -58,6 +58,37 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestLiveStats()
+        {
+            // a banded disc on a dark sky, as Jupiter looks in a live view
+            Func<double, double, AstroImage> disc = (top, blur) =>
+            {
+                var img = new AstroImage(200, 150, 1);
+                for (int y = 0; y < 150; y++)
+                    for (int x = 0; x < 200; x++)
+                    {
+                        double r = Math.Sqrt((x - 100) * (x - 100) + (y - 75) * (y - 75));
+                        img.Data[0][y * 200 + x] = (float)(r < 30 ? top * (0.75 + 0.25 * Math.Sin(y / 1.5)) : 0.02);
+                    }
+                if (blur > 0) img.Data[0] = Filters.GaussianBlur(img.Data[0], 200, 150, blur);
+                img.Clip(0, 1);
+                return img;
+            };
+            var sharp = LiveStats.Measure(disc(0.6, 0));
+            var soft = LiveStats.Measure(disc(0.6, 2));
+            var softer = LiveStats.Measure(disc(0.6, 4));
+            CheckTrue("The planet is found", sharp.ObjectFound && soft.ObjectFound);
+            CheckTrue("Focus rises as the image gets sharper", sharp.Focus > soft.Focus && soft.Focus > softer.Focus, sharp.Focus + " > " + soft.Focus + " > " + softer.Focus);
+            Check("Peak brightness", sharp.Peak, 0.6, 0.01);
+            CheckTrue("Nothing clipped at 60%", sharp.Saturated == 0);
+            var clipped = LiveStats.Measure(disc(1.6, 0));
+            CheckTrue("An overexposed planet shows most of its pixels clipped", clipped.Peak >= 0.999 && clipped.Saturated > 0.4, clipped.Saturated.ToString("0.00"));
+            var empty = new AstroImage(200, 150, 1);
+            for (int i = 0; i < empty.Data[0].Length; i++) empty.Data[0][i] = 0.02f;
+            CheckTrue("An empty sky has no planet and no clipping", !LiveStats.Measure(empty).ObjectFound && LiveStats.Measure(empty).Saturated == 0);
+        }
+
+        [TestMethod]
         public void TestRotationEstimator()
         {
             int w = 200, h = 200;

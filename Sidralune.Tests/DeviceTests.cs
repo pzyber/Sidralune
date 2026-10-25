@@ -168,6 +168,26 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestLiveView()
+        {
+            var dm = VideoObservatory();
+            string folder = EmptyFolder("live");
+            var cap = new CaptureService { Devices = dm, ImageFolder = folder };
+            int shown = 0, recordingEvents = 0;
+            cap.VideoFrame += (img, p) => recordingEvents++;
+            cap.VideoRecorded += r => recordingEvents++;
+            VideoResult res;
+            using (var cts = new CancellationTokenSource(1500))
+                res = cap.LiveView(new VideoRequest { ExposureMs = 5, RoiWidth = 320, RoiHeight = 240, Filter = "G" }, (img, p) => { if (img.Width == 320) shown++; }, cts.Token, 0.1).Result;
+            Info(string.Format("{0} frames at {1:0.0} fps, {2} shown", res.Frames, res.Fps, shown));
+            CheckTrue("Runs until stopped, with the region and filter of a recording", res.Stopped && res.Width == 320 && res.Height == 240 && dm.FilterWheel.Names[dm.FilterWheel.Position] == "G");
+            CheckTrue("Shows some of the frames, not all", shown >= 2 && shown < res.Frames, shown + " of " + res.Frames);
+            CheckTrue("Saves nothing and is not a recording", !Directory.EnumerateFileSystemEntries(folder, "*", SearchOption.AllDirectories).Any(f => File.Exists(f)) && recordingEvents == 0);
+            dm.DisconnectAll();
+            CheckTrue("Live view without a camera fails", cap.LiveView(new VideoRequest(), null, CancellationToken.None).Exception?.InnerException is InvalidOperationException);
+        }
+
+        [TestMethod]
         public void TestRecordVideoInstruction()
         {
             var dm = VideoObservatory();

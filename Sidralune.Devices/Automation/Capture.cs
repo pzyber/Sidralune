@@ -204,7 +204,8 @@ namespace Sidralune.Devices.Automation
         /// (cancellation) ends the recording and still finalises the file. The file is named after the recording's
         /// mid-time in the WinJUPOS style, YYYY-MM-DD-HHMM_T-target.ser, under ImageFolder\Planetary\target.
         /// </summary>
-        public async Task<VideoResult> RecordVideo(VideoRequest r, Action<AstroImage, VideoResult> preview, CancellationToken ct)
+        /// <summary>Sets the camera up for video: the filter, binning, a centred region, gain and offset. Returns the region's size.</summary>
+        private async Task<ICamera> PrepareVideo(VideoRequest r, CancellationToken ct, int[] size)
         {
             var cam = Devices.Camera;
             if (cam == null) throw new InvalidOperationException("No camera connected");
@@ -217,6 +218,66 @@ namespace Sidralune.Devices.Automation
             cam.StartX = ((fullW - w) / 2) & ~1; cam.StartY = ((fullH - h) / 2) & ~1; cam.NumX = w; cam.NumY = h;
             if (r.Gain >= 0 && cam.HasGain) cam.Gain = r.Gain;
             if (r.Offset >= 0 && cam.HasOffset) cam.Offset = r.Offset;
+            size[0] = w; size[1] = h;
+            return cam;
+        }
+
+        /// <summary>One video frame: a short exposure, waited for and read.</summary>
+        private static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct)
+        {
+            cam.StartExposure(seconds, true);
+            using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
+            {
+                if (seconds > 0.03) await Task.Delay(TimeSpan.FromSeconds(seconds - 0.02), ct);
+                var until = DateTime.UtcNow.AddSeconds(30 + seconds * 2);
+                while (!cam.ImageReady)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver a frame");
+                    if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
+                    Thread.Sleep(1);
+                }
+            }
+            var img = cam.GetImage();
+            if (img == null) throw new InvalidOperationException("Camera returned no image");
+            return img;
+        }
+
+        /// <summary>
+        /// Live view: the frames of a video with the same settings as RecordVideo, back to back until cancelled, saving
+        /// nothing. frame is called with about five frames a second (and the first), for display.
+        /// </summary>
+        public async Task<VideoResult> LiveView(VideoRequest r, Action<AstroImage, VideoResult> frame, CancellationToken ct, double interval = 0.2)
+        {
+            var size = new int[2];
+            var cam = await PrepareVideo(r, ct, size);
+            var res = new VideoResult { Width = size[0], Height = size[1] };
+            double seconds = Math.Max(0, r.ExposureMs / 1000.0);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var lastShown = DateTime.MinValue;
+            Status?.Invoke(string.Format("Live view {0}×{1} at {2:0.###} ms", size[0], size[1], r.ExposureMs));
+            try
+            {
+                while (true)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var img = await GrabFrame(cam, seconds, ct);
+                    res.Width = img.Width; res.Height = img.Height;
+                    res.Frames++;
+                    res.Elapsed = sw.Elapsed;
+                    if ((DateTime.UtcNow - lastShown).TotalSeconds >= interval) { lastShown = DateTime.UtcNow; frame?.Invoke(img, res); }
+                }
+            }
+            catch (OperationCanceledException) { res.Stopped = true; }
+            res.Elapsed = sw.Elapsed;
+            return res;
+        }
+
+        public async Task<VideoResult> RecordVideo(VideoRequest r, Action<AstroImage, VideoResult> preview, CancellationToken ct)
+        {
+            var size = new int[2];
+            var cam = await PrepareVideo(r, ct, size);
+            int w = size[0], h = size[1];
 
             string target = string.IsNullOrWhiteSpace(r.Target) ? "Untitled" : r.Target.Trim();
             string safe = new string(target.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
@@ -236,21 +297,7 @@ namespace Sidralune.Devices.Automation
                 {
                     ct.ThrowIfCancellationRequested();
                     var start = DateTime.UtcNow;
-                    cam.StartExposure(seconds, true);
-                    using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
-                    {
-                        if (seconds > 0.03) await Task.Delay(TimeSpan.FromSeconds(seconds - 0.02), ct);
-                        var until = DateTime.UtcNow.AddSeconds(30 + seconds * 2);
-                        while (!cam.ImageReady)
-                        {
-                            ct.ThrowIfCancellationRequested();
-                            if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver a frame");
-                            if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
-                            Thread.Sleep(1);
-                        }
-                    }
-                    var img = cam.GetImage();
-                    if (img == null) throw new InvalidOperationException("Camera returned no image");
+                    var img = await GrabFrame(cam, seconds, ct);
                     var mid = start.AddSeconds(seconds / 2);
                     if (writer == null)
                     {

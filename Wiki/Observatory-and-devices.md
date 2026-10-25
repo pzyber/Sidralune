@@ -134,7 +134,7 @@ After each frame the status line shows the number of stars, the half-flux radius
 
 The viewer shows every frame the camera takes, not only the ones started here: frames from a running [sequence](Sequencer) and from autofocus appear too, and the status line starts with "Sequence ·" for sequence frames.
 
-The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop, a video recording, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start the others are disabled and a note under the camera controls (on both tabs) says what is using the camera. **Stop** here ends it, including a video recording, autofocus, centring, polar alignment or a sequence. Switching between **Loop** and **Start** is the one exception: the new capture replaces the old one and starts as soon as its current exposure has ended.
+The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop, a video recording, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start the others are disabled and a note under the camera controls (on both tabs) says what is using the camera. **Stop** here ends it, including a video recording, autofocus, centring, polar alignment or a sequence. Switching between **Loop** and **Start** is one exception: the new capture replaces the old one and starts as soon as its current exposure has ended. The other is **Record**, which takes over from **Live view** (but **Live view** does not interrupt a recording).
 
 #### Planetary video
 
@@ -149,9 +149,12 @@ The **Planetary** tab records a SER video for [planetary, lunar and solar imagin
 
 | Button | Action |
 |---|---|
-| **Record** | Start recording. The viewer shows a frame twice a second, and the status line shows the frame count, the frame rate and the time |
-| **Stop** | End the recording early. The frames recorded so far are kept and the file is complete |
+| **Record** | Start recording. The viewer shows a frame twice a second, and the status line shows the frame count, the frame rate and the time. From live view, the recording takes over straight away |
+| **Live view** | Show frames with the settings above, without saving them, for framing, focusing and setting the exposure. The status line shows the frame rate, the brightest pixel as a percentage of full scale, how much of the planet is clipped (with a ⚠ when any is), and a **Focus** number with the best value so far: it rises as focus improves, so focus for the highest number |
+| **Stop** | End the recording early (the frames recorded so far are kept and the file is complete), or end live view |
 | **Open in Planetary** | Open the last recording in **Planetary → Pre-process** |
+
+With the Planetary tab selected, the viewer shows frames as recorded, without the automatic stretch of the Deep sky tab, which would turn the black sky around a planet into noise. Live view counts as camera work: while it runs, the Deep sky tab's capture, autofocus, centring, polar alignment and sequences wait, while the mount controls stay usable. Only **Record** may take over from it. Live view is not started on its own, because a DSLR would be exposing all the time.
 
 Videos recorded by a [sequence](Sequencer#instructions) (the **Record video** instruction) are shown here too, with "Sequence ·" in front of the status line, and **Open in Planetary** opens them as well. A sequence with **Record video** in a loop is the way to record a rotation series unattended.
 
