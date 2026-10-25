@@ -50,7 +50,9 @@ The **Pre-process** tab prepares a video for stacking. Click **Open source…** 
 
 Frames are shown as recorded, without the automatic stretch of the deep-sky workspaces, which would turn the black sky around a planet into noise. The same goes for every tab of the Planetary workspace.
 
-Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. If the output is a SER file, it is opened automatically, ready for the Lucky stacking tab.
+Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. Click **Stacking →** to open the result in the Lucky stacking tab (the first file when **Max frames per file** split it; frames saved as images open together). The button waits while a stack is running there.
+
+Pre-process and Lucky stacking each have their own video, so you can pre-process one recording while another is being stacked. While a tab works, its own **Open source…** and start button wait for it, and while a deconvolution runs in Sharpen & deconvolve, **Sharpen →** waits too.
 
 Pre-processing is optional for good videos of planets, but it shrinks files dramatically (a cropped 300 × 300 video instead of full frame), removes bad frames, and is essential for field derotation.
 
@@ -58,7 +60,7 @@ Pre-processing is optional for good videos of planets, but it shrinks files dram
 
 The **Lucky stacking** tab is a lucky-imaging stacker with multi-point alignment.
 
-1. Click **Open source…** (the Pre-process output is already loaded).
+1. Click **Open source…**, or **Stacking →** in the Pre-process tab to bring its result here.
 2. Enter the percentages of frames to stack in **Stack %**, for example `10, 25, 50`; one stack is made for each.
 3. Click **Analyse & stack**.
 

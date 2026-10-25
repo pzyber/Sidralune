@@ -132,6 +132,8 @@ namespace Sidralune.AppTests
         {
             App.Toast("Hello from a test");
             CheckTrue("Notification shown", WaitFor(() => Toasts().Contains("Hello from a test")));
+            App.Toast("Analyse & stack");
+            CheckTrue("An & in a notification is shown, not taken as a shortcut marker", WaitFor(() => OnUi(() => All(App).OfType<Label>().Any(l => l.Text == "Analyse & stack" && !l.UseMnemonic))));
             var rect = OnUi(() => App.Controls.OfType<Panel>().First(p => p.Controls.OfType<Label>().Any(l => l.Text == "Hello from a test")).Bounds);
             CheckTrue("Notification in the window's lower right corner", OnUi(() => rect.Right <= App.ClientSize.Width && rect.Bottom <= App.ClientSize.Height && rect.Left > App.ClientSize.Width / 2));
             CheckTrue("Notification disappears by itself", WaitFor(() => !Toasts().Contains("Hello from a test"), 8000));

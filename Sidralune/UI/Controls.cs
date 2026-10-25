@@ -495,7 +495,7 @@ namespace Sidralune.UI
             if (_owner.InvokeRequired) { _owner.BeginInvoke(new Action(() => Show(text, icon, ms, accent))); return; }
             var p = Theme.Current;
             var panel = new Panel { Width = 360, Height = 54, BackColor = p.SurfaceRaised };
-            var lbl = new Label { Text = text, ForeColor = p.Text, Font = Theme.UiFont, Location = new Point(40, 0), Size = new Size(310, 54), TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true };
+            var lbl = new Label { Text = text, ForeColor = p.Text, Font = Theme.UiFont, Location = new Point(40, 0), Size = new Size(310, 54), TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, UseMnemonic = false }; // "&" is text, not a shortcut marker
             var ic = new Label { Text = icon, Font = Theme.IconFontLarge, ForeColor = accent ?? p.Accent, Location = new Point(10, 15), AutoSize = true };
             panel.Controls.Add(lbl); panel.Controls.Add(ic);
             panel.Paint += (s, e) => { using (var pen = new Pen(accent ?? p.Accent)) e.Graphics.DrawRectangle(pen, 0, 0, panel.Width - 1, panel.Height - 1); };
