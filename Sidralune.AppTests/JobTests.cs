@@ -127,19 +127,30 @@ namespace Sidralune.AppTests
             CheckTrue("Stacking: check boxes editable again, other columns not", OnUi(() => { var g = Field<DataGridView>(stacking, "_grid"); return !g.ReadOnly && !g.Columns[0].ReadOnly && g.Columns.Cast<DataGridViewColumn>().Skip(1).All(c => c.ReadOnly); }));
 
             var planetary = View<PlanetaryView>("planetary");
-            var source = Field<object>(planetary, "_source");
-            WhileBusy(Field<JobSlot>(planetary, "_sourceJob"), () =>
+            // each tab has an Open source… button; tell them apart by a button beside it
+            Func<string, bool> openBeside = sibling => OnUi(() => Button(Button(planetary, sibling).Parent, "Open source…").Enabled);
+            Func<string, bool> enabled = text => OnUi(() => Button(planetary, text).Enabled);
+            var ppSource = Field<object>(planetary, "_ppSource");
+            WhileBusy(Field<JobSlot>(planetary, "_ppJob"), () =>
             {
-                CheckTrue("Planetary: Open source, Process and Analyse & stack wait", OnUi(() => !Button(planetary, "Open source…").Enabled && !Button(planetary, "Process").Enabled && !Button(planetary, "Analyse & stack").Enabled));
+                CheckTrue("Planetary: pre-processing locks Open source and Process in Pre-process", !openBeside("Process") && !enabled("Process"));
+                CheckTrue("Planetary: Lucky stacking stays free during pre-processing", openBeside("Analyse & stack") && enabled("Analyse & stack"));
                 OnUi(() => planetary.OpenVideo(System.IO.Path.Combine(Root, "no such video.ser")));
-                CheckTrue("Planetary: a video sent from the Observatory waits (no attempt to open it)", Field<object>(planetary, "_source") == source);
+                CheckTrue("Planetary: a video sent from the Observatory waits (no attempt to open it)", Field<object>(planetary, "_ppSource") == ppSource);
+            });
+            WhileBusy(Field<JobSlot>(planetary, "_luckyJob"), () =>
+            {
+                CheckTrue("Planetary: lucky stacking locks Open source, Analyse & stack and Sharpen →", !openBeside("Analyse & stack") && !enabled("Analyse & stack") && !enabled("Sharpen →"));
+                CheckTrue("Planetary: Pre-process stays free during lucky stacking", openBeside("Process") && enabled("Process"));
             });
             var sharp = Field<AstroImage>(planetary, "_sharpSource");
             WhileBusy(Field<JobSlot>(planetary, "_sharpJob"), () =>
             {
+                CheckTrue("Planetary: Sharpen → in Lucky stacking waits for a deconvolution, the rest of the tab does not", !enabled("Sharpen →") && enabled("Analyse & stack"));
                 OnUi(() => Call(planetary, "SetSharpenImage", Stars(7)));
                 CheckTrue("Planetary: deconvolution keeps its image", Field<AstroImage>(planetary, "_sharpSource") == sharp);
             });
+            CheckTrue("Planetary: Sharpen → is back afterwards", enabled("Sharpen →"));
 
             var photometry = View<PhotometryView>("photometry");
             WhileBusy(Field<JobSlot>(photometry, "_measureJob"), () =>

@@ -1,5 +1,11 @@
+using System;
+using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sidralune.Imaging;
+using Sidralune.Imaging.IO;
+using Sidralune.Imaging.Planetary;
 using Sidralune.Tests;
 using Sidralune.UI;
 using Sidralune.Views;
@@ -19,6 +25,75 @@ namespace Sidralune.AppTests
             var viewers = OnUi(() => All(view).OfType<ImageViewer>().Select(v => v.Stretch).ToList());
             // an automatic stretch blows the black sky around a planet up into noise
             CheckTrue("Every planetary tab shows images without a display stretch", viewers.Count >= 5 && viewers.All(s => s == DisplayStretch.None), string.Join(", ", viewers));
+        }
+
+        [TestMethod]
+        public void TestDerotationPanelLayout()
+        {
+            var view = View<PlanetaryView>("planetary");
+            OnUi(() => ((TabbedPanel)typeof(PlanetaryView).GetField("_tabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(view)).Select(3));
+            Settle();
+            var add = OnUi(() => Button(view, "Add images…"));
+            var first = OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "Limb darkening comp."));
+            CheckTrue("Without images the panel says so and shows no empty list", OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "No images yet") != null
+                && !All(add.Parent.Parent).OfType<ListBox>().Any(l => l.Visible)));
+            int gap = OnUi(() => add.Parent.PointToScreen(add.Location).Y - first.Parent.PointToScreen(first.Location).Y);
+            CheckTrue("The buttons follow the options without a blank stretch", gap > 0 && gap < 120, gap + " px");
+        }
+
+        [TestMethod]
+        public void TestPreprocessResultToLuckyStacking()
+        {
+            var view = View<PlanetaryView>("planetary");
+            string dir = Path.Combine(Root, "planetary"), outDir = Path.Combine(dir, "out");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(outDir);
+            // a small video of a disc drifting on a dark sky
+            string video = Path.Combine(dir, "jupiter.ser");
+            var rnd = new Random(2);
+            using (var ser = new SerWriter(video, 160, 120, 16, 1))
+                for (int f = 0; f < 12; f++)
+                {
+                    var img = new AstroImage(160, 120, 1);
+                    double cx = 70 + f, cy = 55 + f / 2.0;
+                    for (int y = 0; y < 120; y++)
+                        for (int x = 0; x < 160; x++)
+                            img.Data[0][y * 160 + x] = (float)((Math.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) < 15 ? 0.7 : 0.02) + 0.01 * rnd.NextDouble());
+                    ser.Write(img, new DateTime(2026, 10, 24, 23, 0, f, DateTimeKind.Utc));
+                }
+            var opt = OnUi(() => (PippOptions)All(view).OfType<PropertyGrid>().Select(g => g.SelectedObject).OfType<GridAdapter>().First(a => a.Target is PippOptions).Target);
+            string folder = opt.OutputFolder;
+            var lucky = Field<JobSlot>(view, "_luckyJob");
+            try
+            {
+                opt.OutputFolder = outDir;
+                foreach (var button in new[] { "Sharpen →", "Next stack", "Save stacks…" })
+                {
+                    int shown = Toasts().Count(t => t.StartsWith("Nothing stacked yet"));
+                    OnUi(() => Button(view, button).PerformClick());
+                    CheckTrue(button + " says when nothing is stacked yet", WaitFor(() => Toasts().Count(t => t.StartsWith("Nothing stacked yet")) > shown || Toasts().Any(t => t.StartsWith("Nothing stacked yet")) && shown > 0));
+                }
+                OnUi(() => view.OpenVideo(video));
+                OnUi(() => Button(view, "Stacking →").PerformClick());
+                CheckTrue("Before processing the button says what to do", WaitFor(() => Toasts().Any(t => t.Contains("Process the video first"))));
+                CheckTrue("Nothing is sent to Lucky stacking on its own", Field<object>(view, "_luckySource") == null || !((IFrameSource)Field<object>(view, "_luckySource")).Path.StartsWith(outDir));
+                OnUi(() => Button(view, "Process").PerformClick());
+                CheckTrue("Pre-processing writes its video", WaitFor(() => OnUi(() => !Field<JobSlot>(view, "_ppJob").Busy) && Directory.GetFiles(outDir, "*.ser").Length > 0, 60000));
+                CheckTrue("Still nothing loaded in Lucky stacking until asked", Field<object>(view, "_luckySource") == null || !((IFrameSource)Field<object>(view, "_luckySource")).Path.StartsWith(outDir));
+                OnUi(() => Button(view, "Stacking →").PerformClick());
+                var src = (IFrameSource)Field<object>(view, "_luckySource");
+                CheckTrue("Stacking → opens the result in Lucky stacking", src != null && src.Path.StartsWith(outDir) && src.FrameCount > 0, src != null ? src.Path : "nothing");
+                CheckTrue("The button waits while Lucky stacking runs", OnUi(() =>
+                {
+                    var gate = new System.Threading.ManualResetEventSlim();
+                    lucky.Run("Test job", t => gate.Wait(30000));
+                    bool locked = !Button(view, "Stacking →").Enabled;
+                    gate.Set();
+                    return locked;
+                }));
+                CheckTrue("And comes back afterwards", WaitFor(() => OnUi(() => !lucky.Busy && Button(view, "Stacking →").Enabled), 30000));
+            }
+            finally { opt.OutputFolder = folder; }
         }
     }
 }

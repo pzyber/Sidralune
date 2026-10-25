@@ -257,7 +257,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `ViewTests.cs` | Every workspace opens without errors, in night mode and at the smallest window size, and the commands |
 | `TimeAxisTests.cs` | Time axes across daylight saving changes: the altitude charts never run backwards, ticks follow the local clock |
 | `AstrometryViewTests.cs` | Which minor body (asteroid and comet) labels a solved image shows, the image depth and step times in the result panel, and the Display stretch in Astrometry and Process |
-| `PlanetaryViewTests.cs` | Planetary frames are shown as recorded, without a display stretch |
+| `PlanetaryViewTests.cs` | Planetary frames are shown as recorded, without a display stretch, and a pre-processed video goes to Lucky stacking with **Stacking →**, and the Lucky stacking buttons say when nothing is stacked yet |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, messages for missing devices, sequence editing |
 
