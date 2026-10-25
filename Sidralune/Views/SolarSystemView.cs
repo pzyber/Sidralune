@@ -676,6 +676,7 @@ namespace Sidralune.Views
         private readonly List<AstrometricObservation> _obs = new List<AstrometricObservation>();
         private readonly List<PointF> _obsPix = new List<PointF>();
         private AstroImage _mpcImg;
+        private readonly JobSlot _mpcJob = new JobSlot(); // the image is loaded in the background
 
         private Control BuildMpc()
         {
@@ -689,14 +690,21 @@ namespace Sidralune.Views
             Action refresh = () => list.Text = string.Join("\r\n", _obs.Select(MpcReporting.Obs80));
             var open = new FlatButton("Open image…", Icons.Open, (s, e) =>
             {
+                if (_mpcJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
                 {
                     if (d.ShowDialog() != DialogResult.OK) return;
-                    _mpcImg = ImageFile.Load(d.FileName);
-                    _mpcViewer.SetImage(_mpcImg);
-                    if (_mpcViewer.Wcs == null) MainForm.Instance.Toast("No WCS in this image: plate solve it in Astrometry and save with WCS", Icons.Info);
+                    string path = d.FileName;
+                    AstroImage loaded = null;
+                    _mpcJob.Run("Opening " + Path.GetFileName(path), t => loaded = ImageFile.Load(path), () =>
+                    {
+                        _mpcImg = loaded;
+                        _mpcViewer.SetImage(_mpcImg);
+                        if (_mpcViewer.Wcs == null) MainForm.Instance.Toast("No WCS in this image: plate solve it in Astrometry and save with WCS", Icons.Info);
+                    });
                 }
             }) { Width = 340 };
+            _mpcJob.Guard(open);
             g.Full(open);
             var undo = new FlatButton("Remove last measurement", Icons.Undo, (s, e) => { if (_obs.Count > 0) { _obs.RemoveAt(_obs.Count - 1); _obsPix.RemoveAt(_obsPix.Count - 1); refresh(); _mpcViewer.Invalidate(); } }) { Width = 340, Kind = ButtonKind.Subtle };
             g.Full(undo);

@@ -34,6 +34,8 @@ namespace Sidralune.Views
 
         private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a 2D spectrum image (dispersion along X). Dark/flat calibrate in Stacking first if possible." };
         private AstroImage _sci, _lamp;
+        // frames are loaded in the background, one at a time
+        private readonly JobSlot _loadJob = new JobSlot();
         private double[] _trace;
         private Spectrum _extracted, _lampSpec;
         private double[] _dispersion;
@@ -53,8 +55,8 @@ namespace Sidralune.Views
             var start = g.Row("Approx. start (Å)", Ui.Num(3900, 1000, 20000, 1, 10));
             var disp = g.Row("Approx. Å / pixel", Ui.Num(2.5m, 0.001m, 100, 4, 0.05m));
             var degree = g.Row("Polynomial degree", Ui.Num(3, 1, 6));
-            Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); };
-            btn("1 · Open science frame…", Icons.Open, () => { var img = OpenImage(); if (img != null) { _sci = img; _trace = null; _viewer.SetImage(img); } }, ButtonKind.Normal);
+            Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); return b; };
+            var openSci = btn("1 · Open science frame…", Icons.Open, () => OpenImage(img => { _sci = img; _trace = null; _viewer.SetImage(img); }), ButtonKind.Normal);
             btn("2 · Trace & extract", Icons.Spectrum, () =>
             {
                 if (_sci == null) throw new InvalidOperationException("Open a science frame first");
@@ -66,7 +68,8 @@ namespace Sidralune.Views
                 _viewer.Invalidate();
                 PlotReduced();
             }, ButtonKind.Normal);
-            btn("3 · Open lamp frame…", Icons.Open, () => { var img = OpenImage(); if (img != null) { _lamp = img; MainForm.Instance.Toast("Lamp frame loaded"); } }, ButtonKind.Normal);
+            var openLamp = btn("3 · Open lamp frame…", Icons.Open, () => OpenImage(img => { _lamp = img; MainForm.Instance.Toast("Lamp frame loaded"); }), ButtonKind.Normal);
+            _loadJob.Guard(openSci, openLamp);
             btn("4 · Auto wavelength calibration", Icons.Target, () =>
             {
                 if (_lamp == null || _trace == null) throw new InvalidOperationException("Extract the science spectrum and open a lamp frame first");
@@ -107,14 +110,20 @@ namespace Sidralune.Views
 
         private static double Poly(double[] c, double x) { double v = 0; for (int i = c.Length - 1; i >= 0; i--) v = v * x + c[i]; return v; }
 
-        private static AstroImage OpenImage()
+        /// <summary>Asks for a frame and loads it (as mono) in the background, then hands it to opened.</summary>
+        private void OpenImage(Action<AstroImage> opened)
         {
+            if (_loadJob.Refuse()) return;
             using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
             {
-                if (d.ShowDialog() != DialogResult.OK) return null;
-                var img = ImageFile.Load(d.FileName);
-                if (img.Channels > 1) img = img.ToMono();
-                return img;
+                if (d.ShowDialog() != DialogResult.OK) return;
+                string path = d.FileName;
+                AstroImage img = null;
+                _loadJob.Run("Opening " + Path.GetFileName(path), t =>
+                {
+                    img = ImageFile.Load(path);
+                    if (img.Channels > 1) img = img.ToMono();
+                }, () => opened(img));
             }
         }
 

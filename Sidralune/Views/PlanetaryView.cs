@@ -25,6 +25,8 @@ namespace Sidralune.Views
         private IFrameSource _ppSource, _luckySource;
         private AstroImage _stacked;
         private readonly JobSlot _ppJob = new JobSlot(), _luckyJob = new JobSlot(), _sharpJob = new JobSlot(), _waveletJob = new JobSlot(), _deroJob = new JobSlot(), _solarJob = new JobSlot();
+        // the Pre-process slider reads one frame at a time, the newest wins
+        private readonly JobSlot _scrubJob = new JobSlot();
 
         public PlanetaryView()
         {
@@ -38,12 +40,28 @@ namespace Sidralune.Views
 
         private static Card Side(string title, int width) => new Card(title) { Dock = DockStyle.Right, Width = width, AutoScroll = true };
 
-        /// <summary>A video or image sequence chosen by the user, or null; asked only when the tab's own job is idle.</summary>
-        private static IFrameSource PickSource(JobSlot job)
+        /// <summary>The files of a video or image sequence chosen by the user, or null; asked only when the tab's own job is idle.</summary>
+        private static List<string> PickSource(JobSlot job)
         {
             if (job.Refuse()) return null;
             using (var d = new OpenFileDialog { Filter = "Video & images|*.ser;*.avi;*.fit;*.fits;*.tif;*.tiff;*.png;*.bmp;*.jpg|All|*.*", Multiselect = true })
-                return d.ShowDialog() == DialogResult.OK ? FrameSourceFactory.Open(d.FileNames.OrderBy(f => f).ToList()) : null;
+                return d.ShowDialog() == DialogResult.OK ? d.FileNames.OrderBy(f => f).ToList() : null;
+        }
+
+        /// <summary>
+        /// Opens a source in the background as the tab's job (an image sequence loads its first image, and the first frame is
+        /// prepared for display), then makes it the tab's source and shows that frame.
+        /// </summary>
+        private void OpenSourceInBackground(JobSlot job, Func<IFrameSource> open, Func<IFrameSource, AstroImage> firstFrame, Action<IFrameSource, AstroImage> opened)
+        {
+            IFrameSource src = null;
+            AstroImage first = null;
+            job.Run("Opening sequence", t =>
+            {
+                src = open();
+                try { first = firstFrame(src); }
+                catch { src.Dispose(); throw; }
+            }, () => opened(src, first));
         }
 
         /// <summary>Closes a tab's old source and announces the new one.</summary>
@@ -54,15 +72,15 @@ namespace Sidralune.Views
             return source;
         }
 
-        private Action _showPreprocessSource, _showLuckySource;
+        private Action<Func<IFrameSource>> _openPreprocess;
+        private Action<Func<IFrameSource>, Action> _openLucky;
 
         /// <summary>Open a recorded video in the Pre-process tab (Observatory → Imaging → Open in Planetary).</summary>
         public void OpenVideo(string path)
         {
             if (_ppJob.Refuse()) return;
-            _ppSource = Replace(_ppSource, FrameSourceFactory.Open(path));
             _tabs.Select(0);
-            _showPreprocessSource?.Invoke();
+            _openPreprocess(() => FrameSourceFactory.Open(path));
         }
 
         // ================================================================== PIPP
@@ -82,8 +100,16 @@ namespace Sidralune.Views
             planet.Width = 200;
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             List<string> output = null; // the files of the last pre-processing run
-            _showPreprocessSource = () => { scrub.Maximum = Math.Max(0, _ppSource.FrameCount - 1); scrub.Value = 0; viewer.SetImage(Preprocessor.PrepareFrame(_ppSource, 0, opt)); };
-            btn("Open source…", Icons.Open, () => { var src = PickSource(_ppJob); if (src != null) { _ppSource = Replace(_ppSource, src); _showPreprocessSource(); } }, ButtonKind.Normal);
+            bool settingScrub = false;
+            _openPreprocess = open => OpenSourceInBackground(_ppJob, open, src => Preprocessor.PrepareFrame(src, 0, opt), (src, first) =>
+            {
+                _ppSource = Replace(_ppSource, src);
+                settingScrub = true;
+                scrub.Maximum = Math.Max(0, src.FrameCount - 1); scrub.Value = 0;
+                settingScrub = false;
+                viewer.SetImage(first);
+            });
+            btn("Open source…", Icons.Open, () => { var files = PickSource(_ppJob); if (files != null) _openPreprocess(() => FrameSourceFactory.Open(files)); }, ButtonKind.Normal);
             btn("Output folder…", Icons.Open, () => { using (var d = new FolderBrowserDialog { SelectedPath = opt.OutputFolder }) if (d.ShowDialog() == DialogResult.OK) { opt.OutputFolder = d.SelectedPath; props.Refresh(); } }, ButtonKind.Subtle);
             bar.Controls.Add(new Label { Text = "Field derotation target:", AutoSize = true, Margin = new Padding(0, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(planet);
@@ -117,12 +143,21 @@ namespace Sidralune.Views
                 if (output == null || output.Count == 0) { MainForm.Instance.Toast("Process the video first", Icons.Info); return; }
                 // a video split by Max frames per file opens at its first part; frames written as images open together
                 bool video = output[0].EndsWith(".ser", StringComparison.OrdinalIgnoreCase) || output[0].EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
-                _luckySource = Replace(_luckySource, video ? FrameSourceFactory.Open(output[0]) : FrameSourceFactory.Open(output));
-                if (video && output.Count > 1) MainForm.Instance.Toast("Opened the first of " + output.Count + " video files", Icons.Info);
+                var files = output;
                 _tabs.Select(1);
-                _showLuckySource?.Invoke();
+                _openLucky(() => video ? FrameSourceFactory.Open(files[0]) : FrameSourceFactory.Open(files), () =>
+                {
+                    if (video && files.Count > 1) MainForm.Instance.Toast("Opened the first of " + files.Count + " video files", Icons.Info);
+                });
             }, ButtonKind.Subtle));
-            scrub.ValueChanged += (s, e) => { if (_ppSource != null) { try { viewer.SetImage(Preprocessor.PrepareFrame(_ppSource, scrub.Value, opt), false); } catch { } } };
+            // a frame is read in the background, and only the newest one asked for is shown
+            scrub.ValueChanged += (s, e) =>
+            {
+                if (settingScrub || _ppSource == null) return;
+                var src = _ppSource; int i = scrub.Value;
+                AstroImage frame = null;
+                _scrubJob.Replace("Reading frame", t => { try { frame = Preprocessor.PrepareFrame(src, i, opt); } catch { } }, () => { if (frame != null && src == _ppSource) viewer.SetImage(frame, false); });
+            };
             viewer.PaintOverlay += (g, map) =>
             {
                 if (viewer.Image == null) return;
@@ -155,8 +190,13 @@ namespace Sidralune.Views
             LuckyResult result = null;
             int shown = 0;
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); return b; };
-            _showLuckySource = () => viewer.SetImage(_luckySource.ReadFrame(0));
-            btn("Open source…", Icons.Open, () => { var src = PickSource(_luckyJob); if (src != null) { _luckySource = Replace(_luckySource, src); _showLuckySource(); } }, ButtonKind.Normal);
+            _openLucky = (open, done) => OpenSourceInBackground(_luckyJob, open, src => src.ReadFrame(0), (src, first) =>
+            {
+                _luckySource = Replace(_luckySource, src);
+                viewer.SetImage(first);
+                done?.Invoke();
+            });
+            btn("Open source…", Icons.Open, () => { var files = PickSource(_luckyJob); if (files != null) _openLucky(() => FrameSourceFactory.Open(files), null); }, ButtonKind.Normal);
             bar.Controls.Add(new Label { Text = "Stack %:", AutoSize = true, Margin = new Padding(6, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(percents);
             btn("Analyse & stack", Icons.Stack, () =>
@@ -249,14 +289,30 @@ namespace Sidralune.Views
             var decIt = g.Row("Iterations", Ui.Num(15, 1, 200));
             var buttons = new FlowLayoutPanel { Height = 160, FlowDirection = FlowDirection.TopDown };
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; buttons.Controls.Add(b); };
-            btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) SetSharpenImage(ImageFile.Load(d.FileName)); }, ButtonKind.Normal);
+            btn("Open image…", Icons.Open, () =>
+            {
+                if (_sharpJob.Refuse()) return;
+                using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
+                {
+                    if (d.ShowDialog() != DialogResult.OK) return;
+                    string path = d.FileName;
+                    AstroImage loaded = null;
+                    _sharpJob.Run("Opening " + Path.GetFileName(path), t => loaded = ImageFile.Load(path), () => SetSharpenImage(loaded));
+                }
+            }, ButtonKind.Normal);
             btn("Richardson-Lucy deconvolution (TV)", Icons.Check, () =>
             {
                 if (_sharpSource == null) return;
                 var src = _sharpSource.Clone(); double fw = (double)decFwhm.Value; int it = (int)decIt.Value;
                 _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }), () => { _sharpSource = src; UpdateSharpen(); });
             }, ButtonKind.Normal);
-            btn("Align RGB channels (ADC)", Icons.Check, () => { if (_sharpSource != null && _sharpSource.Channels == 3) { var s = _sharpSource.Clone(); ColorOps.AlignChannels(s); _sharpSource = s; UpdateSharpen(); } }, ButtonKind.Normal);
+            btn("Align RGB channels (ADC)", Icons.Check, () =>
+            {
+                if (_sharpSource == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
+                if (_sharpSource.Channels != 3) { MainForm.Instance.Toast("Aligning channels needs a colour image", Icons.Info); return; }
+                var s = _sharpSource.Clone();
+                _sharpJob.Run("Aligning colour channels", t => ColorOps.AlignChannels(s), () => { _sharpSource = s; UpdateSharpen(); });
+            }, ButtonKind.Normal);
             btn("Save result…", Icons.Save, () =>
             {
                 var img = _sharpViewer.Image; if (img == null) return;
@@ -341,17 +397,31 @@ namespace Sidralune.Views
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; bar.Controls.Add(b); };
             Action addImages = () =>
             {
+                if (_deroJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
                 {
                     if (d.ShowDialog() != DialogResult.OK) return;
-                    foreach (var f in d.FileNames)
+                    var files = d.FileNames;
+                    var added = new List<DeroItem>();
+                    var untimed = new List<string>();
+                    // loaded in the background; the images join the list when all are in
+                    _deroJob.Run("Loading " + files.Length + " image(s)", t =>
                     {
-                        var img = ImageFile.Load(f);
-                        var t = img.DateObs ?? timeFromName(f);
-                        if (!t.HasValue) { MainForm.Instance.Toast("No time found for " + Path.GetFileName(f) + " (use FITS DATE-OBS or WinJUPOS naming)", Icons.Warning); continue; }
-                        items.Add(new DeroItem { Path = f, Image = img, Time = t.Value });
-                    }
-                    refresh();
+                        for (int i = 0; i < files.Length; i++)
+                        {
+                            t.Cts.Token.ThrowIfCancellationRequested();
+                            Tasks.Report(t, (double)i / files.Length, Path.GetFileName(files[i]));
+                            var img = ImageFile.Load(files[i]);
+                            var time = img.DateObs ?? timeFromName(files[i]);
+                            if (time.HasValue) added.Add(new DeroItem { Path = files[i], Image = img, Time = time.Value });
+                            else untimed.Add(Path.GetFileName(files[i]));
+                        }
+                    }, () =>
+                    {
+                        items.AddRange(added);
+                        refresh();
+                        if (untimed.Count > 0) MainForm.Instance.Toast("No time found for " + string.Join(", ", untimed) + " (use FITS DATE-OBS or WinJUPOS naming)", Icons.Warning);
+                    });
                 }
             };
             btn("Derotate & stack to target time", Icons.Stack, () =>
@@ -421,21 +491,49 @@ namespace Sidralune.Views
             var flat = g.Row("Limb flattening", Ui.Num(1, 0, 1, 2, 0.05m));
             var bar = new FlowLayoutPanel { Height = 330, FlowDirection = FlowDirection.TopDown };
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 300 }; bar.Controls.Add(b); };
-            Action show = () => viewer.SetImage(img, false);
-            Action fit = () =>
+            Func<AstroImage, double[]> findLimb = im =>
             {
-                var lum = img.Luminance();
-                var ob = ObjectDetection.Detect(lum, img.Width, img.Height);
-                limb = ObjectDetection.FitLimb(lum, img.Width, img.Height, ob);
-                MainForm.Instance.Toast(limb != null ? string.Format("Limb: centre ({0:0.0}, {1:0.0}), radius {2:0.0} px", limb[0], limb[1], limb[2]) : "No disc found");
+                var lum = im.Luminance();
+                var ob = ObjectDetection.Detect(lum, im.Width, im.Height);
+                return ObjectDetection.FitLimb(lum, im.Width, im.Height, ob);
             };
-            btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) { img = ImageFile.Load(d.FileName); limb = null; viewer.SetImage(img); } }, ButtonKind.Normal);
-            btn("Detect limb", Icons.Target, () => { if (img != null) { fit(); viewer.Invalidate(); } }, ButtonKind.Normal);
-            btn("Flatten limb darkening", Icons.Check, () => { if (img == null) return; if (limb == null) fit(); img = img.Clone(); SolarTools.FlattenLimbDarkening(img, limb[0], limb[1], limb[2], (double)flat.Value); show(); }, ButtonKind.Normal);
-            btn("Enhance prominences", Icons.Check, () => { if (img == null) return; if (limb == null) fit(); img = img.Clone(); SolarTools.EnhanceProminences(img, limb[0], limb[1], limb[2] * 1.005, (double)gain.Value, (double)gamma.Value); show(); }, ButtonKind.Normal);
-            btn("Colourise H-alpha", Icons.Check, () => { if (img == null) return; img = ColorOps.Colorize(img.Channels > 1 ? img.ToMono() : img, 1.0, 0.45, 0.15); show(); }, ButtonKind.Normal);
-            btn("Invert (negative)", Icons.Check, () => { if (img == null) return; img = img.Clone(); ColorOps.Invert(img); show(); }, ButtonKind.Normal);
-            btn("Wavelet sharpen", Icons.Check, () => { if (img == null) return; var o = img.Clone(); for (int c = 0; c < o.Channels; c++) o.Data[c] = Wavelets.Sharpen(o.Data[c], o.Width, o.Height, new[] { 1.0, 0.6, 0.2, 0, 0 }, new[] { 0.5, 0.2, 0, 0, 0 }); o.Clip(0, 1); img = o; show(); }, ButtonKind.Normal);
+            Func<double[], string> describe = l => l != null ? string.Format("Limb: centre ({0:0.0}, {1:0.0}), radius {2:0.0} px", l[0], l[1], l[2]) : "No disc found";
+            // every tool works on the image in the background (finding the limb first when it needs it), then shows the result;
+            // the buttons wait meanwhile
+            Action<string, bool, Func<AstroImage, double[], AstroImage>> tool = (name, needsLimb, op) =>
+            {
+                if (img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
+                var src = img; var l = limb; AstroImage result = null;
+                _solarJob.Run(name, t =>
+                {
+                    if (needsLimb && l == null) l = findLimb(src);
+                    if (needsLimb && l == null) throw new InvalidOperationException("No disc found");
+                    result = op(src, l);
+                }, () =>
+                {
+                    limb = l;
+                    if (result != null) { img = result; viewer.SetImage(img, false); }
+                    else { viewer.Invalidate(); MainForm.Instance.Toast(describe(limb)); }
+                });
+            };
+            btn("Open image…", Icons.Open, () =>
+            {
+                if (_solarJob.Refuse()) return;
+                using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
+                {
+                    if (d.ShowDialog() != DialogResult.OK) return;
+                    string path = d.FileName;
+                    AstroImage loaded = null;
+                    _solarJob.Run("Opening " + Path.GetFileName(path), t => loaded = ImageFile.Load(path), () => { img = loaded; limb = null; viewer.SetImage(img); });
+                }
+            }, ButtonKind.Normal);
+            btn("Detect limb", Icons.Target, () => { limb = null; tool("Detecting the limb", true, (s, l) => null); }, ButtonKind.Normal);
+            // the settings are read here, on the UI thread, before the work starts
+            btn("Flatten limb darkening", Icons.Check, () => { double fl = (double)flat.Value; tool("Flattening limb darkening", true, (s, l) => { var o = s.Clone(); SolarTools.FlattenLimbDarkening(o, l[0], l[1], l[2], fl); return o; }); }, ButtonKind.Normal);
+            btn("Enhance prominences", Icons.Check, () => { double ga = (double)gain.Value, gm = (double)gamma.Value; tool("Enhancing prominences", true, (s, l) => { var o = s.Clone(); SolarTools.EnhanceProminences(o, l[0], l[1], l[2] * 1.005, ga, gm); return o; }); }, ButtonKind.Normal);
+            btn("Colourise H-alpha", Icons.Check, () => tool("Colourising", false, (s, l) => ColorOps.Colorize(s.Channels > 1 ? s.ToMono() : s, 1.0, 0.45, 0.15)), ButtonKind.Normal);
+            btn("Invert (negative)", Icons.Check, () => tool("Inverting", false, (s, l) => { var o = s.Clone(); ColorOps.Invert(o); return o; }), ButtonKind.Normal);
+            btn("Wavelet sharpen", Icons.Check, () => tool("Wavelet sharpening", false, (s, l) => { var o = s.Clone(); for (int c = 0; c < o.Channels; c++) o.Data[c] = Wavelets.Sharpen(o.Data[c], o.Width, o.Height, new[] { 1.0, 0.6, 0.2, 0, 0 }, new[] { 0.5, 0.2, 0, 0, 0 }); o.Clip(0, 1); return o; }), ButtonKind.Normal);
             btn("Stitch mosaic tiles…", Icons.Grid, () =>
             {
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true, Title = "Select overlapping tiles in order (left→right, top→bottom)" })

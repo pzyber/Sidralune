@@ -432,13 +432,12 @@ namespace Sidralune.Views
             });
         }
 
-        private AstroImage[] PickFiles(string title, int n)
+        /// <summary>The paths of n images chosen by the user, or null; they are loaded by the job that uses them.</summary>
+        private string[] PickFiles(string title, int n)
         {
+            if (_job.Refuse()) return null;
             using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = n > 1, Title = title })
-            {
-                if (d.ShowDialog() != DialogResult.OK || d.FileNames.Length < n) return null;
-                return d.FileNames.Take(n).Select(ImageFile.Load).ToArray();
-            }
+                return d.ShowDialog() != DialogResult.OK || d.FileNames.Length < n ? null : d.FileNames.Take(n).ToArray();
         }
 
         private void Lrgb()
@@ -446,11 +445,19 @@ namespace Sidralune.Views
             if (_img == null || _img.Channels < 3) { MainForm.Instance.Toast("Open a colour image first", Icons.Info); return; }
             var l = PickFiles("Luminance image (stretched, same size)", 1);
             if (l == null) return;
-            Replace("LRGB", img => ColorOps.LrgbCombine(l[0], img, 1.0, 1.1));
+            Replace("LRGB", img => ColorOps.LrgbCombine(ImageFile.Load(l[0]), img, 1.0, 1.1));
+        }
+
+        /// <summary>Makes a new image from files in the background (loading included) and opens it.</summary>
+        private void Compose(string label, Func<AstroImage> make)
+        {
+            AstroImage result = null;
+            _job.Run(label, t => result = make(), () => OpenImage(result, label));
         }
 
         private void Narrowband(string palette)
         {
+            if (_job.Refuse()) return;
             using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true, Title = "Select Ha and OIII (and optionally SII) images — names containing Ha/OIII/SII are recognised" })
             {
                 if (d.ShowDialog() != DialogResult.OK || d.FileNames.Length < 2) return;
@@ -458,21 +465,24 @@ namespace Sidralune.Views
                 var ha = d.FileNames.FirstOrDefault(f => has(f, "HA") || has(f, "H-ALPHA") || has(f, "HALPHA")) ?? d.FileNames[0];
                 var o3 = d.FileNames.FirstOrDefault(f => has(f, "OIII") || has(f, "O3")) ?? d.FileNames.First(f => f != ha);
                 var s2 = d.FileNames.FirstOrDefault(f => has(f, "SII") || has(f, "S2"));
-                var img = ColorOps.NarrowbandPalette(ImageFile.Load(ha), ImageFile.Load(o3), s2 != null ? ImageFile.Load(s2) : null, palette);
-                OpenImage(img, palette + " composite");
+                Compose(palette + " composite", () => ColorOps.NarrowbandPalette(ImageFile.Load(ha), ImageFile.Load(o3), s2 != null ? ImageFile.Load(s2) : null, palette));
             }
         }
 
         private void RgbCombine()
         {
+            if (_job.Refuse()) return;
             using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true, Title = "Select R, G and B images" })
             {
                 if (d.ShowDialog() != DialogResult.OK || d.FileNames.Length < 3) return;
                 var f = d.FileNames.OrderBy(n => n).ToArray();
                 Func<string, int> order = n => { var l = Path.GetFileName(n).ToLowerInvariant(); return l.Contains("_r") || l.StartsWith("r") || l.Contains("red") ? 0 : l.Contains("_g") || l.StartsWith("g") || l.Contains("green") ? 1 : 2; };
                 var sorted = f.OrderBy(order).ToArray();
-                var imgs = sorted.Take(3).Select(ImageFile.Load).ToArray();
-                OpenImage(AstroImage.Combine(imgs[0], imgs[1], imgs[2]), "RGB composite");
+                Compose("RGB composite", () =>
+                {
+                    var imgs = sorted.Take(3).Select(ImageFile.Load).ToArray();
+                    return AstroImage.Combine(imgs[0], imgs[1], imgs[2]);
+                });
             }
         }
 

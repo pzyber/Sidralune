@@ -106,7 +106,7 @@ If Sidralune hits an unexpected error, it keeps running, shows a toast and write
 
 ## Background tasks
 
-Anything that takes more than a moment (loading catalogues, stacking, plate solving, period searches, online queries, downloads, scripts) runs in the background. The window stays responsive, the task pill shows progress, and a toast appears when the task finishes. You can keep working in other workspaces meanwhile. Tasks that control equipment can be stopped with their **Stop** buttons or with the `Observatory: abort all` command.
+Anything that takes more than a moment (opening images and videos, loading catalogues, stacking, plate solving, image processing, period searches, online queries, downloads, scripts) runs in the background. The window stays responsive, the task pill shows progress, and a toast appears when the task finishes. You can keep working in other workspaces meanwhile. Tasks that control equipment can be stopped with their **Stop** buttons or with the `Observatory: abort all` command.
 
 A task that works on something you could change runs one at a time: while a plate solve, a processing step, a stacking run, a pre-processing or lucky-stacking run, a photometry measurement or a data download is busy, the buttons that would start another one or change its input (for example **Open image…** and **Solve** during a plate solve) are greyed out, and a message says what is still running. They come back when the task finishes or is cancelled. Look-ups and recalculations that simply refresh a table or chart (Tonight, the planner, online database queries, ephemerides, satellite passes) never wait: a new request replaces the one still running, so you always see the result of the latest one.
 
