@@ -212,8 +212,7 @@ namespace Sidralune.Views
                 _onlineJob.Run("SBDB lookup", t => mb = OnlineServices.SbdbElements(des), () =>
                 {
                     if (mb == null) { MainForm.Instance.Toast("Not found", Icons.Warning); return; }
-                    MinorBodyStore.Instance.Add(mb);
-                    _ephBody.Items.Add(mb);
+                    AddBody(mb);
                     MainForm.Instance.Toast("Added " + mb.DisplayName + " (also shown in the sky chart)");
                     ListMinor(3, 99, mb.DisplayName);
                 });
@@ -221,7 +220,10 @@ namespace Sidralune.Views
             sbdb.AutoSizeToText();
             var nea = new FlatButton("Close approaches (60 d)", Icons.Warning, (s, e) => CloseApproaches()) { Kind = ButtonKind.Subtle };
             nea.AutoSizeToText();
-            var bar = Ui.Toolbar(kind, new Label { Text = "brighter than", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, new Label { Text = "name", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, find, go, Ui.Separator(), add, sbdb, nea);
+            // bodies added with Add elements… or from JPL SBDB last for the session; this takes them away again
+            var remove = new FlatButton("Remove added", Icons.Remove, (s, e) => RemoveAdded()) { Kind = ButtonKind.Subtle };
+            remove.AutoSizeToText();
+            var bar = Ui.Toolbar(kind, new Label { Text = "brighter than", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, new Label { Text = "name", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, find, go, Ui.Separator(), add, sbdb, remove, nea);
             _mbGrid = Ui.Grid();
             foreach (var c in new[] { "Object", "Type", "Mag now", "RA", "Dec", "Δ (AU)", "r (AU)", "Elong.", "Alt now", "q / a (AU)", "e", "i (°)" }) _mbGrid.Columns.Add(c, c);
             _mbGrid.SelectionChanged += (s, e) =>
@@ -284,6 +286,21 @@ namespace Sidralune.Views
             });
         }
 
+        private void RemoveAdded()
+        {
+            var picked = _mbGrid.SelectedCells.Cast<DataGridViewCell>().Select(c => c.OwningRow).Distinct().Select(r => r.Tag as MinorBody).Where(m => m != null).ToList();
+            if (picked.Count == 0) { MainForm.Instance.Toast("Select the objects to remove in the list", Icons.Info); return; }
+            var added = picked.Where(MinorBodyStore.Instance.IsAdded).ToList();
+            if (added.Count == 0) { MainForm.Instance.Toast("Only objects you added (Add elements…, JPL SBDB) can be removed; the others come from the downloaded catalogues", Icons.Info); return; }
+            foreach (var m in added)
+            {
+                MinorBodyStore.Instance.Remove(m);
+                _ephBody.Items.Remove(m);
+                foreach (var r in _mbGrid.Rows.Cast<DataGridViewRow>().Where(r => r.Tag == m).ToList()) _mbGrid.Rows.Remove(r);
+            }
+            MainForm.Instance.Toast("Removed " + string.Join(", ", added.Select(m => m.DisplayName)) + (added.Count < picked.Count ? " (catalogue objects stay)" : ""));
+        }
+
         private void AddElements()
         {
             var text = PlannerView.Prompt("Add orbital elements", "Paste one MPCORB line (asteroid) or CometEls line (comet)", "");
@@ -292,9 +309,16 @@ namespace Sidralune.Views
             try { mb = MpcFormats.ParseMpcOrb(text); } catch { }
             if (mb == null) try { mb = MpcFormats.ParseCometEls(text); } catch { }
             if (mb == null) { MainForm.Instance.Toast("Could not parse the elements (MPC 1-line formats expected)", Icons.Warning); return; }
+            AddBody(mb);
+            MainForm.Instance.Toast("Added " + mb.DisplayName);
+        }
+
+        /// <summary>Adds a body by hand; one added again with the same designation replaces the earlier one in the list too.</summary>
+        private void AddBody(MinorBody mb)
+        {
+            foreach (var old in _ephBody.Items.OfType<MinorBody>().Where(m => m.Designation == mb.Designation && m.IsComet == mb.IsComet && MinorBodyStore.Instance.IsAdded(m)).ToList()) _ephBody.Items.Remove(old);
             MinorBodyStore.Instance.Add(mb);
             _ephBody.Items.Add(mb);
-            MainForm.Instance.Toast("Added " + mb.DisplayName);
         }
 
         private void CloseApproaches()

@@ -35,10 +35,10 @@ namespace Sidralune.AppTests
             Settle();
             var add = OnUi(() => Button(view, "Add images…"));
             var first = OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "Limb darkening comp."));
-            CheckTrue("Without images the panel says so and shows no empty list", OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "No images yet") != null
-                && !All(add.Parent.Parent).OfType<ListBox>().Any(l => l.Visible)));
-            int gap = OnUi(() => add.Parent.PointToScreen(add.Location).Y - first.Parent.PointToScreen(first.Location).Y);
-            CheckTrue("The buttons follow the options without a blank stretch", gap > 0 && gap < 120, gap + " px");
+            var list = OnUi(() => All(add.Parent.Parent).OfType<ListBox>().First());
+            CheckTrue("Without images the panel says so, and the empty list is shown like Photometry's frame list", OnUi(() => Find<Label>(add.Parent.Parent, l => l.Text == "No images yet") != null && list.Visible));
+            Func<Control, int> top = c => OnUi(() => c.Parent.PointToScreen(c.Location).Y);
+            CheckTrue("The list sits between the options and the buttons, not above the options", top(first) < top(list) && top(list) < top(add), top(first) + ", " + top(list) + ", " + top(add));
         }
 
         [TestMethod]

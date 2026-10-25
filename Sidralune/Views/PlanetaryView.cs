@@ -290,14 +290,19 @@ namespace Sidralune.Views
 
         private class DeroItem { public string Path; public AstroImage Image; public DateTime Time; public DiscGeometry Geo; public override string ToString() => System.IO.Path.GetFileName(Path) + "  " + Time.ToString("HH:mm:ss"); }
 
+        // the images of the Derotation tab, and the action that shows them after a change
+        private readonly List<DeroItem> _deroItems = new List<DeroItem>();
+        private Action _deroRefresh;
+
         private Control BuildDerotation()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             var viewer = new ImageViewer { Dock = DockStyle.Fill, Stretch = DisplayStretch.None, EmptyText = "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)" };
-            // the list shows once there are images (an empty list is just blank space); its heading counts them
-            var list = new ListBox { Height = 120, IntegralHeight = false, Visible = false };
+            // the image list, always shown like Photometry's frame list; its heading counts the images
+            var list = new ListBox { Height = 120, IntegralHeight = false, SelectionMode = SelectionMode.MultiExtended };
             var heading = new Label { Text = "No images yet", Tag = "dim", AutoSize = true };
-            var items = new List<DeroItem>();
+            var listBar = new FlowLayoutPanel { Height = 38, WrapContents = false }; // Remove selected and Clear list
+            var items = _deroItems;
             var g = new FormGrid(140);
             var planet = g.Row("Planet", Ui.Combo("Jupiter", "Saturn", "Mars", "Venus"));
             var north = g.Row("Image north angle (°)", Ui.Num(0, -180, 180, 1));
@@ -324,9 +329,17 @@ namespace Sidralune.Views
                 double flat = PlanetPhysics.PolarRadiusKm(b) / PlanetPhysics.EquatorialRadiusKm(b);
                 return new DiscGeometry { Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = flat, PoleAngleDeg = pa + northDeg, SubObserverLatDeg = lat, Mirrored = mirrored };
             };
-            var bar = new FlowLayoutPanel { Height = 120, FlowDirection = FlowDirection.TopDown };
+            Action refresh = () =>
+            {
+                items.Sort((a, b2) => a.Time.CompareTo(b2.Time));
+                list.Items.Clear(); foreach (var it in items) list.Items.Add(it);
+                heading.Text = items.Count == 0 ? "No images yet" : items.Count == 1 ? "1 image" : items.Count + " images, in time order";
+                target.Text = items.Count > 0 ? new DateTime((long)items.Average(i => (double)i.Time.Ticks), DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss") : "";
+            };
+            _deroRefresh = refresh;
+            var bar = new FlowLayoutPanel { Height = 80, FlowDirection = FlowDirection.TopDown };
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; bar.Controls.Add(b); };
-            btn("Add images…", Icons.Add, () =>
+            Action addImages = () =>
             {
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
                 {
@@ -338,16 +351,12 @@ namespace Sidralune.Views
                         if (!t.HasValue) { MainForm.Instance.Toast("No time found for " + Path.GetFileName(f) + " (use FITS DATE-OBS or WinJUPOS naming)", Icons.Warning); continue; }
                         items.Add(new DeroItem { Path = f, Image = img, Time = t.Value });
                     }
-                    items.Sort((a, b2) => a.Time.CompareTo(b2.Time));
-                    list.Items.Clear(); foreach (var it in items) list.Items.Add(it);
-                    list.Visible = items.Count > 0;
-                    heading.Text = items.Count == 0 ? "No images yet" : items.Count == 1 ? "1 image" : items.Count + " images, in time order";
-                    if (items.Count > 0) target.Text = new DateTime((long)items.Average(i => (double)i.Time.Ticks), DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss");
+                    refresh();
                 }
-            }, ButtonKind.Normal);
+            };
             btn("Derotate & stack to target time", Icons.Stack, () =>
             {
-                if (items.Count == 0) return;
+                if (items.Count == 0) { MainForm.Instance.Toast("Add images first", Icons.Info); return; }
                 DateTime tt;
                 if (!DateTime.TryParse(target.Text, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out tt)) { MainForm.Instance.Toast("Invalid target time", Icons.Warning); return; }
                 Body b; Enum.TryParse((string)planet.SelectedItem, out b);
@@ -369,7 +378,23 @@ namespace Sidralune.Views
             }, ButtonKind.Primary);
             btn("Save result…", Icons.Save, () => { if (viewer.Image == null) return; using (var d = new SaveFileDialog { Filter = "TIFF 16-bit|*.tif", FileName = "derotated.tif" }) if (d.ShowDialog() == DialogResult.OK) TiffIO.Write(d.FileName, viewer.Image); }, ButtonKind.Normal);
             g.Full(heading);
+            // removing images, by button or with Delete; the target time follows the images that are left
+            Action remove = () =>
+            {
+                var gone = list.SelectedItems.Cast<DeroItem>().ToList();
+                if (gone.Count == 0) { MainForm.Instance.Toast("Select the images to remove in the list", Icons.Info); return; }
+                if (gone.Any(it => it.Image == viewer.Image)) viewer.SetImage(null);
+                items.RemoveAll(gone.Contains);
+                refresh();
+            };
+            // Add images…, Remove selected and Clear list under the list, as for Photometry's frames
+            Action<string, string, Action, ButtonKind> small = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); listBar.Controls.Add(b); };
+            small("Add images…", Icons.Add, addImages, ButtonKind.Normal);
+            small("Remove selected", Icons.Remove, remove, ButtonKind.Subtle);
+            small("Clear list", Icons.Close, () => { if (items.Any(it => it.Image == viewer.Image)) viewer.SetImage(null); items.Clear(); refresh(); }, ButtonKind.Subtle);
+            list.KeyDown += (s, e) => { if (e.KeyCode == Keys.Delete) { remove(); e.Handled = true; } };
             g.Full(list);
+            g.Full(listBar);
             g.Full(bar);
             g.Full(info);
             g.Full(Ui.Hint("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up."));

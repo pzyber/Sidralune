@@ -55,6 +55,7 @@ The **orbit diagram** on the right is a top-down view of the solar system on the
 |---|---|
 | **Add elements…** | Paste one line in MPCORB (asteroid) or CometEls (comet) format, for example from an MPC circular or the MPC's orbit page for a new comet |
 | **Fetch from JPL SBDB** | Look up any object by number, name or designation (`433`, `2024 YR4`, `12P`, `C/2023 A3`) in JPL's Small-Body Database and add it |
+| **Remove added** | Removes the selected objects that were added with **Add elements…** or **Fetch from JPL SBDB**. Objects from the downloaded catalogues stay; an object whose catalogue orbit was replaced gets the catalogue orbit back |
 | **Close approaches (60 d)** | Lists asteroid and comet approaches to Earth within 0.05 AU over the next 60 days, from JPL's CNEOS service |
 
 Objects you add appear immediately in the Sky chart, the command palette and the Ephemeris tab.

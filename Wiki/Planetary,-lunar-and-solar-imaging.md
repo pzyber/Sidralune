@@ -97,7 +97,7 @@ The **Solar & lunar** tab has a separate **Wavelet sharpen** button with fixed s
 
 Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of minutes. The **Derotation** tab combines several stacked images taken over 10–30 minutes, which raises the signal-to-noise ratio and allows stronger sharpening.
 
-1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below). The images appear in a list in time order; click one to view it.
+1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below). The images appear in a list in time order; click one to view it. **Remove selected** (or the Delete key) takes images out again and **Clear list** empties it; the target time follows the images that are left.
 2. Choose the **Planet** (Jupiter, Saturn, Mars or Venus).
 3. Set the **Target time (UTC)**, normally the middle of the series.
 4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal).

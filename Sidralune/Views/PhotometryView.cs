@@ -58,17 +58,28 @@ namespace Sidralune.Views
             var panel = new Panel { Dock = DockStyle.Fill };
             var side = new Card("Frames & stars") { Dock = DockStyle.Left, Width = 470, AutoScroll = true };
             var g = new FormGrid(110);
-            _frameList = new ListBox { Height = 120, IntegralHeight = false, HorizontalScrollbar = true };
+            _frameList = new ListBox { Height = 120, IntegralHeight = false, HorizontalScrollbar = true, SelectionMode = SelectionMode.MultiExtended };
             var addFrames = new FlatButton("Add frames…", Icons.Add, (s, e) =>
             {
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
                     if (d.ShowDialog() == DialogResult.OK) { _frames.AddRange(d.FileNames); RefreshFrames(); }
             });
             addFrames.AutoSizeToText();
-            var clear = new FlatButton("Clear", Icons.Remove, (s, e) => { _frames.Clear(); RefreshFrames(); }) { Kind = ButtonKind.Subtle };
+            // the list shows the frames in the order of _frames, so positions match
+            Action removeFrames = () =>
+            {
+                var gone = _frameList.SelectedIndices.Cast<int>().OrderByDescending(i => i).ToList();
+                if (gone.Count == 0) { MainForm.Instance.Toast("Select the frames to remove in the list", Icons.Info); return; }
+                foreach (int i in gone) _frames.RemoveAt(i);
+                RefreshFrames();
+            };
+            var removeFrame = new FlatButton("Remove selected", Icons.Remove, (s, e) => removeFrames()) { Kind = ButtonKind.Subtle };
+            removeFrame.AutoSizeToText();
+            _frameList.KeyDown += (s, e) => { if (e.KeyCode == Keys.Delete) { removeFrames(); e.Handled = true; } };
+            var clear = new FlatButton("Clear", Icons.Close, (s, e) => { _frames.Clear(); RefreshFrames(); }) { Kind = ButtonKind.Subtle };
             clear.AutoSizeToText();
             g.Full(_frameList);
-            g.Full(Bar(addFrames, clear));
+            g.Full(Bar(addFrames, removeFrame, clear));
 
             _targets = Ui.Grid();
             _targets.ReadOnly = false;
@@ -96,7 +107,15 @@ namespace Sidralune.Views
             addSel.AutoSizeToText();
             var vsp = new FlatButton("AAVSO comps…", Icons.Download, (s, e) => LoadAavsoComps());
             vsp.AutoSizeToText();
-            g.Full(Bar(addSel, vsp));
+            // the grid also deletes selected rows with the Delete key
+            var removeStars = new FlatButton("Remove selected", Icons.Remove, (s, e) =>
+            {
+                var rows = _targets.SelectedCells.Cast<DataGridViewCell>().Select(c => c.OwningRow).Concat(_targets.SelectedRows.Cast<DataGridViewRow>()).Where(r => !r.IsNewRow).Distinct().ToList();
+                if (rows.Count == 0) { MainForm.Instance.Toast("Select the stars to remove in the table", Icons.Info); return; }
+                foreach (var r in rows) _targets.Rows.Remove(r);
+            }) { Kind = ButtonKind.Subtle };
+            removeStars.AutoSizeToText();
+            g.Full(Bar(addSel, vsp, removeStars));
 
             var props = new PropertyGrid { Height = 210, HelpVisible = false, ToolbarVisible = false, PropertySort = PropertySort.NoSort, SelectedObject = new GridAdapter(_phot.Aperture, "Aperture") };
             g.Full(new Label { Text = "Aperture (radii in pixels; set FWHM multiple > 0 for adaptive apertures)", AutoSize = true, Tag = "dim" });
@@ -109,7 +128,7 @@ namespace Sidralune.Views
             var csv = new FlatButton("CSV…", Icons.Save, (s, e) => ExportCsv());
             csv.AutoSizeToText();
             g.Full(Bar(run, aavso, csv));
-            _measureJob.Guard(addFrames, clear, addSel, vsp, _targets, props, run, aavso, csv);
+            _measureJob.Guard(addFrames, removeFrame, clear, addSel, vsp, removeStars, _targets, props, run, aavso, csv);
             g.Full(Ui.Hint("Frames without a WCS are plate solved first. Ensemble differential photometry uses every comparison star, weighted by its error; the check star monitors the ensemble."));
             side.Controls.Add(g);
 
