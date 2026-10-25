@@ -106,7 +106,7 @@ namespace Sidralune.Devices.Indi
             var settings = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, IgnoreWhitespace = true };
             try
             {
-                using (var xr = XmlReader.Create(new StreamReader(_ns, Encoding.UTF8), settings))
+                using (var xr = XmlReader.Create(new StreamReader(new ShortReads(_ns), Encoding.UTF8), settings))
                 {
                     while (xr.Read())
                     {
@@ -144,6 +144,29 @@ namespace Sidralune.Devices.Indi
         }
 
         public void Dispose() { try { _ns?.Dispose(); _tcp?.Close(); } catch { } }
+
+        /// <summary>
+        /// The connection as the XML reader's StreamReader reads it: never a completely full buffer. StreamReader takes a
+        /// full buffer to mean that more data is waiting and reads again before handing anything on; when a message happened
+        /// to end exactly at the buffer's size, that read blocked until the server sent something else, and a complete
+        /// message (an exposure's image, say) sat unread in the meantime.
+        /// </summary>
+        internal sealed class ShortReads : Stream
+        {
+            private readonly Stream _s;
+            public ShortReads(Stream s) { _s = s; }
+            public override int Read(byte[] buffer, int offset, int count) => _s.Read(buffer, offset, count > 1 ? count - 1 : count);
+            public override bool CanRead => true;
+            public override bool CanSeek => false;
+            public override bool CanWrite => false;
+            public override long Length { get { throw new NotSupportedException(); } }
+            public override long Position { get { throw new NotSupportedException(); } set { throw new NotSupportedException(); } }
+            public override void Flush() { }
+            public override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
+            public override void SetLength(long value) { throw new NotSupportedException(); }
+            public override void Write(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
+            protected override void Dispose(bool disposing) { if (disposing) _s.Dispose(); base.Dispose(disposing); }
+        }
 
         public static IDevice Create(DeviceInfo info)
         {

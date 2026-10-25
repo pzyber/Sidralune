@@ -353,6 +353,44 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestIndiMessagesOfAnySize()
+        {
+            // a message that fills the client's read buffer exactly, with nothing after it, must still be read at once:
+            // .NET's StreamReader used to wait for more data then, which held back an exposure's image now and then
+            int port;
+            var listener = Listen(out port);
+            var updated = new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
+            var client = new IndiClient();
+            client.PropertyUpdated += p => updated[p.Name] = true;
+            var server = new System.Threading.Tasks.Task<string>(() =>
+            {
+                var report = new StringBuilder();
+                using (var c = listener.AcceptTcpClient())
+                using (var ns = c.GetStream())
+                {
+                    var buf = new byte[4096];
+                    ns.Read(buf, 0, buf.Length); // getProperties
+                    foreach (int size in new[] { 1024, 2048, 4096, 1023, 1025, 8192 })
+                    {
+                        string head = "<setTextVector device='T' name='P" + size + "' state='Ok'><oneText name='V'>", tail = "</oneText></setTextVector>";
+                        var msg = Encoding.UTF8.GetBytes(head + new string('x', size - head.Length - tail.Length) + tail);
+                        ns.Write(msg, 0, msg.Length);
+                        bool read = WaitFor(() => updated.ContainsKey("P" + size), 3000);
+                        report.Append(size + (read ? " ok " : " WAITING "));
+                    }
+                }
+                return report.ToString();
+            });
+            server.Start();
+            try
+            {
+                client.Connect("127.0.0.1", port);
+                CheckTrue("Each message is read on its own, whatever its size", server.Wait(30000) && !server.Result.Contains("WAITING"), server.IsCompleted ? server.Result : "timed out");
+            }
+            finally { client.Dispose(); listener.Stop(); }
+        }
+
+        [TestMethod]
         public void TestIndi()
         {
             Check("INDI sexagesimal number", IndiProperty.ParseIndiNumber("-12:30:36"), -12.51, 1e-9);
