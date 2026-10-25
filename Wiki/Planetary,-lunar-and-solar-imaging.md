@@ -79,13 +79,19 @@ Other options: **Use field derotation** applies the per-frame rotation from pre-
 
 ## Sharpen & deconvolve
 
-Stacked planetary images look soft until they are sharpened. Open an image with **Open image…** or arrive from **Sharpen →**.
+Stacked planetary images look soft until they are sharpened. Open an image with **Open image…** or send one from Lucky stacking with **Sharpen →**.
 
-**Wavelets**: six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform. **Denoise** soft-thresholds the finest layers against the measured noise first. Typical starting values for Jupiter at the Nyquist focal ratio: layer 1 small (0–2), layer 2 strongest (5–15), layer 3 moderate. Click **Wavelet sharpen**; the result appears immediately and can be undone by applying again from the original.
+The tab works in two layers: the **source image** (the image you opened), and **wavelet sharpening** applied live on top of it. Deconvolution and channel alignment change the source; the sliders only change what is shown on top of it.
 
-**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Apply deconvolution before wavelets, gently (FWHM 1.5–3 px, 10–30 iterations).
+**Wavelets**: six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform, and **Denoise** soft-thresholds the finest layers against the measured noise first. There is no button: a moment after you move a slider, the image is sharpened again from the source (the status bar shows a "Wavelets" task meanwhile). The sliders never pile up, so moving them back undoes the sharpening. Start from the defaults (layers 1–3 at 120, 60 and 20, the rest at 0, Denoise at 60) and adjust: layer 1 brings out the finest detail but also the noise, so for a noisy stack lower it or raise **Denoise**.
 
-**Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. **Save…** saves the result.
+**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It changes the source image, so it always sits underneath the wavelets, and the wavelets are applied again to the result. It cannot be undone: to start over, open the image again or send it again with **Sharpen →**. While it runs, **Open image…**, the other buttons and **Sharpen →** in Lucky stacking wait for it.
+
+**Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. Like deconvolution, it changes the source image, and the wavelets are applied again to the result.
+
+**Save result…** saves the image as shown: the source with the wavelet sharpening.
+
+The **Solar & lunar** tab has a separate **Wavelet sharpen** button with fixed settings, for quick full-disc sharpening.
 
 ## Derotation
 
