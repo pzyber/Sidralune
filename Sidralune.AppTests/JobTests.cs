@@ -49,12 +49,23 @@ namespace Sidralune.AppTests
 
             var late = new ManualResetEventSlim();
             var results = new List<string>();
+            int started = 0;
             OnUi(() => slot.Replace("Lookup A", t => { late.Wait(30000); throw new InvalidOperationException("late failure"); }, () => results.Add("A"), ex => results.Add("A failed")));
-            OnUi(() => slot.Replace("Lookup B", t => { }, () => results.Add("B")));
-            CheckTrue("The newest lookup's result is shown", WaitFor(() => OnUi(() => results.Contains("B"))));
+            OnUi(() => slot.Replace("Lookup B", t => Interlocked.Increment(ref started), () => results.Add("B")));
+            OnUi(() => slot.Replace("Lookup C", t => Interlocked.Increment(ref started), () => results.Add("C")));
+            Settle(500);
+            CheckTrue("Replacing a job that is slow to stop starts nothing else meanwhile", started == 0 && OnUi(() => slot.Busy) && results.Count == 0, started + " started");
             late.Set();
+            CheckTrue("The newest request runs once the replaced job has ended", WaitFor(() => OnUi(() => results.Contains("C"))));
             Settle(700);
-            CheckTrue("A replaced lookup that ends later is dropped, error and all", OnUi(() => results.SequenceEqual(new[] { "B" }) && !slot.Busy), string.Join(", ", results));
+            CheckTrue("The replaced job's error and the request in between are dropped", OnUi(() => results.SequenceEqual(new[] { "C" }) && !slot.Busy) && started == 1, string.Join(", ", results) + " / " + started + " started");
+            var hold = new ManualResetEventSlim();
+            OnUi(() => slot.Replace("Lookup D", t => hold.Wait(30000), () => results.Add("D")));
+            OnUi(() => slot.Replace("Lookup E", t => { }, () => results.Add("E")));
+            OnUi(() => slot.Cancel());
+            hold.Set();
+            Settle(700);
+            CheckTrue("Cancel also drops the request waiting to replace the job", OnUi(() => !slot.Busy) && !results.Contains("D") && !results.Contains("E"), string.Join(", ", results));
 
             var stop = new ManualResetEventSlim();
             OnUi(() => slot.Run("Cancelled job", t => { stop.Wait(30000); }, () => done += 1000));
@@ -186,6 +197,20 @@ namespace Sidralune.AppTests
                 CheckTrue("Photometry: Stop cancels the measurement", measuring.Cts.IsCancellationRequested && WaitFor(() => Toasts().Contains("Measurement stopped")));
             });
             CheckTrue("Photometry: Stop is only available while measuring", OnUi(() => !Button(photometry, "Stop").Enabled && Button(photometry, "Measure all frames").Enabled));
+
+            var solar = View<SolarSystemView>("solarsystem");
+            foreach (var slot in new[] { Tuple.Create("_passJob", new[] { "Predict passes" }), Tuple.Create("_ephemJob", new[] { "Compute" }), Tuple.Create("_positionsJob", new[] { "List" }),
+                Tuple.Create("_galileanJob", new[] { "Galilean moon events (7 days)" }), Tuple.Create("_occJob", new[] { "Asteroid occultations", "Lunar occultations" }) })
+            {
+                WhileBusy(Field<JobSlot>(solar, slot.Item1), () =>
+                    CheckTrue("Solar system: " + string.Join(" and ", slot.Item2) + " wait for the calculation", OnUi(() => slot.Item2.All(b => !Button(solar, b).Enabled))));
+                CheckTrue("Solar system: " + string.Join(" and ", slot.Item2) + " back afterwards", OnUi(() => slot.Item2.All(b => Button(solar, b).Enabled)));
+            }
+            var databases = View<DatabaseView>("databases");
+            var lookups = new[] { "Resolve name (Sesame)", "AAVSO VSX", "SIMBAD cone (selection)", "Run query" };
+            WhileBusy(Field<JobSlot>(databases, "_query"), () =>
+                CheckTrue("Databases: the online lookups wait for the one running", OnUi(() => lookups.All(b => !Button(databases, b).Enabled))));
+            CheckTrue("Databases: lookups back afterwards", OnUi(() => lookups.All(b => Button(databases, b).Enabled)));
 
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));

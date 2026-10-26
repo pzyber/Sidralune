@@ -245,13 +245,15 @@ namespace Sidralune
     /// <summary>
     /// The background job of one part of a view. Run allows one job at a time: while it runs, the controls handed to
     /// Guard are disabled and another start is refused with a message, so nothing the job works on can change under it.
-    /// Replace suits recalculations and lookups: it cancels the job still running, whose result is then dropped, so an
-    /// older result never overwrites a newer one.
+    /// Replace suits recalculations that follow what you change: it cancels the job still running, whose result is then
+    /// dropped, so an older result never overwrites a newer one. The new job starts when the cancelled one has ended, so
+    /// only one runs however often Replace is called; requests made meanwhile are dropped except the newest.
     /// </summary>
     public sealed class JobSlot
     {
         private readonly List<Control> _controls = new List<Control>();
         private BackgroundTask _job;
+        private Action _next; // the newest Replace request, waiting for the job it cancelled to end
 
         /// <summary>The running job's name, or null.</summary>
         public string Name => _job?.Name;
@@ -281,21 +283,34 @@ namespace Sidralune
         public BackgroundTask Run(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null)
             => Refuse() ? null : Start(name, work, onDone, onError);
 
-        /// <summary>Starts a job, cancelling the one running: only the newest result is used.</summary>
+        /// <summary>
+        /// Starts a job, cancelling the one running: only the newest result is used. With a job running, the new one waits
+        /// for it to end (and null is returned), so cancelled jobs that are slow to stop do not pile up.
+        /// </summary>
         public BackgroundTask Replace(string name, Action<BackgroundTask> work, Action onDone = null, Action<Exception> onError = null)
         {
-            Cancel();
-            return Start(name, work, onDone, onError);
+            if (_job == null) return Start(name, work, onDone, onError);
+            _job.Cts.Cancel();
+            _next = () => Start(name, work, onDone, onError);
+            return null;
         }
 
-        public void Cancel() { if (_job != null) _job.Cts.Cancel(); }
+        /// <summary>Cancels the running job, and a Replace request waiting for it.</summary>
+        public void Cancel() { _next = null; if (_job != null) _job.Cts.Cancel(); }
 
         private BackgroundTask Start(string name, Action<BackgroundTask> work, Action onDone, Action<Exception> onError)
         {
             var t = new BackgroundTask { Name = name };
             _job = t;
             Sync();
-            return Tasks.Start(t, work, onDone, onError, () => { if (_job == t) { _job = null; Sync(); } });
+            return Tasks.Start(t, work, onDone, onError, () =>
+            {
+                if (_job != t) return;
+                _job = null;
+                var next = _next;
+                _next = null;
+                if (next != null) next(); else Sync();
+            });
         }
 
         private void Sync()
