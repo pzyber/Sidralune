@@ -162,6 +162,7 @@ namespace Sidralune.Views
                     var scored = new List<Tuple<double, DeepSkyObject, AstroTime, double, Detectability>>();
                     foreach (var o in dsos)
                     {
+                        t.Cts.Token.ThrowIfCancellationRequested(); // replaced by a newer calculation
                         double best = double.MinValue, bestAlt = 0; AstroTime bestT = start; Detectability rating = Detectability.NotVisible;
                         double size = double.IsNaN(o.MajorAxis) ? 1 : (double.IsNaN(o.MinorAxis) ? o.MajorAxis : Math.Sqrt(o.MajorAxis * o.MinorAxis));
                         for (int i = 0; i < ctxs.Count; i++)
@@ -206,6 +207,7 @@ namespace Sidralune.Views
                 Tasks.Report(t, 0.85);
                 foreach (var mb in MinorBodyStore.Instance.All)
                 {
+                    t.Cts.Token.ThrowIfCancellationRequested();
                     try
                     {
                         var pl = MinorBodyStore.Place(ctx, mb);

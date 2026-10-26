@@ -250,6 +250,7 @@ namespace Sidralune.Views
                 int k = 0;
                 foreach (var e in entries)
                 {
+                    t.Cts.Token.ThrowIfCancellationRequested(); // replaced by a newer calculation
                     k++;
                     if (k % 10 == 0) Tasks.Report(t, (double)k / entries.Count);
                     var so = ToSelected(e);

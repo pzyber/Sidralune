@@ -33,6 +33,7 @@ namespace Sidralune.Views
     {
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         // tables and lists keep the newest calculation; the online look-ups (Horizons, SBDB, CNEOS) run one at a time
+        // calculations started with a button run one at a time, the button waiting for it
         private readonly JobSlot _ephemJob = new JobSlot(), _positionsJob = new JobSlot(), _galileanJob = new JobSlot(), _occJob = new JobSlot(), _passJob = new JobSlot(), _onlineJob = new JobSlot();
 
         public SolarSystemView()
@@ -90,6 +91,7 @@ namespace Sidralune.Views
             var count = Ui.Num(30, 1, 2000);
             var go = new FlatButton("Compute", Icons.Play, (s, e) => ComputeEphemeris(start.Value, step.SelectedIndex, (int)count.Value)) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
+            _ephemJob.Guard(go);
             var csv = new FlatButton("CSV…", Icons.Save, (s, e) => GridToCsv(_ephGrid, "ephemeris.csv")) { Kind = ButtonKind.Subtle };
             csv.AutoSizeToText();
             var horizons = new FlatButton("Compare with JPL Horizons", Icons.Download, (s, e) => CompareHorizons(start.Value)) { Kind = ButtonKind.Subtle };
@@ -128,7 +130,7 @@ namespace Sidralune.Views
             var rows = new List<object[]>();
             var site = AppState.Site;
             double t0 = AstroTime.FromDateTime(startUtc).JdUtc;
-            _ephemJob.Replace("Ephemeris", t =>
+            _ephemJob.Run("Ephemeris", t =>
             {
                 for (int i = 0; i < n; i++)
                 {
@@ -202,6 +204,7 @@ namespace Sidralune.Views
             var find = new TextBox { Width = 160 };
             var go = new FlatButton("List", Icons.Search, (s, e) => ListMinor(kind.SelectedIndex, (double)mag.Value, find.Text)) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
+            _positionsJob.Guard(go);
             var add = new FlatButton("Add elements…", Icons.Add, (s, e) => AddElements());
             add.AutoSizeToText();
             var sbdb = new FlatButton("Fetch from JPL SBDB", Icons.Download, (s, e) =>
@@ -255,7 +258,7 @@ namespace Sidralune.Views
             var list = src.ToList();
             var ctx = new SkyContext(AppState.Site, AppState.Now);
             var rows = new List<Tuple<MinorBody, BodyPlace>>();
-            _positionsJob.Replace("Minor body positions", t =>
+            _positionsJob.Run("Minor body positions", t =>
             {
                 int i = 0;
                 foreach (var m in list)
@@ -468,7 +471,7 @@ namespace Sidralune.Views
             {
                 List<AstroEvent> ev = null;
                 double jd = AppState.Now.JdTT;
-                _galileanJob.Replace("Galilean moon phenomena", t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
+                _galileanJob.Run("Galilean moon phenomena", t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
                 {
                     var site = AppState.Site;
                     phen.Text = "Transits and occultations (local time); ✓ = Jupiter above 10° in a dark sky\r\n\r\n" + string.Join("\r\n", ev.Select(x =>
@@ -479,6 +482,7 @@ namespace Sidralune.Views
                 });
             });
             phenBtn.AutoSizeToText();
+            _galileanJob.Guard(phenBtn);
             panel.Controls.Add(info);
             panel.Controls.Add(phen);
             panel.Controls.Add(moons);
@@ -531,7 +535,7 @@ namespace Sidralune.Views
                 List<OccultationEvent> ev = null;
                 var st = AppState.Now; var en = new AstroTime(st.JdUtc + (double)days.Value);
                 double ml = (double)mag.Value;
-                _occJob.Replace("Occultation search", t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml), () =>
+                _occJob.Run("Occultation search", t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml), () =>
                 {
                     grid.Rows.Clear();
                     foreach (var x in ev) grid.Rows.Add(x.Body.DisplayName + " → " + (x.Star.Id ?? "star"), x.Time.ToString(), F(x.StarMag, "0.0"), F(x.MagDrop, "0.0"), F(x.DurationSec, "0.0"), F(x.ShadowWidthKm, "0"), F(x.ObserverOffsetKm, "0"));
@@ -543,7 +547,7 @@ namespace Sidralune.Views
             {
                 List<LunarOccultation> ev = null;
                 var st = AppState.Now; double d = (double)days.Value, ml = Math.Min(9, (double)mag.Value);
-                _occJob.Replace("Lunar occultations", t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml), () =>
+                _occJob.Run("Lunar occultations", t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml), () =>
                 {
                     grid.Rows.Clear();
                     foreach (var x in ev)
@@ -553,6 +557,7 @@ namespace Sidralune.Views
                 });
             });
             lunar.AutoSizeToText();
+            _occJob.Guard(ast, lunar);
             panel.Controls.Add(grid);
             panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 34, Tag = "dim", Text = "Asteroid predictions use the loaded orbit and Gaia DR3 (online), so timing uncertainty depends on the orbit (compare with IOTA/Occult or occult.it before travelling). Report timings to IOTA/EAON." });
             panel.Controls.Add(Ui.Toolbar(new Label { Text = "Body", AutoSize = true, Margin = new Padding(0, 6, 2, 0) }, obj, new Label { Text = "Days", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days,
@@ -620,7 +625,7 @@ namespace Sidralune.Views
                 var rows = new List<Tuple<string, SatellitePass>>();
                 var site = AppState.Site; var now = AppState.Now; double d = (double)days.Value, ma = (double)minAlt.Value; bool vo = visOnly.Checked;
                 var sats = _sats.ToList();
-                _passJob.Replace("Satellite passes", t =>
+                _passJob.Run("Satellite passes", t =>
                 {
                     int i = 0;
                     foreach (var sat in sats)
@@ -640,6 +645,7 @@ namespace Sidralune.Views
                 });
             }) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
+            _passJob.Guard(go);
             panel.Controls.Add(grid);
             panel.Controls.Add(Ui.Toolbar(load, new Label { Text = "Days", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days, new Label { Text = "Min alt", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, minAlt, visOnly, go, status));
             return panel;

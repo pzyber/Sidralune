@@ -118,7 +118,7 @@ Your limiting magnitude (shown in brackets) is derived from the site's SQM value
 1. Install **Bright satellites** and **Space stations** in **Settings → Data** (refresh them before each session; elements age quickly).
 2. Click **Load TLEs** (or simply **Predict passes**).
 3. Set the number of **Days**, the minimum altitude (**Min alt**) and whether to show **Visible passes only**.
-4. Click **Predict passes**.
+4. Click **Predict passes**. It waits until the prediction is done; so do the other calculations in Solar system (**Compute**, **List**, **Galilean moon events**, and the occultation searches).
 
 Each pass lists the satellite, the rise time and direction, the time and altitude of the highest point, the set time and direction, the predicted brightest magnitude, and whether it is visible. A pass counts as visible when, at some point, the satellite is above your horizon and sunlit while the Sun is more than 6° below your horizon.
 
