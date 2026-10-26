@@ -22,17 +22,22 @@ namespace Sidralune.AppTests
         public void TestEquipment()
         {
             var view = View<ObservatoryView>("observatory");
+            Func<FlatButton> mountStop = () => Find<FlatButton>(view, b => b.ToolTipText == "Stop the mount");
             try
             {
+                OnUi(() => Dm.DisconnectAll());
+                CheckTrue("With nothing connected, Disconnect all and the mount's Stop are greyed out", WaitFor(() => OnUi(() => !Button(view, "Disconnect all").Enabled && !mountStop().Enabled)));
                 OnUi(() => Button(view, "Connect simulated observatory").PerformClick());
                 CheckTrue("Simulated observatory connected", WaitFor(() => Dm.Telescope != null && Dm.Camera != null && Dm.Focuser != null && Dm.Dome != null, 15000));
                 CheckTrue("Rows show Disconnect for connected devices", WaitFor(() => All(view).OfType<FlatButton>().Count(b => b.Text == "Disconnect") >= 6));
                 var widths = OnUi(() => All(view).OfType<FlatButton>().Where(b => b.Text == "Disconnect" || b.Text == "Connect").Select(b => b.Width).Distinct().ToList());
                 CheckTrue("Connect and Disconnect buttons keep one width", widths.Count == 1, string.Join(", ", widths));
                 CheckTrue("Equipment buttons wait while the simulators connect, then come back", WaitFor(() => OnUi(() => Button(view, "Disconnect all").Enabled), 15000));
+                CheckTrue("The mount's Stop is available with a telescope connected", WaitFor(() => OnUi(() => mountStop().Enabled)));
                 OnUi(() => Button(view, "Disconnect all").PerformClick());
                 CheckTrue("Disconnect all disconnects every device", WaitFor(() => !Dm.All.Any(), 15000));
                 CheckTrue("Rows back to Connect and Not connected", WaitFor(() => All(view).OfType<FlatButton>().All(b => b.Text != "Disconnect") && All(view).OfType<Label>().Count(l => l.Text == "Not connected") >= 6));
+                CheckTrue("Disconnect all and the mount's Stop are greyed out again", WaitFor(() => OnUi(() => !Button(view, "Disconnect all").Enabled && !mountStop().Enabled)));
             }
             finally { Dm.DisconnectAll(); }
         }
@@ -42,6 +47,7 @@ namespace Sidralune.AppTests
         {
             Dm.DisconnectAll();
             var view = View<ObservatoryView>("observatory");
+            CheckTrue("Without a guider its Stop is greyed out", WaitFor(() => OnUi(() => !Button(Button(view, "Start guiding").Parent, "Stop").Enabled)));
             OnUi(() => Button(view, "Start guiding").PerformClick());
             CheckTrue("Start guiding without a guider says what to do", WaitFor(() => Toasts().Any(t => t.StartsWith("No guider connected. Start PHD2"))));
             OnUi(() => Button(view, "Run autofocus").PerformClick());
@@ -62,13 +68,17 @@ namespace Sidralune.AppTests
                 FlatButton loop = OnUi(() => Button(view, "Loop")), start = OnUi(() => Button(view, "Start")), record = OnUi(() => Button(view, "Record")), af = OnUi(() => Button(view, "Run autofocus")),
                     polar = OnUi(() => Button(view, "Start polar alignment")), run = OnUi(() => Button(view, "Run sequence"));
                 var stop = OnUi(() => All(loop.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
+                var videoStop = OnUi(() => All(record.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
                 CheckTrue("All camera jobs available when idle", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled));
+                CheckTrue("With nothing using the camera there is nothing to stop", OnUi(() => !stop.Enabled && !videoStop.Enabled));
                 OnUi(() => loop.PerformClick());
                 CheckTrue("A preview loop blocks the other camera jobs", WaitFor(() => !record.Enabled && !af.Enabled && !polar.Enabled && !run.Enabled));
+                CheckTrue("Both camera tabs' Stop buttons are available while it runs", OnUi(() => stop.Enabled && videoStop.Enabled));
                 CheckTrue("Start and Loop stay available, to replace each other's capture", WaitFor(() => loop.Enabled && start.Enabled));
                 CheckTrue("Frames arrive in the viewer", WaitFor(() => Field<ImageViewer>(view, "_viewer").Image != null, 15000));
                 OnUi(() => stop.PerformClick());
                 CheckTrue("Stop frees the camera", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled && loop.Enabled && start.Enabled, 15000));
+                CheckTrue("The Stop buttons are greyed out again", WaitFor(() => OnUi(() => !stop.Enabled && !videoStop.Enabled)));
                 OnUi(() => { var e = Find<Label>(view, l => l.Text == "Exposure (s)"); var row = (TableLayoutPanel)e.Parent; ((NumericUpDown)row.GetControlFromPosition(1, row.GetRow(e))).Value = 0.5m; });
                 OnUi(() => loop.PerformClick());
                 CheckTrue("Loop again", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name == "Preview loop")));
@@ -165,6 +175,7 @@ namespace Sidralune.AppTests
             try
             {
                 OnUi(() => { seq.Root = new SequenceContainer { Items = { wait, new Annotation { Text = "after" } } }; Call(view, "RefreshTree"); Button(view, "Run sequence").PerformClick(); });
+                CheckTrue("The sequencer's Stop is available while the sequence runs", WaitFor(() => OnUi(() => Button(Button(view, "Template…").Parent, "Stop").Enabled), 10000));
                 CheckTrue("Template, Open and Save wait while the sequence runs", WaitFor(() => OnUi(() => wait.Status == ItemStatus.Running && !Button(view, "Template…").Enabled && !Button(view, "Open…").Enabled && !Button(view, "Save…").Enabled), 10000));
                 CheckTrue("Add, Remove, Up and Down stay available", OnUi(() => { var bar = Button(view, "Template…").Parent; return Button(bar, "Add").Enabled && Button(bar, "Remove").Enabled && Button(bar, "Up").Enabled && Button(bar, "Down").Enabled; }));
                 OnUi(() => { tree.SelectedNode = tree.Nodes[0].Nodes[0]; Call(view, "AddItem", new Annotation { Text = "added" }); });
@@ -174,6 +185,7 @@ namespace Sidralune.AppTests
             }
             finally { seq.Stop(); }
             CheckTrue("Template, Open and Save are back when it stops", WaitFor(() => OnUi(() => !seq.Running && Button(view, "Template…").Enabled && Button(view, "Save…").Enabled), 10000));
+            CheckTrue("The sequencer's Stop is greyed out when no sequence runs", WaitFor(() => OnUi(() => !Button(Button(view, "Template…").Parent, "Stop").Enabled)));
             OnUi(() => { seq.Root = saved; Call(view, "RefreshTree"); });
 
             var command = System.ComponentModel.TypeDescriptor.GetProperties(new GridAdapter(new RunScript(), "Instruction"))["Command"];
