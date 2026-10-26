@@ -154,6 +154,55 @@ namespace Sidralune.Views
             Solve(_solverCombo.SelectedIndex, _hintRa.Text, _hintDec.Text, (double)_radius.Value, (double)_hintScale.Value, (int)_sip.Value);
         }
 
+        /// <summary>
+        /// A plate solve of img with the solver settings chosen here (solver, search radius, SIP order) and the hints in its
+        /// header, for another workspace to run as its own job; this workspace and its image are left as they are.
+        /// </summary>
+        public Func<BackgroundTask, SolveResult> SolveWithSettings(AstroImage img)
+        {
+            int solver = _solverCombo.SelectedIndex, sip = (int)_sip.Value;
+            double radius = (double)_radius.Value, ra, dec, scale;
+            ReadHints(img, out ra, out dec, out scale);
+            return t => RunSolver(img, solver, ra, dec, radius, scale, sip, null, t);
+        }
+
+        /// <summary>The pointing (RA/DEC, OBJCTRA/OBJCTDEC or an earlier solution) and the scale in "/px (0 when unknown) from an image's header.</summary>
+        private static void ReadHints(AstroImage img, out double ra, out double dec, out double scale)
+        {
+            var h = img.Header;
+            ra = h.GetDouble("RA"); dec = h.GetDouble("DEC");
+            if (double.IsNaN(ra) && h.Has("OBJCTRA")) { ra = AstroMath.ParseSexagesimal(h.GetString("OBJCTRA")) * 15; dec = AstroMath.ParseSexagesimal(h.GetString("OBJCTDEC")); }
+            if (double.IsNaN(ra) && h.Has("CRVAL1")) { ra = h.GetDouble("CRVAL1"); dec = h.GetDouble("CRVAL2"); }
+            double fl = h.GetDouble("FOCALLEN"), px = h.GetDouble(new[] { "XPIXSZ", "PIXSIZE1" });
+            scale = !double.IsNaN(fl) && !double.IsNaN(px) && fl > 0 ? AstroMath.Clamp(206.265 * px / fl, 0, 200) : 0;
+        }
+
+        /// <summary>
+        /// Solves img with a solver from the Solver list (0 internal + Gaia, 1 internal + local catalogue, 2 ASTAP, 3 astrometry.net);
+        /// stars are the image's stars when already found. Runs in the background.
+        /// </summary>
+        private static SolveResult RunSolver(AstroImage img, int solver, double ra, double dec, double radius, double scale, int sip, List<Imaging.Analysis.DetectedStar> stars, BackgroundTask t)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            if (solver == 2 || solver == 3)
+            {
+                // a file of its own, so solves started in two workspaces do not share one
+                string tmp = Path.Combine(Path.GetTempPath(), "sidralune_solve_" + Guid.NewGuid().ToString("N") + ".fits");
+                try
+                {
+                    FitsIO.Write(tmp, img, 16);
+                    Wcs w = solver == 2 ? ExternalSolvers.SolveWithAstap(tmp, img.Width, img.Height, ra, dec, scale > 0 ? img.Height * scale / 3600 : double.NaN, radius)
+                        : ExternalSolvers.SolveWithNova(tmp, AppState.Settings.NovaApiKey, img.Width, img.Height, new Progress<string>(s => t.Status = s), t.Cts.Token);
+                    return new SolveResult { Success = w != null, Wcs = w, Message = w != null ? "Solved: " + w : "No solution", Elapsed = sw.Elapsed };
+                }
+                finally { try { File.Delete(tmp); } catch { } }
+            }
+            var opt = new SolveOptions { HintRa = ra, HintDec = dec, SearchRadius = radius, ScaleHint = scale > 0 ? scale : double.NaN, SipOrder = sip, Stars = stars };
+            opt.Catalog = solver == 0 ? (IStarCatalogProvider)new VizierProvider() : new LocalCatalogProvider();
+            if (double.IsNaN(ra) && solver == 0) opt.Catalog = new LocalCatalogProvider(); // blind solving uses the local catalog
+            return PlateSolver.Solve(img, opt, new Progress<string>(s => t.Status = s), t.Cts.Token);
+        }
+
         /// <summary>Loads (and debayers) an image in the background as the solve job, so a solve waits for it and it for a solve.</summary>
         private void OpenFile(string path, TextBox ra, TextBox dec, NumericUpDown scale)
         {
@@ -168,14 +217,11 @@ namespace Sidralune.Views
             img = Debayered(img);
             _img = img; _solve = null; _annotations.Clear(); _depthInfo = null; _steps = new TimeSpan[4];
             _viewer.SetImage(img);
-            var h = img.Header;
-            double r = h.GetDouble("RA"), d = h.GetDouble("DEC");
-            if (double.IsNaN(r) && h.Has("OBJCTRA")) { r = AstroMath.ParseSexagesimal(h.GetString("OBJCTRA")) * 15; d = AstroMath.ParseSexagesimal(h.GetString("OBJCTDEC")); }
-            if (double.IsNaN(r) && h.Has("CRVAL1")) { r = h.GetDouble("CRVAL1"); d = h.GetDouble("CRVAL2"); }
+            double r, d, sc;
+            ReadHints(img, out r, out d, out sc);
             ra.Text = double.IsNaN(r) ? "" : AstroMath.FormatHms(r / 15, 1, true);
             dec.Text = double.IsNaN(d) ? "" : AstroMath.FormatDms(d, 0, true, true);
-            double fl = h.GetDouble("FOCALLEN"), px = h.GetDouble(new[] { "XPIXSZ", "PIXSIZE1" });
-            scale.Value = !double.IsNaN(fl) && !double.IsNaN(px) && fl > 0 ? (decimal)AstroMath.Clamp(206.265 * px / fl, 0, 200) : 0;
+            scale.Value = (decimal)sc;
             _result.Text = string.Format("{0}: {1}×{2}{3}", Path.GetFileName(img.SourcePath ?? "image"), img.Width, img.Height, _viewer.Wcs != null ? "  ·  existing WCS: " + _viewer.Wcs : "");
         }
 
@@ -192,24 +238,13 @@ namespace Sidralune.Views
             _solveJob.Run("Plate solving", t =>
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-                if (solver == 2 || solver == 3)
-                {
-                    string tmp = Path.Combine(Path.GetTempPath(), "sidralune_solve.fits");
-                    FitsIO.Write(tmp, img, 16);
-                    Wcs w = solver == 2 ? ExternalSolvers.SolveWithAstap(tmp, img.Width, img.Height, ra, dec, scale > 0 ? img.Height * scale / 3600 : double.NaN, radius)
-                        : ExternalSolvers.SolveWithNova(tmp, AppState.Settings.NovaApiKey, img.Width, img.Height, new Progress<string>(s => t.Status = s), t.Cts.Token);
-                    solved = new SolveResult { Success = w != null, Wcs = w, Message = w != null ? "Solved: " + w : "No solution", Elapsed = sw.Elapsed };
-                }
-                else
+                if (solver < 2)
                 {
                     // every star is found once: the solver takes the brightest, the depth measurement all of them
                     stars = ImageDepth.DetectAll(img.Luminance(), img.Width, img.Height);
                     steps[0] = sw.Elapsed;
-                    var opt = new SolveOptions { HintRa = ra, HintDec = dec, SearchRadius = radius, ScaleHint = scale > 0 ? scale : double.NaN, SipOrder = sip, Stars = stars };
-                    opt.Catalog = solver == 0 ? (IStarCatalogProvider)new VizierProvider() : new LocalCatalogProvider();
-                    if (double.IsNaN(ra) && solver == 0) opt.Catalog = new LocalCatalogProvider(); // blind solving uses the local catalog
-                    solved = PlateSolver.Solve(img, opt, new Progress<string>(s => t.Status = s), t.Cts.Token);
                 }
+                solved = RunSolver(img, solver, ra, dec, radius, scale, sip, stars, t);
                 if (solved.Success)
                 {
                     solved.Wcs.WriteToHeader(img.Header);
