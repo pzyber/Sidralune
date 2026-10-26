@@ -64,7 +64,7 @@ namespace Sidralune.AppTests
             var job = Field<JobSlot>(view, "_job");
             var gate = new ManualResetEventSlim();
             OnUi(() => Call(view, "Compose", "RGB composite", new Func<AstroImage>(() => { gate.Wait(30000); return new AstroImage(40, 30, 3); })));
-            CheckTrue("Combining channels (loading included) returns at once and runs as an edit", OnUi(() => job.Busy && !Field<Panel>(view, "_tools").Enabled));
+            CheckTrue("Combining channels (loading included) returns at once and runs as an edit", OnUi(() => job.Busy && !Button(view, "RGB combine (R, G, B files)…").Enabled && !Button(view, "Open").Enabled));
             gate.Set();
             CheckTrue("The composite opens when it is ready", WaitFor(() => OnUi(() => !job.Busy && Field<List<Tuple<string, AstroImage>>>(view, "_undo").Select(u => u.Item1).SequenceEqual(new[] { "Open RGB composite" })), 15000));
         }

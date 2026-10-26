@@ -33,7 +33,7 @@ namespace Sidralune.Views
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(4, 6, 4, 0), WrapContents = false };
             Func<string, string, string, Action, FlatButton> btn = (t, i, tip, a) => { var b = new FlatButton(t, i, (s, e) => a()) { ToolTipText = tip }; if (t == null) b.Width = 34; else b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             var open = btn("Open", Icons.Open, "Open image (Ctrl+O)", Open);
-            btn("Save as", Icons.Save, "Save image", SaveAs);
+            var saveAs = btn("Save as", Icons.Save, "Save image", SaveAs);
             bar.Controls.Add(Ui.Separator());
             var undo = btn(null, Icons.Undo, "Undo (Ctrl+Z)", Undo);
             var redo = btn(null, Icons.Redo, "Redo (Ctrl+Y)", Redo);
@@ -64,11 +64,22 @@ namespace Sidralune.Views
                     foreach (var s in _samples) { var p = map(s.X, s.Y); g.DrawRectangle(pen, p.X - 5, p.Y - 5, 10, 10); }
             };
             BuildTools();
-            _job.Guard(open, undo, redo, _tools);
+            // while an edit runs the tool buttons and Open, Save as, Undo and Redo wait; the tool settings stay editable,
+            // as each tool reads them when it is clicked
+            _job.Guard(new Control[] { open, saveAs, undo, redo }.Concat(Descendants(_tools).OfType<FlatButton>()).ToArray());
             Controls.Add(_viewer);
             Controls.Add(_readout);
             Controls.Add(_tools);
             Controls.Add(bar);
+        }
+
+        private static IEnumerable<Control> Descendants(Control root)
+        {
+            foreach (Control c in root.Controls)
+            {
+                yield return c;
+                foreach (var d in Descendants(c)) yield return d;
+            }
         }
 
         // ------------------------------------------------------------------ document

@@ -22,7 +22,7 @@ The **Process** workspace turns a linear stacked image into a finished picture, 
 
 ## Layout
 
-The image fills the centre. The toolbar above it has file, undo and display controls. The panel on the right holds collapsible sections, each a group of tools; click a heading to open or close it. Every tool works on the whole image and adds a step to the history.
+The image fills the centre. The toolbar above it has file, undo and display controls. The panel on the right holds collapsible sections, each a group of tools; click a heading to open or close it. Every tool works on the whole image and adds a step to the history. While a tool is working, the other tools and **Open**, **Save as**, **Undo** and **Redo** wait for it, but the tool settings can still be changed: each tool reads its settings when you click it.
 
 ## Opening and saving
 

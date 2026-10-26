@@ -232,6 +232,8 @@ namespace Sidralune.Views
         private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
         // buttons that may take over the camera from a live view (Record): the live view stops and they start
         private readonly HashSet<Control> _replacesLiveView = new HashSet<Control>();
+        // the sequencer's Template, Open and Save, which wait while a sequence runs
+        private readonly List<Control> _sequenceFileButtons = new List<Control>();
         private const string LiveViewJob = "Live view";
         private bool LiveViewRunning => _cameraJob != null && !_cameraJob.Done && _cameraJobName == LiveViewJob;
         private Label _busyNote;
@@ -277,6 +279,7 @@ namespace Sidralune.Views
         private void SyncCameraButtons()
         {
             foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2, _replacesLiveView.Contains(b.Item1)) == null;
+            foreach (var b in _sequenceFileButtons) b.Enabled = !SequenceActive;
             if (_busyNote == null) return;
             var why = CameraBusyReason(true);
             _busyNote.Visible = why != null;
@@ -738,7 +741,7 @@ namespace Sidralune.Views
             btn("Remove", Icons.Remove, RemoveItem);
             btn("Up", Icons.Up, () => MoveItem(-1));
             btn("Down", Icons.Down, () => MoveItem(1));
-            btn("Template…", Icons.Star, () =>
+            var template = btn("Template…", Icons.Star, () =>
             {
                 var sel = AppState.Selection;
                 var name = sel != null ? sel.Name : "M 31";
@@ -746,8 +749,8 @@ namespace Sidralune.Views
                 _sequencer.Root = Sequencer.Template(name, ra, dec);
                 RefreshTree();
             });
-            btn("Open…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = "Sequence|*.json" }) if (d.ShowDialog() == DialogResult.OK) { _sequencer.Load(d.FileName); RefreshTree(); } });
-            btn("Save…", Icons.Save, () => { using (var d = new SaveFileDialog { Filter = "Sequence|*.json", FileName = "sequence.json" }) if (d.ShowDialog() == DialogResult.OK) _sequencer.Save(d.FileName); });
+            var openSeq = btn("Open…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = "Sequence|*.json" }) if (d.ShowDialog() == DialogResult.OK) { _sequencer.Load(d.FileName); RefreshTree(); } });
+            var saveSeq = btn("Save…", Icons.Save, () => { using (var d = new SaveFileDialog { Filter = "Sequence|*.json", FileName = "sequence.json" }) if (d.ShowDialog() == DialogResult.OK) _sequencer.Save(d.FileName); });
             var run = new FlatButton("Run sequence", Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
@@ -759,6 +762,8 @@ namespace Sidralune.Views
             };
             bar.Controls.Add(run);
             _cameraButtons.Add(Tuple.Create((Control)run, false));
+            // the running sequence can still be edited, but not replaced or saved half done
+            _sequenceFileButtons.AddRange(new Control[] { template, openSeq, saveSeq });
             btn("Stop", Icons.Stop, () => _sequencer.Stop()).Kind = ButtonKind.Danger;
             _sequencer.Log += s => MainForm.Instance.Post(() => log.AppendText(DateTime.Now.ToString("HH:mm:ss ") + s + "\r\n"));
             _sequencer.Changed += () => MainForm.Instance.Post(UpdateTreeStatus);
@@ -816,7 +821,7 @@ namespace Sidralune.Views
             int idx = sel != null && sel.Tag is SequenceContainer ? container.Items.Count : (sel != null ? container.Items.IndexOf((SequenceItem)sel.Tag) + 1 : container.Items.Count);
             if (item is TargetContainer && AppState.Selection != null)
                 ((TargetContainer)item).Target = new SequenceTarget { Name = AppState.Selection.Name, RaDeg = AppState.Selection.RaDeg, DecDeg = AppState.Selection.DecDeg };
-            container.Items.Insert(Math.Max(0, Math.Min(idx, container.Items.Count)), item);
+            container.Insert(idx, item);
             RefreshTree();
         }
 
@@ -825,7 +830,7 @@ namespace Sidralune.Views
             var sel = _seqTree.SelectedNode;
             var parent = sel?.Parent?.Tag as SequenceContainer;
             if (parent == null) return;
-            parent.Items.Remove((SequenceItem)sel.Tag);
+            if (!parent.Remove((SequenceItem)sel.Tag)) { MainForm.Instance.Toast("That instruction is running. Stop the sequence to remove it.", Icons.Info); return; }
             RefreshTree();
         }
 
@@ -835,10 +840,8 @@ namespace Sidralune.Views
             var parent = sel?.Parent?.Tag as SequenceContainer;
             if (parent == null) return;
             var it = (SequenceItem)sel.Tag;
-            int i = parent.Items.IndexOf(it), j = i + dir;
-            if (j < 0 || j >= parent.Items.Count) return;
-            parent.Items.RemoveAt(i); parent.Items.Insert(j, it);
-            RefreshTree();
+            if (it.Status == ItemStatus.Running) { MainForm.Instance.Toast("That instruction is running. Stop the sequence to move it.", Icons.Info); return; }
+            if (parent.Move(it, dir)) RefreshTree();
         }
 
         // ================================================================== polar alignment

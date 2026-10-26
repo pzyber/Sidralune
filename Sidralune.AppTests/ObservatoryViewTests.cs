@@ -159,6 +159,23 @@ namespace Sidralune.AppTests
                 CheckTrue("Filter drop-down lists the connected wheel's filters", names.SequenceEqual(Devices.DeviceManager.Instance.FilterWheel.Names) && !filter.Converter.GetStandardValuesExclusive(), string.Join(", ", names));
             }
             finally { Devices.DeviceManager.Instance.Disconnect(Devices.DeviceKind.FilterWheel); }
+            // while a sequence runs it can be edited, but Template, Open and Save wait
+            var saved = seq.Root;
+            var wait = new Wait { Seconds = 30 };
+            try
+            {
+                OnUi(() => { seq.Root = new SequenceContainer { Items = { wait, new Annotation { Text = "after" } } }; Call(view, "RefreshTree"); Button(view, "Run sequence").PerformClick(); });
+                CheckTrue("Template, Open and Save wait while the sequence runs", WaitFor(() => OnUi(() => wait.Status == ItemStatus.Running && !Button(view, "Template…").Enabled && !Button(view, "Open…").Enabled && !Button(view, "Save…").Enabled), 10000));
+                CheckTrue("Add, Remove, Up and Down stay available", OnUi(() => { var bar = Button(view, "Template…").Parent; return Button(bar, "Add").Enabled && Button(bar, "Remove").Enabled && Button(bar, "Up").Enabled && Button(bar, "Down").Enabled; }));
+                OnUi(() => { tree.SelectedNode = tree.Nodes[0].Nodes[0]; Call(view, "AddItem", new Annotation { Text = "added" }); });
+                CheckTrue("An instruction can be added while the sequence runs", seq.Root.Items.Count == 3 && seq.Root.Items[1] is Annotation);
+                OnUi(() => { tree.SelectedNode = tree.Nodes[0].Nodes.Cast<TreeNode>().First(n => n.Tag == wait); Call(view, "RemoveItem"); });
+                CheckTrue("The running instruction is not removed", seq.Root.Items.Contains(wait) && Toasts().Any(t => t.StartsWith("That instruction is running")));
+            }
+            finally { seq.Stop(); }
+            CheckTrue("Template, Open and Save are back when it stops", WaitFor(() => OnUi(() => !seq.Running && Button(view, "Template…").Enabled && Button(view, "Save…").Enabled), 10000));
+            OnUi(() => { seq.Root = saved; Call(view, "RefreshTree"); });
+
             var command = System.ComponentModel.TypeDescriptor.GetProperties(new GridAdapter(new RunScript(), "Instruction"))["Command"];
             CheckTrue("Program path opens a file picker", command.GetEditor(typeof(System.Drawing.Design.UITypeEditor)) != null && command.GetEditor(typeof(System.Drawing.Design.UITypeEditor)).GetType().Name == "FileNameEditor");
             var imagingTypes = OnUi(() =>

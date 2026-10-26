@@ -123,6 +123,8 @@ Frames are saved with the [file name pattern](Observatory-and-devices#file-names
 
 ## Saving and loading
 
+While a sequence runs you can still change it, in case you forgot something: edit the **Properties** of instructions that have not run yet, and **Add**, **Remove**, **Up** and **Down** instructions. After each instruction the sequence goes on with the next one below it that has not run yet, so an instruction added below the running one runs, one added above it has already been passed, and an instruction moved below the running one after it has run does not run again. The running instruction (or a container while one of its instructions runs) cannot be removed or moved; **Stop** the sequence for that. **Template…**, **Open…** and **Save…** wait until the sequence has stopped.
+
 **Save…** writes the sequence tree to a `.json` file, and **Open…** loads one. The file is plain JSON, so you can also generate sequences with a script or edit them in a text editor. Trigger choices are not stored in the file; set them before you run.
 
 ## Example: LRGB night with two targets

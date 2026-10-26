@@ -78,8 +78,11 @@ namespace Sidralune.Devices.Automation
         public virtual void Reset()
         {
             Status = ItemStatus.Pending; Error = null;
-            if (Children != null) foreach (var c in Children) c.Reset();
+            if (Children != null) foreach (var c in Snapshot(Children)) c.Reset();
         }
+
+        /// <summary>A copy of a list of instructions, taken while it cannot change (it can be edited while the sequence runs).</summary>
+        protected static List<SequenceItem> Snapshot(List<SequenceItem> items) { lock (items) return items.ToList(); }
     }
 
     [AttributeUsage(AttributeTargets.Property)] public class BrowsableAttribute : Attribute { }
@@ -94,7 +97,56 @@ namespace Sidralune.Devices.Automation
         public override string Title => Name;
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
-            foreach (var it in Items) { ct.ThrowIfCancellationRequested(); await it.Run(ctx, ct); }
+            // the list can be edited while it runs: after each instruction the next is the first one below it that has
+            // not run yet, so added instructions below run, those above have been passed, and moved ones run once
+            var ran = new HashSet<SequenceItem>();
+            SequenceItem it = null;
+            int at = -1;
+            while ((it = Next(it, ran, ref at)) != null)
+            {
+                ct.ThrowIfCancellationRequested();
+                ran.Add(it);
+                await it.Run(ctx, ct);
+            }
+        }
+
+        private SequenceItem Next(SequenceItem prev, HashSet<SequenceItem> ran, ref int at)
+        {
+            lock (Items)
+            {
+                int i = prev == null ? -1 : Items.IndexOf(prev);
+                // an instruction removed after it ran: go on from where it was
+                int from = prev == null ? 0 : i >= 0 ? i + 1 : Math.Max(0, at);
+                for (int j = from; j < Items.Count; j++)
+                    if (!ran.Contains(Items[j])) { at = j; return Items[j]; }
+                return null;
+            }
+        }
+
+        /// <summary>Adds an instruction at a position; allowed while the sequence runs.</summary>
+        public void Insert(int index, SequenceItem item)
+        {
+            lock (Items) Items.Insert(Math.Max(0, Math.Min(index, Items.Count)), item);
+        }
+
+        /// <summary>Removes an instruction, unless it is running (a container is running while its instructions run).</summary>
+        public bool Remove(SequenceItem item)
+        {
+            if (item.Status == ItemStatus.Running) return false;
+            lock (Items) return Items.Remove(item);
+        }
+
+        /// <summary>Moves an instruction one step up (-1) or down (1), unless it is running or already at the end.</summary>
+        public bool Move(SequenceItem item, int dir)
+        {
+            if (item.Status == ItemStatus.Running) return false;
+            lock (Items)
+            {
+                int i = Items.IndexOf(item), j = i + dir;
+                if (i < 0 || j < 0 || j >= Items.Count) return false;
+                Items.RemoveAt(i); Items.Insert(j, item);
+                return true;
+            }
         }
     }
 
@@ -145,13 +197,13 @@ namespace Sidralune.Devices.Automation
             while (Continue(ctx))
             {
                 ct.ThrowIfCancellationRequested();
-                foreach (var it in Items) it.Reset();
+                foreach (var it in Snapshot(Items)) it.Reset();
                 var started = DateTime.UtcNow;
                 await base.Execute(ctx, ct);
                 Completed++;
                 // a pass in which nothing succeeded (every instruction failed or was skipped) would only repeat itself:
                 // without this the loop spins as fast as the failures come and floods the log and the window
-                if (!AnySucceeded(Items))
+                if (!AnySucceeded(Snapshot(Items)))
                     throw new InvalidOperationException("Loop stopped: no instruction in it succeeded in the last pass (see the errors above)");
                 var elapsed = DateTime.UtcNow - started;
                 if (elapsed < TimeSpan.FromSeconds(1)) await Task.Delay(TimeSpan.FromSeconds(1) - elapsed, ct);
@@ -163,7 +215,7 @@ namespace Sidralune.Devices.Automation
             foreach (var it in items)
             {
                 if (it.Children == null) { if (it.Status == ItemStatus.Done) return true; }
-                else if (it.Status != ItemStatus.Skipped && AnySucceeded(it.Children)) return true;
+                else if (it.Status != ItemStatus.Skipped && AnySucceeded(Snapshot(it.Children))) return true;
             }
             return false;
         }

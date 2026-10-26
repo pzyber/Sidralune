@@ -273,7 +273,7 @@ namespace Sidralune
         public bool Refuse()
         {
             if (_job == null) return false;
-            MainForm.Instance?.Toast(_job.Name + " is still running. Wait for it, or cancel it from the task list.", UI.Icons.Info);
+            MainForm.Instance?.Toast(_job.Name + " is still running. Wait for it to finish first.", UI.Icons.Info);
             return true;
         }
 

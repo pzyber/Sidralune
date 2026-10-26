@@ -127,7 +127,13 @@ namespace Sidralune.Views
             aavso.AutoSizeToText();
             var csv = new FlatButton("CSV…", Icons.Save, (s, e) => ExportCsv());
             csv.AutoSizeToText();
-            g.Full(Bar(run, aavso, csv));
+            // Stop ends a measurement after the frame it is on; the light curves of the previous one are kept
+            var stop = new FlatButton("Stop", Icons.Stop, (s, e) => { if (_measureJob.Busy) { _measureJob.Cancel(); MainForm.Instance.Toast("Measurement stopped", Icons.Info); } })
+                { Kind = ButtonKind.Danger, Enabled = false };
+            stop.AutoSizeToText();
+            _measureJob.Changed += () => stop.Enabled = _measureJob.Busy;
+            g.Full(Bar(run, stop));
+            g.Full(Bar(aavso, csv));
             _measureJob.Guard(addFrames, removeFrame, clear, addSel, vsp, removeStars, _targets, run, aavso, csv);
             g.Full(Ui.Hint("Frames without a WCS are plate solved first. Ensemble differential photometry uses every comparison star, weighted by its error; the check star monitors the ensemble."));
             side.Controls.Add(g);

@@ -114,6 +114,37 @@ namespace Sidralune.Tests
             CheckTrue("Target container sets the target for its instructions and restores it", seen == "M 42" && ctx.Target == null && target.Title == "Target: M 42" && target.Summary.Length > 0);
         }
 
+        [TestMethod]
+        public void TestEditingWhileRunning()
+        {
+            var order = new List<string>();
+            Func<string, Probe> step = n => new Probe(c => { lock (order) order.Add(n); });
+            var started = new ManualResetEventSlim();
+            var gate = new ManualResetEventSlim();
+            var blocker = new Probe(c => { started.Set(); gate.Wait(10000); });
+            Probe first = step("first"), later = step("later"), removed = step("removed"), above = step("above"), below = step("below");
+            var root = new SequenceContainer { Items = { first, blocker, later, removed } };
+            var ctx = Context(new DeviceManager(), new List<string>());
+            var run = Task.Run(() => root.Run(ctx, CancellationToken.None).Wait());
+            CheckTrue("The sequence reaches the long instruction", started.Wait(10000));
+            try
+            {
+                root.Insert(0, above);
+                root.Insert(root.Items.IndexOf(blocker) + 1, below);
+                CheckTrue("An instruction that has run can be moved", root.Move(first, 1) && root.Items.IndexOf(first) > root.Items.IndexOf(blocker));
+                CheckTrue("An instruction still to come can be removed", root.Remove(removed));
+                CheckTrue("The running instruction cannot be removed or moved", !root.Remove(blocker) && !root.Move(blocker, -1) && root.Items.Contains(blocker));
+            }
+            finally { gate.Set(); }
+            CheckTrue("The sequence finishes", run.Wait(10000));
+            CheckTrue("Added below runs next, added above has been passed, removed and moved ones run as expected",
+                order.SequenceEqual(new[] { "first", "below", "later" }), string.Join(", ", order));
+            var loop = new LoopContainer { Condition = LoopCondition.Count, Iterations = 2, Items = { step("pass") } };
+            order.Clear();
+            Run(loop, ctx);
+            CheckTrue("A loop still runs its instructions on every pass", order.SequenceEqual(new[] { "pass", "pass" }), string.Join(", ", order));
+        }
+
         private class Probe : SequenceItem
         {
             private readonly Action<SequenceContext> _a;
