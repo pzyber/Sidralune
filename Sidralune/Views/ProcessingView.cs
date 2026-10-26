@@ -54,7 +54,7 @@ namespace Sidralune.Views
             btn(null, Icons.Fit, "Fit to window (0)", () => _viewer.FitToWindow());
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
-            btn("Solve", Icons.Target, "Plate solve in Astrometry", () => { if (_img != null) { MainForm.Instance.Navigate("astrometry"); MainForm.Instance.GetView<AstrometryView>("astrometry")?.SolveImage(_img); } });
+            var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -64,9 +64,9 @@ namespace Sidralune.Views
                     foreach (var s in _samples) { var p = map(s.X, s.Y); g.DrawRectangle(pen, p.X - 5, p.Y - 5, 10, 10); }
             };
             BuildTools();
-            // while an edit runs the tool buttons and Open, Save as, Undo and Redo wait; the tool settings stay editable,
+            // while an edit runs the tool buttons and Open, Save as, Undo, Redo and Solve wait; the tool settings stay editable,
             // as each tool reads them when it is clicked
-            _job.Guard(new Control[] { open, saveAs, undo, redo }.Concat(Descendants(_tools).OfType<FlatButton>()).ToArray());
+            _job.Guard(new Control[] { open, saveAs, undo, redo, solve }.Concat(Descendants(_tools).OfType<FlatButton>()).ToArray());
             Controls.Add(_viewer);
             Controls.Add(_readout);
             Controls.Add(_tools);
@@ -110,6 +110,38 @@ namespace Sidralune.Views
         {
             AstroImage img = null;
             _job.Run("Opening " + Path.GetFileName(path), t => img = ImageFile.Load(path), () => OpenImage(img, Path.GetFileName(path)));
+        }
+
+        /// <summary>
+        /// Plate solves the image here, as this workspace's job, with the solver settings chosen in Astrometry and the hints in
+        /// the image's header; a solution is added to the image as a history step.
+        /// </summary>
+        private void Solve()
+        {
+            if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
+            if (_job.Refuse()) return;
+            var src = _img;
+            var solve = MainForm.Instance.GetView<AstrometryView>("astrometry").SolveWithSettings(src);
+            Science.Astrometry.SolveResult res = null;
+            _job.Run("Plate solving", t => res = solve(t), () => AddSolution(src, res));
+        }
+
+        /// <summary>Adds a plate solution to the image it was found for, or says what to try when there is none.</summary>
+        private void AddSolution(AstroImage solved, Science.Astrometry.SolveResult res)
+        {
+            if (res == null || !res.Success)
+            {
+                MainForm.Instance.Toast("No plate solution (" + (res?.Message ?? "no result") + "). Try other hints or another solver in Astrometry → Plate solving (save the image and open it there).",
+                    Icons.Warning, Theme.Current.Warning);
+                return;
+            }
+            if (_img != solved) return; // another image was opened meanwhile
+            var img = _img.Clone();
+            res.Wcs.WriteToHeader(img.Header);
+            _img = img;
+            Push("Plate solve");
+            _viewer.SetImage(_img, false);
+            MainForm.Instance.Toast("Plate solved: " + res.Wcs, Icons.Check, Theme.Current.Success);
         }
 
         private void SaveAs()

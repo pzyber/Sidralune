@@ -98,7 +98,7 @@ namespace Sidralune.AppTests
             try
             {
                 CheckTrue("The tool buttons and Open, Save as, Undo and Redo wait for the edit", OnUi(() => job.Busy && !Button(view, "Apply levels").Enabled && !Button(view, "Deconvolve").Enabled
-                    && !Button(view, "Open").Enabled && !Button(view, "Save as").Enabled));
+                    && !Button(view, "Open").Enabled && !Button(view, "Save as").Enabled && !Button(view, "Solve").Enabled));
                 CheckTrue("The tool settings stay editable (each tool reads them when clicked)", OnUi(() => Field<Panel>(view, "_tools").Enabled
                     && All(Field<Panel>(view, "_tools")).Where(c => c is NumericUpDown || c is ComboBox || c is TextBox).All(c => c.Enabled)));
                 OnUi(() => Call(view, "Apply", "Second edit", new Action<AstroImage>(i => { })));
@@ -110,7 +110,24 @@ namespace Sidralune.AppTests
             CheckTrue("The edit ends", WaitFor(() => OnUi(() => !job.Busy), 30000));
             Settle(300);
             CheckTrue("An image sent from elsewhere replaces the document and drops the edit made for the old one", history().SequenceEqual(new[] { "Open second" }), string.Join(", ", history()));
-            CheckTrue("The tools are back", OnUi(() => Button(view, "Apply levels").Enabled && Button(view, "Open").Enabled && Button(view, "Save as").Enabled));
+            CheckTrue("The tools are back", OnUi(() => Button(view, "Apply levels").Enabled && Button(view, "Open").Enabled && Button(view, "Save as").Enabled && Button(view, "Solve").Enabled));
+
+            // Solve stays here and runs as this workspace's job; a solution is added to the image it was found for, as a history step
+            OnUi(() => MainForm.Instance.Navigate("processing"));
+            CheckTrue("Solve stays in Process and runs as its job", OnUi(() => { Button(view, "Solve").PerformClick(); return job.Name == "Plate solving" && view.Visible && !Button(view, "Open").Enabled; }));
+            OnUi(() => job.Cancel()); // a made-up field: the blind solve would keep searching
+            CheckTrue("A cancelled solve frees the buttons", WaitFor(() => OnUi(() => !job.Busy && Button(view, "Solve").Enabled), 60000));
+            var found = new Science.Astrometry.SolveResult { Success = true, Message = "Solved", Wcs = Science.Astrometry.Wcs.Create(83.8, -5.4, 2, 0, 640, 480) };
+            var sent = OnUi(() => Field<AstroImage>(view, "_img"));
+            OnUi(() => Call(view, "AddSolution", sent, found));
+            CheckTrue("A solution is added to the image it was found for", OnUi(() => Science.Astrometry.Wcs.FromHeader(Field<AstroImage>(view, "_img").Header, 640, 480) != null
+                && Field<ImageViewer>(view, "_viewer").Wcs != null && history().Last() == "Plate solve"), string.Join(", ", history()));
+            OnUi(() => Call(view, "Undo"));
+            CheckTrue("Undo takes the solution away again", OnUi(() => Science.Astrometry.Wcs.FromHeader(Field<AstroImage>(view, "_img").Header, 640, 480) == null));
+            OnUi(() => Call(view, "AddSolution", sent, found));
+            CheckTrue("A solution for an image that has been replaced is not added", OnUi(() => Science.Astrometry.Wcs.FromHeader(Field<AstroImage>(view, "_img").Header, 640, 480) == null));
+            OnUi(() => Call(view, "AddSolution", Field<AstroImage>(view, "_img"), new Science.Astrometry.SolveResult { Success = false, Message = "No match" }));
+            CheckTrue("Without a solution a message points to Astrometry", WaitFor(() => Toasts().Any(t => t.StartsWith("No plate solution (No match)") && t.Contains("Astrometry"))));
         }
 
         [TestMethod]
