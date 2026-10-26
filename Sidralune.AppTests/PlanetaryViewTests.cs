@@ -73,10 +73,11 @@ namespace Sidralune.AppTests
                     OnUi(() => Button(view, button).PerformClick());
                     CheckTrue(button + " says when nothing is stacked yet", WaitFor(() => Toasts().Count(t => t.StartsWith("Nothing stacked yet")) > shown || Toasts().Any(t => t.StartsWith("Nothing stacked yet")) && shown > 0));
                 }
+                CheckTrue("It speaks of a sequence, which can be a video or images", Toasts().Any(t => t == "Nothing stacked yet: open a sequence and click Analyse & stack"));
                 OnUi(() => view.OpenVideo(video));
                 CheckTrue("The video opens in the background", WaitFor(() => OnUi(() => !Field<JobSlot>(view, "_ppJob").Busy) && Field<object>(view, "_ppSource") != null, 15000));
                 OnUi(() => Button(view, "Stacking →").PerformClick());
-                CheckTrue("Before processing the button says what to do", WaitFor(() => Toasts().Any(t => t.Contains("Process the video first"))));
+                CheckTrue("Before processing the button says what to do", WaitFor(() => Toasts().Any(t => t.Contains("Process the sequence first"))));
                 CheckTrue("Nothing is sent to Lucky stacking on its own", Field<object>(view, "_luckySource") == null || !((IFrameSource)Field<object>(view, "_luckySource")).Path.StartsWith(outDir));
                 OnUi(() => Button(view, "Process").PerformClick());
                 CheckTrue("Pre-processing writes its video", WaitFor(() => OnUi(() => !Field<JobSlot>(view, "_ppJob").Busy) && Directory.GetFiles(outDir, "*.ser").Length > 0, 60000));

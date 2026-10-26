@@ -142,7 +142,7 @@ namespace Sidralune.Views
             // the result goes to Lucky stacking when you choose; the button waits while a stack is running there
             _luckyJob.Guard(btn("Stacking →", Icons.Right, () =>
             {
-                if (output == null || output.Count == 0) { MainForm.Instance.Toast("Process the video first", Icons.Info); return; }
+                if (output == null || output.Count == 0) { MainForm.Instance.Toast("Process the sequence first", Icons.Info); return; }
                 // a video split by Max frames per file opens at its first part; frames written as images open together
                 bool video = output[0].EndsWith(".ser", StringComparison.OrdinalIgnoreCase) || output[0].EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
                 var files = output;
@@ -226,7 +226,7 @@ namespace Sidralune.Views
                     MainForm.Instance.Toast(result.Report, Icons.Check, Theme.Current.Success);
                 });
             }, ButtonKind.Primary);
-            Func<bool> stacked = () => { if (result != null && result.Stacks.Count > 0) return true; MainForm.Instance.Toast("Nothing stacked yet: open a video and click Analyse & stack", Icons.Info); return false; };
+            Func<bool> stacked = () => { if (result != null && result.Stacks.Count > 0) return true; MainForm.Instance.Toast("Nothing stacked yet: open a sequence and click Analyse & stack", Icons.Info); return false; };
             btn("Next stack", Icons.Right, () => { if (stacked()) { shown = (shown + 1) % result.Stacks.Count; _stacked = result.Stacks[shown]; viewer.SetImage(_stacked, false); MainForm.Instance.SetStatus("Showing best " + resultOptions.StackPercents[shown] + "%"); } }, ButtonKind.Subtle);
             btn("Save stacks…", Icons.Save, () =>
             {
