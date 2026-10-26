@@ -66,6 +66,8 @@ namespace Sidralune.Imaging.Stacking
         public double PercentileLow = 0.2, PercentileHigh = 0.1;
         /// <summary>Significance for Generalised ESD (Rosner 1983) and max outlier fraction.</summary>
         public double EsdAlpha = 0.05, EsdOutlierFraction = 0.3;
+
+        public CombineOptions Clone() => (CombineOptions)MemberwiseClone();
     }
 
     /// <summary>Calibration of frames and creation of master calibration frames.</summary>

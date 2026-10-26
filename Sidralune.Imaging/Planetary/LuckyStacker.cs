@@ -13,6 +13,9 @@ namespace Sidralune.Imaging.Planetary
     /// <summary>Options in the spirit of AutoStakkert! 3/4 by Emil Kraaikamp.</summary>
     public class LuckyOptions
     {
+        /// <summary>A copy for one run, so the settings can be edited while it works.</summary>
+        public LuckyOptions Clone() => (LuckyOptions)MemberwiseClone();
+
         public GlobalAlignMode Align = GlobalAlignMode.Planet;
         public QualityMetric Metric = QualityMetric.Gradient;
         public double NoiseRobust = 1.5;           // pre-blur sigma for quality

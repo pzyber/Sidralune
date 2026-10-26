@@ -105,6 +105,8 @@ After registering, sort by **Score**, **FWHM** or **Ecc.** and uncheck poor fram
 
 The settings grid on the right has the following options.
 
+The stacking settings can be changed while frames are registered or stacked: the run keeps the settings it started with, and the changes apply to the next run.
+
 ### Calibration
 
 | Setting | Meaning |

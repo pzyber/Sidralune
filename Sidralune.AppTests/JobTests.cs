@@ -117,13 +117,14 @@ namespace Sidralune.AppTests
             var engine = Field<Imaging.Stacking.StackingEngine>(stacking, "_engine");
             WhileBusy(Field<JobSlot>(stacking, "_job"), () =>
             {
-                CheckTrue("Stacking: frame buttons, settings and adjustments wait", OnUi(() => !Button(stacking, "Stack checked frames").Enabled && !Button(stacking, "Light frames…").Enabled
-                    && !Field<PropertyGrid>(stacking, "_props").Enabled));
+                CheckTrue("Stacking: frame buttons and adjustments wait", OnUi(() => !Button(stacking, "Stack checked frames").Enabled && !Button(stacking, "Light frames…").Enabled));
+                CheckTrue("Stacking: the settings stay editable (a run has its own copy)", OnUi(() => Field<PropertyGrid>(stacking, "_props").Enabled));
                 CheckTrue("Stacking: the frame list stays visible but its check boxes wait", OnUi(() => Field<DataGridView>(stacking, "_grid").ReadOnly));
                 int before = engine.Frames.Count;
                 OnUi(() => Call(stacking, "AddPaths", new[] { System.IO.Path.Combine(Root, "dropped.fits") }, (Imaging.Stacking.FrameKind?)null));
                 CheckTrue("Stacking: dropped files wait", engine.Frames.Count == before);
             });
+            CheckTrue("Stacking: between runs the engine uses the settings shown", OnUi(() => engine.Settings == Field<Imaging.Stacking.StackingSettings>(stacking, "_settings")));
             CheckTrue("Stacking: check boxes editable again, other columns not", OnUi(() => { var g = Field<DataGridView>(stacking, "_grid"); return !g.ReadOnly && !g.Columns[0].ReadOnly && g.Columns.Cast<DataGridViewColumn>().Skip(1).All(c => c.ReadOnly); }));
 
             var planetary = View<PlanetaryView>("planetary");
@@ -135,6 +136,7 @@ namespace Sidralune.AppTests
             {
                 CheckTrue("Planetary: pre-processing locks Open source and Process in Pre-process", !openBeside("Process") && !enabled("Process"));
                 CheckTrue("Planetary: Lucky stacking stays free during pre-processing", openBeside("Analyse & stack") && enabled("Analyse & stack"));
+                CheckTrue("Planetary: Pre-process options stay editable (the run has its own copy)", OnUi(() => All(planetary).OfType<PropertyGrid>().First(g => ((GridAdapter)g.SelectedObject).Target is Imaging.Planetary.PippOptions).Enabled));
                 OnUi(() => planetary.OpenVideo(System.IO.Path.Combine(Root, "no such video.ser")));
                 CheckTrue("Planetary: a video sent from the Observatory waits (no attempt to open it)", Field<object>(planetary, "_ppSource") == ppSource);
             });
@@ -142,6 +144,7 @@ namespace Sidralune.AppTests
             {
                 CheckTrue("Planetary: lucky stacking locks Open source, Analyse & stack and Sharpen →", !openBeside("Analyse & stack") && !enabled("Analyse & stack") && !enabled("Sharpen →"));
                 CheckTrue("Planetary: Pre-process stays free during lucky stacking", openBeside("Process") && enabled("Process"));
+                CheckTrue("Planetary: Lucky stacking options stay editable (the run has its own copy)", OnUi(() => All(planetary).OfType<PropertyGrid>().First(g => ((GridAdapter)g.SelectedObject).Target is Imaging.Planetary.LuckyOptions).Enabled));
             });
             var sharp = Field<AstroImage>(planetary, "_sharpSource");
             WhileBusy(Field<JobSlot>(planetary, "_sharpJob"), () =>

@@ -135,6 +135,20 @@ namespace Sidralune.Tests
         private static FitsHeader HeaderWith(string k, string v) { var h = new FitsHeader(); h.Set(k, v); return h; }
 
         [TestMethod]
+        public void TestSettingsCopy()
+        {
+            // a run works on a copy, so the settings shown can change while it works, nested options included
+            var s = new StackingSettings { KeepPercent = 80, CustomRect = new[] { 1, 2, 3, 4 } };
+            s.LightCombine.KappaHigh = 3;
+            var run = s.Clone();
+            s.KeepPercent = 50; s.LightCombine.KappaHigh = 1.5; s.DarkCombine.Method = CombineMethod.Average; s.CustomRect[0] = 99;
+            CheckTrue("The run keeps the settings it started with, combine options and rectangle too",
+                run.KeepPercent == 80 && run.LightCombine.KappaHigh == 3 && run.DarkCombine.Method != CombineMethod.Average && run.CustomRect[0] == 1
+                && run.LightCombine != s.LightCombine && run.FlatCombine != s.FlatCombine && run.BiasCombine != s.BiasCombine);
+            CheckTrue("A copy without a rectangle stays without one", new StackingSettings().Clone().CustomRect == null);
+        }
+
+        [TestMethod]
         public void TestStackingOptions()
         {
             int w = 240, h = 180, n = 6;
