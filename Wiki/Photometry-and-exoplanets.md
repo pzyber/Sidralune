@@ -76,7 +76,7 @@ Light-travel time across the Earth's orbit changes timings by up to ±8.3 minute
 
 ### Measuring
 
-Click **Measure all frames**. For each frame Sidralune finds each star from its RA/Dec through the WCS, measures it, and computes the target's magnitude against the ensemble of comparison stars: each comparison star gives a zero point (catalogue minus instrumental magnitude), and the zero points are averaged with weights from their errors. A colour-term correction is applied if transformation coefficients are set. Errors include photon noise, sky noise, read noise and the ensemble scatter. The airmass of each frame is recorded.
+Click **Measure all frames**. For each frame Sidralune finds each star from its RA/Dec through the WCS, measures it, and computes the target's magnitude against the ensemble of comparison stars: each comparison star gives a zero point (catalogue minus instrumental magnitude), and the zero points are averaged with weights from their errors. A colour-term correction is applied if transformation coefficients are set. Errors include photon noise, sky noise, read noise and the ensemble scatter. The airmass of each frame is recorded. The aperture settings can be changed while frames are measured: the measurement keeps the settings it started with, and the changes apply to the next one. The frame list and the star table wait until it is done.
 
 The **Light curves** plot shows each target's magnitude over time with error bars, and the check star's in grey. The first target's light curve is loaded into the **Light curve analysis** tab automatically.
 

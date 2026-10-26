@@ -263,11 +263,11 @@ namespace Sidralune.Views
                 Apply("GHS", img => StretchOps.ApplyToLuminance(img, f));
             }));
             var asinh = st.Row("Arcsinh factor", Ui.Num(50, 1, 1000));
-            st.Full(new FlatButton("Apply arcsinh stretch (colour preserving)", Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Compute(_img.Luminance(), _img.Width, 0).Background - 0.002 : 0; Apply("Arcsinh", img => StretchOps.ArcsinhStretch(img, (double)asinh.Value, Math.Max(0, bg))); }));
+            st.Full(new FlatButton("Apply arcsinh stretch (colour preserving)", Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Compute(_img.Luminance(), _img.Width, 0).Background - 0.002 : 0; double k = (double)asinh.Value; Apply("Arcsinh", img => StretchOps.ArcsinhStretch(img, k, Math.Max(0, bg))); }));
             var lb = st.Row("Levels black", Ui.Num(0, 0, 1, 3, 0.005m));
             var lg = st.Row("Levels gamma", Ui.Num(1, 0.1m, 5, 2, 0.05m));
             var lw = st.Row("Levels white", Ui.Num(1, 0, 2, 3, 0.01m));
-            st.Full(new FlatButton("Apply levels", Icons.Check, (s, e) => Apply("Levels", img => StretchOps.Levels(img, (double)lb.Value, (double)lg.Value, (double)lw.Value))));
+            st.Full(new FlatButton("Apply levels", Icons.Check, (s, e) => { double b = (double)lb.Value, gm = (double)lg.Value, wp = (double)lw.Value; Apply("Levels", img => StretchOps.Levels(img, b, gm, wp)); }));
             st.Full(new FlatButton("Local contrast (CLAHE)", Icons.Check, (s, e) => Apply("CLAHE", img => StretchOps.Clahe(img, 8, 2.0, 0.6))));
             list.Add(new Collapsible("Stretch", st, false));
 
@@ -290,11 +290,11 @@ namespace Sidralune.Views
             col.Full(new FlatButton("Star colour calibration", Icons.Check, (s, e) => Apply("Colour calibration", img => ColorOps.StarColorCalibration(img))));
             col.Full(new FlatButton("Photometric colour calibration (needs WCS)", Icons.Check, (s, e) => PhotometricColor()));
             var scnr = col.Row("SCNR amount", Ui.Num(1, 0, 1, 2, 0.05m));
-            col.Full(new FlatButton("Remove green cast (SCNR)", Icons.Check, (s, e) => Apply("SCNR", img => ColorOps.Scnr(img, ScnrMethod.AverageNeutral, (double)scnr.Value))));
+            col.Full(new FlatButton("Remove green cast (SCNR)", Icons.Check, (s, e) => { double a = (double)scnr.Value; Apply("SCNR", img => ColorOps.Scnr(img, ScnrMethod.AverageNeutral, a)); }));
             var sat = col.Row("Saturation", Ui.Num(1.3m, 0, 4, 2, 0.05m));
-            col.Full(new FlatButton("Apply saturation", Icons.Check, (s, e) => Apply("Saturation", img => ColorOps.Saturation(img, (double)sat.Value, 0.05))));
+            col.Full(new FlatButton("Apply saturation", Icons.Check, (s, e) => { double a = (double)sat.Value; Apply("Saturation", img => ColorOps.Saturation(img, a, 0.05)); }));
             var hue = col.Row("Hue shift (°)", Ui.Num(0, -180, 180));
-            col.Full(new FlatButton("Apply hue shift", Icons.Check, (s, e) => Apply("Hue", img => ColorOps.HueSaturationLightness(img, (double)hue.Value, 1, 1))));
+            col.Full(new FlatButton("Apply hue shift", Icons.Check, (s, e) => { double a = (double)hue.Value; Apply("Hue", img => ColorOps.HueSaturationLightness(img, a, 1, 1)); }));
             col.Full(new FlatButton("Align RGB channels", Icons.Check, (s, e) => Apply("Align channels", img => ColorOps.AlignChannels(img))));
             list.Add(new Collapsible("Colour", col, false));
 

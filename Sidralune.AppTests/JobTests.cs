@@ -157,8 +157,11 @@ namespace Sidralune.AppTests
 
             var photometry = View<PhotometryView>("photometry");
             WhileBusy(Field<JobSlot>(photometry, "_measureJob"), () =>
+            {
                 CheckTrue("Photometry: frames, stars and Measure wait for a measurement", OnUi(() => !Button(photometry, "Measure all frames").Enabled && !Button(photometry, "Add frames…").Enabled
-                    && !Field<DataGridView>(photometry, "_targets").Enabled)));
+                    && !Field<DataGridView>(photometry, "_targets").Enabled));
+                CheckTrue("Photometry: the aperture settings stay editable (a measurement has its own copy)", OnUi(() => All(photometry).OfType<PropertyGrid>().First(g => ((GridAdapter)g.SelectedObject).Target is Science.Photometry.ApertureSettings).Enabled));
+            });
 
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));

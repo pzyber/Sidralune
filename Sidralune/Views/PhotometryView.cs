@@ -128,7 +128,7 @@ namespace Sidralune.Views
             var csv = new FlatButton("CSV…", Icons.Save, (s, e) => ExportCsv());
             csv.AutoSizeToText();
             g.Full(Bar(run, aavso, csv));
-            _measureJob.Guard(addFrames, removeFrame, clear, addSel, vsp, removeStars, _targets, props, run, aavso, csv);
+            _measureJob.Guard(addFrames, removeFrame, clear, addSel, vsp, removeStars, _targets, run, aavso, csv);
             g.Full(Ui.Hint("Frames without a WCS are plate solved first. Ensemble differential photometry uses every comparison star, weighted by its error; the check star monitors the ensemble."));
             side.Controls.Add(g);
 
@@ -205,8 +205,8 @@ namespace Sidralune.Views
             var targets = ReadTargets();
             if (_frames.Count == 0 || targets.Count == 0) { MainForm.Instance.Toast("Add frames and at least one target and comparison star", Icons.Info); return; }
             if (!targets.Any(t => t.IsComparison)) { MainForm.Instance.Toast("At least one comparison star is required", Icons.Info); return; }
-            _phot.Targets = targets;
-            _phot.Curves.Clear();
+            // the run measures with a copy of the aperture settings, which stay editable for the next run
+            var run = new DifferentialPhotometry { Aperture = _phot.Aperture.Clone(), Targets = targets, TransformationCoefficient = _phot.TransformationCoefficient, ExtinctionK = _phot.ExtinctionK };
             int timeSys = _timeSystem.SelectedIndex;
             var frames = _frames.ToList();
             var site = AppState.Site;
@@ -233,10 +233,12 @@ namespace Sidralune.Views
                     var tgt = targets.First(q => !q.IsComparison);
                     double tj = timeSys == 0 ? TimeCorrections.BjdTdb(jd, tgt.Ra, tgt.Dec) : timeSys == 1 ? TimeCorrections.HjdUtc(jd, tgt.Ra, tgt.Dec) : jd;
                     double alt = AstroEvents.FixedAltitude(tgt.Ra * AstroMath.Deg2Rad, tgt.Dec * AstroMath.Deg2Rad, site, new AstroTime(jd));
-                    _phot.AddFrame(img, wcs, tj, Transforms.Airmass(alt * AstroMath.Deg2Rad), img.Filter ?? "V");
+                    run.AddFrame(img, wcs, tj, Transforms.Airmass(alt * AstroMath.Deg2Rad), img.Filter ?? "V");
                 }
             }, () =>
             {
+                _phot.Targets = run.Targets;
+                _phot.Curves = run.Curves;
                 PlotMeasured();
                 var first = _phot.Curves.FirstOrDefault();
                 if (first.Value != null) UseCurve(first.Key, first.Value.Select(p => p.Jd), first.Value.Select(p => p.Mag), first.Value.Select(p => p.MagError), false);
