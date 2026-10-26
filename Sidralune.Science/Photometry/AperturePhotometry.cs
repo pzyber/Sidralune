@@ -22,6 +22,9 @@ namespace Sidralune.Science.Photometry
         public double AduScale = 65535;
         public double SaturationLevel = 0.95;
         public bool Recentre = true;
+
+        /// <summary>A copy for one run, so the settings can be edited while it works.</summary>
+        public ApertureSettings Clone() => (ApertureSettings)MemberwiseClone();
     }
 
     public class PhotometryMeasurement

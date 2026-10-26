@@ -58,6 +58,10 @@ namespace Sidralune.Tests
             CheckTrue("Saturated star flagged", AperturePhotometry.Measure(bright.Data[0], w, h, 40, 40, s).Saturated);
             var empty = new float[w * h];
             CheckTrue("Star at the edge gives no magnitude", double.IsNaN(AperturePhotometry.Measure(empty, w, h, 1, 1, new ApertureSettings { Recentre = false, InnerAnnulus = 70, OuterAnnulus = 75 }).InstMag));
+            // a measurement works on a copy, so the settings shown can change while it works
+            var run = s.Clone();
+            s.Radius = 3; s.Recentre = false;
+            CheckTrue("A measurement keeps the aperture settings it started with", run.Radius == 8 && run.Recentre && run != s);
         }
 
         [TestMethod]

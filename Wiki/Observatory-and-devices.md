@@ -58,7 +58,7 @@ At the bottom:
 | **Connect simulated observatory** | Connects a simulated mount, camera, focuser, filter wheel, dome and weather station in one go |
 | **Discover Alpaca devices** | Searches the local network for Alpaca servers and adds their devices to the lists |
 | **Add INDI server…** | Connects to an INDI server and adds its devices to the lists |
-| **Disconnect all** | Disconnects every device |
+| **Disconnect all** | Disconnects every device. Available when at least one device is connected |
 
 ### Connecting a device
 
@@ -128,7 +128,7 @@ The **Camera** section has two tabs at the top, **Deep sky** and **Planetary**, 
 |---|---|
 | **Start** | Take the requested number of frames |
 | **Loop** | Continuous preview; frames are not saved. Useful for framing and manual focusing |
-| **Stop** | Abort the current exposure or series |
+| **Stop** | Abort the current exposure or series, or end any other camera work. Available only while something uses the camera |
 
 After each frame the status line shows the number of stars, the half-flux radius (HFR) and FWHM in pixels, the median level and the saved file name. These numbers are the quickest way to judge focus and sky conditions.
 
@@ -213,7 +213,7 @@ Tips: use an exposure long enough to show 20 or more stars, choose a step that c
 
 ### Mount
 
-The **Mount** section shows the mount's RA, Dec, altitude, azimuth, pier side and state. The arrow buttons move the mount at the selected **Rate**: **Guide 0.5×**, **Centre 8×**, **Find 64×** or **Slew max** (multiples of the sidereal rate).
+The **Mount** section shows the mount's RA, Dec, altitude, azimuth, pier side and state. The arrow buttons move the mount at the selected **Rate**: **Guide 0.5×**, **Centre 8×**, **Find 64×** or **Slew max** (multiples of the sidereal rate). The stop button in the middle of the arrows stops any slew; it is available whenever a telescope is connected, so a slew started from another program can be stopped too.
 
 Type an object name or coordinates in **Go to**, then:
 
@@ -236,7 +236,7 @@ Sidralune uses [PHD2](https://openphdguiding.org) for guiding. In PHD2, choose *
 | **Start guiding** | Starts guiding with the existing calibration |
 | **Calibrate & guide** | Recalibrates, then guides |
 | **Dither** | Moves the guide star by a few pixels and waits for it to settle, so that hot pixels and noise patterns fall on different sky in each frame |
-| **Stop** | Stops guiding |
+| **Stop** | Stops guiding. Available while PHD2 is guiding, calibrating, looping or dithering |
 | **Clear graph** | Clears the error graph |
 
 The **Guiding error** graph plots the RA and Dec corrections in arcseconds. The status line shows the guider state and the RMS error in RA, Dec and total. Total RMS well below your image scale (arcseconds per pixel) means round stars.

@@ -97,7 +97,10 @@ namespace Sidralune.AppTests
             Func<List<string>> history = () => OnUi(() => Field<List<Tuple<string, AstroImage>>>(view, "_undo").Select(u => u.Item1).ToList());
             try
             {
-                CheckTrue("The tools and Open, Undo and Redo wait for the edit", OnUi(() => job.Busy && !Field<Panel>(view, "_tools").Enabled && !Button(view, "Open").Enabled));
+                CheckTrue("The tool buttons and Open, Save as, Undo and Redo wait for the edit", OnUi(() => job.Busy && !Button(view, "Apply levels").Enabled && !Button(view, "Deconvolve").Enabled
+                    && !Button(view, "Open").Enabled && !Button(view, "Save as").Enabled));
+                CheckTrue("The tool settings stay editable (each tool reads them when clicked)", OnUi(() => Field<Panel>(view, "_tools").Enabled
+                    && All(Field<Panel>(view, "_tools")).Where(c => c is NumericUpDown || c is ComboBox || c is TextBox).All(c => c.Enabled)));
                 OnUi(() => Call(view, "Apply", "Second edit", new Action<AstroImage>(i => { })));
                 OnUi(() => Call(view, "Undo"));
                 CheckTrue("A second edit and Undo are refused", history().SequenceEqual(new[] { "Open first" }), string.Join(", ", history()));
@@ -107,7 +110,7 @@ namespace Sidralune.AppTests
             CheckTrue("The edit ends", WaitFor(() => OnUi(() => !job.Busy), 30000));
             Settle(300);
             CheckTrue("An image sent from elsewhere replaces the document and drops the edit made for the old one", history().SequenceEqual(new[] { "Open second" }), string.Join(", ", history()));
-            CheckTrue("The tools are back", OnUi(() => Field<Panel>(view, "_tools").Enabled && Button(view, "Open").Enabled));
+            CheckTrue("The tools are back", OnUi(() => Button(view, "Apply levels").Enabled && Button(view, "Open").Enabled && Button(view, "Save as").Enabled));
         }
 
         [TestMethod]
@@ -157,8 +160,15 @@ namespace Sidralune.AppTests
 
             var photometry = View<PhotometryView>("photometry");
             WhileBusy(Field<JobSlot>(photometry, "_measureJob"), () =>
+            {
                 CheckTrue("Photometry: frames, stars and Measure wait for a measurement", OnUi(() => !Button(photometry, "Measure all frames").Enabled && !Button(photometry, "Add frames…").Enabled
-                    && !Field<DataGridView>(photometry, "_targets").Enabled)));
+                    && !Field<DataGridView>(photometry, "_targets").Enabled));
+                CheckTrue("Photometry: the aperture settings stay editable (a measurement has its own copy)", OnUi(() => All(photometry).OfType<PropertyGrid>().First(g => ((GridAdapter)g.SelectedObject).Target is Science.Photometry.ApertureSettings).Enabled));
+                var measuring = Field<JobSlot>(photometry, "_measureJob").Current;
+                OnUi(() => Button(photometry, "Stop").PerformClick());
+                CheckTrue("Photometry: Stop cancels the measurement", measuring.Cts.IsCancellationRequested && WaitFor(() => Toasts().Contains("Measurement stopped")));
+            });
+            CheckTrue("Photometry: Stop is only available while measuring", OnUi(() => !Button(photometry, "Stop").Enabled && Button(photometry, "Measure all frames").Enabled));
 
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));

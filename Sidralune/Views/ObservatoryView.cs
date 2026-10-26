@@ -140,12 +140,14 @@ namespace Sidralune.Views
             }
             // one refresh of all rows per burst of device changes (Disconnect all raises one per device), laid out once
             int refreshPending = 0;
+            Action syncDisconnect = null;
             Action refreshAll = () =>
             {
                 System.Threading.Interlocked.Exchange(ref refreshPending, 0);
                 table.SuspendLayout();
                 try { foreach (var r in rowRefreshers) r(); }
                 finally { table.ResumeLayout(true); }
+                syncDisconnect?.Invoke();
             };
             Dm.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref refreshPending, 1) == 0) MainForm.Instance.Post(refreshAll); };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46 };
@@ -169,7 +171,11 @@ namespace Sidralune.Views
             var indi = new FlatButton("Add INDI server…", Icons.Add, (s, e) => AddIndi(table, kinds)); indi.AutoSizeToText();
             var disc = new FlatButton("Disconnect all", Icons.Stop, (s, e) => equipment.Run("Disconnecting all devices", t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
             bar.Controls.AddRange(new Control[] { sim, alpaca, indi, disc });
-            equipment.Guard(sim, alpaca, disc);
+            equipment.Guard(sim, alpaca);
+            // Disconnect all needs something to disconnect, and waits for connecting, discovery or a disconnect running
+            syncDisconnect = () => disc.Enabled = !equipment.Busy && Dm.All.Any();
+            equipment.Changed += syncDisconnect;
+            syncDisconnect();
             var optics = new FormGrid(220);
             var fl = optics.Row("Imaging focal length (mm)", Ui.Num((decimal)Dm.FocalLengthMm, 10, 20000));
             var ap = optics.Row("Aperture (mm)", Ui.Num((decimal)Dm.ApertureMm, 10, 2000));
@@ -232,6 +238,11 @@ namespace Sidralune.Views
         private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
         // buttons that may take over the camera from a live view (Record): the live view stops and they start
         private readonly HashSet<Control> _replacesLiveView = new HashSet<Control>();
+        // the sequencer's Template, Open and Save, which wait while a sequence runs
+        private readonly List<Control> _sequenceFileButtons = new List<Control>();
+        // the camera tabs' Stop buttons (enabled while something uses the camera) and the sequencer's (while a sequence runs)
+        private readonly List<Control> _cameraStops = new List<Control>();
+        private Control _sequenceStop;
         private const string LiveViewJob = "Live view";
         private bool LiveViewRunning => _cameraJob != null && !_cameraJob.Done && _cameraJobName == LiveViewJob;
         private Label _busyNote;
@@ -277,6 +288,9 @@ namespace Sidralune.Views
         private void SyncCameraButtons()
         {
             foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2, _replacesLiveView.Contains(b.Item1)) == null;
+            foreach (var b in _sequenceFileButtons) b.Enabled = !SequenceActive;
+            foreach (var b in _cameraStops) b.Enabled = CameraBusyReason() != null;
+            if (_sequenceStop != null) _sequenceStop.Enabled = SequenceActive;
             if (_busyNote == null) return;
             var why = CameraBusyReason(true);
             _busyNote.Visible = why != null;
@@ -316,7 +330,8 @@ namespace Sidralune.Views
             var btns = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
             var start = new FlatButton("Start", Icons.Play) { Kind = ButtonKind.Primary }; start.AutoSizeToText();
             var loop = new FlatButton("Loop", Icons.Refresh) { ToolTipText = "Continuous preview (not saved)" }; loop.AutoSizeToText();
-            var stop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; stop.AutoSizeToText();
+            var stop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger, Enabled = false }; stop.AutoSizeToText();
+            _cameraStops.Add(stop);
             btns.Controls.AddRange(new Control[] { start, loop, stop });
             cam.Full(btns);
             var camStatus = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(270, 0), Visible = false };
@@ -346,7 +361,8 @@ namespace Sidralune.Views
             var vBtns = new FlowLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true };
             var rec = new FlatButton("Record", Icons.Play) { Kind = ButtonKind.Primary }; rec.AutoSizeToText();
             var live = new FlatButton("Live view", Icons.Eye) { ToolTipText = "Continuous frames with these settings, for framing, focus and exposure (not saved)" }; live.AutoSizeToText();
-            var vStop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger }; vStop.AutoSizeToText();
+            var vStop = new FlatButton("Stop", Icons.Stop) { Kind = ButtonKind.Danger, Enabled = false }; vStop.AutoSizeToText();
+            _cameraStops.Add(vStop);
             var openPl = new FlatButton("Open in Planetary", Icons.Planet) { Enabled = false }; openPl.AutoSizeToText();
             vBtns.Controls.AddRange(new Control[] { rec, live, vStop, openPl });
             vStop.Click += (s, e) => StopCameraWork();
@@ -513,6 +529,7 @@ namespace Sidralune.Views
             Tasks.Changed += SyncCameraButtons;
             _sequencer.Changed += () => MainForm.Instance.Post(SyncCameraButtons);
             stop.Click += (s, e) => StopCameraWork();
+            SyncCameraButtons();
 
             // mount pad
             var mount = new FormGrid(90);
@@ -530,8 +547,13 @@ namespace Sidralune.Views
             };
             pad.Controls.Add(padBtn(Icons.Up, 1, 1), 1, 0);
             pad.Controls.Add(padBtn(Icons.Left, 0, 1), 0, 1);
-            var stopBtn = new FlatButton { Icon = Icons.Stop, Dock = DockStyle.Fill, Kind = ButtonKind.Danger, Margin = new Padding(2) };
+            // the mount's Stop is available whenever a telescope is connected, not only while it reports a slew: a slew may be
+            // started by another program, drivers do not always report one, and a stop must never wait for the next poll
+            var stopBtn = new FlatButton { Icon = Icons.Stop, Dock = DockStyle.Fill, Kind = ButtonKind.Danger, Margin = new Padding(2), Enabled = false, ToolTipText = "Stop the mount" };
             stopBtn.Click += (s, e) => { try { Dm.Telescope?.AbortSlew(); } catch { } };
+            Action syncMountStop = () => { var tel = Dm.Telescope; bool on = false; try { on = tel != null && tel.Connected; } catch { } stopBtn.Enabled = on; };
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncMountStop);
+            syncMountStop();
             pad.Controls.Add(stopBtn, 1, 1);
             pad.Controls.Add(padBtn(Icons.Right, 0, -1), 2, 1);
             pad.Controls.Add(padBtn(Icons.Down, 1, -1), 1, 2);
@@ -553,6 +575,7 @@ namespace Sidralune.Views
 
             Poll += () =>
             {
+                syncMountStop(); // a lost connection shows here
                 var tel = Dm.Telescope;
                 if (tel != null && tel.Connected)
                 {
@@ -669,15 +692,29 @@ namespace Sidralune.Views
                 () => MainForm.Instance.Toast("Connected to PHD2"),
                 ex => MainForm.Instance.Toast("Could not reach PHD2 on localhost:4400. " + Phd2Hint, Icons.Warning, Theme.Current.Danger)));
             Func<IGuider> guider = () => Need(Dm.Guider, "guider", Phd2Hint);
-            btn("Start guiding", Icons.Play, () => { var g = guider(); Tasks.Run("Start guiding", t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); }).Kind = ButtonKind.Primary;
-            btn("Calibrate & guide", Icons.Target, () => { var g = guider(); Tasks.Run("Calibrate", t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
-            btn("Dither", Icons.Grid, () => { var g = guider(); Tasks.Run("Dither", t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
-            btn("Stop", Icons.Stop, () => guider().StopGuiding()).Kind = ButtonKind.Danger;
+            BackgroundTask guideTask = null;
+            btn("Start guiding", Icons.Play, () => { var g = guider(); guideTask = Tasks.Run("Start guiding", t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); }).Kind = ButtonKind.Primary;
+            btn("Calibrate & guide", Icons.Target, () => { var g = guider(); guideTask = Tasks.Run("Calibrate", t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
+            btn("Dither", Icons.Grid, () => { var g = guider(); guideTask = Tasks.Run("Dither", t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
+            var guideStop = btn("Stop", Icons.Stop, () => guider().StopGuiding());
+            guideStop.Kind = ButtonKind.Danger;
+            // Stop is available while the guider is doing something (PHD2 is idle in "Stopped" and "Selected") or a guiding command runs
+            Action syncGuideStop = () =>
+            {
+                var gd = Dm.Guider;
+                bool on = guideTask != null && !guideTask.Done;
+                try { on |= gd != null && gd.Connected && !string.IsNullOrEmpty(gd.State) && gd.State != "Stopped" && gd.State != "Selected"; } catch { }
+                guideStop.Enabled = on;
+            };
+            Tasks.Changed += syncGuideStop;
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
+            syncGuideStop();
             btn("Clear graph", Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
             int n = 0;
             IGuider hooked = null;
             Poll += () =>
             {
+                syncGuideStop();
                 var g = Dm.Guider;
                 if (g != hooked && g != null)
                 {
@@ -738,7 +775,7 @@ namespace Sidralune.Views
             btn("Remove", Icons.Remove, RemoveItem);
             btn("Up", Icons.Up, () => MoveItem(-1));
             btn("Down", Icons.Down, () => MoveItem(1));
-            btn("Template…", Icons.Star, () =>
+            var template = btn("Template…", Icons.Star, () =>
             {
                 var sel = AppState.Selection;
                 var name = sel != null ? sel.Name : "M 31";
@@ -746,8 +783,8 @@ namespace Sidralune.Views
                 _sequencer.Root = Sequencer.Template(name, ra, dec);
                 RefreshTree();
             });
-            btn("Open…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = "Sequence|*.json" }) if (d.ShowDialog() == DialogResult.OK) { _sequencer.Load(d.FileName); RefreshTree(); } });
-            btn("Save…", Icons.Save, () => { using (var d = new SaveFileDialog { Filter = "Sequence|*.json", FileName = "sequence.json" }) if (d.ShowDialog() == DialogResult.OK) _sequencer.Save(d.FileName); });
+            var openSeq = btn("Open…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = "Sequence|*.json" }) if (d.ShowDialog() == DialogResult.OK) { _sequencer.Load(d.FileName); RefreshTree(); } });
+            var saveSeq = btn("Save…", Icons.Save, () => { using (var d = new SaveFileDialog { Filter = "Sequence|*.json", FileName = "sequence.json" }) if (d.ShowDialog() == DialogResult.OK) _sequencer.Save(d.FileName); });
             var run = new FlatButton("Run sequence", Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
@@ -759,7 +796,12 @@ namespace Sidralune.Views
             };
             bar.Controls.Add(run);
             _cameraButtons.Add(Tuple.Create((Control)run, false));
-            btn("Stop", Icons.Stop, () => _sequencer.Stop()).Kind = ButtonKind.Danger;
+            // the running sequence can still be edited, but not replaced or saved half done
+            _sequenceFileButtons.AddRange(new Control[] { template, openSeq, saveSeq });
+            var seqStop = btn("Stop", Icons.Stop, () => _sequencer.Stop());
+            seqStop.Kind = ButtonKind.Danger;
+            _sequenceStop = seqStop;
+            SyncCameraButtons();
             _sequencer.Log += s => MainForm.Instance.Post(() => log.AppendText(DateTime.Now.ToString("HH:mm:ss ") + s + "\r\n"));
             _sequencer.Changed += () => MainForm.Instance.Post(UpdateTreeStatus);
             _seqTree.AfterSelect += (s, e) => _seqProps.SelectedObject = e.Node?.Tag != null ? new GridAdapter(e.Node.Tag, "Instruction") : null;
@@ -816,7 +858,7 @@ namespace Sidralune.Views
             int idx = sel != null && sel.Tag is SequenceContainer ? container.Items.Count : (sel != null ? container.Items.IndexOf((SequenceItem)sel.Tag) + 1 : container.Items.Count);
             if (item is TargetContainer && AppState.Selection != null)
                 ((TargetContainer)item).Target = new SequenceTarget { Name = AppState.Selection.Name, RaDeg = AppState.Selection.RaDeg, DecDeg = AppState.Selection.DecDeg };
-            container.Items.Insert(Math.Max(0, Math.Min(idx, container.Items.Count)), item);
+            container.Insert(idx, item);
             RefreshTree();
         }
 
@@ -825,7 +867,7 @@ namespace Sidralune.Views
             var sel = _seqTree.SelectedNode;
             var parent = sel?.Parent?.Tag as SequenceContainer;
             if (parent == null) return;
-            parent.Items.Remove((SequenceItem)sel.Tag);
+            if (!parent.Remove((SequenceItem)sel.Tag)) { MainForm.Instance.Toast("That instruction is running. Stop the sequence to remove it.", Icons.Info); return; }
             RefreshTree();
         }
 
@@ -835,10 +877,8 @@ namespace Sidralune.Views
             var parent = sel?.Parent?.Tag as SequenceContainer;
             if (parent == null) return;
             var it = (SequenceItem)sel.Tag;
-            int i = parent.Items.IndexOf(it), j = i + dir;
-            if (j < 0 || j >= parent.Items.Count) return;
-            parent.Items.RemoveAt(i); parent.Items.Insert(j, it);
-            RefreshTree();
+            if (it.Status == ItemStatus.Running) { MainForm.Instance.Toast("That instruction is running. Stop the sequence to move it.", Icons.Info); return; }
+            if (parent.Move(it, dir)) RefreshTree();
         }
 
         // ================================================================== polar alignment
