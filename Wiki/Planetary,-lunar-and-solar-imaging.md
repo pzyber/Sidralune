@@ -50,6 +50,8 @@ The **Pre-process** tab prepares a video for stacking. Click **Open source…** 
 
 Frames are shown as recorded, without the automatic stretch of the deep-sky workspaces, which would turn the black sky around a planet into noise. The same goes for every tab of the Planetary workspace.
 
+The options can be changed while a run is working: the run keeps the settings it started with, and the changes apply to the next run. The same holds in Lucky stacking.
+
 Click **Process**. The **Frame quality** plot shows every frame's quality score and which were kept, and a summary toast reports how many frames were written and why others were rejected. Click **Stacking →** to open the result in the Lucky stacking tab (the first file when **Max frames per file** split it; frames saved as images open together). The button waits while a stack is running there.
 
 Pre-process and Lucky stacking each have their own video, so you can pre-process one recording while another is being stacked. While a tab works, its own **Open source…** and start button wait for it, and while a deconvolution runs in Sharpen & deconvolve, **Sharpen →** waits too.

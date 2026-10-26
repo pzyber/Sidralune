@@ -15,6 +15,9 @@ namespace Sidralune.Views
     public class StackingView : UserControl, ICommandSource
     {
         private readonly StackingEngine _engine = new StackingEngine();
+        // the settings the grid edits; a job gets a copy, so they stay editable while it works, and the engine uses them
+        // again between jobs (saving a file list, marking a comet, choosing the reference)
+        private StackingSettings _settings;
         private readonly DataGridView _grid = Ui.Grid();
         private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Add light frames (and optional darks, flats, dark flats and bias), then Register and Stack" };
         private readonly PropertyGrid _props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = true, PropertySort = PropertySort.Categorized };
@@ -76,7 +79,7 @@ namespace Sidralune.Views
                 var fr = (StackFrame)_grid.SelectedRows[0].Tag;
                 fr.CometXY = new[] { x, y };
                 _markComet = false;
-                _engine.Settings.Comet = CometMode.StarsAndComet;
+                _settings.Comet = CometMode.StarsAndComet;
                 _props.Refresh();
                 MainForm.Instance.Toast(string.Format("Comet marked at ({0:0.0}, {1:0.0}) in {2}. Mark it in at least two frames.", x, y, fr.FileName));
             };
@@ -91,16 +94,18 @@ namespace Sidralune.Views
             };
 
             var settingsCard = new Card("Stacking settings") { Dock = DockStyle.Fill };
-            _props.SelectedObject = new GridAdapter(_engine.Settings, "Stacking");
+            _settings = _engine.Settings;
+            _props.SelectedObject = new GridAdapter(_settings, "Stacking");
             settingsCard.Controls.Add(_props);
             var post = new Card("Stacked image adjustments") { Dock = DockStyle.Bottom, Height = 170 };
             var pg = new FormGrid(90);
             pg.Row("Black point", _black); pg.Row("Midtones", _mid); pg.Row("Saturation", _sat);
             foreach (var tb in new[] { _black, _mid, _sat }) tb.ValueChanged += (s, e) => ApplyPost();
             post.Controls.Add(pg);
-            _job.Guard(actions, _props, post);
+            _job.Guard(actions, post);
             _job.Changed += () =>
             {
+                if (!_job.Busy) _engine.Settings = _settings;
                 // the frame list stays visible for previews, but its check boxes wait for the job
                 _grid.ReadOnly = _job.Busy;
                 if (!_job.Busy) for (int i = 0; i < _grid.Columns.Count; i++) _grid.Columns[i].ReadOnly = i > 0;
@@ -176,7 +181,7 @@ namespace Sidralune.Views
         {
             if (_grid.SelectedRows.Count == 0) return;
             var fr = (StackFrame)_grid.SelectedRows[0].Tag;
-            _engine.Settings.ReferencePath = fr.Path;
+            _settings.ReferencePath = fr.Path;
             foreach (var f in _engine.Frames) f.IsReference = f == fr;
             RefreshGrid();
         }
@@ -230,6 +235,8 @@ namespace Sidralune.Views
         private void Register()
         {
             if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
+            if (_job.Refuse()) return; // the settings below must not change under a running job
+            _engine.Settings = _settings.Clone(); // the run's own copy; the grid stays editable
             _job.Run("Registering", t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
@@ -242,6 +249,8 @@ namespace Sidralune.Views
         {
             if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
             StackResult result = null;
+            if (_job.Refuse()) return; // the settings below must not change under a running job
+            _engine.Settings = _settings.Clone(); // the run's own copy; the grid stays editable
             _job.Run("Stacking", t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
@@ -312,7 +321,7 @@ namespace Sidralune.Views
         private void LoadList()
         {
             using (var d = new OpenFileDialog { Filter = "Sidralune stacking list|*.sdstack" })
-                if (d.ShowDialog() == DialogResult.OK) { _engine.LoadProject(d.FileName); _props.SelectedObject = new GridAdapter(_engine.Settings, "Stacking"); RefreshGrid(); }
+                if (d.ShowDialog() == DialogResult.OK) { _engine.LoadProject(d.FileName); _settings = _engine.Settings; _props.SelectedObject = new GridAdapter(_settings, "Stacking"); RefreshGrid(); }
         }
 
         public IEnumerable<AppCommand> GetCommands()

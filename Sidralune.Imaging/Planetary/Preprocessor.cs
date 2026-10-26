@@ -16,6 +16,9 @@ namespace Sidralune.Imaging.Planetary
     /// <summary>Options mirroring PIPP (Planetary Imaging PreProcessor) by Chris Garry.</summary>
     public class PippOptions
     {
+        /// <summary>A copy for one run, so the settings can be edited while it works.</summary>
+        public PippOptions Clone() => (PippOptions)MemberwiseClone();
+
         // source
         public int FirstFrame = 0, LastFrame = -1, FrameStep = 1;
         public bool Debayer = true;

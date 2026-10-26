@@ -126,7 +126,9 @@ namespace Sidralune.Views
                 }
                 var src = _ppSource;
                 PippResult res = null;
-                _ppJob.Run("Pre-processing", t => res = Preprocessor.Run(src, opt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
+                // the run works on a copy of the options, which stay editable for the next run
+                var runOpt = opt.Clone();
+                _ppJob.Run("Pre-processing", t => res = Preprocessor.Run(src, runOpt, new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
                     plot.Clear();
                     var all = plot.AddSeries("quality", SeriesStyle.Scatter);
@@ -167,7 +169,7 @@ namespace Sidralune.Views
                 using (var pen = new Pen(Theme.Current.Success, 1.5f)) { g.DrawRectangle(pen, a.X, a.Y, b2.X - a.X, b2.Y - a.Y); g.DrawLine(pen, c.X - 8, c.Y, c.X + 8, c.Y); g.DrawLine(pen, c.X, c.Y - 8, c.X, c.Y + 8); }
             };
             side.Controls.Add(props);
-            _ppJob.Guard(bar, props, scrub);
+            _ppJob.Guard(bar, scrub);
             panel.Controls.Add(viewer);
             panel.Controls.Add(scrub);
             panel.Controls.Add(plot);
@@ -188,6 +190,7 @@ namespace Sidralune.Views
             var percents = new TextBox { Text = "10, 25, 50", Width = 120 };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
             LuckyResult result = null;
+            LuckyOptions resultOptions = null; // the options the shown result was made with
             int shown = 0;
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             _openLucky = (open, done) => OpenSourceInBackground(_luckyJob, open, src => src.ReadFrame(0), (src, first) =>
@@ -204,8 +207,13 @@ namespace Sidralune.Views
                 if (_luckySource == null) { MainForm.Instance.Toast("Open a source first", Icons.Info); return; }
                 stacker.Options.StackPercents = percents.Text.Split(',').Select(p => AstroMath.ParseInvariant(p)).Where(p => !double.IsNaN(p) && p > 0 && p <= 100).DefaultIfEmpty(25).ToArray();
                 var src = _luckySource;
-                _luckyJob.Run("Lucky stacking", t => result = stacker.Run(src, new Progress<string>(s => t.Status = s), new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
+                // the run works on a copy of the options, which stay editable for the next run
+                var run = new LuckyStacker { Options = stacker.Options.Clone() };
+                LuckyResult res = null;
+                _luckyJob.Run("Lucky stacking", t => res = run.Run(src, new Progress<string>(s => t.Status = s), new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
+                    result = res;
+                    resultOptions = run.Options;
                     shown = 0;
                     _stacked = result.Stacks[0];
                     viewer.SetImage(_stacked);
@@ -213,13 +221,13 @@ namespace Sidralune.Views
                     var q = result.Frames.Select(f => f.Quality).OrderByDescending(x => x).ToList();
                     var s = plot.AddSeries("quality");
                     for (int i = 0; i < q.Count; i++) s.Add(100.0 * i / q.Count, q[i] / q[0]);
-                    foreach (var pct in stacker.Options.StackPercents) plot.Markers.Add(new PlotMarker { X = pct, Label = pct + "%" });
+                    foreach (var pct in resultOptions.StackPercents) plot.Markers.Add(new PlotMarker { X = pct, Label = pct + "%" });
                     plot.Invalidate();
                     MainForm.Instance.Toast(result.Report, Icons.Check, Theme.Current.Success);
                 });
             }, ButtonKind.Primary);
             Func<bool> stacked = () => { if (result != null && result.Stacks.Count > 0) return true; MainForm.Instance.Toast("Nothing stacked yet: open a video and click Analyse & stack", Icons.Info); return false; };
-            btn("Next stack", Icons.Right, () => { if (stacked()) { shown = (shown + 1) % result.Stacks.Count; _stacked = result.Stacks[shown]; viewer.SetImage(_stacked, false); MainForm.Instance.SetStatus("Showing best " + stacker.Options.StackPercents[shown] + "%"); } }, ButtonKind.Subtle);
+            btn("Next stack", Icons.Right, () => { if (stacked()) { shown = (shown + 1) % result.Stacks.Count; _stacked = result.Stacks[shown]; viewer.SetImage(_stacked, false); MainForm.Instance.SetStatus("Showing best " + resultOptions.StackPercents[shown] + "%"); } }, ButtonKind.Subtle);
             btn("Save stacks…", Icons.Save, () =>
             {
                 if (!stacked()) return;
@@ -229,7 +237,7 @@ namespace Sidralune.Views
                         {
                             var img = result.Stacks[i];
                             string name = img.DateObs.HasValue ? Preprocessor.WinJuposName(img.DateObs.Value, "", i) : "stack_" + i;
-                            TiffIO.Write(Path.Combine(d.SelectedPath, name + "_p" + stacker.Options.StackPercents[i] + ".tif"), img);
+                            TiffIO.Write(Path.Combine(d.SelectedPath, name + "_p" + resultOptions.StackPercents[i] + ".tif"), img);
                         }
             }, ButtonKind.Normal);
             // the toolbar waits for the stack, this button for a deconvolution running in Sharpen & deconvolve as well
@@ -238,7 +246,7 @@ namespace Sidralune.Views
             {
                 if (result == null || viewer.Image != result.Reference && viewer.Image != _stacked) return;
                 using (var pen = new Pen(Theme.WithAlpha(Theme.Current.Accent, 120)))
-                    foreach (var ap in result.AlignmentPoints.Where(a => a[2] == stacker.Options.ApSize))
+                    foreach (var ap in result.AlignmentPoints.Where(a => a[2] == resultOptions.ApSize))
                     {
                         var p1 = map(ap[0] - ap[2] / 2.0, ap[1] - ap[2] / 2.0); var p2 = map(ap[0] + ap[2] / 2.0, ap[1] + ap[2] / 2.0);
                         g.DrawRectangle(pen, p1.X, p1.Y, p2.X - p1.X, p2.Y - p1.Y);
@@ -246,7 +254,7 @@ namespace Sidralune.Views
             };
             var side = Side("Stacking options", 360);
             side.Controls.Add(props);
-            _luckyJob.Guard(bar, props);
+            _luckyJob.Guard(bar);
             panel.Controls.Add(viewer);
             panel.Controls.Add(plot);
             panel.Controls.Add(side);

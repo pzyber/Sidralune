@@ -58,6 +58,20 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestOptionCopies()
+        {
+            // a run works on a copy, so the settings shown can change while it works
+            var pipp = new PippOptions { CropWidth = 300, Format = PippOutputFormat.Tiff, OutputFolder = "a" };
+            var run = pipp.Clone();
+            pipp.CropWidth = 500; pipp.Format = PippOutputFormat.Ser; pipp.OutputFolder = "b";
+            CheckTrue("Pre-process: the run keeps the settings it started with", run.CropWidth == 300 && run.Format == PippOutputFormat.Tiff && run.OutputFolder == "a");
+            var lucky = new LuckyOptions { ApSize = 48, StackPercents = new double[] { 10, 25 } };
+            var luckyRun = lucky.Clone();
+            lucky.ApSize = 64; lucky.StackPercents = new double[] { 50 };
+            CheckTrue("Lucky stacking: the run keeps the settings it started with", luckyRun.ApSize == 48 && luckyRun.StackPercents.SequenceEqual(new double[] { 10, 25 }));
+        }
+
+        [TestMethod]
         public void TestLiveStats()
         {
             // a banded disc on a dark sky, as Jupiter looks in a live view

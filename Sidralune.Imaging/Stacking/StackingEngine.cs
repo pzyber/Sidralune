@@ -44,6 +44,15 @@ namespace Sidralune.Imaging.Stacking
 
     public class StackingSettings
     {
+        /// <summary>A copy for one run (the combine options and the custom rectangle too), so the settings can be edited while it works.</summary>
+        public StackingSettings Clone()
+        {
+            var c = (StackingSettings)MemberwiseClone();
+            c.LightCombine = LightCombine?.Clone(); c.DarkCombine = DarkCombine?.Clone(); c.FlatCombine = FlatCombine?.Clone(); c.BiasCombine = BiasCombine?.Clone();
+            c.CustomRect = (int[])CustomRect?.Clone();
+            return c;
+        }
+
         public CombineOptions LightCombine = new CombineOptions { Method = CombineMethod.KappaSigma, KappaLow = 2.5, KappaHigh = 2.5, Iterations = 5 };
         public CombineOptions DarkCombine = new CombineOptions { Method = CombineMethod.MedianKappaSigma, KappaLow = 3, KappaHigh = 3, Iterations = 5 };
         public CombineOptions FlatCombine = new CombineOptions { Method = CombineMethod.Median };
