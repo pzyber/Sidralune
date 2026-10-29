@@ -104,7 +104,7 @@ namespace Sidralune.Views
                 MainForm.Instance.Navigate("sky");
             }) { Kind = ButtonKind.Subtle };
             chart.AutoSizeToText();
-            var bar = Ui.Toolbar(_ephBody, new Label { Text = "from (UTC)", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, start, step, count, go, csv, horizons, chart);
+            var bar = Ui.Toolbar(_ephBody, new Label { Text = "from (UTC)", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, start, step, count, go, _ephemJob.StopButton(), csv, horizons, chart);
             _ephGrid = Ui.Grid();
             foreach (var c in new[] { "Local time", "RA (J2000)", "Dec (J2000)", "Alt", "Az", "Δ (AU)", "r (AU)", "Elong.", "Phase", "Mag", "Size\"", "Const." }) _ephGrid.Columns.Add(c, c);
             panel.Controls.Add(_ephGrid);
@@ -134,6 +134,7 @@ namespace Sidralune.Views
             {
                 for (int i = 0; i < n; i++)
                 {
+                    t.Cts.Token.ThrowIfCancellationRequested();
                     var at = new AstroTime(t0 + i * step);
                     var ctx = new SkyContext(site, at);
                     var p = PlaceOf(o, ctx);

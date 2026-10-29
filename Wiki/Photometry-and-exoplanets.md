@@ -160,7 +160,7 @@ The **Transit predictions** tab lists upcoming exoplanet transits you can observ
 | **Depth ≥ (ppt)** | Shallowest transit to include (parts per thousand; 1 ppt = 0.001 = about 1.1 mmag) |
 | **Nights** | How many nights ahead to search |
 
-Click **Predict transits**. A transit is listed only if the host is above 25° and the Sun below −12° at ingress, mid-transit and egress, so the whole event is observable. Columns show the planet, host magnitude, depth, duration, ingress, mid and egress times in local time, the altitude at mid-transit and the Sun's altitude. Double-click a row to select the host star for the Sky chart and Planner.
+Click **Predict transits** (**Stop**, next to it, ends the prediction at once, also while the archive is still answering). A transit is listed only if the host is above 25° and the Sun below −12° at ingress, mid-transit and egress, so the whole event is observable. Columns show the planet, host magnitude, depth, duration, ingress, mid and egress times in local time, the altitude at mid-transit and the Sun's altitude. Double-click a row to select the host star for the Sky chart and Planner.
 
 The archive is queried once per session; predictions are based on the archive's published ephemeris, whose uncertainty grows with time since it was measured. Add an hour of baseline before ingress and after egress.
 

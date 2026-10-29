@@ -38,7 +38,7 @@ namespace Sidralune.Imaging.Planetary
                     sm[i] = s / n;
                 }
                 double centre = sm[0];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {
@@ -64,7 +64,7 @@ namespace Sidralune.Imaging.Planetary
             for (int c = 0; c < img.Channels; c++)
             {
                 var d = img.Data[c];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {

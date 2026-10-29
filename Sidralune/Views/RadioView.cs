@@ -65,9 +65,6 @@ namespace Sidralune.Views
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); return b; };
             _iqJob.Guard(btn("Open ON recording…", Icons.Open, () => OpenIq(true), ButtonKind.Primary),
                 btn("Open OFF / reference recording…", Icons.Open, () => OpenIq(false), ButtonKind.Normal));
-            var iqStop = _iqJob.StopButton(n => n == "Processing IQ recording");
-            iqStop.Width = 320;
-            g.Full(iqStop);
             btn("Live capture (rtl_tcp, 127.0.0.1:1234)", Icons.Connect, () => ToggleLive(), ButtonKind.Normal);
             btn("Use selected object as pointing", Icons.Target, () =>
             {
@@ -75,6 +72,9 @@ namespace Sidralune.Views
                 if (o != null) _pointing.Text = AstroMath.FormatHms(o.RaDeg / 15, 0, true) + " " + AstroMath.FormatDms(o.DecDeg, 0, true, true);
             }, ButtonKind.Subtle);
             btn("Analyse line (selected range = line window)", Icons.Chart, () => AnalyseLine(), ButtonKind.Normal);
+            var iqStop = _iqJob.StopButton(n => n == "Processing IQ recording"); // ends the processing of a long recording
+            iqStop.Width = 320;
+            g.Full(iqStop);
             btn("Export CSV…", Icons.Save, () => ExportSpectrum(), ButtonKind.Subtle);
             g.Full(Ui.Hint("Record raw IQ data with your SDR software. With an OFF (frequency-switched or cold-sky) reference the spectrum is calibrated to antenna temperature: (ON−OFF)/OFF × Tsys. Drag across the line to exclude it from the baseline fit."));
             _specOut = new TextBox { Multiline = true, ReadOnly = true, Height = 160, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };

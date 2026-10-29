@@ -300,7 +300,7 @@ namespace Sidralune.Imaging
                             }
                             var corr = conv.Convolve(ratio, true);
                             float[] div = tv ? TvDivergence(x, w, h) : null;
-                            Parallel.For(0, h, y =>
+                            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                             {
                                 for (int xx = 0; xx < w; xx++)
                                 {
@@ -339,7 +339,7 @@ namespace Sidralune.Imaging
         {
             var div = new float[x.Length];
             const float eps = 1e-6f;
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int i = 0; i < w; i++)
                 {

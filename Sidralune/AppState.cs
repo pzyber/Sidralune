@@ -207,7 +207,7 @@ namespace Sidralune
             Changed?.Invoke();
             Task.Run(() =>
             {
-                try { work(t); }
+                try { StopRequest.Run(t.Cts.Token, () => work(t)); } // long loops anywhere end when the job is stopped
                 catch (OperationCanceledException) { t.Status = "Cancelled"; }
                 catch (Exception ex) { t.Error = ex; Log.Error(name, ex); }
                 finally
@@ -321,7 +321,7 @@ namespace Sidralune
             return null;
         }
 
-        /// <summary>Cancels the running job, and a Replace request waiting for it.</summary>
+        /// <summary>Cancels the running job, and a Replace request waiting for it; the slot is free once the job has ended.</summary>
         public void Cancel() { _next = null; if (_job != null) _job.Cts.Cancel(); }
 
         private BackgroundTask Start(string name, Action<BackgroundTask> work, Action onDone, Action<Exception> onError)

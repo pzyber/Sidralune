@@ -663,7 +663,7 @@ namespace Sidralune.Views
             _predictJob.Guard(fetch);
             var bar = Ui.Toolbar(new Label { Text = "Host V ≤", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, vmax,
                 new Label { Text = "Depth ≥ (ppt)", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, depth,
-                new Label { Text = "Nights", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, days, fetch);
+                new Label { Text = "Nights", AutoSize = true, Margin = new Padding(0, 6, 4, 0) }, days, fetch, _predictJob.StopButton());
             _predGrid = Ui.Grid();
             foreach (var c in new[] { "Planet", "Host V", "Depth (ppt)", "Duration (h)", "Ingress (local)", "Mid (local)", "Egress (local)", "Alt at mid", "Sun alt" }) _predGrid.Columns.Add(c, c);
             _predGrid.CellDoubleClick += (s, e) =>
@@ -695,6 +695,7 @@ namespace Sidralune.Views
                 }
                 for (int i = 0; i < _exo.Rows.Count; i++)
                 {
+                    task.Cts.Token.ThrowIfCancellationRequested();
                     double v = _exo.GetDouble(i, "sy_vmag"), P = _exo.GetDouble(i, "pl_orbper"), Tc = _exo.GetDouble(i, "pl_tranmid"), dur = _exo.GetDouble(i, "pl_trandur") / 24;
                     double dep = _exo.GetDouble(i, "pl_trandep"); // percent
                     double ratror = _exo.GetDouble(i, "pl_ratror");

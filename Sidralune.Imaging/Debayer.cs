@@ -86,7 +86,7 @@ namespace Sidralune.Imaging
             int w = cfa.Width / 2, h = cfa.Height / 2, W = cfa.Width;
             var o = new AstroImage(w, h, 3);
             var d = cfa.Data[0];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -110,7 +110,7 @@ namespace Sidralune.Imaging
             int w = cfa.Width, h = cfa.Height;
             var o = new AstroImage(w, h, 3);
             var d = cfa.Data[0];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -144,7 +144,7 @@ namespace Sidralune.Imaging
             int w = cfa.Width, h = cfa.Height;
             var o = new AstroImage(w, h, 3);
             var d = cfa.Data[0];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -185,7 +185,7 @@ namespace Sidralune.Imaging
             int w = cfa.Width, h = cfa.Height;
             var d = cfa.Data[0];
             var G = new float[w * h];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -215,7 +215,7 @@ namespace Sidralune.Imaging
                         if (ColorAt(p, x, y) == ch) { diff[y * w + x] = d[y * w + x] - G[y * w + x]; known[y * w + x] = true; }
                 var outp = o.Data[ch];
                 int chLocal = ch;
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {

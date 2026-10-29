@@ -69,7 +69,7 @@ namespace Sidralune.Imaging
             {
                 var t = perChannel[Math.Min(c, perChannel.Length - 1)];
                 var d = img.Data[c];
-                Parallel.For(0, img.Height, y => { int o = y * img.Width; for (int x = 0; x < img.Width; x++) d[o + x] = (float)t.Apply(d[o + x]); });
+                Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y => { int o = y * img.Width; for (int x = 0; x < img.Width; x++) d[o + x] = (float)t.Apply(d[o + x]); });
             }
         }
 
@@ -147,7 +147,7 @@ namespace Sidralune.Imaging
             if (img.Channels >= 3 && preserveColor)
             {
                 var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
-                Parallel.For(0, img.Height, y =>
+                Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < img.Width; x++)
                     {
@@ -213,7 +213,7 @@ namespace Sidralune.Imaging
             {
                 if (channel >= 0 && c != channel) continue;
                 var d = img.Data[c];
-                Parallel.For(0, img.Height, y =>
+                Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
                 {
                     int o = y * img.Width;
                     for (int x = 0; x < img.Width; x++)
@@ -236,7 +236,7 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) { ApplyFunction(img, f); return; }
             var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
-            Parallel.For(0, img.Height, y =>
+            Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < img.Width; x++)
                 {
@@ -256,7 +256,7 @@ namespace Sidralune.Imaging
             int w = img.Width, h = img.Height, bins = 256;
             int tx = tiles, ty = Math.Max(1, (int)Math.Round(tiles * (double)h / w));
             var maps = new float[tx * ty][];
-            Parallel.For(0, tx * ty, t =>
+            Parallel.For(0, tx * ty, Core.Util.StopRequest.Options, t =>
             {
                 int i = t % tx, j = t / tx;
                 int x0 = i * w / tx, x1 = (i + 1) * w / tx, y0 = j * h / ty, y1 = (j + 1) * h / ty;
@@ -272,7 +272,7 @@ namespace Sidralune.Imaging
                 maps[t] = map;
             });
             var outL = new float[L.Length];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 double gy = (y + 0.5) * ty / h - 0.5;
                 int j0 = (int)Math.Floor(gy); double fy = gy - j0;

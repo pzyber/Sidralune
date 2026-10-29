@@ -16,7 +16,7 @@ An ephemeris is a table of an object's position and circumstances over time.
 
 1. Choose or type the object: the Sun, Moon, planets and Pluto, and every comet and asteroid loaded (the list is searchable as you type).
 2. Set the start date and time (UTC), the step (10 minutes, 1 hour, 6 hours, 1 day or 7 days) and the number of rows.
-3. Click **Compute**.
+3. Click **Compute**. **Stop**, next to it, ends a long ephemeris part way.
 
 | Column | Meaning |
 |---|---|

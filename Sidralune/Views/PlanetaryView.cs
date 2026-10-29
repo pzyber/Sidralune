@@ -589,8 +589,8 @@ namespace Sidralune.Views
                 float r = e.X - c.X;
                 using (var pen = new Pen(Theme.Current.Warning, 1.2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash }) gr.DrawEllipse(pen, c.X - r, c.Y - r, 2 * r, 2 * r);
             };
-            // Stop, under Stitch mosaic tiles, ends stitching; the other tools wait for the job
-            var solarStop = _solarJob.StopButton(n => n == "Stitching mosaic");
+            // Stop, under the tools, ends whichever runs (the image stays as it was); the other tools wait for it
+            var solarStop = _solarJob.StopButton();
             solarStop.Width = 300;
             _solarJob.Guard(bar.Controls.Cast<Control>().ToArray());
             Ui.InsertAfter(bar, solarStop, "Stitch mosaic tiles…");

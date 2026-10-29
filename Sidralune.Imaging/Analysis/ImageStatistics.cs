@@ -24,7 +24,7 @@ namespace Sidralune.Imaging.Analysis
             double sum = 0, sum2 = 0;
             long sat = 0, count = 0;
             object lk = new object();
-            Parallel.For(0, (n + 65535) / 65536, () => new double[5] { double.MaxValue, double.MinValue, 0, 0, 0 }, (blk, st, acc) =>
+            Parallel.For(0, (n + 65535) / 65536, Core.Util.StopRequest.Options, () => new double[5] { double.MaxValue, double.MinValue, 0, 0, 0 }, (blk, st, acc) =>
             {
                 int a = blk * 65536, b = Math.Min(n, a + 65536);
                 for (int i = a; i < b; i++)
@@ -121,7 +121,7 @@ namespace Sidralune.Imaging.Analysis
             var bg = new float[nx * ny];
             var rms = new float[nx * ny];
             const int maxSamples = 4096;
-            Parallel.For(0, ny, j =>
+            Parallel.For(0, ny, Core.Util.StopRequest.Options, j =>
             {
                 float[] buf = null;
                 for (int i = 0; i < nx; i++)
@@ -188,7 +188,7 @@ namespace Sidralune.Imaging.Analysis
         public static float[] Interpolate(float[] mesh, int nx, int ny, int w, int h)
         {
             var o = new float[w * h];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 double gy = (y + 0.5) * ny / h - 0.5;
                 int j0 = (int)Math.Floor(gy);

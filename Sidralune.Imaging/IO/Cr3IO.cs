@@ -245,7 +245,7 @@ namespace Sidralune.Imaging.IO
             var raw = new ushort[h.Width * h.Height];
             try
             {
-                Parallel.For(0, rows * cols * h.Planes, job => DecodePlane(d, h, planes, raw, job));
+                Parallel.For(0, rows * cols * h.Planes, Core.Util.StopRequest.Options, job => DecodePlane(d, h, planes, raw, job));
             }
             catch (AggregateException e)
             {

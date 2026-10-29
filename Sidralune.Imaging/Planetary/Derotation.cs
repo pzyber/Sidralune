@@ -115,7 +115,7 @@ namespace Sidralune.Imaging.Planetary
         private static float[] Polar(float[] d, int w, int h, double cx, double cy, double rMin, double rMax, int nt, int nr)
         {
             var p = new float[nt * nr];
-            Parallel.For(0, nr, r =>
+            Parallel.For(0, nr, Core.Util.StopRequest.Options, r =>
             {
                 double rad = rMin + (rMax - rMin) * r / Math.Max(1, nr - 1);
                 for (int t = 0; t < nt; t++)
@@ -183,7 +183,7 @@ namespace Sidralune.Imaging.Planetary
             for (int c = 0; c < img.Channels; c++)
             {
                 var src = img.Data[c]; var dst = o.Data[c];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {

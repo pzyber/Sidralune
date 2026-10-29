@@ -104,7 +104,7 @@ namespace Sidralune.Imaging.Planetary
                 var best = read(ranked[0].Index).Luminance();
                 var win = Fft.Hann2D(pcs, pcs);
                 var refCrop = CropCenter(best, w, h, pcs);
-                Parallel.ForEach(frames, fr =>
+                Parallel.ForEach(frames, Core.Util.StopRequest.Options, fr =>
                 {
                     var lum = read(fr.Index).Luminance();
                     double dx, dy;
@@ -174,7 +174,7 @@ namespace Sidralune.Imaging.Planetary
                 }
                 var used = new HashSet<int>(chosen.SelectMany(c => c));
                 var lockObj = new object();
-                Parallel.ForEach(used, k =>
+                Parallel.ForEach(used, Core.Util.StopRequest.Options, k =>
                 {
                     var fr = candidates[k];
                     var img = Shifted(read(fr.Index), fr.Dx, fr.Dy, Rotation(fr.Index));

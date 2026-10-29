@@ -140,7 +140,7 @@ namespace Sidralune.Imaging.IO
                 }
                 var dst = img.Data[c];
                 // FITS rows run bottom-up (first row = lowest y); flip to top-down for display convention
-                Parallel.For(0, ht, y =>
+                Parallel.For(0, ht, Core.Util.StopRequest.Options, y =>
                 {
                     int dstRow = (topDown ? y : ht - 1 - y) * w;
                     long src = (long)y * w * bpp;

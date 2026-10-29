@@ -88,6 +88,15 @@ namespace Sidralune.Tests
                 CheckTrue("Derotation stops", stops(() => SphereDerotation.DerotateAndStack(new[] { img, img }, new[] { geo, geo }, new[] { now, now }, now, 9.9, ct)));
                 var tiles = new List<MosaicStitcher.Tile> { new MosaicStitcher.Tile { Image = img, X = 0, Y = 0 }, new MosaicStitcher.Tile { Image = img, X = 100, Y = 0 } };
                 CheckTrue("Mosaic stitching stops", stops(() => MosaicStitcher.Stitch(tiles, true, ct)));
+                CheckTrue("Background extraction stops", stops(() => BackgroundExtraction.Apply(img.Clone(), new BackgroundOptions(), null, ct)));
+                // the other tools stop through the stop request of the job they run in
+                Func<Action, bool> stopsInJob = a => stops(() => Sidralune.Core.Util.StopRequest.Run(ct, a));
+                CheckTrue("Local contrast stops in a stopped job", stopsInJob(() => Enhance.LocalContrast(img.Clone(), 50, 0.3)));
+                CheckTrue("HDR multiscale stops in a stopped job", stopsInJob(() => Enhance.HdrMultiscale(img.Clone())));
+                CheckTrue("CLAHE stops in a stopped job", stopsInJob(() => StretchOps.Clahe(img.Clone())));
+                CheckTrue("Wavelet sharpening stops in a stopped job", stopsInJob(() => Wavelets.Sharpen(img.Data[0], w, h, new[] { 1.0, 0.5 }, null)));
+                CheckTrue("Rotation stops in a stopped job", stopsInJob(() => Geometry.Rotate(img, 10, true)));
+                CheckTrue("Outside a job nothing is stopped", Sidralune.Core.Util.StopRequest.Current.CanBeCanceled == false);
             }
             CheckTrue("Without a stop they still run", Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 3, 1).Length == w * h);
         }

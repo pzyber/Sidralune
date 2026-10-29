@@ -124,7 +124,7 @@ namespace Sidralune.Imaging
             for (int c = 0; c < src.Channels; c++)
             {
                 var s = src.Data[c]; var d = dst.Data[c]; int W = src.Width;
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {
@@ -224,7 +224,7 @@ namespace Sidralune.Imaging
             for (int c = 0; c < src.Channels; c++)
             {
                 var s = src.Data[c]; var d = dst.Data[c];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {

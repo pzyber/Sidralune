@@ -76,7 +76,7 @@ namespace Sidralune.Imaging
                 for (int it = 0; it < iterations; it++)
                 {
                     ct.ThrowIfCancellationRequested(); // a stop takes effect between iterations
-                    Parallel.For(1, h - 1, y =>
+                    Parallel.For(1, h - 1, Core.Util.StopRequest.Options, y =>
                     {
                         for (int x = 1; x < w - 1; x++)
                         {
@@ -166,7 +166,7 @@ namespace Sidralune.Imaging
         {
             var o = new float[d.Length];
             double ss2 = 2 * sigmaSpatial * sigmaSpatial, sr2 = 2 * sigmaRange * sigmaRange;
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {

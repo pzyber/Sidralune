@@ -26,6 +26,7 @@ namespace Sidralune.Views
         private List<BackgroundSample> _samples;
         private readonly PlotControl _hist = new PlotControl { Height = 130, ShowLegend = false };
         // one edit at a time, so a slow step cannot land on an image opened or changed meanwhile; histograms keep the newest
+        // every step works on a copy of the image, so stopping one leaves the image as it was
         private readonly JobSlot _job = new JobSlot(), _histJob = new JobSlot();
 
         public ProcessingView()
@@ -55,8 +56,7 @@ namespace Sidralune.Views
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
             var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
-            // the steps that can be stopped part way
-            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution" || n == "Align channels" || n == "NLM denoise" || n == "Star removal"));
+            bar.Controls.Add(_job.StopButton()); // ends whatever runs; the image stays as it was
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -329,7 +329,7 @@ namespace Sidralune.Views
             var corr = bgg.Row("Correction", Ui.EnumCombo(BackgroundCorrection.Subtract));
             Func<BackgroundOptions> bopt = () => new BackgroundOptions { Model = (BackgroundModel)model.SelectedItem, PolynomialDegree = (int)degree.Value, GridSize = (int)gridN.Value, Tolerance = (double)tol.Value, Smoothing = (double)smooth.Value, Correction = (BackgroundCorrection)corr.SelectedItem };
             bgg.Full(new FlatButton("Show samples", Icons.Grid, (s, e) => { if (_img != null) { _samples = BackgroundExtraction.AutoSamples(_img, bopt()); _viewer.Invalidate(); MainForm.Instance.Toast(_samples.Count + " background samples"); } }));
-            bgg.Full(new FlatButton("Extract background (gradient removal)", Icons.Check, (s, e) => { var o = bopt(); var smp = _samples; Apply("Background extraction", img => BackgroundExtraction.Apply(img, o, smp)); _samples = null; }) { Kind = ButtonKind.Primary });
+            bgg.Full(new FlatButton("Extract background (gradient removal)", Icons.Check, (s, e) => { var o = bopt(); var smp = _samples; ApplyStoppable("Background extraction", (img, ct) => BackgroundExtraction.Apply(img, o, smp, ct)); _samples = null; }) { Kind = ButtonKind.Primary });
             list.Add(new Collapsible("Background extraction", bgg, false));
 
             // colour

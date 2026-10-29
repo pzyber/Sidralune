@@ -70,6 +70,21 @@ namespace Sidralune.Tests
                 CheckTrue("A stopped download ends", stopped);
                 CheckTrue("It leaves neither the file nor a partial one", !File.Exists(path) && !File.Exists(path + ".part"));
             }
+
+            // a request whose answer never comes ends at once when its job is stopped
+            var silent = new TcpListener(IPAddress.Loopback, 0);
+            silent.Start();
+            int silentPort = ((IPEndPoint)silent.LocalEndpoint).Port;
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(500);
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                bool ended = false;
+                try { StopRequest.Run(cts.Token, () => Net.GetString("http://127.0.0.1:" + silentPort + "/", 60000)); }
+                catch (WebException) { ended = true; }
+                CheckTrue("A stopped job's request ends at once", ended && sw.ElapsedMilliseconds < 5000, sw.ElapsedMilliseconds + " ms");
+            }
+            silent.Stop();
             listener.Stop();
             server.Wait(10000);
         }

@@ -123,7 +123,8 @@ Tools for full-disc and close-up images of the Sun and Moon. Click **Open image�
 | **Enhance prominences** | Brightens the region just outside the limb (with **Prominence gain** and **Prominence gamma**) so that H-alpha prominences show at the same time as the disc |
 | **Colourise H-alpha** | Maps a mono H-alpha image to the familiar orange-red palette |
 | **Invert (negative)** | Inverts the disc, a popular way to show solar surface detail |
-| **Stitch mosaic tiles…** | Combines overlapping tiles of the Moon or Sun into one image. Select the tiles in order (left to right, top to bottom); their overlaps are matched and blended. **Stop**, under it, ends stitching part way |
+| **Stitch mosaic tiles…** | Combines overlapping tiles of the Moon or Sun into one image. Select the tiles in order (left to right, top to bottom); their overlaps are matched and blended |
+| **Stop** | Ends whichever tool is working (stitching included), usually within a moment; the image is left as it was |
 | **Save…** | Saves the result |
 
 ## Field rotation on alt-az mounts

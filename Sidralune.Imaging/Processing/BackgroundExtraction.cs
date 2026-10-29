@@ -97,12 +97,14 @@ namespace Sidralune.Imaging
         }
 
         /// <summary>Compute the background model image for the given samples.</summary>
-        public static AstroImage Model(AstroImage img, List<BackgroundSample> samples, BackgroundOptions opt)
+        public static AstroImage Model(AstroImage img, List<BackgroundSample> samples, BackgroundOptions opt, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             int w = img.Width, h = img.Height, ch = img.Channels;
             var model = new AstroImage(w, h, ch);
+            var po = new ParallelOptions { CancellationToken = ct };
             for (int c = 0; c < ch; c++)
             {
+                ct.ThrowIfCancellationRequested();
                 var xs = samples.Select(s => s.X / w).ToList();
                 var ys = samples.Select(s => s.Y / h).ToList();
                 var vs = samples.Select(s => s.Value[c]).ToList();
@@ -112,7 +114,7 @@ namespace Sidralune.Imaging
                     int deg = Math.Max(1, Math.Min(opt.PolynomialDegree, 6));
                     var coef = FitPoly2D(xs, ys, vs, deg);
                     if (coef == null) continue;
-                    Parallel.For(0, h, y => { double yy = (double)y / h; for (int x = 0; x < w; x++) d[y * w + x] = (float)EvalPoly2D(coef, (double)x / w, yy, deg); });
+                    Parallel.For(0, h, po, y => { double yy = (double)y / h; for (int x = 0; x < w; x++) d[y * w + x] = (float)EvalPoly2D(coef, (double)x / w, yy, deg); });
                 }
                 else
                 {
@@ -120,7 +122,7 @@ namespace Sidralune.Imaging
                     // evaluate on a coarse grid then interpolate (the surface is smooth)
                     int gx = Math.Min(w, 128), gy = Math.Min(h, Math.Max(2, 128 * h / Math.Max(1, w)));
                     var grid = new float[gx * gy];
-                    Parallel.For(0, gy, j => { for (int i = 0; i < gx; i++) grid[j * gx + i] = (float)tps.Evaluate((i + 0.5) / gx, (j + 0.5) / gy); });
+                    Parallel.For(0, gy, po, j => { for (int i = 0; i < gx; i++) grid[j * gx + i] = (float)tps.Evaluate((i + 0.5) / gx, (j + 0.5) / gy); });
                     var full = BackgroundMesh.Interpolate(grid, gx, gy, w, h);
                     Array.Copy(full, d, d.Length);
                 }
@@ -129,10 +131,10 @@ namespace Sidralune.Imaging
         }
 
         /// <summary>Remove the background; returns the model that was removed.</summary>
-        public static AstroImage Apply(AstroImage img, BackgroundOptions opt, List<BackgroundSample> samples = null)
+        public static AstroImage Apply(AstroImage img, BackgroundOptions opt, List<BackgroundSample> samples = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             samples = samples ?? AutoSamples(img, opt);
-            var model = Model(img, samples, opt);
+            var model = Model(img, samples, opt, ct);
             for (int c = 0; c < img.Channels; c++)
             {
                 var d = img.Data[c]; var m = model.Data[c];
