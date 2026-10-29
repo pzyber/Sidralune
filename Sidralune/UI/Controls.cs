@@ -594,6 +594,13 @@ namespace Sidralune.UI
             return c;
         }
 
+        /// <summary>Puts a control into a panel right after the button with the given text.</summary>
+        public static void InsertAfter(Control panel, Control c, string after)
+        {
+            panel.Controls.Add(c);
+            panel.Controls.SetChildIndex(c, panel.Controls.IndexOf(panel.Controls.OfType<FlatButton>().First(b => b.Text == after)) + 1);
+        }
+
         public static FlowLayoutPanel Toolbar(params Control[] items)
         {
             var f = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(4, 6, 4, 2), WrapContents = false, AutoScroll = false };

@@ -140,7 +140,7 @@ namespace Sidralune.Imaging.Stacking
                     fr.Iso = img.Header.GetDouble("ISOSPEED"); fr.Gain = img.Gain; fr.Temperature = img.Temperature;
                     if (kind == null) fr.Kind = GuessKind(p, img);
                 }
-                catch (Exception ex) { fr.Status = "Unreadable: " + ex.Message; fr.Enabled = false; }
+                catch (Exception ex) when (!(ex is OperationCanceledException)) { fr.Status = "Unreadable: " + ex.Message; fr.Enabled = false; }
                 Frames.Add(fr);
             }
         }
@@ -230,7 +230,7 @@ namespace Sidralune.Imaging.Stacking
                     f.Registered = stars.Count >= 3;
                     f.Status = f.Registered ? "Registered" : "Too few stars";
                 }
-                catch (Exception ex) { f.Registered = false; f.Status = "Error: " + ex.Message; }
+                catch (Exception ex) when (!(ex is OperationCanceledException)) { f.Registered = false; f.Status = "Error: " + ex.Message; }
                 int d = Interlocked.Increment(ref done);
                 progress?.Report(new StackProgress("Registering", (double)d / lights.Count, f.FileName));
             });
@@ -492,7 +492,7 @@ namespace Sidralune.Imaging.Stacking
                         }
                         var dst = outImg.Data[c];
                         var rdst = rej.Data[0];
-                        Parallel.For(0, rows, () => Tuple.Create(new float[n], new float[n], new PixelCombiner(n, opt, weights)), (r, st, tl) =>
+                        Parallel.For(0, rows, Core.Util.StopRequest.Options, () => Tuple.Create(new float[n], new float[n], new PixelCombiner(n, opt, weights)), (r, st, tl) =>
                         {
                             var vals = tl.Item1; var pw = tl.Item2; var comb = tl.Item3;
                             for (int x = 0; x < w; x++)
@@ -544,7 +544,7 @@ namespace Sidralune.Imaging.Stacking
             // computed on a coarse grid then interpolated (exact per-pixel entropy is prohibitively slow)
             int gx = (w + 7) / 8, gy = (h + 7) / 8;
             var grid = new float[gx * gy];
-            Parallel.For(0, gy, j =>
+            Parallel.For(0, gy, Core.Util.StopRequest.Options, j =>
             {
                 var hist = new int[bins];
                 for (int i = 0; i < gx; i++)

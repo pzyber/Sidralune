@@ -64,7 +64,7 @@ The **Lucky stacking** tab is a lucky-imaging stacker with multi-point alignment
 
 1. Click **Open source…**, or **Stacking →** in the Pre-process tab to bring its result here.
 2. Enter the percentages of frames to stack in **Stack %**, for example `10, 25, 50`; one stack is made for each.
-3. Click **Analyse & stack**.
+3. Click **Analyse & stack**. **Stop**, next to it, ends a stack part way. **Stop** next to **Process** in Pre-process does the same for pre-processing.
 
 What happens:
 
@@ -91,6 +91,8 @@ The tab works in two layers: the **source image** (the image you opened), and **
 
 **Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. Like deconvolution, it changes the source image, and the wavelets are applied again to the result.
 
+**Stop**, under these two buttons, ends a deconvolution part way, or a channel alignment between the red and the blue channel; the image is left as it was.
+
 **Save result…** saves the image as shown: the source with the wavelet sharpening.
 
 The **Solar & lunar** tab has a separate **Wavelet sharpen** button with fixed settings, for quick full-disc sharpening.
@@ -104,7 +106,7 @@ Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of m
 3. Set the **Target time (UTC)**, normally the middle of the series.
 4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal).
 5. Tick **Compensate** next to **Limb darkening comp.** to correct for the darkening towards the limb.
-6. Click **Derotate & stack to target time**.
+6. Click **Derotate & stack to target time**. **Stop**, under it, ends derotating (or loading images) part way.
 
 Each image's disc is detected (limb fitting), then re-projected on the planet's oblate spheroid as if it had been taken at the target time, using the planet's rotation period, the sub-Earth latitude and the pole's position angle from the ephemeris. The re-projected images are averaged, and **Save result…** stores the derotated stack.
 
@@ -122,6 +124,7 @@ Tools for full-disc and close-up images of the Sun and Moon. Click **Open image�
 | **Colourise H-alpha** | Maps a mono H-alpha image to the familiar orange-red palette |
 | **Invert (negative)** | Inverts the disc, a popular way to show solar surface detail |
 | **Stitch mosaic tiles…** | Combines overlapping tiles of the Moon or Sun into one image. Select the tiles in order (left to right, top to bottom); their overlaps are matched and blended |
+| **Stop** | Ends whichever tool is working (stitching included), usually within a moment; the image is left as it was |
 | **Save…** | Saves the result |
 
 ## Field rotation on alt-az mounts

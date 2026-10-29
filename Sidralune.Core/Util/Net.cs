@@ -33,7 +33,7 @@ namespace Sidralune.Core.Util
         public static string GetString(string url, int timeoutMs = 60000, CancellationToken ct = default(CancellationToken))
         {
             var req = Create(url, "GET", timeoutMs);
-            using (ct.Register(() => req.Abort()))
+            using (StopRequest.Or(ct).Register(() => req.Abort()))
             using (var resp = (HttpWebResponse)req.GetResponse())
             using (var s = resp.GetResponseStream())
             using (var r = new StreamReader(s, Encoding.UTF8))
@@ -57,10 +57,13 @@ namespace Sidralune.Core.Util
             req.ContentType = contentType;
             if (headers != null) foreach (var h in headers) req.Headers[h.Key] = h.Value;
             req.ContentLength = body.Length;
-            using (var rs = req.GetRequestStream()) rs.Write(body, 0, body.Length);
-            using (var resp = (HttpWebResponse)req.GetResponse())
-            using (var r = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
-                return r.ReadToEnd();
+            using (StopRequest.Current.Register(() => req.Abort())) // a stopped job ends its request
+            {
+                using (var rs = req.GetRequestStream()) rs.Write(body, 0, body.Length);
+                using (var resp = (HttpWebResponse)req.GetResponse())
+                using (var r = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
+                    return r.ReadToEnd();
+            }
         }
 
         /// <summary>Multipart/form-data POST with one file part (used by nova.astrometry.net uploads).</summary>
@@ -94,21 +97,30 @@ namespace Sidralune.Core.Util
             string tmp = path + ".part";
             var req = Create(url, "GET", 600000);
             req.AutomaticDecompression = DecompressionMethods.None;
-            using (ct.Register(() => req.Abort()))
-            using (var resp = (HttpWebResponse)req.GetResponse())
-            using (var s = resp.GetResponseStream())
-            using (var f = File.Create(tmp))
+            try
             {
-                long total = resp.ContentLength, done = 0;
-                var buf = new byte[1 << 16];
-                int n;
-                while ((n = s.Read(buf, 0, buf.Length)) > 0)
+                using (StopRequest.Or(ct).Register(() => req.Abort()))
+                using (var resp = (HttpWebResponse)req.GetResponse())
+                using (var s = resp.GetResponseStream())
+                using (var f = File.Create(tmp))
                 {
-                    ct.ThrowIfCancellationRequested();
-                    f.Write(buf, 0, n);
-                    done += n;
-                    if (progress != null) progress(done, total);
+                    long total = resp.ContentLength, done = 0;
+                    var buf = new byte[1 << 16];
+                    int n;
+                    while ((n = s.Read(buf, 0, buf.Length)) > 0)
+                    {
+                        StopRequest.Or(ct).ThrowIfCancellationRequested();
+                        f.Write(buf, 0, n);
+                        done += n;
+                        if (progress != null) progress(done, total);
+                    }
                 }
+            }
+            catch
+            {
+                // a stopped or failed download leaves no partial file behind
+                try { File.Delete(tmp); } catch { }
+                throw;
             }
             if (File.Exists(path)) File.Delete(path);
             File.Move(tmp, path);

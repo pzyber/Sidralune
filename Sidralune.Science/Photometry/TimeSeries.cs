@@ -31,7 +31,7 @@ namespace Sidralune.Science.Photometry
         }
 
         /// <summary>Generalised (floating-mean, weighted) Lomb-Scargle periodogram (Zechmeister &amp; Kürster 2009).</summary>
-        public static Periodogram LombScargle(IList<double> t, IList<double> y, IList<double> dy, double minPeriod, double maxPeriod, double oversample = 10)
+        public static Periodogram LombScargle(IList<double> t, IList<double> y, IList<double> dy, double minPeriod, double maxPeriod, double oversample = 10, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var f = FrequencyGrid(t, minPeriod, maxPeriod, oversample);
             int n = t.Count;
@@ -42,7 +42,7 @@ namespace Sidralune.Science.Photometry
             double Y = 0; for (int i = 0; i < n; i++) Y += w[i] * y[i];
             double YY = 0; for (int i = 0; i < n; i++) YY += w[i] * (y[i] - Y) * (y[i] - Y);
             var p = new double[f.Length];
-            Parallel.For(0, f.Length, k =>
+            Parallel.For(0, f.Length, new ParallelOptions { CancellationToken = ct }, k =>
             {
                 double om = 2 * Math.PI * f[k];
                 double C = 0, S = 0, YC = 0, YS = 0, CC = 0, SS = 0, CS = 0;
@@ -68,7 +68,7 @@ namespace Sidralune.Science.Photometry
         }
 
         /// <summary>Box Least Squares transit search (Kovács, Zucker &amp; Mazeh 2002). Durations in days.</summary>
-        public static Periodogram Bls(IList<double> t, IList<double> y, double minPeriod, double maxPeriod, double[] durations = null, int bins = 300, double oversample = 3)
+        public static Periodogram Bls(IList<double> t, IList<double> y, double minPeriod, double maxPeriod, double[] durations = null, int bins = 300, double oversample = 3, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             durations = durations ?? new[] { 0.04, 0.06, 0.08, 0.12, 0.16 };
             var f = FrequencyGrid(t, minPeriod, maxPeriod, oversample);
@@ -79,7 +79,7 @@ namespace Sidralune.Science.Photometry
             var p = new double[f.Length];
             var bestT0 = new double[f.Length];
             var bestDur = new double[f.Length];
-            Parallel.For(0, f.Length, () => new double[2][] { new double[bins], new double[bins] }, (k, st, buf) =>
+            Parallel.For(0, f.Length, new ParallelOptions { CancellationToken = ct }, () => new double[2][] { new double[bins], new double[bins] }, (k, st, buf) =>
             {
                 double P = 1 / f[k];
                 var bs = buf[0]; var bc = buf[1];
@@ -115,13 +115,13 @@ namespace Sidralune.Science.Photometry
         }
 
         /// <summary>Phase dispersion minimisation (Stellingwerf 1978); returns Θ (lower is better) as 1-Θ in Power.</summary>
-        public static Periodogram Pdm(IList<double> t, IList<double> y, double minPeriod, double maxPeriod, int bins = 10, double oversample = 5)
+        public static Periodogram Pdm(IList<double> t, IList<double> y, double minPeriod, double maxPeriod, int bins = 10, double oversample = 5, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var f = FrequencyGrid(t, minPeriod, maxPeriod, oversample);
             int n = t.Count;
             double mean = y.Average(), var = y.Sum(v => (v - mean) * (v - mean)) / (n - 1);
             var p = new double[f.Length];
-            Parallel.For(0, f.Length, k =>
+            Parallel.For(0, f.Length, new ParallelOptions { CancellationToken = ct }, k =>
             {
                 double P = 1 / f[k];
                 var s = new double[bins]; var s2 = new double[bins]; var c = new int[bins];
@@ -290,13 +290,14 @@ namespace Sidralune.Science.Photometry
         }
 
         /// <summary>MCMC posterior (emcee-style) for T0, Rp, A, b; returns median and ±1σ.</summary>
-        public void Mcmc(IList<double> t, IList<double> f, IList<double> df, int steps, out double[] median, out double[] lo, out double[] hi)
+        public void Mcmc(IList<double> t, IList<double> f, IList<double> df, int steps, out double[] median, out double[] lo, out double[] hi, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var self = this;
             var arrT = t.ToArray(); var arrF = f.ToArray();
             var arrE = df != null ? df.ToArray() : Enumerable.Repeat(0.001, t.Count).ToArray();
             Func<double[], double> logp = p =>
             {
+                ct.ThrowIfCancellationRequested(); // checked at every step of every walker
                 if (p[1] <= 0 || p[1] > 0.5 || p[2] < 1.1 || p[3] < 0 || p[3] > 1 + p[1]) return double.NegativeInfinity;
                 var m = self.Clone();
                 m.T0 = p[0]; m.Rp = p[1]; m.A = p[2]; m.Inclination = Math.Acos(p[3] / p[2]) * AstroMath.Rad2Deg; m.Steps = 150;

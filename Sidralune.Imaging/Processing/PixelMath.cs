@@ -113,7 +113,7 @@ namespace Sidralune.Imaging
             for (int c = 0; c < ch; c++)
             {
                 int cc = c;
-                Parallel.For(0, h, () => new double[64], (y, st, stack) =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, () => new double[64], (y, st, stack) =>
                 {
                     for (int x = 0; x < w; x++)
                         outp.Data[cc][y * w + x] = (float)Run(code, stack, imgs, x, y, cc, w, stats);

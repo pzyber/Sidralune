@@ -88,10 +88,19 @@ namespace Sidralune.Views
                 ShowSolveText();
                 _viewer.Invalidate();
             };
-            var buttons = new FlowLayoutPanel { Height = 200, FlowDirection = FlowDirection.TopDown };
+            var buttons = new FlowLayoutPanel { Height = 240, FlowDirection = FlowDirection.TopDown };
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; buttons.Controls.Add(b); return b; };
             var open = btn("Open image…", Icons.Open, () => { using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter }) if (d.ShowDialog() == DialogResult.OK) OpenFile(d.FileName, ra, dec, scale); }, ButtonKind.Normal);
             var solve = btn("Solve", Icons.Target, () => Solve(solver.SelectedIndex, ra.Text, dec.Text, (double)radius.Value, (double)scale.Value, (int)sip.Value), ButtonKind.Primary);
+            // Stop ends a solve, or the loading of an image, at once; it is available only while one runs
+            var stop = btn("Stop", Icons.Stop, () =>
+            {
+                if (!_solveJob.Busy) return;
+                MainForm.Instance.Toast(_solveJob.Name + " stopped", Icons.Info);
+                _solveJob.Cancel();
+            }, ButtonKind.Danger);
+            stop.Enabled = false;
+            _solveJob.Changed += () => stop.Enabled = _solveJob.Busy;
             var write = btn("Write WCS to FITS…", Icons.Save, () =>
             {
                 if (_solve == null || !_solve.Success) return;
@@ -191,7 +200,7 @@ namespace Sidralune.Views
                 try
                 {
                     FitsIO.Write(tmp, img, 16);
-                    Wcs w = solver == 2 ? ExternalSolvers.SolveWithAstap(tmp, img.Width, img.Height, ra, dec, scale > 0 ? img.Height * scale / 3600 : double.NaN, radius)
+                    Wcs w = solver == 2 ? ExternalSolvers.SolveWithAstap(tmp, img.Width, img.Height, ra, dec, scale > 0 ? img.Height * scale / 3600 : double.NaN, radius, null, t.Cts.Token)
                         : ExternalSolvers.SolveWithNova(tmp, AppState.Settings.NovaApiKey, img.Width, img.Height, new Progress<string>(s => t.Status = s), t.Cts.Token);
                     return new SolveResult { Success = w != null, Wcs = w, Message = w != null ? "Solved: " + w : "No solution", Elapsed = sw.Elapsed };
                 }

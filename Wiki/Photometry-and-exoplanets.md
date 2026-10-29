@@ -101,7 +101,7 @@ The summary shows the number of points, the time span and the RMS scatter.
 
 ### Period search
 
-Choose a **Method**, the **Min period (d)** and **Max period (d)**, and optionally **Detrend order** (a polynomial removed first, for slow trends from airmass or the instrument). Click **Find period**.
+Choose a **Method**, the **Min period (d)** and **Max period (d)**, and optionally **Detrend order** (a polynomial removed first, for slow trends from airmass or the instrument). Click **Find period**. **Stop**, next to it, ends a long search part way.
 
 | Method | Best for |
 |---|---|
@@ -146,7 +146,7 @@ The **Exoplanet transits** tab fits a physical transit model to a light curve fr
 
 **Fit (Levenberg-Marquardt)** fits the mid-transit time, the planet-to-star radius ratio Rp/R*, the orbit's semi-major axis a/R*, the inclination, the baseline flux and a linear slope, using a quadratic limb-darkened model (Mandel & Agol geometry). Results include parameter errors and the reduced χ².
 
-**Posterior (MCMC)** then runs an affine-invariant ensemble sampler on T0, Rp/R*, a/R* and the impact parameter b, and reports the median and ±1σ of each, which are more realistic uncertainties than the least-squares errors.
+**Posterior (MCMC)** then runs an affine-invariant ensemble sampler on T0, Rp/R*, a/R* and the impact parameter b, and reports the median and ±1σ of each, which are more realistic uncertainties than the least-squares errors. With many steps this takes a while; **Stop**, under it, ends it part way.
 
 Both report the transit depth (ppt), duration (hours), impact parameter, the planet's radius in Jupiter and Earth radii, the semi-major axis in AU, and the residual scatter. The plot shows the data in hours from mid-transit with the model.
 
@@ -160,7 +160,7 @@ The **Transit predictions** tab lists upcoming exoplanet transits you can observ
 | **Depth ≥ (ppt)** | Shallowest transit to include (parts per thousand; 1 ppt = 0.001 = about 1.1 mmag) |
 | **Nights** | How many nights ahead to search |
 
-Click **Predict transits**. A transit is listed only if the host is above 25° and the Sun below −12° at ingress, mid-transit and egress, so the whole event is observable. Columns show the planet, host magnitude, depth, duration, ingress, mid and egress times in local time, the altitude at mid-transit and the Sun's altitude. Double-click a row to select the host star for the Sky chart and Planner.
+Click **Predict transits** (**Stop**, next to it, ends the prediction at once, also while the archive is still answering). A transit is listed only if the host is above 25° and the Sun below −12° at ingress, mid-transit and egress, so the whole event is observable. Columns show the planet, host magnitude, depth, duration, ingress, mid and egress times in local time, the altitude at mid-transit and the Sun's altitude. Double-click a row to select the host star for the Sky chart and Planner.
 
 The archive is queried once per session; predictions are based on the archive's published ephemeris, whose uncertainty grows with time since it was measured. Add an hour of baseline before ingress and after egress.
 

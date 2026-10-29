@@ -169,7 +169,10 @@ namespace Sidralune.Views
                 using (var pen = new Pen(Theme.Current.Success, 1.5f)) { g.DrawRectangle(pen, a.X, a.Y, b2.X - a.X, b2.Y - a.Y); g.DrawLine(pen, c.X - 8, c.Y, c.X + 8, c.Y); g.DrawLine(pen, c.X, c.Y - 8, c.X, c.Y + 8); }
             };
             side.Controls.Add(props);
-            _ppJob.Guard(bar, scrub);
+            // Stop, after Process, ends pre-processing; the rest of the toolbar waits for the job
+            var ppStop = _ppJob.StopButton(n => n == "Pre-processing");
+            _ppJob.Guard(bar.Controls.Cast<Control>().Concat(new Control[] { scrub }).ToArray());
+            Ui.InsertAfter(bar, ppStop, "Process");
             panel.Controls.Add(viewer);
             panel.Controls.Add(scrub);
             panel.Controls.Add(plot);
@@ -254,7 +257,10 @@ namespace Sidralune.Views
             };
             var side = Side("Stacking options", 360);
             side.Controls.Add(props);
-            _luckyJob.Guard(bar);
+            // Stop, after Analyse & stack, ends lucky stacking; the rest of the toolbar waits for the job
+            var luckyStop = _luckyJob.StopButton(n => n == "Lucky stacking");
+            _luckyJob.Guard(bar.Controls.Cast<Control>().ToArray());
+            Ui.InsertAfter(bar, luckyStop, "Analyse & stack");
             panel.Controls.Add(viewer);
             panel.Controls.Add(plot);
             panel.Controls.Add(side);
@@ -312,14 +318,14 @@ namespace Sidralune.Views
             {
                 if (_sharpSource == null) return;
                 var src = _sharpSource.Clone(); double fw = (double)decFwhm.Value; int it = (int)decIt.Value;
-                _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }), () => { _sharpSource = src; UpdateSharpen(); });
+                _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }, null, t.Cts.Token), () => { _sharpSource = src; UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn("Align RGB channels (ADC)", Icons.Check, () =>
             {
                 if (_sharpSource == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
                 if (_sharpSource.Channels != 3) { MainForm.Instance.Toast("Aligning channels needs a colour image", Icons.Info); return; }
                 var s = _sharpSource.Clone();
-                _sharpJob.Run("Aligning colour channels", t => ColorOps.AlignChannels(s), () => { _sharpSource = s; UpdateSharpen(); });
+                _sharpJob.Run("Aligning colour channels", t => ColorOps.AlignChannels(s, t.Cts.Token), () => { _sharpSource = s; UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn("Save result…", Icons.Save, () =>
             {
@@ -327,7 +333,12 @@ namespace Sidralune.Views
                 using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "planet.tif", FilterIndex = 4 })
                     if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
             }, ButtonKind.Primary);
-            _sharpJob.Guard(buttons);
+            // Stop, under the two buttons that change the image, ends a deconvolution or a channel alignment; the other buttons wait
+            var sharpStop = _sharpJob.StopButton(n => n == "Deconvolution" || n == "Aligning colour channels");
+            sharpStop.Width = 300;
+            _sharpJob.Guard(buttons.Controls.Cast<Control>().ToArray());
+            Ui.InsertAfter(buttons, sharpStop, "Align RGB channels (ADC)");
+            buttons.Height = 200;
             g.Full(buttons);
             g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
             side.Controls.Add(g);
@@ -442,9 +453,9 @@ namespace Sidralune.Views
                 double nd = (double)north.Value; bool mr = mirror.Checked;
                 _deroJob.Run("Derotating", t =>
                 {
-                    foreach (var it in items) it.Geo = geometry(it, b, nd, mr);
+                    foreach (var it in items) { t.Cts.Token.ThrowIfCancellationRequested(); it.Geo = geometry(it, b, nd, mr); }
                     var imgs = items.Select(i => i.Image).ToList(); var geos = items.Select(i => i.Geo).ToList(); var times = items.Select(i => i.Time).ToList();
-                    res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b));
+                    res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b), t.Cts.Token);
                 }, () =>
                 {
                     viewer.SetImage(res);
@@ -477,7 +488,12 @@ namespace Sidralune.Views
             g.Full(info);
             g.Full(Ui.Hint("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up."));
             list.SelectedIndexChanged += (s, e) => { var it = list.SelectedItem as DeroItem; if (it != null) viewer.SetImage(it.Image); };
-            _deroJob.Guard(g);
+            // Stop, under Derotate & stack, ends derotating or loading images; everything else waits for the job
+            var deroStop = _deroJob.StopButton(n => n == "Derotating" || n.StartsWith("Loading "));
+            deroStop.Width = 300;
+            _deroJob.Guard(g.Controls.Cast<Control>().Where(c => c != bar).Concat(bar.Controls.Cast<Control>()).ToArray());
+            Ui.InsertAfter(bar, deroStop, "Derotate & stack to target time");
+            bar.Height = 120;
             var side = Side("Derotation", 380);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);
@@ -556,10 +572,11 @@ namespace Sidralune.Views
                     {
                         for (int i = 0; i < files.Count; i++)
                         {
+                            t.Cts.Token.ThrowIfCancellationRequested();
                             var ti = ImageFile.Load(files[i]);
                             tiles.Add(new MosaicStitcher.Tile { Image = ti, X = (i % n) * ti.Width * 0.8, Y = (i / n) * ti.Height * 0.8 });
                         }
-                        stitched = MosaicStitcher.Stitch(tiles);
+                        stitched = MosaicStitcher.Stitch(tiles, true, t.Cts.Token);
                     }, () => { img = stitched; limb = null; viewer.SetImage(img); });
                 }
             }, ButtonKind.Normal);
@@ -572,7 +589,12 @@ namespace Sidralune.Views
                 float r = e.X - c.X;
                 using (var pen = new Pen(Theme.Current.Warning, 1.2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash }) gr.DrawEllipse(pen, c.X - r, c.Y - r, 2 * r, 2 * r);
             };
-            _solarJob.Guard(bar);
+            // Stop, under the tools, ends whichever runs (the image stays as it was); the other tools wait for it
+            var solarStop = _solarJob.StopButton();
+            solarStop.Width = 300;
+            _solarJob.Guard(bar.Controls.Cast<Control>().ToArray());
+            Ui.InsertAfter(bar, solarStop, "Stitch mosaic tiles…");
+            bar.Height += 40;
             var side = Side("Solar & lunar tools", 360);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);

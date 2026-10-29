@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Imaging.Planetary;
 using Sidralune.Imaging.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static Sidralune.Tests.Checks;
@@ -66,6 +68,57 @@ namespace Sidralune.Tests
             var d = new float[n];
             for (int i = 0; i < n; i++) d[i] = (float)(level + sigma * Stats.NormalQuantile(Math.Max(1e-9, Math.Min(1 - 1e-9, r.NextDouble()))));
             return d;
+        }
+
+        [TestMethod]
+        public void TestStoppedProcessing()
+        {
+            // each long step checks for a stop; with one already made it ends at once
+            int w = 128, h = 96;
+            var img = Synthetic.Render(w, h, Synthetic.RandomStars(30, w, h, 6), Transform2D.Identity, 3, 0.1, 0.002, 6);
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+                var ct = cts.Token;
+                Func<Action, bool> stops = a => { try { a(); return false; } catch (OperationCanceledException) { return true; } };
+                CheckTrue("Non-local means stops", stops(() => Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 5, 2, ct)));
+                CheckTrue("Star removal stops", stops(() => StarTools.RemoveStars(img.Clone(), 1.8, 200, ct)));
+                var geo = new DiscGeometry { Cx = 64, Cy = 48, Radius = 30, Flattening = 1 };
+                var now = DateTime.UtcNow;
+                CheckTrue("Derotation stops", stops(() => SphereDerotation.DerotateAndStack(new[] { img, img }, new[] { geo, geo }, new[] { now, now }, now, 9.9, ct)));
+                var tiles = new List<MosaicStitcher.Tile> { new MosaicStitcher.Tile { Image = img, X = 0, Y = 0 }, new MosaicStitcher.Tile { Image = img, X = 100, Y = 0 } };
+                CheckTrue("Mosaic stitching stops", stops(() => MosaicStitcher.Stitch(tiles, true, ct)));
+                CheckTrue("Background extraction stops", stops(() => BackgroundExtraction.Apply(img.Clone(), new BackgroundOptions(), null, ct)));
+                // the other tools stop through the stop request of the job they run in
+                Func<Action, bool> stopsInJob = a => stops(() => Sidralune.Core.Util.StopRequest.Run(ct, a));
+                CheckTrue("Local contrast stops in a stopped job", stopsInJob(() => Enhance.LocalContrast(img.Clone(), 50, 0.3)));
+                CheckTrue("HDR multiscale stops in a stopped job", stopsInJob(() => Enhance.HdrMultiscale(img.Clone())));
+                CheckTrue("CLAHE stops in a stopped job", stopsInJob(() => StretchOps.Clahe(img.Clone())));
+                CheckTrue("Wavelet sharpening stops in a stopped job", stopsInJob(() => Wavelets.Sharpen(img.Data[0], w, h, new[] { 1.0, 0.5 }, null)));
+                CheckTrue("Rotation stops in a stopped job", stopsInJob(() => Geometry.Rotate(img, 10, true)));
+                CheckTrue("Outside a job nothing is stopped", Sidralune.Core.Util.StopRequest.Current.CanBeCanceled == false);
+            }
+            CheckTrue("Without a stop they still run", Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 3, 1).Length == w * h);
+        }
+
+        [TestMethod]
+        public void TestAlignChannels()
+        {
+            // red and blue shifted against green, as atmospheric dispersion does
+            int w = 256, h = 256;
+            var green = Synthetic.Render(w, h, Synthetic.RandomStars(60, w, h, 5), Transform2D.Identity, 3, 0.1, 0.001, 5);
+            var img = new AstroImage(w, h, new[] { Geometry.Shift(green, 2, 1).Data[0], green.Data[0], Geometry.Shift(green, -1.5, -0.5).Data[0] });
+            var shifts = ColorOps.AlignChannels(img.Clone());
+            CheckTrue("The red and blue shifts are found", Math.Abs(Math.Abs(shifts[0][0]) - 2) < 0.3 && Math.Abs(Math.Abs(shifts[0][1]) - 1) < 0.3
+                && Math.Abs(Math.Abs(shifts[2][0]) - 1.5) < 0.3 && Math.Abs(Math.Abs(shifts[2][1]) - 0.5) < 0.3, string.Join(" / ", shifts.Select(s => s[0].ToString("0.00") + "," + s[1].ToString("0.00"))));
+            using (var cts = new System.Threading.CancellationTokenSource())
+            {
+                cts.Cancel();
+                var copy = img.Clone();
+                bool stopped = false;
+                try { ColorOps.AlignChannels(copy, cts.Token); } catch (OperationCanceledException) { stopped = true; }
+                CheckTrue("A stopped alignment ends without shifting anything", stopped && copy.Data[0].SequenceEqual(img.Data[0]) && copy.Data[2].SequenceEqual(img.Data[2]));
+            }
         }
 
         [TestMethod]

@@ -38,7 +38,7 @@ namespace Sidralune.Imaging.Planetary
                     sm[i] = s / n;
                 }
                 double centre = sm[0];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {
@@ -64,7 +64,7 @@ namespace Sidralune.Imaging.Planetary
             for (int c = 0; c < img.Channels; c++)
             {
                 var d = img.Data[c];
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {
@@ -98,13 +98,14 @@ namespace Sidralune.Imaging.Planetary
         /// Estimate offsets between consecutive tiles with phase correlation on their overlap (initial offsets give the
         /// approximate layout), then blend into one canvas.
         /// </summary>
-        public static AstroImage Stitch(List<Tile> tiles, bool refine = true)
+        public static AstroImage Stitch(List<Tile> tiles, bool refine = true, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             if (tiles.Count == 0) return null;
             if (refine)
             {
                 for (int i = 1; i < tiles.Count; i++)
                 {
+                    ct.ThrowIfCancellationRequested(); // a stop takes effect between tiles
                     // compare with the most-overlapping already placed tile
                     var t = tiles[i];
                     Tile best = null; double bestArea = 0;
@@ -134,6 +135,7 @@ namespace Sidralune.Imaging.Planetary
             var ws = new double[W * H];
             foreach (var t in tiles)
             {
+                ct.ThrowIfCancellationRequested();
                 var img = t.Image;
                 double ox = t.X - minX, oy = t.Y - minY;
                 for (int y = 0; y < img.Height; y++)

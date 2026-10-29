@@ -167,7 +167,7 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) return;
             var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
-            Parallel.For(0, img.Height, y =>
+            Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < img.Width; x++)
                 {
@@ -185,7 +185,7 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) return;
             var R = img.Data[0]; var G = img.Data[1]; var B = img.Data[2];
-            Parallel.For(0, img.PixelCount, i =>
+            Parallel.For(0, img.PixelCount, Core.Util.StopRequest.Options, i =>
             {
                 double h, s, l, r, g, b;
                 RgbToHsl(AstroMath.Clamp(R[i], 0, 1), AstroMath.Clamp(G[i], 0, 1), AstroMath.Clamp(B[i], 0, 1), out h, out s, out l);
@@ -203,7 +203,7 @@ namespace Sidralune.Imaging
             var o = rgb.Clone();
             var L = lum.Data[0];
             var r = o.Data[0]; var g = o.Data[1]; var b = o.Data[2];
-            Parallel.For(0, o.PixelCount, i =>
+            Parallel.For(0, o.PixelCount, Core.Util.StopRequest.Options, i =>
             {
                 double Y = 0.2126 * r[i] + 0.7152 * g[i] + 0.0722 * b[i];
                 double Lt = L[i] * lumWeight + Y * (1 - lumWeight);
@@ -262,7 +262,7 @@ namespace Sidralune.Imaging
         }
 
         /// <summary>Align colour channels to green by phase correlation (atmospheric dispersion / chromatic aberration fix).</summary>
-        public static double[][] AlignChannels(AstroImage img)
+        public static double[][] AlignChannels(AstroImage img, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             if (img.Channels < 3) return null;
             int w = img.Width, h = img.Height;
@@ -274,6 +274,7 @@ namespace Sidralune.Imaging
             var shifts = new double[3][];
             for (int c = 0; c < 3; c += 2)
             {
+                ct.ThrowIfCancellationRequested(); // a stop takes effect between the channels
                 double dx, dy;
                 Core.Mathematics.Fft.PhaseCorrelate(g, crop(img.Data[c]), size, size, out dx, out dy, win);
                 shifts[c] = new[] { dx, dy };

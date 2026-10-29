@@ -23,7 +23,7 @@ namespace Sidralune.Imaging
             var tmp = new float[d.Length];
             var o = new float[d.Length];
             int rx = kx.Length / 2, ry = ky.Length / 2;
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 int row = y * w;
                 for (int x = 0; x < w; x++)
@@ -37,7 +37,7 @@ namespace Sidralune.Imaging
                     tmp[row + x] = s;
                 }
             });
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -79,7 +79,7 @@ namespace Sidralune.Imaging
         {
             var o = new float[d.Length];
             int n = (2 * r + 1) * (2 * r + 1);
-            Parallel.For(0, h, () => new float[n], (y, st, buf) =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, () => new float[n], (y, st, buf) =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -102,7 +102,7 @@ namespace Sidralune.Imaging
             // separable max/min filter
             var tmp = new float[d.Length];
             var o = new float[d.Length];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -115,7 +115,7 @@ namespace Sidralune.Imaging
                     tmp[y * w + x] = m;
                 }
             });
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -139,7 +139,7 @@ namespace Sidralune.Imaging
         {
             var b = GaussianBlur(d, w, h, sigma);
             var o = new float[d.Length];
-            Parallel.For(0, d.Length / Math.Max(1, w), y =>
+            Parallel.For(0, d.Length / Math.Max(1, w), Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -226,7 +226,7 @@ namespace Sidralune.Imaging
             int step = 1 << (scale - 1);
             var tmp = new float[d.Length];
             var o = new float[d.Length];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 int row = y * w;
                 for (int x = 0; x < w; x++)
@@ -236,7 +236,7 @@ namespace Sidralune.Imaging
                     tmp[row + x] = s;
                 }
             });
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {

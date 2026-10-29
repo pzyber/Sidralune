@@ -22,7 +22,7 @@ The **Process** workspace turns a linear stacked image into a finished picture, 
 
 ## Layout
 
-The image fills the centre. The toolbar above it has file, undo and display controls. The panel on the right holds collapsible sections, each a group of tools; click a heading to open or close it. Every tool works on the whole image and adds a step to the history. While a tool is working, the other tools and **Open**, **Save as**, **Undo** and **Redo** wait for it, but the tool settings can still be changed: each tool reads its settings when you click it.
+The image fills the centre. The toolbar above it has file, undo and display controls. The panel on the right holds collapsible sections, each a group of tools; click a heading to open or close it. Every tool works on the whole image and adds a step to the history. While a tool is working, the other tools and **Open**, **Save as**, **Undo** and **Redo** wait for it, but the tool settings can still be changed: each tool reads its settings when you click it. **Stop** in the toolbar ends whatever is working, usually within a moment; the image is left as it was.
 
 ## Opening and saving
 
@@ -104,7 +104,7 @@ Apply it to the linear image, before colour calibration. For large nebulae that 
 | **Remove green cast (SCNR)** | Subtractive chromatic noise reduction removes the green tint common in one-shot-colour images. **SCNR amount** sets the strength |
 | **Apply saturation** | Changes colour saturation (**Saturation**, 1 = unchanged) |
 | **Apply hue shift** | Rotates hues by **Hue shift (°)** |
-| **Align RGB channels** | Registers the red and blue channels onto green, correcting chromatic misalignment from atmospheric dispersion or optics |
+| **Align RGB channels** | Registers the red and blue channels onto green, correcting chromatic misalignment from atmospheric dispersion or optics. **Stop** in the toolbar ends it between the channels |
 
 ## Deconvolution
 
@@ -120,7 +120,7 @@ Deconvolution reverses part of the blurring caused by the atmosphere and optics,
 | **Deringing** | Suppresses the dark rings that deconvolution can create around bright stars |
 | **Wiener K** | Noise-to-signal parameter for the Wiener method |
 
-Click **Deconvolve**. If dark halos appear around stars, increase **Deringing** or reduce **Iterations**.
+Click **Deconvolve**. **Stop** in the toolbar ends it part way, leaving the image as it was. If dark halos appear around stars, increase **Deringing** or reduce **Iterations**.
 
 ## Wavelets
 
@@ -133,7 +133,7 @@ Typical deep-sky values: layer 1 = 0, layers 2–3 = 0.3–1. Click **Apply wave
 | Tool | Description |
 |---|---|
 | **Multiscale wavelet denoise** | Thresholds the fine wavelet layers against the noise level measured at each scale; fast and effective. **Strength** sets how much is removed |
-| **Non-local means (slow, best quality)** | Averages similar patches across the image; preserves edges and detail best, but takes longer |
+| **Non-local means (slow, best quality)** | Averages similar patches across the image; preserves edges and detail best, but takes longer. **Stop** in the toolbar ends it part way |
 | **Remove banding (rows)** | Removes horizontal banding from CMOS and DSLR sensors |
 | **Cosmetic correction (hot/cold pixels)** | Replaces isolated hot and cold pixels by the median of their neighbours |
 
@@ -142,7 +142,7 @@ Typical deep-sky values: layer 1 = 0, layers 2–3 = 0.3–1. Click **Apply wave
 | Tool | Description |
 |---|---|
 | **Reduce stars** | Shrinks stars with morphological erosion blended through a star mask, so the background and nebula are not affected. **Reduction amount** sets the strength |
-| **Remove stars (starless + save star layer)** | Detects stars, fills them in from their surroundings by harmonic diffusion and adds matching noise, producing a starless image. You are asked where to save the star layer, so you can process the nebula and stars separately and blend the stars back later in an image editor (screen blending) |
+| **Remove stars (starless + save star layer)** | Detects stars, fills them in from their surroundings by harmonic diffusion and adds matching noise, producing a starless image. You are asked where to save the star layer, so you can process the nebula and stars separately and blend the stars back later in an image editor (screen blending). **Stop** in the toolbar ends it part way |
 | **HDR multiscale (galaxy/nebula cores)** | Compresses large-scale brightness while keeping small-scale detail, revealing structure in bright cores such as M 42, M 31 or globular clusters |
 | **Local contrast enhancement** | Increases contrast of medium-scale structure |
 
@@ -191,4 +191,4 @@ Examples:
 
 ## Statistics and plate solving
 
-**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** plate solves the image without leaving Process, with the solver, search radius and SIP order chosen in [Astrometry → Plate solving](Astrometry-and-framing#plate-solving) and the pointing and scale hints in the image's FITS header. It runs like a tool: the tools, **Open**, **Save as**, **Undo** and **Redo** wait for it. The solution is added to the image as a **Plate solve** step in the history, so the image can then be colour-calibrated photometrically and shown with a WCS grid; **Undo** takes it away again. If no solution is found, a message says so: save the image and open it in Astrometry to try other hints or another solver there. **Solve** itself waits while a tool is working.
+**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** plate solves the image without leaving Process, with the solver, search radius and SIP order chosen in [Astrometry → Plate solving](Astrometry-and-framing#plate-solving) and the pointing and scale hints in the image's FITS header. It runs like a tool: the tools, **Open**, **Save as**, **Undo** and **Redo** wait for it. **Stop** ends it part way. The solution is added to the image as a **Plate solve** step in the history, so the image can then be colour-calibrated photometrically and shown with a WCS grid; **Undo** takes it away again. If no solution is found, a message says so: save the image and open it in Astrometry to try other hints or another solver there. **Solve** itself waits while a tool is working.

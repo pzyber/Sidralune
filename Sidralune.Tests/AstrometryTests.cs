@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
@@ -32,6 +35,24 @@ namespace Sidralune.Tests
             public List<RefStar> Cone(double ra, double dec, double radius, double mag, int max) =>
                 Stars.Where(s => AstroMath.Separation(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, s.Ra * AstroMath.Deg2Rad, s.Dec * AstroMath.Deg2Rad) * AstroMath.Rad2Deg < radius && s.Mag < mag)
                      .OrderBy(s => s.Mag).Take(max).ToList();
+        }
+
+        [TestMethod]
+        public void TestAstapCancel()
+        {
+            // a stand-in for ASTAP that takes half a minute: cancelling ends it at once
+            string dir = Path.Combine(Path.GetTempPath(), "sidralune_astap_test");
+            Directory.CreateDirectory(dir);
+            string fake = Path.Combine(dir, "slow_astap.cmd");
+            File.WriteAllText(fake, "@ping -n 30 127.0.0.1 >nul\r\n");
+            using (var cts = new CancellationTokenSource(500))
+            {
+                var sw = Stopwatch.StartNew();
+                bool cancelled = false;
+                try { ExternalSolvers.SolveWithAstap(Path.Combine(dir, "none.fits"), 100, 100, double.NaN, double.NaN, double.NaN, 30, fake, cts.Token); }
+                catch (OperationCanceledException) { cancelled = true; }
+                CheckTrue("Cancelling an ASTAP solve ends it at once", cancelled && sw.ElapsedMilliseconds < 5000, sw.ElapsedMilliseconds + " ms");
+            }
         }
 
         [TestMethod]

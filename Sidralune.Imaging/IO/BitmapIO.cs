@@ -59,7 +59,7 @@ namespace Sidralune.Imaging.IO
             try
             {
                 var lut = new byte[65536];
-                System.Threading.Tasks.Parallel.For(0, h, y =>
+                System.Threading.Tasks.Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     byte* row = (byte*)data.Scan0 + (long)y * data.Stride;
                     for (int x = 0; x < w; x++)

@@ -57,7 +57,7 @@ namespace Sidralune.Imaging
         /// Remove stars: inpaint masked star regions by iterative harmonic diffusion from the surrounding background
         /// (boundary-value Laplace fill), followed by a light texture-preserving noise injection. Returns the star layer.
         /// </summary>
-        public static AstroImage RemoveStars(AstroImage img, double sizeFactor = 1.8, int iterations = 200)
+        public static AstroImage RemoveStars(AstroImage img, double sizeFactor = 1.8, int iterations = 200, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             int w = img.Width, h = img.Height;
             var mask = StarMask(img, sizeFactor, 0.3);
@@ -75,7 +75,8 @@ namespace Sidralune.Imaging
                 var tmp = new float[o.Length];
                 for (int it = 0; it < iterations; it++)
                 {
-                    Parallel.For(1, h - 1, y =>
+                    ct.ThrowIfCancellationRequested(); // a stop takes effect between iterations
+                    Parallel.For(1, h - 1, Core.Util.StopRequest.Options, y =>
                     {
                         for (int x = 1; x < w - 1; x++)
                         {
@@ -165,7 +166,7 @@ namespace Sidralune.Imaging
         {
             var o = new float[d.Length];
             double ss2 = 2 * sigmaSpatial * sigmaSpatial, sr2 = 2 * sigmaRange * sigmaRange;
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < w; x++)
                 {
@@ -188,13 +189,13 @@ namespace Sidralune.Imaging
         }
 
         /// <summary>Non-local means denoise (Buades et al. 2005) with 5x5 patches and a search window.</summary>
-        public static float[] NonLocalMeans(float[] d, int w, int h, double strength, int search = 7, int patch = 2)
+        public static float[] NonLocalMeans(float[] d, int w, int h, double strength, int search = 7, int patch = 2, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             double sigma = ImageStatistics.MrsNoise(d, w, h);
             double hh = Math.Max(1e-12, strength * sigma);
             double h2 = hh * hh * (2 * patch + 1) * (2 * patch + 1);
             var o = new float[d.Length];
-            Parallel.For(0, h, y =>
+            Parallel.For(0, h, new ParallelOptions { CancellationToken = ct }, y =>
             {
                 for (int x = 0; x < w; x++)
                 {

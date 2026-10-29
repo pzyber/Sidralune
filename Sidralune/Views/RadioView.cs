@@ -72,6 +72,9 @@ namespace Sidralune.Views
                 if (o != null) _pointing.Text = AstroMath.FormatHms(o.RaDeg / 15, 0, true) + " " + AstroMath.FormatDms(o.DecDeg, 0, true, true);
             }, ButtonKind.Subtle);
             btn("Analyse line (selected range = line window)", Icons.Chart, () => AnalyseLine(), ButtonKind.Normal);
+            var iqStop = _iqJob.StopButton(n => n == "Processing IQ recording"); // ends the processing of a long recording
+            iqStop.Width = 320;
+            g.Full(iqStop);
             btn("Export CSV…", Icons.Save, () => ExportSpectrum(), ButtonKind.Subtle);
             g.Full(Ui.Hint("Record raw IQ data with your SDR software. With an OFF (frequency-switched or cold-sky) reference the spectrum is calibrated to antenna temperature: (ON−OFF)/OFF × Tsys. Drag across the line to exclude it from the baseline fit."));
             _specOut = new TextBox { Multiline = true, ReadOnly = true, Height = 160, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };

@@ -29,6 +29,87 @@ namespace Sidralune.AppTests
             CheckTrue("The slot is free again afterwards", WaitFor(() => OnUi(() => !slot.Busy), 30000));
         }
 
+        /// <summary>A slot's Stop button: greyed out unless a job it can stop runs; then it cancels that job and says so.</summary>
+        private static void CheckStop(string what, JobSlot slot, string stoppable, Func<FlatButton> stop)
+        {
+            CheckTrue(what + ": Stop is greyed out with nothing running", OnUi(() => !stop().Enabled));
+            var gate = new ManualResetEventSlim();
+            var job = OnUi(() => slot.Run(stoppable, t => gate.Wait(30000)));
+            try
+            {
+                CheckTrue(what + ": Stop is available while " + stoppable + " runs", OnUi(() => stop().Enabled));
+                OnUi(() => stop().PerformClick());
+                CheckTrue(what + ": Stop cancels it and says so", job.Cts.IsCancellationRequested && WaitFor(() => Toasts().Contains(stoppable + " stopped")));
+            }
+            finally { gate.Set(); }
+            CheckTrue(what + ": Stop is greyed out again", WaitFor(() => OnUi(() => !slot.Busy && !stop().Enabled)));
+        }
+
+        [TestMethod]
+        public void TestStopButtons()
+        {
+            var stacking = View<StackingView>("stacking");
+            CheckStop("Deep sky", Field<JobSlot>(stacking, "_job"), "Stacking", () => Button(stacking, "Stop"));
+            var planetary = View<PlanetaryView>("planetary");
+            Func<string, Func<FlatButton>> stopBeside = b => () => All(Button(planetary, b).Parent).OfType<FlatButton>().First(x => x.Text == "Stop");
+            CheckStop("Pre-process", Field<JobSlot>(planetary, "_ppJob"), "Pre-processing", stopBeside("Process"));
+            CheckStop("Lucky stacking", Field<JobSlot>(planetary, "_luckyJob"), "Lucky stacking", stopBeside("Analyse & stack"));
+            CheckStop("Sharpen & deconvolve", Field<JobSlot>(planetary, "_sharpJob"), "Deconvolution", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            CheckStop("Sharpen & deconvolve channel alignment", Field<JobSlot>(planetary, "_sharpJob"), "Aligning colour channels", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            CheckTrue("Sharpen & deconvolve: Stop sits under Align RGB channels", OnUi(() =>
+            {
+                var panel = Button(planetary, "Align RGB channels (ADC)").Parent;
+                return panel.Controls.IndexOf(stopBeside("Align RGB channels (ADC)")()) == panel.Controls.IndexOf(Button(planetary, "Align RGB channels (ADC)")) + 1;
+            }));
+            CheckStop("Derotation", Field<JobSlot>(planetary, "_deroJob"), "Derotating", stopBeside("Derotate & stack to target time"));
+            CheckStop("Solar & lunar", Field<JobSlot>(planetary, "_solarJob"), "Stitching mosaic", stopBeside("Stitch mosaic tiles…"));
+            CheckStop("Solar & lunar tools", Field<JobSlot>(planetary, "_solarJob"), "Flattening limb darkening", stopBeside("Stitch mosaic tiles…"));
+            var lucky = Field<JobSlot>(planetary, "_luckyJob");
+            WhileBusy(lucky, () => CheckTrue("Opening a sequence cannot be stopped part way, so Stop stays greyed out", OnUi(() => !stopBeside("Analyse & stack")().Enabled)));
+            var radio = View<RadioView>("radio");
+            CheckStop("Radio", Field<JobSlot>(radio, "_iqJob"), "Processing IQ recording", () => Button(radio, "Stop"));
+            CheckTrue("Radio: Stop sits under Analyse line", OnUi(() =>
+            {
+                var analyse = Button(radio, "Analyse line (selected range = line window)");
+                var grid = (TableLayoutPanel)analyse.Parent;
+                return grid.GetRow(Button(radio, "Stop")) == grid.GetRow(analyse) + 1;
+            }));
+            var processing = View<ProcessingView>("processing");
+            CheckStop("Process plate solving", Field<JobSlot>(processing, "_job"), "Plate solving", () => Button(processing, "Stop"));
+            CheckStop("Process deconvolution", Field<JobSlot>(processing, "_job"), "Deconvolution", () => Button(processing, "Stop"));
+            CheckStop("Process channel alignment", Field<JobSlot>(processing, "_job"), "Align channels", () => Button(processing, "Stop"));
+            CheckStop("Process NLM denoise", Field<JobSlot>(processing, "_job"), "NLM denoise", () => Button(processing, "Stop"));
+            CheckStop("Process star removal", Field<JobSlot>(processing, "_job"), "Star removal", () => Button(processing, "Stop"));
+            CheckStop("Process background extraction", Field<JobSlot>(processing, "_job"), "Background extraction", () => Button(processing, "Stop"));
+            CheckStop("Process levels", Field<JobSlot>(processing, "_job"), "Levels", () => Button(processing, "Stop"));
+            var photometry = View<PhotometryView>("photometry");
+            Func<Control, string, Func<FlatButton>> stopNextTo = (root, b) => () => All(Button(root, b).Parent).OfType<FlatButton>().First(x => x.Text == "Stop");
+            CheckStop("Photometry period search", Field<JobSlot>(photometry, "_analysisJob"), "Period search", stopNextTo(photometry, "Find period"));
+            CheckStop("Photometry transit MCMC", Field<JobSlot>(photometry, "_transitJob"), "Transit MCMC", stopNextTo(photometry, "Posterior (MCMC)"));
+            CheckStop("Photometry transit predictions", Field<JobSlot>(photometry, "_predictJob"), "Exoplanet transit predictions", stopNextTo(photometry, "Predict transits"));
+            WhileBusy(Field<JobSlot>(photometry, "_transitJob"), () => CheckTrue("The quick transit fit has no Stop", OnUi(() => !stopNextTo(photometry, "Posterior (MCMC)")().Enabled)));
+            var solar = View<SolarSystemView>("solarsystem");
+            CheckStop("Satellite passes", Field<JobSlot>(solar, "_passJob"), "Satellite passes", stopNextTo(solar, "Predict passes"));
+            CheckStop("Asteroid occultations", Field<JobSlot>(solar, "_occJob"), "Occultation search", stopNextTo(solar, "Asteroid occultations"));
+            CheckStop("Lunar occultations", Field<JobSlot>(solar, "_occJob"), "Lunar occultations", stopNextTo(solar, "Asteroid occultations"));
+            CheckStop("Minor body positions", Field<JobSlot>(solar, "_positionsJob"), "Minor body positions", stopNextTo(solar, "List"));
+            CheckStop("Ephemeris", Field<JobSlot>(solar, "_ephemJob"), "Ephemeris", stopNextTo(solar, "Compute"));
+            var settings = View<SettingsView>("settings");
+            CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));
+            CheckStop("Settings downloads", Tasks.Data, "Downloading data", () => Button(settings, "Stop"));
+
+            // a button two jobs lock waits for both: Stacking → in Pre-process waits for pre-processing and for lucky stacking
+            var gate = new ManualResetEventSlim();
+            var gate2 = new ManualResetEventSlim();
+            var pp = Field<JobSlot>(planetary, "_ppJob");
+            OnUi(() => lucky.Run("Test job", t => gate.Wait(30000)));
+            OnUi(() => pp.Run("Test job", t => gate2.Wait(30000)));
+            gate2.Set();
+            CheckTrue("A button two jobs lock stays locked while one of them still runs", WaitFor(() => OnUi(() => !pp.Busy)) && OnUi(() => !Button(planetary, "Stacking →").Enabled));
+            gate.Set();
+            CheckTrue("It comes back when both have ended", WaitFor(() => OnUi(() => !lucky.Busy && Button(planetary, "Stacking →").Enabled)));
+        }
+
         [TestMethod]
         public void TestJobSlot()
         {
@@ -67,6 +148,18 @@ namespace Sidralune.AppTests
             Settle(700);
             CheckTrue("Cancel also drops the request waiting to replace the job", OnUi(() => !slot.Busy) && !results.Contains("D") && !results.Contains("E"), string.Join(", ", results));
 
+            // a stopped job's calculations end: its stop request reaches the parallel loops it runs
+            var looping = new ManualResetEventSlim();
+            OnUi(() => slot.Run("Endless calculation", t =>
+            {
+                looping.Set();
+                while (true) System.Threading.Tasks.Parallel.For(0, 1000, Core.Util.StopRequest.Options, i => Thread.SpinWait(2000));
+            }));
+            CheckTrue("The calculation runs", looping.Wait(10000));
+            OnUi(() => slot.Cancel());
+            CheckTrue("Stopping it ends its loops, so the job ends and nothing keeps running", WaitFor(() => OnUi(() => !slot.Busy), 5000)
+                && WaitFor(() => { lock (Tasks.Running) return !Tasks.Running.Any(x => x.Name == "Endless calculation"); }, 5000));
+
             var stop = new ManualResetEventSlim();
             OnUi(() => slot.Run("Cancelled job", t => { stop.Wait(30000); }, () => done += 1000));
             OnUi(() => slot.Cancel());
@@ -86,14 +179,16 @@ namespace Sidralune.AppTests
                 CheckTrue("Solving", OnUi(() => job.Busy));
                 var locked = new[] { "Open image…", "Solve", "Write WCS to FITS…", "Sync telescope to solution" };
                 CheckTrue("Open, Solve, Write WCS and Sync wait for the solve", OnUi(() => locked.All(t => !Button(view, t).Enabled)));
+                CheckTrue("Stop is available while solving", OnUi(() => Button(view, "Stop").Enabled));
                 OnUi(() => Button(view, "Solve").PerformClick());
                 OnUi(() => view.SolveImage(Stars(4)));
                 CheckTrue("An image sent from another workspace waits too", OnUi(() => Field<AstroImage>(view, "_img") == img));
                 int solving; lock (Tasks.Running) solving = Tasks.Running.Count(t => t.Name == "Plate solving" && !t.Done);
                 CheckTrue("Only one plate solve runs", solving == 1, solving + " running");
             }
-            finally { OnUi(() => job.Cancel()); }
-            CheckTrue("Cancelling frees the buttons", WaitFor(() => OnUi(() => !job.Busy && Button(view, "Solve").Enabled), 60000));
+            finally { OnUi(() => Button(view, "Stop").PerformClick()); }
+            CheckTrue("Stop says so", WaitFor(() => Toasts().Contains("Plate solving stopped")));
+            CheckTrue("Stop frees the buttons, and is greyed out again", WaitFor(() => OnUi(() => !job.Busy && Button(view, "Solve").Enabled && !Button(view, "Stop").Enabled), 60000));
             CheckTrue("A cancelled solve leaves no solution on the image", OnUi(() => Field<object>(view, "_solve") == null && Field<ImageViewer>(view, "_viewer").Wcs == null));
         }
 
@@ -110,6 +205,7 @@ namespace Sidralune.AppTests
             {
                 CheckTrue("The tool buttons and Open, Save as, Undo and Redo wait for the edit", OnUi(() => job.Busy && !Button(view, "Apply levels").Enabled && !Button(view, "Deconvolve").Enabled
                     && !Button(view, "Open").Enabled && !Button(view, "Save as").Enabled && !Button(view, "Solve").Enabled));
+                CheckTrue("Every edit can be stopped", OnUi(() => Button(view, "Stop").Enabled));
                 CheckTrue("The tool settings stay editable (each tool reads them when clicked)", OnUi(() => Field<Panel>(view, "_tools").Enabled
                     && All(Field<Panel>(view, "_tools")).Where(c => c is NumericUpDown || c is ComboBox || c is TextBox).All(c => c.Enabled)));
                 OnUi(() => Call(view, "Apply", "Second edit", new Action<AstroImage>(i => { })));

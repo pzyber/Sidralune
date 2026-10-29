@@ -51,7 +51,7 @@ namespace Sidralune.Imaging.Analysis
             float[] rms;
             var bg = BackgroundMesh.Estimate(d, w, h, Math.Max(16, Math.Min(opt.BackgroundCell, Math.Min(w, h) / 2)), out rms);
             var sub = new float[d.Length];
-            Parallel.For(0, h, y => { int o = y * w; for (int x = 0; x < w; x++) sub[o + x] = d[o + x] - bg[o + x]; });
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y => { int o = y * w; for (int x = 0; x < w; x++) sub[o + x] = d[o + x] - bg[o + x]; });
             var det = opt.SmoothFwhm > 0 ? Filters.GaussianBlur(sub, w, h, opt.SmoothFwhm / 2.3548) : sub;
             // smoothed noise is lower; scale threshold accordingly
             double noiseScale = opt.SmoothFwhm > 0 ? 1.0 / (2 * Math.Sqrt(Math.PI) * opt.SmoothFwhm / 2.3548) : 1.0;

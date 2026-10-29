@@ -149,7 +149,7 @@ namespace Sidralune.Imaging
             if (Channels == 1) return Data[0];
             var l = new float[PixelCount];
             var r = Data[0]; var g = Data[1]; var b = Data[2];
-            Parallel.For(0, Height, y =>
+            Parallel.For(0, Height, Core.Util.StopRequest.Options, y =>
             {
                 int o = y * Width;
                 for (int x = 0; x < Width; x++) l[o + x] = 0.2126f * r[o + x] + 0.7152f * g[o + x] + 0.0722f * b[o + x];
@@ -178,7 +178,7 @@ namespace Sidralune.Imaging
             foreach (var ch in Data)
             {
                 var a = ch;
-                Parallel.For(0, Height, y =>
+                Parallel.For(0, Height, Core.Util.StopRequest.Options, y =>
                 {
                     int o = y * Width;
                     for (int x = 0; x < Width; x++) a[o + x] = f(a[o + x]);

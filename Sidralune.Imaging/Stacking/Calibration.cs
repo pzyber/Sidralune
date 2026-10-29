@@ -101,7 +101,7 @@ namespace Sidralune.Imaging.Stacking
                 var planes = frames.Select(f => f.Data[c]).ToArray();
                 var dst = master.Data[c];
                 int done = 0;
-                Parallel.For(0, h, () => Tuple.Create(new float[frames.Count], new PixelCombiner(frames.Count, opt, weights)), (y, st, tl) =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, () => Tuple.Create(new float[frames.Count], new PixelCombiner(frames.Count, opt, weights)), (y, st, tl) =>
                 {
                     int o = y * w;
                     var buf = tl.Item1;
@@ -131,7 +131,7 @@ namespace Sidralune.Imaging.Stacking
             {
                 var d = a.Data[c]; var s = b.Data[Math.Min(c, b.Channels - 1)];
                 float sc = (float)scale, ped = (float)pedestal;
-                Parallel.For(0, a.Height, y => { int o = y * a.Width; for (int x = 0; x < a.Width; x++) d[o + x] = d[o + x] - sc * s[o + x] + ped; });
+                Parallel.For(0, a.Height, Core.Util.StopRequest.Options, y => { int o = y * a.Width; for (int x = 0; x < a.Width; x++) d[o + x] = d[o + x] - sc * s[o + x] + ped; });
             }
         }
 
@@ -152,7 +152,7 @@ namespace Sidralune.Imaging.Stacking
                     }
                 var mean = new float[3];
                 for (int c = 0; c < 3; c++) mean[c] = counts[c] > 0 ? (float)(sums[c] / counts[c]) : 1;
-                Parallel.For(0, h, y =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
                 {
                     for (int x = 0; x < w; x++)
                     {
@@ -214,7 +214,7 @@ namespace Sidralune.Imaging.Stacking
                 for (int c = 0; c < light.Channels; c++)
                 {
                     var d = light.Data[c]; var fl = f.Data[Math.Min(c, f.Channels - 1)];
-                    Parallel.For(0, light.Height, y =>
+                    Parallel.For(0, light.Height, Core.Util.StopRequest.Options, y =>
                     {
                         int o = y * light.Width;
                         for (int x = 0; x < light.Width; x++)
@@ -267,7 +267,7 @@ namespace Sidralune.Imaging.Stacking
                 double sigma = Math.Max(st.Noise, st.Mad * Stats.MadToSigma);
                 var o = (float[])d.Clone();
                 int count = 0;
-                Parallel.For(0, h, () => new float[8], (y, s, buf) =>
+                Parallel.For(0, h, Core.Util.StopRequest.Options, () => new float[8], (y, s, buf) =>
                 {
                     for (int x = 0; x < w; x++)
                     {

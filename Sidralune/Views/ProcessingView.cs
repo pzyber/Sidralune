@@ -26,6 +26,7 @@ namespace Sidralune.Views
         private List<BackgroundSample> _samples;
         private readonly PlotControl _hist = new PlotControl { Height = 130, ShowLegend = false };
         // one edit at a time, so a slow step cannot land on an image opened or changed meanwhile; histograms keep the newest
+        // every step works on a copy of the image, so stopping one leaves the image as it was
         private readonly JobSlot _job = new JobSlot(), _histJob = new JobSlot();
 
         public ProcessingView()
@@ -55,6 +56,7 @@ namespace Sidralune.Views
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
             var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
+            bar.Controls.Add(_job.StopButton()); // ends whatever runs; the image stays as it was
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -199,11 +201,14 @@ namespace Sidralune.Views
         }
 
         /// <summary>Run a processing step in the background and record it in the history.</summary>
-        private void Apply(string label, Action<AstroImage> op)
+        private void Apply(string label, Action<AstroImage> op) => ApplyStoppable(label, (img, ct) => op(img));
+
+        /// <summary>As Apply, for a step that can be stopped part way: op gets the job's cancellation token.</summary>
+        private void ApplyStoppable(string label, Action<AstroImage, System.Threading.CancellationToken> op)
         {
             if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
             var work = _img.Clone();
-            _job.Run(label, t => op(work), () =>
+            _job.Run(label, t => op(work, t.Cts.Token), () =>
             {
                 _img = work;
                 Push(label);
@@ -324,7 +329,7 @@ namespace Sidralune.Views
             var corr = bgg.Row("Correction", Ui.EnumCombo(BackgroundCorrection.Subtract));
             Func<BackgroundOptions> bopt = () => new BackgroundOptions { Model = (BackgroundModel)model.SelectedItem, PolynomialDegree = (int)degree.Value, GridSize = (int)gridN.Value, Tolerance = (double)tol.Value, Smoothing = (double)smooth.Value, Correction = (BackgroundCorrection)corr.SelectedItem };
             bgg.Full(new FlatButton("Show samples", Icons.Grid, (s, e) => { if (_img != null) { _samples = BackgroundExtraction.AutoSamples(_img, bopt()); _viewer.Invalidate(); MainForm.Instance.Toast(_samples.Count + " background samples"); } }));
-            bgg.Full(new FlatButton("Extract background (gradient removal)", Icons.Check, (s, e) => { var o = bopt(); var smp = _samples; Apply("Background extraction", img => BackgroundExtraction.Apply(img, o, smp)); _samples = null; }) { Kind = ButtonKind.Primary });
+            bgg.Full(new FlatButton("Extract background (gradient removal)", Icons.Check, (s, e) => { var o = bopt(); var smp = _samples; ApplyStoppable("Background extraction", (img, ct) => BackgroundExtraction.Apply(img, o, smp, ct)); _samples = null; }) { Kind = ButtonKind.Primary });
             list.Add(new Collapsible("Background extraction", bgg, false));
 
             // colour
@@ -338,7 +343,7 @@ namespace Sidralune.Views
             col.Full(new FlatButton("Apply saturation", Icons.Check, (s, e) => { double a = (double)sat.Value; Apply("Saturation", img => ColorOps.Saturation(img, a, 0.05)); }));
             var hue = col.Row("Hue shift (°)", Ui.Num(0, -180, 180));
             col.Full(new FlatButton("Apply hue shift", Icons.Check, (s, e) => { double a = (double)hue.Value; Apply("Hue", img => ColorOps.HueSaturationLightness(img, a, 1, 1)); }));
-            col.Full(new FlatButton("Align RGB channels", Icons.Check, (s, e) => Apply("Align channels", img => ColorOps.AlignChannels(img))));
+            col.Full(new FlatButton("Align RGB channels", Icons.Check, (s, e) => ApplyStoppable("Align channels", (img, ct) => ColorOps.AlignChannels(img, ct))));
             list.Add(new Collapsible("Colour", col, false));
 
             // deconvolution
@@ -355,10 +360,10 @@ namespace Sidralune.Views
             {
                 var o = new DeconvolutionOptions { Method = (DeconvolutionMethod)dm.SelectedItem, Iterations = (int)iters.Value, TvLambda = (double)tv.Value, DeringingAmount = (double)der.Value, WienerK = (double)wk.Value };
                 int pt = psfType.SelectedIndex; double fw = (double)fwhm.Value;
-                Apply("Deconvolution", img =>
+                ApplyStoppable("Deconvolution", (img, ct) =>
                 {
                     Psf psf = pt == 1 ? Psf.Gaussian(fw) : pt == 2 ? Psf.Moffat(fw) : pt == 3 ? Psf.Airy(fw / 1.03 * 1.22) : Psf.FromStars(img.Luminance(), img.Width, img.Height, StarDetector.Detect(img));
-                    Deconvolution.Run(img, psf, o);
+                    Deconvolution.Run(img, psf, o, null, ct);
                 });
             }) { Kind = ButtonKind.Primary });
             list.Add(new Collapsible("Deconvolution", dc, false));
@@ -380,7 +385,7 @@ namespace Sidralune.Views
             var nz = new FormGrid(110);
             var nStr = nz.Row("Strength", Ui.Num(0.7m, 0, 1, 2, 0.05m));
             nz.Full(new FlatButton("Multiscale wavelet denoise", Icons.Check, (s, e) => { double k = (double)nStr.Value; Apply("Wavelet denoise", img => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Wavelets.Denoise(img.Data[c], img.Width, img.Height, new[] { k, k * 0.8, k * 0.5, k * 0.3 }); }); }));
-            nz.Full(new FlatButton("Non-local means (slow, best quality)", Icons.Check, (s, e) => { double k = 1 + 2 * (double)nStr.Value; Apply("NLM denoise", img => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Enhance.NonLocalMeans(img.Data[c], img.Width, img.Height, k, 5, 2); }); }));
+            nz.Full(new FlatButton("Non-local means (slow, best quality)", Icons.Check, (s, e) => { double k = 1 + 2 * (double)nStr.Value; ApplyStoppable("NLM denoise", (img, ct) => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Enhance.NonLocalMeans(img.Data[c], img.Width, img.Height, k, 5, 2, ct); }); }));
             nz.Full(new FlatButton("Remove banding (rows)", Icons.Check, (s, e) => Apply("Banding reduction", img => Enhance.BandingReduction(img, true, false))));
             nz.Full(new FlatButton("Cosmetic correction (hot/cold pixels)", Icons.Check, (s, e) => Apply("Cosmetic correction", img => Imaging.Stacking.Calibration.CosmeticCorrection(img, null, 5, 5))));
             list.Add(new Collapsible("Noise reduction", nz, false));
@@ -441,7 +446,7 @@ namespace Sidralune.Views
             if (_img == null) return;
             var work = _img.Clone();
             AstroImage stars = null;
-            _job.Run("Star removal", t => stars = StarTools.RemoveStars(work), () =>
+            _job.Run("Star removal", t => stars = StarTools.RemoveStars(work, 1.8, 200, t.Cts.Token), () =>
             {
                 _img = work; Push("Star removal"); _viewer.SetImage(_img, false);
                 using (var d = new SaveFileDialog { Filter = "FITS|*.fits", FileName = "stars.fits", Title = "Save the star layer (for screen blending later)" })
