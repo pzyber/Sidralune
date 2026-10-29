@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Imaging.Planetary;
 using Sidralune.Imaging.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static Sidralune.Tests.Checks;
@@ -66,6 +68,28 @@ namespace Sidralune.Tests
             var d = new float[n];
             for (int i = 0; i < n; i++) d[i] = (float)(level + sigma * Stats.NormalQuantile(Math.Max(1e-9, Math.Min(1 - 1e-9, r.NextDouble()))));
             return d;
+        }
+
+        [TestMethod]
+        public void TestStoppedProcessing()
+        {
+            // each long step checks for a stop; with one already made it ends at once
+            int w = 128, h = 96;
+            var img = Synthetic.Render(w, h, Synthetic.RandomStars(30, w, h, 6), Transform2D.Identity, 3, 0.1, 0.002, 6);
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+                var ct = cts.Token;
+                Func<Action, bool> stops = a => { try { a(); return false; } catch (OperationCanceledException) { return true; } };
+                CheckTrue("Non-local means stops", stops(() => Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 5, 2, ct)));
+                CheckTrue("Star removal stops", stops(() => StarTools.RemoveStars(img.Clone(), 1.8, 200, ct)));
+                var geo = new DiscGeometry { Cx = 64, Cy = 48, Radius = 30, Flattening = 1 };
+                var now = DateTime.UtcNow;
+                CheckTrue("Derotation stops", stops(() => SphereDerotation.DerotateAndStack(new[] { img, img }, new[] { geo, geo }, new[] { now, now }, now, 9.9, ct)));
+                var tiles = new List<MosaicStitcher.Tile> { new MosaicStitcher.Tile { Image = img, X = 0, Y = 0 }, new MosaicStitcher.Tile { Image = img, X = 100, Y = 0 } };
+                CheckTrue("Mosaic stitching stops", stops(() => MosaicStitcher.Stitch(tiles, true, ct)));
+            }
+            CheckTrue("Without a stop they still run", Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 3, 1).Length == w * h);
         }
 
         [TestMethod]

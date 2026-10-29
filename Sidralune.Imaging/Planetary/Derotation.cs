@@ -240,12 +240,14 @@ namespace Sidralune.Imaging.Planetary
         }
 
         /// <summary>Derotate a set of images to a common time and average them (WinJUPOS "de-rotation of images").</summary>
-        public static AstroImage DerotateAndStack(IList<AstroImage> images, IList<DiscGeometry> geoms, IList<DateTime> times, DateTime target, double periodHours)
+        public static AstroImage DerotateAndStack(IList<AstroImage> images, IList<DiscGeometry> geoms, IList<DateTime> times, DateTime target, double periodHours,
+            System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var acc = images[0].CloneEmpty();
             var wsum = new float[acc.PixelCount];
             for (int k = 0; k < images.Count; k++)
             {
+                ct.ThrowIfCancellationRequested(); // a stop takes effect between images
                 double dt = (target - times[k]).TotalSeconds;
                 var d = Derotate(images[k], geoms[k], dt, periodHours, false);
                 // align disc centres to the first geometry

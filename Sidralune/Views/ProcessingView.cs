@@ -55,7 +55,8 @@ namespace Sidralune.Views
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
             var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
-            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution" || n == "Align channels")); // the steps that can be stopped part way
+            // the steps that can be stopped part way
+            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution" || n == "Align channels" || n == "NLM denoise" || n == "Star removal"));
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -384,7 +385,7 @@ namespace Sidralune.Views
             var nz = new FormGrid(110);
             var nStr = nz.Row("Strength", Ui.Num(0.7m, 0, 1, 2, 0.05m));
             nz.Full(new FlatButton("Multiscale wavelet denoise", Icons.Check, (s, e) => { double k = (double)nStr.Value; Apply("Wavelet denoise", img => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Wavelets.Denoise(img.Data[c], img.Width, img.Height, new[] { k, k * 0.8, k * 0.5, k * 0.3 }); }); }));
-            nz.Full(new FlatButton("Non-local means (slow, best quality)", Icons.Check, (s, e) => { double k = 1 + 2 * (double)nStr.Value; Apply("NLM denoise", img => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Enhance.NonLocalMeans(img.Data[c], img.Width, img.Height, k, 5, 2); }); }));
+            nz.Full(new FlatButton("Non-local means (slow, best quality)", Icons.Check, (s, e) => { double k = 1 + 2 * (double)nStr.Value; ApplyStoppable("NLM denoise", (img, ct) => { for (int c = 0; c < img.Channels; c++) img.Data[c] = Enhance.NonLocalMeans(img.Data[c], img.Width, img.Height, k, 5, 2, ct); }); }));
             nz.Full(new FlatButton("Remove banding (rows)", Icons.Check, (s, e) => Apply("Banding reduction", img => Enhance.BandingReduction(img, true, false))));
             nz.Full(new FlatButton("Cosmetic correction (hot/cold pixels)", Icons.Check, (s, e) => Apply("Cosmetic correction", img => Imaging.Stacking.Calibration.CosmeticCorrection(img, null, 5, 5))));
             list.Add(new Collapsible("Noise reduction", nz, false));
@@ -445,7 +446,7 @@ namespace Sidralune.Views
             if (_img == null) return;
             var work = _img.Clone();
             AstroImage stars = null;
-            _job.Run("Star removal", t => stars = StarTools.RemoveStars(work), () =>
+            _job.Run("Star removal", t => stars = StarTools.RemoveStars(work, 1.8, 200, t.Cts.Token), () =>
             {
                 _img = work; Push("Star removal"); _viewer.SetImage(_img, false);
                 using (var d = new SaveFileDialog { Filter = "FITS|*.fits", FileName = "stars.fits", Title = "Save the star layer (for screen blending later)" })

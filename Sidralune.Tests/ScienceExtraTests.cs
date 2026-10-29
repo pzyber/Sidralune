@@ -120,6 +120,31 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestStoppedCalculations()
+        {
+            // each long calculation checks for a stop; with one already made it ends at once
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+                var ct = cts.Token;
+                Func<Action, bool> stops = a => { try { a(); return false; } catch (OperationCanceledException) { return true; } };
+                var t = Enumerable.Range(0, 300).Select(i => i * 0.05).ToList();
+                var y = t.Select(x => Math.Sin(2 * Math.PI * x / 1.3)).ToList();
+                CheckTrue("Lomb-Scargle stops", stops(() => PeriodSearch.LombScargle(t, y, null, 0.5, 5, ct: ct)));
+                CheckTrue("Box least squares stops", stops(() => PeriodSearch.Bls(t, y, 0.5, 5, ct: ct)));
+                CheckTrue("Phase dispersion minimisation stops", stops(() => PeriodSearch.Pdm(t, y, 0.5, 5, ct: ct)));
+                var tm = new TransitModel { T0 = 0, Period = 3, Rp = 0.1, A = 10, Inclination = 90, U1 = 0, U2 = 0 };
+                var f = t.Select(x => tm.Flux(x)).ToList();
+                double[] med, lo, hi;
+                CheckTrue("Transit MCMC stops", stops(() => tm.Mcmc(t, f, null, 200, out med, out lo, out hi, ct)));
+                var vesta = MinorBodyStore.BuiltInAsteroids()[3];
+                var start = AstroTime.FromCalendar(2026, 10, 18, 0);
+                CheckTrue("Asteroid occultation search stops", stops(() => OccultationPredictor.Search(vesta, start, start.AddDays(30), new ListCatalog(), ct: ct)));
+                CheckTrue("Lunar occultation prediction stops", stops(() => LunarOccultations.Predict(new Observer { LatitudeDeg = 52, LongitudeDeg = 5 }, start, 30, new ListCatalog(), 7.5, ct)));
+            }
+        }
+
+        [TestMethod]
         public void TestTimingAndLightCurves()
         {
             // star at the anti-solar point: light reaches the Earth 8.3 min before the Sun

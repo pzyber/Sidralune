@@ -101,7 +101,7 @@ The summary shows the number of points, the time span and the RMS scatter.
 
 ### Period search
 
-Choose a **Method**, the **Min period (d)** and **Max period (d)**, and optionally **Detrend order** (a polynomial removed first, for slow trends from airmass or the instrument). Click **Find period**.
+Choose a **Method**, the **Min period (d)** and **Max period (d)**, and optionally **Detrend order** (a polynomial removed first, for slow trends from airmass or the instrument). Click **Find period**. **Stop**, next to it, ends a long search part way.
 
 | Method | Best for |
 |---|---|
@@ -146,7 +146,7 @@ The **Exoplanet transits** tab fits a physical transit model to a light curve fr
 
 **Fit (Levenberg-Marquardt)** fits the mid-transit time, the planet-to-star radius ratio Rp/R*, the orbit's semi-major axis a/R*, the inclination, the baseline flux and a linear slope, using a quadratic limb-darkened model (Mandel & Agol geometry). Results include parameter errors and the reduced χ².
 
-**Posterior (MCMC)** then runs an affine-invariant ensemble sampler on T0, Rp/R*, a/R* and the impact parameter b, and reports the median and ±1σ of each, which are more realistic uncertainties than the least-squares errors.
+**Posterior (MCMC)** then runs an affine-invariant ensemble sampler on T0, Rp/R*, a/R* and the impact parameter b, and reports the median and ±1σ of each, which are more realistic uncertainties than the least-squares errors. With many steps this takes a while; **Stop**, under it, ends it part way.
 
 Both report the transit depth (ppt), duration (hours), impact parameter, the planet's radius in Jupiter and Earth radii, the semi-major axis in AU, and the residual scatter. The plot shows the data in hours from mid-transit with the model.
 

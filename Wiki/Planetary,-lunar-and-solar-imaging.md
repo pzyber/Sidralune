@@ -106,7 +106,7 @@ Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of m
 3. Set the **Target time (UTC)**, normally the middle of the series.
 4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal).
 5. Tick **Compensate** next to **Limb darkening comp.** to correct for the darkening towards the limb.
-6. Click **Derotate & stack to target time**.
+6. Click **Derotate & stack to target time**. **Stop**, under it, ends derotating (or loading images) part way.
 
 Each image's disc is detected (limb fitting), then re-projected on the planet's oblate spheroid as if it had been taken at the target time, using the planet's rotation period, the sub-Earth latitude and the pole's position angle from the ephemeris. The re-projected images are averaged, and **Save result…** stores the derotated stack.
 
@@ -123,7 +123,7 @@ Tools for full-disc and close-up images of the Sun and Moon. Click **Open image�
 | **Enhance prominences** | Brightens the region just outside the limb (with **Prominence gain** and **Prominence gamma**) so that H-alpha prominences show at the same time as the disc |
 | **Colourise H-alpha** | Maps a mono H-alpha image to the familiar orange-red palette |
 | **Invert (negative)** | Inverts the disc, a popular way to show solar surface detail |
-| **Stitch mosaic tiles…** | Combines overlapping tiles of the Moon or Sun into one image. Select the tiles in order (left to right, top to bottom); their overlaps are matched and blended |
+| **Stitch mosaic tiles…** | Combines overlapping tiles of the Moon or Sun into one image. Select the tiles in order (left to right, top to bottom); their overlaps are matched and blended. **Stop**, under it, ends stitching part way |
 | **Save…** | Saves the result |
 
 ## Field rotation on alt-az mounts

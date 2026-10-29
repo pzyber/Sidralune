@@ -61,6 +61,8 @@ namespace Sidralune.AppTests
                 var panel = Button(planetary, "Align RGB channels (ADC)").Parent;
                 return panel.Controls.IndexOf(stopBeside("Align RGB channels (ADC)")()) == panel.Controls.IndexOf(Button(planetary, "Align RGB channels (ADC)")) + 1;
             }));
+            CheckStop("Derotation", Field<JobSlot>(planetary, "_deroJob"), "Derotating", stopBeside("Derotate & stack to target time"));
+            CheckStop("Solar & lunar", Field<JobSlot>(planetary, "_solarJob"), "Stitching mosaic", stopBeside("Stitch mosaic tiles…"));
             var lucky = Field<JobSlot>(planetary, "_luckyJob");
             WhileBusy(lucky, () => CheckTrue("Opening a sequence cannot be stopped part way, so Stop stays greyed out", OnUi(() => !stopBeside("Analyse & stack")().Enabled)));
             var radio = View<RadioView>("radio");
@@ -69,6 +71,18 @@ namespace Sidralune.AppTests
             CheckStop("Process plate solving", Field<JobSlot>(processing, "_job"), "Plate solving", () => Button(processing, "Stop"));
             CheckStop("Process deconvolution", Field<JobSlot>(processing, "_job"), "Deconvolution", () => Button(processing, "Stop"));
             CheckStop("Process channel alignment", Field<JobSlot>(processing, "_job"), "Align channels", () => Button(processing, "Stop"));
+            CheckStop("Process NLM denoise", Field<JobSlot>(processing, "_job"), "NLM denoise", () => Button(processing, "Stop"));
+            CheckStop("Process star removal", Field<JobSlot>(processing, "_job"), "Star removal", () => Button(processing, "Stop"));
+            var photometry = View<PhotometryView>("photometry");
+            Func<Control, string, Func<FlatButton>> stopNextTo = (root, b) => () => All(Button(root, b).Parent).OfType<FlatButton>().First(x => x.Text == "Stop");
+            CheckStop("Photometry period search", Field<JobSlot>(photometry, "_analysisJob"), "Period search", stopNextTo(photometry, "Find period"));
+            CheckStop("Photometry transit MCMC", Field<JobSlot>(photometry, "_transitJob"), "Transit MCMC", stopNextTo(photometry, "Posterior (MCMC)"));
+            WhileBusy(Field<JobSlot>(photometry, "_transitJob"), () => CheckTrue("The quick transit fit has no Stop", OnUi(() => !stopNextTo(photometry, "Posterior (MCMC)")().Enabled)));
+            var solar = View<SolarSystemView>("solarsystem");
+            CheckStop("Satellite passes", Field<JobSlot>(solar, "_passJob"), "Satellite passes", stopNextTo(solar, "Predict passes"));
+            CheckStop("Asteroid occultations", Field<JobSlot>(solar, "_occJob"), "Occultation search", stopNextTo(solar, "Asteroid occultations"));
+            CheckStop("Lunar occultations", Field<JobSlot>(solar, "_occJob"), "Lunar occultations", stopNextTo(solar, "Asteroid occultations"));
+            CheckStop("Minor body positions", Field<JobSlot>(solar, "_positionsJob"), "Minor body positions", stopNextTo(solar, "List"));
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));
             CheckStop("Settings downloads", Tasks.Data, "Downloading data", () => Button(settings, "Stop"));

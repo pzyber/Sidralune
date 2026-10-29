@@ -130,7 +130,8 @@ namespace Sidralune.Science.SolarSystem
     public static class OccultationPredictor
     {
         /// <summary>Search occultations of catalog stars by a minor body between two dates.</summary>
-        public static List<OccultationEvent> Search(MinorBody body, AstroTime start, AstroTime end, IStarCatalogProvider catalog, double magLimit = 13, double albedo = 0.15)
+        public static List<OccultationEvent> Search(MinorBody body, AstroTime start, AstroTime end, IStarCatalogProvider catalog, double magLimit = 13, double albedo = 0.15,
+            System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var events = new List<OccultationEvent>();
             double diam = MpcReporting.DiameterKm(body.H, albedo);
@@ -144,6 +145,7 @@ namespace Sidralune.Science.SolarSystem
             };
             for (double jd = start.JdTT; jd < end.JdTT; jd += step * 6)
             {
+                ct.ThrowIfCancellationRequested(); // a stop takes effect between the 6-hour stretches of track
                 // query stars along the next 6 hours of track
                 var a = geo(jd); var b = geo(jd + step * 6);
                 double ra1, de1, ra2, de2;
@@ -226,13 +228,14 @@ namespace Sidralune.Science.SolarSystem
     public static class LunarOccultations
     {
         /// <summary>Topocentric lunar occultations of catalog stars (and planets) for an observer.</summary>
-        public static List<LunarOccultation> Predict(Observer obs, AstroTime start, double days, IStarCatalogProvider catalog, double magLimit = 7.5)
+        public static List<LunarOccultation> Predict(Observer obs, AstroTime start, double days, IStarCatalogProvider catalog, double magLimit = 7.5, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             var res = new List<LunarOccultation>();
             var open = new Dictionary<string, LunarOccultation>(); // star → event whose reappearance is still to come
             double step = 1.0 / 24;
             for (double jd = start.JdUtc; jd < start.JdUtc + days; jd += step)
             {
+                ct.ThrowIfCancellationRequested(); // a stop takes effect hour by hour
                 var ctx = new SkyContext(obs, new AstroTime(jd));
                 var moon = ctx.BodyPlace(Body.Moon);
                 var stars = catalog.Cone(moon.Astrometric.RaHours * 15, moon.Astrometric.DecDeg, 1.0, magLimit, 500);

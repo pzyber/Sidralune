@@ -317,7 +317,8 @@ namespace Sidralune.Views
             _detrend = g.Row("Detrend order", Ui.Num(0, 0, 5));
             var go = new FlatButton("Find period", Icons.Search, (s, e) => RunPeriodSearch()) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
             var clip = new FlatButton("Sigma clip", Icons.Filter, (s, e) => SigmaClipCurve()); clip.AutoSizeToText();
-            g.Full(Bar(go, clip));
+            var periodStop = _analysisJob.StopButton(n => n == "Period search");
+            g.Full(Bar(go, clip, periodStop));
             var kvw = new FlatButton("Time minimum (Kwee-van Woerden)", Icons.Clock, (s, e) => TimeMinimum()); kvw.Width = 300;
             var oc = new FlatButton("O−C from minima list…", Icons.Chart, (s, e) => OcDiagram()); oc.Width = 300;
             g.Full(kvw); g.Full(oc);
@@ -444,8 +445,9 @@ namespace Sidralune.Views
             Periodogram pg = null;
             _analysisJob.Run("Period search", task =>
             {
-                pg = method == 0 ? PeriodSearch.LombScargle(t, y, e.Any(v => v > 0) ? e : null, pmin, pmax)
-                    : method == 1 ? PeriodSearch.Bls(t, y, pmin, pmax) : PeriodSearch.Pdm(t, y, pmin, pmax);
+                var ct = task.Cts.Token;
+                pg = method == 0 ? PeriodSearch.LombScargle(t, y, e.Any(v => v > 0) ? e : null, pmin, pmax, ct: ct)
+                    : method == 1 ? PeriodSearch.Bls(t, y, pmin, pmax, ct: ct) : PeriodSearch.Pdm(t, y, pmin, pmax, ct: ct);
             }, () =>
             {
                 _periodPlot.Clear();
@@ -545,6 +547,9 @@ namespace Sidralune.Views
             var mc = new FlatButton("Posterior (MCMC)", Icons.Layers, (s, e) => FitTransit(true)); mc.Width = 300;
             g.Full(fit); g.Full(mc);
             _transitJob.Guard(fit, mc);
+            var mcmcStop = _transitJob.StopButton(n => n == "Transit MCMC"); // the fit itself takes a moment; the posterior can take minutes
+            mcmcStop.Width = 300;
+            g.Full(mcmcStop);
             _tfOut = new TextBox { Multiline = true, ReadOnly = true, Height = 260, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             g.Full(_tfOut);
             side.Controls.Add(g);
@@ -597,7 +602,7 @@ namespace Sidralune.Views
                 if (mcmc)
                 {
                     double[] med, lo, hi;
-                    m.Mcmc(t, f, df, steps, out med, out lo, out hi);
+                    m.Mcmc(t, f, df, steps, out med, out lo, out hi, task.Cts.Token);
                     sb.AppendLine("\r\nMCMC posterior (median, −1σ/+1σ):");
                     string[] mn = { "T0", "Rp/R*", "a/R*", "b" };
                     for (int i = 0; i < 4; i++) sb.AppendLine(string.Format("{0,-9}{1,14:0.000000}  −{2:0.000000} +{3:0.000000}", mn[i], med[i], med[i] - lo[i], hi[i] - med[i]));

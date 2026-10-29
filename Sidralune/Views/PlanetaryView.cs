@@ -38,13 +38,6 @@ namespace Sidralune.Views
             _tabs.AddPage("Solar & lunar", BuildSolar());
         }
 
-        /// <summary>Puts a control into a panel right after the button with the given text.</summary>
-        private static void InsertAfter(Control panel, Control c, string after)
-        {
-            panel.Controls.Add(c);
-            panel.Controls.SetChildIndex(c, panel.Controls.IndexOf(panel.Controls.OfType<FlatButton>().First(b => b.Text == after)) + 1);
-        }
-
         private static Card Side(string title, int width) => new Card(title) { Dock = DockStyle.Right, Width = width, AutoScroll = true };
 
         /// <summary>The files of a video or image sequence chosen by the user, or null; asked only when the tab's own job is idle.</summary>
@@ -179,7 +172,7 @@ namespace Sidralune.Views
             // Stop, after Process, ends pre-processing; the rest of the toolbar waits for the job
             var ppStop = _ppJob.StopButton(n => n == "Pre-processing");
             _ppJob.Guard(bar.Controls.Cast<Control>().Concat(new Control[] { scrub }).ToArray());
-            InsertAfter(bar, ppStop, "Process");
+            Ui.InsertAfter(bar, ppStop, "Process");
             panel.Controls.Add(viewer);
             panel.Controls.Add(scrub);
             panel.Controls.Add(plot);
@@ -267,7 +260,7 @@ namespace Sidralune.Views
             // Stop, after Analyse & stack, ends lucky stacking; the rest of the toolbar waits for the job
             var luckyStop = _luckyJob.StopButton(n => n == "Lucky stacking");
             _luckyJob.Guard(bar.Controls.Cast<Control>().ToArray());
-            InsertAfter(bar, luckyStop, "Analyse & stack");
+            Ui.InsertAfter(bar, luckyStop, "Analyse & stack");
             panel.Controls.Add(viewer);
             panel.Controls.Add(plot);
             panel.Controls.Add(side);
@@ -344,7 +337,7 @@ namespace Sidralune.Views
             var sharpStop = _sharpJob.StopButton(n => n == "Deconvolution" || n == "Aligning colour channels");
             sharpStop.Width = 300;
             _sharpJob.Guard(buttons.Controls.Cast<Control>().ToArray());
-            InsertAfter(buttons, sharpStop, "Align RGB channels (ADC)");
+            Ui.InsertAfter(buttons, sharpStop, "Align RGB channels (ADC)");
             buttons.Height = 200;
             g.Full(buttons);
             g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
@@ -460,9 +453,9 @@ namespace Sidralune.Views
                 double nd = (double)north.Value; bool mr = mirror.Checked;
                 _deroJob.Run("Derotating", t =>
                 {
-                    foreach (var it in items) it.Geo = geometry(it, b, nd, mr);
+                    foreach (var it in items) { t.Cts.Token.ThrowIfCancellationRequested(); it.Geo = geometry(it, b, nd, mr); }
                     var imgs = items.Select(i => i.Image).ToList(); var geos = items.Select(i => i.Geo).ToList(); var times = items.Select(i => i.Time).ToList();
-                    res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b));
+                    res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b), t.Cts.Token);
                 }, () =>
                 {
                     viewer.SetImage(res);
@@ -495,7 +488,12 @@ namespace Sidralune.Views
             g.Full(info);
             g.Full(Ui.Hint("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up."));
             list.SelectedIndexChanged += (s, e) => { var it = list.SelectedItem as DeroItem; if (it != null) viewer.SetImage(it.Image); };
-            _deroJob.Guard(g);
+            // Stop, under Derotate & stack, ends derotating or loading images; everything else waits for the job
+            var deroStop = _deroJob.StopButton(n => n == "Derotating" || n.StartsWith("Loading "));
+            deroStop.Width = 300;
+            _deroJob.Guard(g.Controls.Cast<Control>().Where(c => c != bar).Concat(bar.Controls.Cast<Control>()).ToArray());
+            Ui.InsertAfter(bar, deroStop, "Derotate & stack to target time");
+            bar.Height = 120;
             var side = Side("Derotation", 380);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);
@@ -574,10 +572,11 @@ namespace Sidralune.Views
                     {
                         for (int i = 0; i < files.Count; i++)
                         {
+                            t.Cts.Token.ThrowIfCancellationRequested();
                             var ti = ImageFile.Load(files[i]);
                             tiles.Add(new MosaicStitcher.Tile { Image = ti, X = (i % n) * ti.Width * 0.8, Y = (i / n) * ti.Height * 0.8 });
                         }
-                        stitched = MosaicStitcher.Stitch(tiles);
+                        stitched = MosaicStitcher.Stitch(tiles, true, t.Cts.Token);
                     }, () => { img = stitched; limb = null; viewer.SetImage(img); });
                 }
             }, ButtonKind.Normal);
@@ -590,7 +589,12 @@ namespace Sidralune.Views
                 float r = e.X - c.X;
                 using (var pen = new Pen(Theme.Current.Warning, 1.2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash }) gr.DrawEllipse(pen, c.X - r, c.Y - r, 2 * r, 2 * r);
             };
-            _solarJob.Guard(bar);
+            // Stop, under Stitch mosaic tiles, ends stitching; the other tools wait for the job
+            var solarStop = _solarJob.StopButton(n => n == "Stitching mosaic");
+            solarStop.Width = 300;
+            _solarJob.Guard(bar.Controls.Cast<Control>().ToArray());
+            Ui.InsertAfter(bar, solarStop, "Stitch mosaic tiles…");
+            bar.Height += 40;
             var side = Side("Solar & lunar tools", 360);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);

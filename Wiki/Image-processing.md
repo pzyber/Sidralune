@@ -133,7 +133,7 @@ Typical deep-sky values: layer 1 = 0, layers 2–3 = 0.3–1. Click **Apply wave
 | Tool | Description |
 |---|---|
 | **Multiscale wavelet denoise** | Thresholds the fine wavelet layers against the noise level measured at each scale; fast and effective. **Strength** sets how much is removed |
-| **Non-local means (slow, best quality)** | Averages similar patches across the image; preserves edges and detail best, but takes longer |
+| **Non-local means (slow, best quality)** | Averages similar patches across the image; preserves edges and detail best, but takes longer. **Stop** in the toolbar ends it part way |
 | **Remove banding (rows)** | Removes horizontal banding from CMOS and DSLR sensors |
 | **Cosmetic correction (hot/cold pixels)** | Replaces isolated hot and cold pixels by the median of their neighbours |
 
@@ -142,7 +142,7 @@ Typical deep-sky values: layer 1 = 0, layers 2–3 = 0.3–1. Click **Apply wave
 | Tool | Description |
 |---|---|
 | **Reduce stars** | Shrinks stars with morphological erosion blended through a star mask, so the background and nebula are not affected. **Reduction amount** sets the strength |
-| **Remove stars (starless + save star layer)** | Detects stars, fills them in from their surroundings by harmonic diffusion and adds matching noise, producing a starless image. You are asked where to save the star layer, so you can process the nebula and stars separately and blend the stars back later in an image editor (screen blending) |
+| **Remove stars (starless + save star layer)** | Detects stars, fills them in from their surroundings by harmonic diffusion and adds matching noise, producing a starless image. You are asked where to save the star layer, so you can process the nebula and stars separately and blend the stars back later in an image editor (screen blending). **Stop** in the toolbar ends it part way |
 | **HDR multiscale (galaxy/nebula cores)** | Compresses large-scale brightness while keeping small-scale detail, revealing structure in bright cores such as M 42, M 31 or globular clusters |
 | **Local contrast enhancement** | Increases contrast of medium-scale structure |
 
