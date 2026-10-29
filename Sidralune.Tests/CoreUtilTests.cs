@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Sidralune.Core;
 using Sidralune.Core.Catalogs;
 using Sidralune.Core.Coordinates;
@@ -34,6 +38,40 @@ namespace Sidralune.Tests
             public List<double> Values { get; set; } = new List<double>();
             public int[] Numbers;
             public Dictionary<string, double> Map { get; set; } = new Dictionary<string, double>();
+        }
+
+        [TestMethod]
+        public void TestCancelledDownload()
+        {
+            // a local server that sends a large file slowly; the download is stopped part way
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            var server = Task.Run(() =>
+            {
+                using (var c = listener.AcceptTcpClient())
+                using (var s = c.GetStream())
+                {
+                    s.Read(new byte[4096], 0, 4096);
+                    var head = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: 100000000\r\nConnection: close\r\n\r\n");
+                    s.Write(head, 0, head.Length);
+                    var chunk = new byte[65536];
+                    try { for (int i = 0; i < 1000; i++) { s.Write(chunk, 0, chunk.Length); Thread.Sleep(20); } } catch { } // the client hangs up
+                }
+            });
+            string dir = Path.Combine(Path.GetTempPath(), "sidralune_download_test");
+            Directory.CreateDirectory(dir);
+            string path = Path.Combine(dir, "data.bin");
+            using (var cts = new CancellationTokenSource())
+            {
+                bool stopped = false;
+                try { Net.Download("http://127.0.0.1:" + port + "/data.bin", path, (done, total) => { if (done > 200000) cts.Cancel(); }, cts.Token); }
+                catch (Exception) { stopped = true; }
+                CheckTrue("A stopped download ends", stopped);
+                CheckTrue("It leaves neither the file nor a partial one", !File.Exists(path) && !File.Exists(path + ".part"));
+            }
+            listener.Stop();
+            server.Wait(10000);
         }
 
         [TestMethod]

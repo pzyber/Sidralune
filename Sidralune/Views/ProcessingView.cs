@@ -55,6 +55,7 @@ namespace Sidralune.Views
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
             var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
+            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution")); // the steps that can be stopped part way
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -199,11 +200,14 @@ namespace Sidralune.Views
         }
 
         /// <summary>Run a processing step in the background and record it in the history.</summary>
-        private void Apply(string label, Action<AstroImage> op)
+        private void Apply(string label, Action<AstroImage> op) => ApplyStoppable(label, (img, ct) => op(img));
+
+        /// <summary>As Apply, for a step that can be stopped part way: op gets the job's cancellation token.</summary>
+        private void ApplyStoppable(string label, Action<AstroImage, System.Threading.CancellationToken> op)
         {
             if (_img == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
             var work = _img.Clone();
-            _job.Run(label, t => op(work), () =>
+            _job.Run(label, t => op(work, t.Cts.Token), () =>
             {
                 _img = work;
                 Push(label);
@@ -355,10 +359,10 @@ namespace Sidralune.Views
             {
                 var o = new DeconvolutionOptions { Method = (DeconvolutionMethod)dm.SelectedItem, Iterations = (int)iters.Value, TvLambda = (double)tv.Value, DeringingAmount = (double)der.Value, WienerK = (double)wk.Value };
                 int pt = psfType.SelectedIndex; double fw = (double)fwhm.Value;
-                Apply("Deconvolution", img =>
+                ApplyStoppable("Deconvolution", (img, ct) =>
                 {
                     Psf psf = pt == 1 ? Psf.Gaussian(fw) : pt == 2 ? Psf.Moffat(fw) : pt == 3 ? Psf.Airy(fw / 1.03 * 1.22) : Psf.FromStars(img.Luminance(), img.Width, img.Height, StarDetector.Detect(img));
-                    Deconvolution.Run(img, psf, o);
+                    Deconvolution.Run(img, psf, o, null, ct);
                 });
             }) { Kind = ButtonKind.Primary });
             list.Add(new Collapsible("Deconvolution", dc, false));

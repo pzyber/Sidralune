@@ -38,6 +38,13 @@ namespace Sidralune.Views
             _tabs.AddPage("Solar & lunar", BuildSolar());
         }
 
+        /// <summary>Puts a control into a panel right after the button with the given text.</summary>
+        private static void InsertAfter(Control panel, Control c, string after)
+        {
+            panel.Controls.Add(c);
+            panel.Controls.SetChildIndex(c, panel.Controls.IndexOf(panel.Controls.OfType<FlatButton>().First(b => b.Text == after)) + 1);
+        }
+
         private static Card Side(string title, int width) => new Card(title) { Dock = DockStyle.Right, Width = width, AutoScroll = true };
 
         /// <summary>The files of a video or image sequence chosen by the user, or null; asked only when the tab's own job is idle.</summary>
@@ -169,7 +176,10 @@ namespace Sidralune.Views
                 using (var pen = new Pen(Theme.Current.Success, 1.5f)) { g.DrawRectangle(pen, a.X, a.Y, b2.X - a.X, b2.Y - a.Y); g.DrawLine(pen, c.X - 8, c.Y, c.X + 8, c.Y); g.DrawLine(pen, c.X, c.Y - 8, c.X, c.Y + 8); }
             };
             side.Controls.Add(props);
-            _ppJob.Guard(bar, scrub);
+            // Stop, after Process, ends pre-processing; the rest of the toolbar waits for the job
+            var ppStop = _ppJob.StopButton(n => n == "Pre-processing");
+            _ppJob.Guard(bar.Controls.Cast<Control>().Concat(new Control[] { scrub }).ToArray());
+            InsertAfter(bar, ppStop, "Process");
             panel.Controls.Add(viewer);
             panel.Controls.Add(scrub);
             panel.Controls.Add(plot);
@@ -254,7 +264,10 @@ namespace Sidralune.Views
             };
             var side = Side("Stacking options", 360);
             side.Controls.Add(props);
-            _luckyJob.Guard(bar);
+            // Stop, after Analyse & stack, ends lucky stacking; the rest of the toolbar waits for the job
+            var luckyStop = _luckyJob.StopButton(n => n == "Lucky stacking");
+            _luckyJob.Guard(bar.Controls.Cast<Control>().ToArray());
+            InsertAfter(bar, luckyStop, "Analyse & stack");
             panel.Controls.Add(viewer);
             panel.Controls.Add(plot);
             panel.Controls.Add(side);
@@ -312,7 +325,7 @@ namespace Sidralune.Views
             {
                 if (_sharpSource == null) return;
                 var src = _sharpSource.Clone(); double fw = (double)decFwhm.Value; int it = (int)decIt.Value;
-                _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }), () => { _sharpSource = src; UpdateSharpen(); });
+                _sharpJob.Run("Deconvolution", t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }, null, t.Cts.Token), () => { _sharpSource = src; UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn("Align RGB channels (ADC)", Icons.Check, () =>
             {
@@ -327,7 +340,12 @@ namespace Sidralune.Views
                 using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "planet.tif", FilterIndex = 4 })
                     if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
             }, ButtonKind.Primary);
-            _sharpJob.Guard(buttons);
+            // Stop, after the deconvolution button, ends a deconvolution; the other buttons wait for the job
+            var sharpStop = _sharpJob.StopButton(n => n == "Deconvolution");
+            sharpStop.Width = 300;
+            _sharpJob.Guard(buttons.Controls.Cast<Control>().ToArray());
+            InsertAfter(buttons, sharpStop, "Richardson-Lucy deconvolution (TV)");
+            buttons.Height = 200;
             g.Full(buttons);
             g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));
             side.Controls.Add(g);

@@ -40,7 +40,7 @@ Record raw IQ data with your SDR software, centred near 1420.4 MHz, for one to s
 
 ### Opening recordings
 
-**Open ON recording…** reads the file in blocks, computes averaged power spectra with a Blackman-Harris window, removes the DC spike typical of zero-IF receivers, and shows:
+**Open ON recording…** (**Stop** ends the processing of a long recording) reads the file in blocks, computes averaged power spectra with a Blackman-Harris window, removes the DC spike typical of zero-IF receivers, and shows:
 
 - the averaged **Spectrum**, with the hydrogen line marked,
 - a **Waterfall** (time downwards, frequency across, false colour), which shows interference and whether the signal is steady.

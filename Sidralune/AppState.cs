@@ -252,6 +252,8 @@ namespace Sidralune
     public sealed class JobSlot
     {
         private readonly List<Control> _controls = new List<Control>();
+        // the slots guarding each control: a control two slots guard is enabled only while both are idle
+        private static readonly Dictionary<Control, List<JobSlot>> Guards = new Dictionary<Control, List<JobSlot>>();
         private BackgroundTask _job;
         private Action _next; // the newest Replace request, waiting for the job it cancelled to end
 
@@ -266,9 +268,33 @@ namespace Sidralune
         /// <summary>Controls disabled while a job runs: those that start one, and those that change what it works on.</summary>
         public JobSlot Guard(params Control[] controls)
         {
-            _controls.AddRange(controls.Where(c => c != null));
+            foreach (var c in controls.Where(c => c != null))
+            {
+                _controls.Add(c);
+                List<JobSlot> slots;
+                if (!Guards.TryGetValue(c, out slots)) Guards[c] = slots = new List<JobSlot>();
+                if (!slots.Contains(this)) slots.Add(this);
+            }
             Sync();
             return this;
+        }
+
+        /// <summary>
+        /// A Stop button for this slot: available while a job runs that can be stopped (stoppable gets its name; any job
+        /// when not given), it cancels the job and says so.
+        /// </summary>
+        public UI.FlatButton StopButton(Func<string, bool> stoppable = null)
+        {
+            var b = new UI.FlatButton("Stop", UI.Icons.Stop) { Kind = UI.ButtonKind.Danger, Enabled = false };
+            b.AutoSizeToText();
+            b.Click += (s, e) =>
+            {
+                if (_job == null) return;
+                MainForm.Instance?.Toast(_job.Name + " stopped", UI.Icons.Info);
+                Cancel();
+            };
+            Changed += () => b.Enabled = _job != null && (stoppable == null || stoppable(_job.Name));
+            return b;
         }
 
         /// <summary>True, after telling the user, when a job is running; for actions that must wait for it.</summary>
@@ -315,7 +341,7 @@ namespace Sidralune
 
         private void Sync()
         {
-            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = _job == null;
+            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = Guards[c].All(s => s._job == null);
             Changed?.Invoke();
         }
     }

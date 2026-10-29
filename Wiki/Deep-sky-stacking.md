@@ -189,7 +189,7 @@ Mark the comet's nucleus with **Mark comet in selected frame**: select a frame i
 
 ## Stacking
 
-Click **Stack checked frames**. Sidralune:
+Click **Stack checked frames**. **Stop**, under it, ends registering or stacking part way; nothing is kept from a stopped run. Sidralune:
 
 1. builds master bias, dark, dark flat and flat frames from the calibration frames (or uses the masters you loaded),
 2. calibrates and debayers each light frame and warps it onto the reference,

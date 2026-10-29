@@ -29,6 +29,55 @@ namespace Sidralune.AppTests
             CheckTrue("The slot is free again afterwards", WaitFor(() => OnUi(() => !slot.Busy), 30000));
         }
 
+        /// <summary>A slot's Stop button: greyed out unless a job it can stop runs; then it cancels that job and says so.</summary>
+        private static void CheckStop(string what, JobSlot slot, string stoppable, Func<FlatButton> stop)
+        {
+            CheckTrue(what + ": Stop is greyed out with nothing running", OnUi(() => !stop().Enabled));
+            var gate = new ManualResetEventSlim();
+            var job = OnUi(() => slot.Run(stoppable, t => gate.Wait(30000)));
+            try
+            {
+                CheckTrue(what + ": Stop is available while " + stoppable + " runs", OnUi(() => stop().Enabled));
+                OnUi(() => stop().PerformClick());
+                CheckTrue(what + ": Stop cancels it and says so", job.Cts.IsCancellationRequested && WaitFor(() => Toasts().Contains(stoppable + " stopped")));
+            }
+            finally { gate.Set(); }
+            CheckTrue(what + ": Stop is greyed out again", WaitFor(() => OnUi(() => !slot.Busy && !stop().Enabled)));
+        }
+
+        [TestMethod]
+        public void TestStopButtons()
+        {
+            var stacking = View<StackingView>("stacking");
+            CheckStop("Deep sky", Field<JobSlot>(stacking, "_job"), "Stacking", () => Button(stacking, "Stop"));
+            var planetary = View<PlanetaryView>("planetary");
+            Func<string, Func<FlatButton>> stopBeside = b => () => All(Button(planetary, b).Parent).OfType<FlatButton>().First(x => x.Text == "Stop");
+            CheckStop("Pre-process", Field<JobSlot>(planetary, "_ppJob"), "Pre-processing", stopBeside("Process"));
+            CheckStop("Lucky stacking", Field<JobSlot>(planetary, "_luckyJob"), "Lucky stacking", stopBeside("Analyse & stack"));
+            CheckStop("Sharpen & deconvolve", Field<JobSlot>(planetary, "_sharpJob"), "Deconvolution", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            var lucky = Field<JobSlot>(planetary, "_luckyJob");
+            WhileBusy(lucky, () => CheckTrue("Opening a sequence cannot be stopped part way, so Stop stays greyed out", OnUi(() => !stopBeside("Analyse & stack")().Enabled)));
+            var radio = View<RadioView>("radio");
+            CheckStop("Radio", Field<JobSlot>(radio, "_iqJob"), "Processing IQ recording", () => Button(radio, "Stop"));
+            var processing = View<ProcessingView>("processing");
+            CheckStop("Process plate solving", Field<JobSlot>(processing, "_job"), "Plate solving", () => Button(processing, "Stop"));
+            CheckStop("Process deconvolution", Field<JobSlot>(processing, "_job"), "Deconvolution", () => Button(processing, "Stop"));
+            var settings = View<SettingsView>("settings");
+            CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));
+            CheckStop("Settings downloads", Tasks.Data, "Downloading data", () => Button(settings, "Stop"));
+
+            // a button two jobs lock waits for both: Stacking → in Pre-process waits for pre-processing and for lucky stacking
+            var gate = new ManualResetEventSlim();
+            var gate2 = new ManualResetEventSlim();
+            var pp = Field<JobSlot>(planetary, "_ppJob");
+            OnUi(() => lucky.Run("Test job", t => gate.Wait(30000)));
+            OnUi(() => pp.Run("Test job", t => gate2.Wait(30000)));
+            gate2.Set();
+            CheckTrue("A button two jobs lock stays locked while one of them still runs", WaitFor(() => OnUi(() => !pp.Busy)) && OnUi(() => !Button(planetary, "Stacking →").Enabled));
+            gate.Set();
+            CheckTrue("It comes back when both have ended", WaitFor(() => OnUi(() => !lucky.Busy && Button(planetary, "Stacking →").Enabled)));
+        }
+
         [TestMethod]
         public void TestJobSlot()
         {
@@ -112,6 +161,7 @@ namespace Sidralune.AppTests
             {
                 CheckTrue("The tool buttons and Open, Save as, Undo and Redo wait for the edit", OnUi(() => job.Busy && !Button(view, "Apply levels").Enabled && !Button(view, "Deconvolve").Enabled
                     && !Button(view, "Open").Enabled && !Button(view, "Save as").Enabled && !Button(view, "Solve").Enabled));
+                CheckTrue("An ordinary edit cannot be stopped part way, so Stop stays greyed out", OnUi(() => !Button(view, "Stop").Enabled));
                 CheckTrue("The tool settings stay editable (each tool reads them when clicked)", OnUi(() => Field<Panel>(view, "_tools").Enabled
                     && All(Field<Panel>(view, "_tools")).Where(c => c is NumericUpDown || c is ComboBox || c is TextBox).All(c => c.Enabled)));
                 OnUi(() => Call(view, "Apply", "Second edit", new Action<AstroImage>(i => { })));

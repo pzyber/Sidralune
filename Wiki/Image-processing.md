@@ -120,7 +120,7 @@ Deconvolution reverses part of the blurring caused by the atmosphere and optics,
 | **Deringing** | Suppresses the dark rings that deconvolution can create around bright stars |
 | **Wiener K** | Noise-to-signal parameter for the Wiener method |
 
-Click **Deconvolve**. If dark halos appear around stars, increase **Deringing** or reduce **Iterations**.
+Click **Deconvolve**. **Stop** in the toolbar ends it part way, leaving the image as it was. If dark halos appear around stars, increase **Deringing** or reduce **Iterations**.
 
 ## Wavelets
 
@@ -191,4 +191,4 @@ Examples:
 
 ## Statistics and plate solving
 
-**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** plate solves the image without leaving Process, with the solver, search radius and SIP order chosen in [Astrometry → Plate solving](Astrometry-and-framing#plate-solving) and the pointing and scale hints in the image's FITS header. It runs like a tool: the tools, **Open**, **Save as**, **Undo** and **Redo** wait for it. The solution is added to the image as a **Plate solve** step in the history, so the image can then be colour-calibrated photometrically and shown with a WCS grid; **Undo** takes it away again. If no solution is found, a message says so: save the image and open it in Astrometry to try other hints or another solver there. **Solve** itself waits while a tool is working.
+**Stats** shows the image size, statistics for each channel (minimum, maximum, mean, median, standard deviation, MAD and noise), a star summary (count, FWHM, HFR and eccentricity) and the full FITS header. **Solve** plate solves the image without leaving Process, with the solver, search radius and SIP order chosen in [Astrometry → Plate solving](Astrometry-and-framing#plate-solving) and the pointing and scale hints in the image's FITS header. It runs like a tool: the tools, **Open**, **Save as**, **Undo** and **Redo** wait for it. **Stop** ends it part way. The solution is added to the image as a **Plate solve** step in the history, so the image can then be colour-calibrated photometrically and shown with a WCS grid; **Undo** takes it away again. If no solution is found, a message says so: save the image and open it in Astrometry to try other hints or another solver there. **Solve** itself waits while a tool is working.

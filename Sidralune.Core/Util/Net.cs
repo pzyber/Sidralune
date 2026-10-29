@@ -94,21 +94,30 @@ namespace Sidralune.Core.Util
             string tmp = path + ".part";
             var req = Create(url, "GET", 600000);
             req.AutomaticDecompression = DecompressionMethods.None;
-            using (ct.Register(() => req.Abort()))
-            using (var resp = (HttpWebResponse)req.GetResponse())
-            using (var s = resp.GetResponseStream())
-            using (var f = File.Create(tmp))
+            try
             {
-                long total = resp.ContentLength, done = 0;
-                var buf = new byte[1 << 16];
-                int n;
-                while ((n = s.Read(buf, 0, buf.Length)) > 0)
+                using (ct.Register(() => req.Abort()))
+                using (var resp = (HttpWebResponse)req.GetResponse())
+                using (var s = resp.GetResponseStream())
+                using (var f = File.Create(tmp))
                 {
-                    ct.ThrowIfCancellationRequested();
-                    f.Write(buf, 0, n);
-                    done += n;
-                    if (progress != null) progress(done, total);
+                    long total = resp.ContentLength, done = 0;
+                    var buf = new byte[1 << 16];
+                    int n;
+                    while ((n = s.Read(buf, 0, buf.Length)) > 0)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        f.Write(buf, 0, n);
+                        done += n;
+                        if (progress != null) progress(done, total);
+                    }
                 }
+            }
+            catch
+            {
+                // a stopped or failed download leaves no partial file behind
+                try { File.Delete(tmp); } catch { }
+                throw;
             }
             if (File.Exists(path)) File.Delete(path);
             File.Move(tmp, path);

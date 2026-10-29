@@ -64,7 +64,7 @@ The **Lucky stacking** tab is a lucky-imaging stacker with multi-point alignment
 
 1. Click **Open source…**, or **Stacking →** in the Pre-process tab to bring its result here.
 2. Enter the percentages of frames to stack in **Stack %**, for example `10, 25, 50`; one stack is made for each.
-3. Click **Analyse & stack**.
+3. Click **Analyse & stack**. **Stop**, next to it, ends a stack part way. **Stop** next to **Process** in Pre-process does the same for pre-processing.
 
 What happens:
 
@@ -87,7 +87,7 @@ The tab works in two layers: the **source image** (the image you opened), and **
 
 **Wavelets**: six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform, and **Denoise** soft-thresholds the finest layers against the measured noise first. There is no button: a moment after you move a slider, the image is sharpened again from the source (the status bar shows a "Wavelets" task meanwhile). The sliders never pile up, so moving them back undoes the sharpening. Start from the defaults (layers 1–3 at 120, 60 and 20, the rest at 0, Denoise at 60) and adjust: layer 1 brings out the finest detail but also the noise, so for a noisy stack lower it or raise **Denoise**.
 
-**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It changes the source image, so it always sits underneath the wavelets, and the wavelets are applied again to the result. It cannot be undone: to start over, open the image again or send it again with **Sharpen →**. While it runs, **Open image…**, the other buttons and **Sharpen →** in Lucky stacking wait for it.
+**Deconvolution**: **Richardson-Lucy deconvolution (TV)** (**Stop**, under it, ends it part way) restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It changes the source image, so it always sits underneath the wavelets, and the wavelets are applied again to the result. It cannot be undone: to start over, open the image again or send it again with **Sharpen →**. While it runs, **Open image…**, the other buttons and **Sharpen →** in Lucky stacking wait for it.
 
 **Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. Like deconvolution, it changes the source image, and the wavelets are applied again to the result.
 

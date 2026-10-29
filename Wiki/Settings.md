@@ -111,6 +111,7 @@ The data manager lists the catalogues, orbit files and ephemerides you can downl
 |---|---|
 | **Download selected** | Downloads and installs the ticked datasets, then loads them |
 | **Update installed** | Downloads fresh copies of everything already installed. Do this every week or two for comets and asteroids |
+| **Stop** | Ends a download. A dataset that was not completely downloaded is not kept |
 | **Remove selected** | Deletes the ticked datasets. Sidralune falls back to its built-in data |
 | **Open data folder** | Opens `%LOCALAPPDATA%\Sidralune\Data` in Explorer |
 | **Reload catalogs** | Reloads every catalogue from disk, for example after copying files in by hand |

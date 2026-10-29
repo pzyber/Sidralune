@@ -65,6 +65,9 @@ namespace Sidralune.Views
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); return b; };
             _iqJob.Guard(btn("Open ON recording…", Icons.Open, () => OpenIq(true), ButtonKind.Primary),
                 btn("Open OFF / reference recording…", Icons.Open, () => OpenIq(false), ButtonKind.Normal));
+            var iqStop = _iqJob.StopButton(n => n == "Processing IQ recording");
+            iqStop.Width = 320;
+            g.Full(iqStop);
             btn("Live capture (rtl_tcp, 127.0.0.1:1234)", Icons.Connect, () => ToggleLive(), ButtonKind.Normal);
             btn("Use selected object as pointing", Icons.Target, () =>
             {

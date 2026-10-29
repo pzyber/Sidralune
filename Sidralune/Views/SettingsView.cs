@@ -188,7 +188,8 @@ namespace Sidralune.Views
             var rem = new FlatButton("Remove selected", Icons.Remove) { Kind = ButtonKind.Danger }; rem.AutoSizeToText();
             var open = new FlatButton("Open data folder", Icons.Open, (s, e) => System.Diagnostics.Process.Start(AppPaths.Data)); open.AutoSizeToText();
             var reloadBtn = new FlatButton("Reload catalogs", Icons.Refresh, (s, e) => Tasks.Data.Run("Reloading catalogs", t => AppState.LoadData(), () => MainForm.Instance.Toast("Catalogs reloaded"))); reloadBtn.AutoSizeToText();
-            bar.Controls.AddRange(new Control[] { dl, upd, rem, open, reloadBtn });
+            var stopDl = Tasks.Data.StopButton(n => n == "Downloading data"); // ends a download; what is not complete is not kept
+            bar.Controls.AddRange(new Control[] { dl, upd, stopDl, rem, open, reloadBtn });
             Tasks.Data.Guard(dl, upd, rem, reloadBtn);
             var status = new Label { Dock = DockStyle.Top, Height = 60, Padding = new Padding(4, 8, 4, 0) };
             Action refreshStatus = () => status.Text = "Ephemeris: " + EphemerisManager.Describe() + "\r\nStars: " + Core.Catalogs.CatalogManager.Instance.StarSource + "   ·   Deep sky: " + Core.Catalogs.CatalogManager.Instance.DeepSkySource +

@@ -102,7 +102,12 @@ namespace Sidralune.Views
             pg.Row("Black point", _black); pg.Row("Midtones", _mid); pg.Row("Saturation", _sat);
             foreach (var tb in new[] { _black, _mid, _sat }) tb.ValueChanged += (s, e) => ApplyPost();
             post.Controls.Add(pg);
-            _job.Guard(actions, post);
+            // Stop, after Stack checked frames, ends registering or stacking; the other actions wait for the job
+            var stop = _job.StopButton(n => n == "Registering" || n == "Stacking");
+            stop.Width = 225; stop.Margin = new Padding(0, 0, 0, 4);
+            _job.Guard(actions.Controls.Cast<Control>().Concat(new Control[] { post }).ToArray());
+            actions.Controls.Add(stop);
+            actions.Controls.SetChildIndex(stop, actions.Controls.IndexOf(actions.Controls.OfType<FlatButton>().First(b => b.Text == "Stack checked frames")) + 1);
             _job.Changed += () =>
             {
                 if (!_job.Busy) _engine.Settings = _settings;
