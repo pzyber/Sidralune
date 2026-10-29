@@ -69,6 +69,26 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestAlignChannels()
+        {
+            // red and blue shifted against green, as atmospheric dispersion does
+            int w = 256, h = 256;
+            var green = Synthetic.Render(w, h, Synthetic.RandomStars(60, w, h, 5), Transform2D.Identity, 3, 0.1, 0.001, 5);
+            var img = new AstroImage(w, h, new[] { Geometry.Shift(green, 2, 1).Data[0], green.Data[0], Geometry.Shift(green, -1.5, -0.5).Data[0] });
+            var shifts = ColorOps.AlignChannels(img.Clone());
+            CheckTrue("The red and blue shifts are found", Math.Abs(Math.Abs(shifts[0][0]) - 2) < 0.3 && Math.Abs(Math.Abs(shifts[0][1]) - 1) < 0.3
+                && Math.Abs(Math.Abs(shifts[2][0]) - 1.5) < 0.3 && Math.Abs(Math.Abs(shifts[2][1]) - 0.5) < 0.3, string.Join(" / ", shifts.Select(s => s[0].ToString("0.00") + "," + s[1].ToString("0.00"))));
+            using (var cts = new System.Threading.CancellationTokenSource())
+            {
+                cts.Cancel();
+                var copy = img.Clone();
+                bool stopped = false;
+                try { ColorOps.AlignChannels(copy, cts.Token); } catch (OperationCanceledException) { stopped = true; }
+                CheckTrue("A stopped alignment ends without shifting anything", stopped && copy.Data[0].SequenceEqual(img.Data[0]) && copy.Data[2].SequenceEqual(img.Data[2]));
+            }
+        }
+
+        [TestMethod]
         public void TestDebayer()
         {
             CheckTrue("RGGB layout", Debayer.ColorAt(BayerPattern.RGGB, 0, 0) == 0 && Debayer.ColorAt(BayerPattern.RGGB, 1, 0) == 1 && Debayer.ColorAt(BayerPattern.RGGB, 1, 1) == 2);

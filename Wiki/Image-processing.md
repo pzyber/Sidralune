@@ -104,7 +104,7 @@ Apply it to the linear image, before colour calibration. For large nebulae that 
 | **Remove green cast (SCNR)** | Subtractive chromatic noise reduction removes the green tint common in one-shot-colour images. **SCNR amount** sets the strength |
 | **Apply saturation** | Changes colour saturation (**Saturation**, 1 = unchanged) |
 | **Apply hue shift** | Rotates hues by **Hue shift (°)** |
-| **Align RGB channels** | Registers the red and blue channels onto green, correcting chromatic misalignment from atmospheric dispersion or optics |
+| **Align RGB channels** | Registers the red and blue channels onto green, correcting chromatic misalignment from atmospheric dispersion or optics. **Stop** in the toolbar ends it between the channels |
 
 ## Deconvolution
 

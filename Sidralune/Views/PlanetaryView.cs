@@ -332,7 +332,7 @@ namespace Sidralune.Views
                 if (_sharpSource == null) { MainForm.Instance.Toast("Open an image first", Icons.Info); return; }
                 if (_sharpSource.Channels != 3) { MainForm.Instance.Toast("Aligning channels needs a colour image", Icons.Info); return; }
                 var s = _sharpSource.Clone();
-                _sharpJob.Run("Aligning colour channels", t => ColorOps.AlignChannels(s), () => { _sharpSource = s; UpdateSharpen(); });
+                _sharpJob.Run("Aligning colour channels", t => ColorOps.AlignChannels(s, t.Cts.Token), () => { _sharpSource = s; UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn("Save result…", Icons.Save, () =>
             {
@@ -340,11 +340,11 @@ namespace Sidralune.Views
                 using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "planet.tif", FilterIndex = 4 })
                     if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
             }, ButtonKind.Primary);
-            // Stop, after the deconvolution button, ends a deconvolution; the other buttons wait for the job
-            var sharpStop = _sharpJob.StopButton(n => n == "Deconvolution");
+            // Stop, under the two buttons that change the image, ends a deconvolution or a channel alignment; the other buttons wait
+            var sharpStop = _sharpJob.StopButton(n => n == "Deconvolution" || n == "Aligning colour channels");
             sharpStop.Width = 300;
             _sharpJob.Guard(buttons.Controls.Cast<Control>().ToArray());
-            InsertAfter(buttons, sharpStop, "Richardson-Lucy deconvolution (TV)");
+            InsertAfter(buttons, sharpStop, "Align RGB channels (ADC)");
             buttons.Height = 200;
             g.Full(buttons);
             g.Full(Ui.Hint("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."));

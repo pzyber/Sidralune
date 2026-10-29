@@ -55,7 +55,7 @@ namespace Sidralune.Views
             btn("1:1", null, "Actual pixels (1)", () => _viewer.SetZoom(1));
             btn("Stats", Icons.Info, "Statistics and FITS header", ShowInfo);
             var solve = btn("Solve", Icons.Target, "Plate solve the image, with the solver settings chosen in Astrometry", Solve);
-            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution")); // the steps that can be stopped part way
+            bar.Controls.Add(_job.StopButton(n => n == "Plate solving" || n == "Deconvolution" || n == "Align channels")); // the steps that can be stopped part way
             _viewer.ReadoutChanged += s => _readout.Text = s;
             _viewer.FilesDropped += f => { if (f.Length > 0) OpenFile(f[0]); };
             _viewer.PaintOverlay += (g, map) =>
@@ -342,7 +342,7 @@ namespace Sidralune.Views
             col.Full(new FlatButton("Apply saturation", Icons.Check, (s, e) => { double a = (double)sat.Value; Apply("Saturation", img => ColorOps.Saturation(img, a, 0.05)); }));
             var hue = col.Row("Hue shift (°)", Ui.Num(0, -180, 180));
             col.Full(new FlatButton("Apply hue shift", Icons.Check, (s, e) => { double a = (double)hue.Value; Apply("Hue", img => ColorOps.HueSaturationLightness(img, a, 1, 1)); }));
-            col.Full(new FlatButton("Align RGB channels", Icons.Check, (s, e) => Apply("Align channels", img => ColorOps.AlignChannels(img))));
+            col.Full(new FlatButton("Align RGB channels", Icons.Check, (s, e) => ApplyStoppable("Align channels", (img, ct) => ColorOps.AlignChannels(img, ct))));
             list.Add(new Collapsible("Colour", col, false));
 
             // deconvolution

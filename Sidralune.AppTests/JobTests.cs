@@ -55,6 +55,12 @@ namespace Sidralune.AppTests
             CheckStop("Pre-process", Field<JobSlot>(planetary, "_ppJob"), "Pre-processing", stopBeside("Process"));
             CheckStop("Lucky stacking", Field<JobSlot>(planetary, "_luckyJob"), "Lucky stacking", stopBeside("Analyse & stack"));
             CheckStop("Sharpen & deconvolve", Field<JobSlot>(planetary, "_sharpJob"), "Deconvolution", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            CheckStop("Sharpen & deconvolve channel alignment", Field<JobSlot>(planetary, "_sharpJob"), "Aligning colour channels", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            CheckTrue("Sharpen & deconvolve: Stop sits under Align RGB channels", OnUi(() =>
+            {
+                var panel = Button(planetary, "Align RGB channels (ADC)").Parent;
+                return panel.Controls.IndexOf(stopBeside("Align RGB channels (ADC)")()) == panel.Controls.IndexOf(Button(planetary, "Align RGB channels (ADC)")) + 1;
+            }));
             var lucky = Field<JobSlot>(planetary, "_luckyJob");
             WhileBusy(lucky, () => CheckTrue("Opening a sequence cannot be stopped part way, so Stop stays greyed out", OnUi(() => !stopBeside("Analyse & stack")().Enabled)));
             var radio = View<RadioView>("radio");
@@ -62,6 +68,7 @@ namespace Sidralune.AppTests
             var processing = View<ProcessingView>("processing");
             CheckStop("Process plate solving", Field<JobSlot>(processing, "_job"), "Plate solving", () => Button(processing, "Stop"));
             CheckStop("Process deconvolution", Field<JobSlot>(processing, "_job"), "Deconvolution", () => Button(processing, "Stop"));
+            CheckStop("Process channel alignment", Field<JobSlot>(processing, "_job"), "Align channels", () => Button(processing, "Stop"));
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));
             CheckStop("Settings downloads", Tasks.Data, "Downloading data", () => Button(settings, "Stop"));

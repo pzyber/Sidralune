@@ -262,7 +262,7 @@ namespace Sidralune.Imaging
         }
 
         /// <summary>Align colour channels to green by phase correlation (atmospheric dispersion / chromatic aberration fix).</summary>
-        public static double[][] AlignChannels(AstroImage img)
+        public static double[][] AlignChannels(AstroImage img, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
         {
             if (img.Channels < 3) return null;
             int w = img.Width, h = img.Height;
@@ -274,6 +274,7 @@ namespace Sidralune.Imaging
             var shifts = new double[3][];
             for (int c = 0; c < 3; c += 2)
             {
+                ct.ThrowIfCancellationRequested(); // a stop takes effect between the channels
                 double dx, dy;
                 Core.Mathematics.Fft.PhaseCorrelate(g, crop(img.Data[c]), size, size, out dx, out dy, win);
                 shifts[c] = new[] { dx, dy };
