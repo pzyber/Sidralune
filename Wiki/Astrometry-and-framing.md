@@ -57,7 +57,7 @@ Image scale is 206.265 × pixel size (µm) ÷ focal length (mm). Frames taken by
 
 1. Click **Open image…** (or drop a file onto the viewer). Colour raw images are debayered automatically.
 2. Check or enter the hints.
-3. Choose the **Solver** and click **Solve**.
+3. Choose the **Solver** and click **Solve**. **Stop**, available while a solve runs, ends it at once (with ASTAP the ASTAP program is closed too); it also stops an image that is still loading.
 
 The solve runs in the background; the status bar shows progress. While it runs, **Open image…**, **Solve**, **Write WCS to FITS…** and **Sync telescope to solution** wait for it, so the solution always belongs to the image shown.
 

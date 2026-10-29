@@ -86,14 +86,16 @@ namespace Sidralune.AppTests
                 CheckTrue("Solving", OnUi(() => job.Busy));
                 var locked = new[] { "Open image…", "Solve", "Write WCS to FITS…", "Sync telescope to solution" };
                 CheckTrue("Open, Solve, Write WCS and Sync wait for the solve", OnUi(() => locked.All(t => !Button(view, t).Enabled)));
+                CheckTrue("Stop is available while solving", OnUi(() => Button(view, "Stop").Enabled));
                 OnUi(() => Button(view, "Solve").PerformClick());
                 OnUi(() => view.SolveImage(Stars(4)));
                 CheckTrue("An image sent from another workspace waits too", OnUi(() => Field<AstroImage>(view, "_img") == img));
                 int solving; lock (Tasks.Running) solving = Tasks.Running.Count(t => t.Name == "Plate solving" && !t.Done);
                 CheckTrue("Only one plate solve runs", solving == 1, solving + " running");
             }
-            finally { OnUi(() => job.Cancel()); }
-            CheckTrue("Cancelling frees the buttons", WaitFor(() => OnUi(() => !job.Busy && Button(view, "Solve").Enabled), 60000));
+            finally { OnUi(() => Button(view, "Stop").PerformClick()); }
+            CheckTrue("Stop says so", WaitFor(() => Toasts().Contains("Plate solving stopped")));
+            CheckTrue("Stop frees the buttons, and is greyed out again", WaitFor(() => OnUi(() => !job.Busy && Button(view, "Solve").Enabled && !Button(view, "Stop").Enabled), 60000));
             CheckTrue("A cancelled solve leaves no solution on the image", OnUi(() => Field<object>(view, "_solve") == null && Field<ImageViewer>(view, "_viewer").Wcs == null));
         }
 

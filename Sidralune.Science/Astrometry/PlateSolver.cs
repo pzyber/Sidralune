@@ -252,15 +252,26 @@ namespace Sidralune.Science.Astrometry
             }
         }
 
-        /// <summary>Run ASTAP (-f file -r radius -fov fov [-ra -spd]) and read the resulting .wcs file.</summary>
-        public static Wcs SolveWithAstap(string fitsPath, int width, int height, double hintRaDeg, double hintDecDeg, double fovDeg, double radiusDeg = 30, string astap = null)
+        /// <summary>Run ASTAP (-f file -r radius -fov fov [-ra -spd]) and read the resulting .wcs file; cancelling closes ASTAP.</summary>
+        public static Wcs SolveWithAstap(string fitsPath, int width, int height, double hintRaDeg, double hintDecDeg, double fovDeg, double radiusDeg = 30, string astap = null,
+            CancellationToken ct = default(CancellationToken))
         {
             astap = astap ?? AstapPath;
             if (astap == null) throw new FileNotFoundException("ASTAP is not installed");
             var args = string.Format(CultureInfo.InvariantCulture, "-f \"{0}\" -r {1:0.#} -fov {2:0.###}", fitsPath, radiusDeg, double.IsNaN(fovDeg) ? 0 : fovDeg);
             if (!double.IsNaN(hintRaDeg)) args += string.Format(CultureInfo.InvariantCulture, " -ra {0:0.#####} -spd {1:0.#####}", hintRaDeg / 15.0, hintDecDeg + 90);
             var psi = new ProcessStartInfo(astap, args) { UseShellExecute = false, CreateNoWindow = true };
-            using (var p = Process.Start(psi)) p.WaitForExit(180000);
+            using (var p = Process.Start(psi))
+            {
+                // up to three minutes, as before; a cancel ends ASTAP at once
+                var waited = Stopwatch.StartNew();
+                while (!p.WaitForExit(200) && waited.ElapsedMilliseconds < 180000)
+                {
+                    if (!ct.IsCancellationRequested) continue;
+                    try { p.Kill(); } catch { }
+                    ct.ThrowIfCancellationRequested();
+                }
+            }
             string wcs = Path.ChangeExtension(fitsPath, ".wcs");
             if (!File.Exists(wcs)) return null;
             var h = new FitsHeader();
