@@ -150,9 +150,16 @@ namespace Sidralune.Tests
             CheckTrue("The PGC magnitudes are prepared", DataManager.Get("pgc-mag").Prepare != null);
         }
 
+        private class JsonHolder { public double Size = double.NaN, Known = 2.5; public float Small = float.NaN; public int Count; }
+
         [TestMethod]
         public void TestJson()
         {
+            // unknown values (NaN) are written as null and read back as unknown, not as 0
+            var unknown = (JsonHolder)Json.PopulateType(typeof(JsonHolder), Json.Parse(Json.Serialize(new JsonHolder())));
+            CheckTrue("Unknown numbers stay unknown after saving and loading", double.IsNaN(unknown.Size) && float.IsNaN(unknown.Small) && unknown.Known == 2.5 && unknown.Count == 0,
+                unknown.Size + ", " + unknown.Small + ", " + unknown.Known + ", " + unknown.Count);
+            CheckTrue("A null whole number is still 0", ((JsonHolder)Json.PopulateType(typeof(JsonHolder), Json.Parse("{\"Count\": null}"))).Count == 0);
             var o = Json.ParseObject("{ \"a\": 1, \"b\": -2.5e3, \"s\": \"x\\\"y\\\\z\\n\\u00e9\", \"t\": true, \"f\": false, \"n\": null, \"arr\": [1, [2, 3], {\"k\": \"v\"}], \"e\": {}, \"ea\": [] }");
             CheckTrue("Integer parsed as long", o["a"] is long && (long)o["a"] == 1);
             Check("Exponent number", (double)o["b"], -2500, 0);
