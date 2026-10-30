@@ -22,6 +22,36 @@ namespace Sidralune.AppTests
         private static bool Toasted(string start) => WaitFor(() => Toasts().Any(t => t.StartsWith(start)));
 
         [TestMethod]
+        public void TestLabelsFit()
+        {
+            // every button and tick box in every workspace shows its whole text (no "Generate best for tonig…", "Up tonight o…")
+            var keys = new[] { "home", "sky", "planner", "observatory", "stacking", "processing", "planetary", "astrometry", "photometry", "spectro", "solarsystem", "radio", "databases", "scripting", "settings" };
+            var cut = new List<string>();
+            foreach (var key in keys)
+            {
+                var view = OnUi(() => MainForm.Instance.GetView<Control>(key));
+                OnUi(() =>
+                {
+                    foreach (var b in All(view).OfType<FlatButton>().Where(b => !string.IsNullOrEmpty(b.Text) && b.Dock == DockStyle.None))
+                    {
+                        int tw = TextRenderer.MeasureText(b.Text, b.Font, System.Drawing.Size.Empty, TextFormatFlags.NoPrefix).Width;
+                        int room = string.IsNullOrEmpty(b.Icon) ? b.Width : b.Width - (8 + TextRenderer.MeasureText(b.Icon, Theme.IconFont).Width + 2) - 4;
+                        if (tw > room) cut.Add(key + ": button \"" + b.Text + "\" (" + tw + " > " + room + " px)");
+                    }
+                    foreach (var c in All(view).OfType<CheckBox>().Where(c => !string.IsNullOrEmpty(c.Text) && c.Appearance == Appearance.Normal && c.Dock == DockStyle.None))
+                    {
+                        int box = (int)Math.Round(13 * c.DeviceDpi / 96.0);
+                        int tw = TextRenderer.MeasureText(c.Text, c.Font, System.Drawing.Size.Empty, TextFormatFlags.NoPrefix).Width;
+                        if (tw > c.Width - box - 5) cut.Add(key + ": tick box \"" + c.Text + "\" (" + tw + " > " + (c.Width - box - 5) + " px)");
+                    }
+                });
+            }
+            CheckTrue("No button or tick box cuts its text off", cut.Count == 0, string.Join("; ", cut));
+            var planner = View<PlannerView>("planner");
+            CheckTrue("Planner: Generate best for tonight… and Up tonight only are found", OnUi(() => Button(planner, "Generate best for tonight…") != null && Find<CheckBox>(planner, c => c.Text == "Up tonight only") != null));
+        }
+
+        [TestMethod]
         public void TestGridSorting()
         {
             double v;
