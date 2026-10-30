@@ -689,6 +689,17 @@ namespace Sidralune.UI
             // a click on a tick box changes its value at once: the grid would otherwise keep the edit, and show the old
             // tick, until another cell is chosen
             g.CurrentCellDirtyStateChanged += (s, e) => { if (g.IsCurrentCellDirty && g.CurrentCell is DataGridViewCheckBoxCell) g.CommitEdit(DataGridViewDataErrorContexts.Commit); };
+            // cells hold text, which sorts alphabetically ("9.2" after "14.0", "-04:25" after "+19:24"); numbers, angles and
+            // times sort by value instead, and empty cells come after them
+            g.SortCompare += (s, e) =>
+            {
+                double a, b;
+                bool hasA = SortValue(e.CellValue1, out a), hasB = SortValue(e.CellValue2, out b);
+                bool emptyA = IsEmptyCell(e.CellValue1), emptyB = IsEmptyCell(e.CellValue2);
+                if (!(hasA || emptyA) || !(hasB || emptyB) || (emptyA && emptyB)) return; // text: the grid's own order
+                e.SortResult = hasA && hasB ? a.CompareTo(b) : hasA ? -1 : 1;
+                e.Handled = true;
+            };
             // check-box cells are drawn by Windows; paint them in the palette instead
             g.CellPainting += (s, e) =>
             {
@@ -719,6 +730,47 @@ namespace Sidralune.UI
             // editing controls (combo boxes, text boxes in cells) are created on demand
             g.EditingControlShowing += (s, e) => Apply(e.Control);
             if (FirstHookTree(g)) DarkNativeTree(g); // grid scroll bars are child controls
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex Sexagesimal =
+            new System.Text.RegularExpressions.Regex(@"^([+-]?)(\d+):(\d+)(?::(\d+(?:\.\d+)?))?$");
+        private static readonly System.Text.RegularExpressions.Regex NumberWithUnit =
+            new System.Text.RegularExpressions.Regex(@"^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*(?:°|′|″|'|""|%|km|AU|au|h|min|m|s|ms|d|px|ppt|mag|MHz|K|y|ly|pc|kpc|Mpc)?$");
+
+        /// <summary>
+        /// The value a grid cell sorts by: a number, possibly with a unit ("35°", "4.2″", "12 km"), or hours/degrees and
+        /// minutes (and seconds) such as "-04:25:32" or "21:26". False for anything else, which sorts as text.
+        /// </summary>
+        public static bool SortValue(object cell, out double value)
+        {
+            value = double.NaN;
+            if (cell == null || cell is DBNull) return false;
+            if (cell is double || cell is float || cell is int || cell is long || cell is decimal || cell is short)
+            {
+                value = Convert.ToDouble(cell, System.Globalization.CultureInfo.InvariantCulture);
+                return !double.IsNaN(value);
+            }
+            var t = (cell as string ?? cell.ToString()).Trim().Replace('\u2212', '-'); // the typographic minus
+            if (t.Length == 0) return false;
+            var m = Sexagesimal.Match(t);
+            if (m.Success)
+            {
+                double sec = m.Groups[4].Success ? double.Parse(m.Groups[4].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
+                value = (int.Parse(m.Groups[2].Value) + int.Parse(m.Groups[3].Value) / 60.0 + sec / 3600) * (m.Groups[1].Value == "-" ? -1 : 1);
+                return true;
+            }
+            m = NumberWithUnit.Match(t);
+            return m.Success && double.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out value);
+        }
+
+        // an empty cell, or one saying a value is unknown
+        private static bool IsEmptyCell(object cell)
+        {
+            if (cell == null || cell is DBNull) return true;
+            var t = cell as string;
+            if (t == null) return false;
+            t = t.Trim();
+            return t.Length == 0 || t == "—" || t == "–" || t == "-" || t == "?" || t == "n/a";
         }
 
         /// <summary>A tooltip drawn in the palette instead of the system's light yellow or white.</summary>
