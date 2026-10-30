@@ -129,7 +129,7 @@ For the best result, also turn down your screen's brightness: a red screen at fu
 | Collapsible sections | In the Process workspace, click a section heading to expand or collapse it |
 | Number boxes | Type a value, use the arrows, or scroll with the mouse wheel |
 | Property grids | Option lists (stacking settings, pre-processing, sequence instructions) are edited in a two-column grid of names and values. Option names are split into words, and nested option groups can be expanded |
-| Data grids | Click a column heading to sort, double-click a row to open or select it, Ctrl+click or Shift+click to select several rows |
+| Data grids | Click a column heading to sort (numbers such as magnitudes, angles such as RA and Dec, and times sort by value; empty values come last), double-click a row to open or select it, Ctrl+click or Shift+click to select several rows |
 | Image viewers | Mouse wheel zooms around the cursor, drag pans, **0** fits the image, **1** shows actual pixels. The readout under the image shows pixel coordinates, value and, for plate-solved images, RA and Dec |
 | Plots | Drag a box to zoom in and double-click to reset. In plots that select ranges (light curves, spectra) dragging selects the range instead. Right-click for **Reset zoom**, **Copy image**, **Save as PNG…** and **Export data as CSV…** |
 | Drag and drop | Image viewers accept files dropped from Explorer |

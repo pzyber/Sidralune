@@ -22,6 +22,49 @@ namespace Sidralune.AppTests
         private static bool Toasted(string start) => WaitFor(() => Toasts().Any(t => t.StartsWith(start)));
 
         [TestMethod]
+        public void TestGridSorting()
+        {
+            double v;
+            CheckTrue("Numbers, with or without units, have values", Theme.SortValue("9.2", out v) && v == 9.2 && Theme.SortValue("14.0", out v) && v == 14
+                && Theme.SortValue("35°", out v) && v == 35 && Theme.SortValue("4.2″", out v) && v == 4.2 && Theme.SortValue("12 km", out v) && v == 12 && Theme.SortValue("+0.5", out v) && v == 0.5);
+            CheckTrue("Angles and times have values, signs included", Theme.SortValue("-04:25:32", out v) && Math.Abs(v + (4 + 25 / 60.0 + 32 / 3600.0)) < 1e-9
+                && Theme.SortValue("+19:24:02", out v) && v > 19 && Theme.SortValue("21:26", out v) && Math.Abs(v - (21 + 26 / 60.0)) < 1e-9 && Theme.SortValue("−3.5", out v) && v == -3.5);
+            CheckTrue("Names do not", !Theme.SortValue("(192) Nausikaa", out v) && !Theme.SortValue("78P/Gehrels", out v) && !Theme.SortValue("2026 AB", out v) && !Theme.SortValue("", out v));
+
+            // a grid like Solar sys. → Minor bodies: magnitudes and declinations as text, one magnitude unknown
+            var order = OnUi(() =>
+            {
+                using (var f = new Form())
+                {
+                    var g = new DataGridView { Dock = DockStyle.Fill, AllowUserToAddRows = false };
+                    f.Controls.Add(g);
+                    g.Columns.Add("Object", "Object"); g.Columns.Add("Mag", "Mag now"); g.Columns.Add("Dec", "Dec");
+                    g.Rows.Add("(192) Nausikaa", "9.2", "+08:46:40");
+                    g.Rows.Add("(2) Pallas", "8.5", "-19:16:33");
+                    g.Rows.Add("(171) Ophelia", "14.0", "+19:24:02");
+                    g.Rows.Add("(4) Vesta", "6.8", "-04:25:32");
+                    g.Rows.Add("78P/Gehrels", "", "+13:58:50");
+                    Theme.Apply(g);
+                    f.Show();
+                    Func<string> names = () => string.Join(", ", g.Rows.Cast<DataGridViewRow>().Select(r => ((string)r.Cells[0].Value).Split(' ').Last()));
+                    g.Sort(g.Columns["Mag"], System.ComponentModel.ListSortDirection.Ascending);
+                    string up = names();
+                    g.Sort(g.Columns["Mag"], System.ComponentModel.ListSortDirection.Descending);
+                    string down = names();
+                    g.Sort(g.Columns["Dec"], System.ComponentModel.ListSortDirection.Ascending);
+                    string dec = names();
+                    g.Sort(g.Columns["Object"], System.ComponentModel.ListSortDirection.Ascending);
+                    string text = names();
+                    return new[] { up, down, dec, text };
+                }
+            });
+            CheckTrue("Magnitudes sort by value, the unknown one last", order[0] == "Vesta, Pallas, Nausikaa, Ophelia, 78P/Gehrels", order[0]);
+            CheckTrue("…and the other way round", order[1] == "78P/Gehrels, Ophelia, Nausikaa, Pallas, Vesta", order[1]);
+            CheckTrue("Declinations sort by value, south first", order[2] == "Pallas, Vesta, Nausikaa, 78P/Gehrels, Ophelia", order[2]);
+            CheckTrue("Names still sort as text", order[3] == "(171) Ophelia, (192) Nausikaa, (2) Pallas, (4) Vesta, 78P/Gehrels".Split(',').Select(n => n.Trim().Split(' ').Last()).Aggregate((a, b) => a + ", " + b), order[3]);
+        }
+
+        [TestMethod]
         public void TestTickBoxes()
         {
             // Settings → Data: a click on a dataset's tick box ticks it at once, without choosing another row first
