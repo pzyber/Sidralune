@@ -73,7 +73,7 @@ On the image:
 
 - matched stars are circled in green,
 - an RA/Dec grid is drawn,
-- deep-sky objects (with the PGC galaxies installed, also the up to 300 largest PGC galaxies at least 8 pixels across), named and Bayer stars, and comets and asteroids in the field (positions computed for the image's `DATE-OBS`) are marked and labelled, with the minor bodies' predicted magnitudes,
+- deep-sky objects (with the PGC galaxies installed, also up to 300 PGC galaxies brighter than magnitude 16 or at least 8 pixels across, the brightest first), named and Bayer stars, and comets and asteroids in the field (positions computed for the image's `DATE-OBS`) are marked and labelled, with the minor bodies' predicted magnitudes,
 - the readout under the image shows RA and Dec at the cursor.
 
 The list of objects in the field is also printed in the result panel, following the **Minor body labels** choice.

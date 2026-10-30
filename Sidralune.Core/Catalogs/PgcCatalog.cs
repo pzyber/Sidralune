@@ -10,8 +10,9 @@ namespace Sidralune.Core.Catalogs
 {
     /// <summary>
     /// The Principal Galaxies Catalogue (HyperLEDA PGC 2003, VizieR VII/237): about a million galaxies with positions,
-    /// sizes, axis ratios, position angles, types and other names, but no magnitudes. They are kept in compact arrays
-    /// (about 50 MB for the whole catalogue) and become DeepSkyObjects only when a chart, a search or a label needs one.
+    /// sizes, axis ratios, position angles, types and other names. It has no magnitudes; HyperLEDA's total B magnitudes
+    /// can be added (LoadMagnitudes). They are kept in compact arrays (about 80 MB for the whole catalogue) and become
+    /// DeepSkyObjects only when a chart, a search or a label needs one.
     /// </summary>
     public class PgcCatalog
     {
@@ -21,6 +22,7 @@ namespace Sidralune.Core.Catalogs
         private float[] _ra, _dec;     // J2000, radians
         private float[] _size;         // major axis (D25), arcmin; NaN when unknown
         private float[] _ratio;        // major / minor axis; NaN when unknown
+        private float[] _mag;          // total B magnitude from HyperLEDA; NaN when unknown or not loaded
         private short[] _pa;           // position angle, degrees; -1 when unknown
         private byte[] _type;          // 0 galaxy, 1 multiple system, 2 galaxy in a multiple system
         private byte[] _morph;         // index into _morphs
@@ -34,6 +36,9 @@ namespace Sidralune.Core.Catalogs
         public int Count => _num.Length;
         public int Number(int i) => _num[i];
         public double SizeArcmin(int i) => _size[i];
+        public double Magnitude(int i) => _mag[i];
+        /// <summary>How many galaxies have a magnitude.</summary>
+        public int WithMagnitude { get; private set; }
 
         /// <summary>Reads pgc.dat (or pgc.dat.gz as downloaded from CDS).</summary>
         public static PgcCatalog Load(string path)
@@ -99,6 +104,8 @@ namespace Sidralune.Core.Catalogs
                 _num = num.ToArray(), _ra = ra.ToArray(), _dec = dec.ToArray(), _size = size.ToArray(), _ratio = ratio.ToArray(),
                 _pa = pa.ToArray(), _type = type.ToArray(), _morph = morph.ToArray(), _morphs = morphs.ToArray(), _names = names.ToArray()
             };
+            c._mag = new float[c._num.Length];
+            for (int i = 0; i < c._mag.Length; i++) c._mag[i] = float.NaN;
             c.Index();
             return c;
         }
@@ -190,10 +197,73 @@ namespace Sidralune.Core.Catalogs
         }
 
         /// <summary>
-        /// Galaxies within radius (radians) of a position and at least minSizeArcmin across (galaxies of unknown size
-        /// count as 0), largest first, at most max.
+        /// Reads total B magnitudes in the form "pgc,bt" per line (as CompactMagnitudes writes, .gz or plain) and returns
+        /// how many galaxies got one; numbers not in the catalogue are skipped.
         /// </summary>
-        public List<int> Cone(double ra, double dec, double radius, double minSizeArcmin, int max)
+        public int LoadMagnitudes(string path)
+        {
+            using (var f = File.OpenRead(path))
+            {
+                Stream s = path.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? new GZipStream(f, CompressionMode.Decompress) : (Stream)f;
+                using (var r = new StreamReader(new BufferedStream(s, 1 << 20), Encoding.ASCII))
+                    return ReadMagnitudes(r);
+            }
+        }
+
+        public int ReadMagnitudes(TextReader r)
+        {
+            int n = 0;
+            string line;
+            while ((line = r.ReadLine()) != null)
+            {
+                int comma = line.IndexOf(',');
+                if (comma <= 0 || !char.IsDigit(line[0])) continue;
+                double num = Num(line, 0, comma), bt = Num(line, comma + 1, line.Length - comma - 1);
+                if (double.IsNaN(num) || double.IsNaN(bt)) continue;
+                int i = IndexOfNumber((int)num);
+                if (i < 0) continue;
+                if (float.IsNaN(_mag[i])) n++;
+                _mag[i] = (float)bt;
+            }
+            WithMagnitude = n;
+            return n;
+        }
+
+        /// <summary>
+        /// Turns HyperLEDA's answer to "pgc, bt" (comment and header lines, every galaxy it knows) into a compressed
+        /// "pgc,bt" file with only the PGC catalogue's number range: 64 MB become about 7 MB.
+        /// </summary>
+        public static void CompactMagnitudes(string downloaded, string target)
+        {
+            string part = target + ".part";
+            using (var r = new StreamReader(downloaded, Encoding.ASCII))
+            using (var f = File.Create(part))
+            using (var z = new GZipStream(f, CompressionMode.Compress))
+            using (var w = new StreamWriter(z, Encoding.ASCII))
+            {
+                string line;
+                while ((line = r.ReadLine()) != null)
+                {
+                    int comma = line.IndexOf(',');
+                    if (comma <= 0 || !char.IsDigit(line[0])) continue;
+                    double num = Num(line, 0, comma);
+                    if (double.IsNaN(num) || num > MaxNumber || double.IsNaN(Num(line, comma + 1, line.Length - comma - 1))) continue;
+                    w.Write(line.Trim());
+                    w.Write('\n');
+                }
+            }
+            if (File.Exists(target)) File.Delete(target);
+            File.Move(part, target);
+        }
+
+        /// <summary>The highest PGC number of the catalogue (VII/237).</summary>
+        public const int MaxNumber = 3099300;
+
+        /// <summary>
+        /// Galaxies within radius (radians) of a position that are brighter than magLimit, or at least minSizeArcmin
+        /// across, brightest first (those without a magnitude after them, largest first), at most max.
+        /// </summary>
+        public List<int> Cone(double ra, double dec, double radius, double magLimit, double minSizeArcmin, int max)
         {
             var found = new List<int>();
             double cosR = Math.Cos(radius), sinD = Math.Sin(dec), cosD = Math.Cos(dec);
@@ -204,19 +274,20 @@ namespace Sidralune.Core.Catalogs
                 if (zone.Length == 0) continue;
                 double edge = Math.Max(Math.Abs(z - 90), Math.Abs(z + 1 - 90)) * AstroMath.Deg2Rad; // the zone's edge nearest a pole
                 double half = edge >= AstroMath.HalfPi - 1e-6 ? Math.PI : radius / Math.Cos(edge) + 1e-6;
-                if (half >= Math.PI) Scan(zone, 0, zone.Length, ra, cosR, sinD, cosD, minSizeArcmin, found);
+                if (half >= Math.PI) Scan(zone, 0, zone.Length, ra, cosR, sinD, cosD, magLimit, minSizeArcmin, found);
                 else
                 {
                     double lo = AstroMath.NormalizeRad(ra - half), hi = AstroMath.NormalizeRad(ra + half);
-                    if (lo <= hi) Scan(zone, RaBound(zone, lo), RaBound(zone, hi), ra, cosR, sinD, cosD, minSizeArcmin, found);
+                    if (lo <= hi) Scan(zone, RaBound(zone, lo), RaBound(zone, hi), ra, cosR, sinD, cosD, magLimit, minSizeArcmin, found);
                     else
                     {
-                        Scan(zone, RaBound(zone, lo), zone.Length, ra, cosR, sinD, cosD, minSizeArcmin, found);
-                        Scan(zone, 0, RaBound(zone, hi), ra, cosR, sinD, cosD, minSizeArcmin, found);
+                        Scan(zone, RaBound(zone, lo), zone.Length, ra, cosR, sinD, cosD, magLimit, minSizeArcmin, found);
+                        Scan(zone, 0, RaBound(zone, hi), ra, cosR, sinD, cosD, magLimit, minSizeArcmin, found);
                     }
                 }
             }
-            return found.OrderByDescending(i => float.IsNaN(_size[i]) ? 0 : _size[i]).Take(max).ToList();
+            return found.OrderBy(i => float.IsNaN(_mag[i]) ? 1 : 0).ThenBy(i => float.IsNaN(_mag[i]) ? 0 : _mag[i])
+                .ThenByDescending(i => float.IsNaN(_size[i]) ? 0 : _size[i]).Take(max).ToList();
         }
 
         private int RaBound(int[] zone, double ra)
@@ -226,13 +297,13 @@ namespace Sidralune.Core.Catalogs
             return lo;
         }
 
-        private void Scan(int[] zone, int from, int to, double ra, double cosR, double sinD, double cosD, double minSize, List<int> found)
+        private void Scan(int[] zone, int from, int to, double ra, double cosR, double sinD, double cosD, double magLimit, double minSize, List<int> found)
         {
             for (int k = from; k < to; k++)
             {
                 int i = zone[k];
                 double s = float.IsNaN(_size[i]) ? 0 : _size[i];
-                if (s < minSize) continue;
+                if (s < minSize && !(_mag[i] <= magLimit)) continue;
                 double cosSep = sinD * Math.Sin(_dec[i]) + cosD * Math.Cos(_dec[i]) * Math.Cos(_ra[i] - ra);
                 if (cosSep >= cosR) found.Add(i);
             }
@@ -254,7 +325,7 @@ namespace Sidralune.Core.Catalogs
                 MinorAxis = float.IsNaN(_size[i]) || float.IsNaN(_ratio[i]) ? double.NaN : _size[i] / _ratio[i],
                 PositionAngleDeg = _pa[i] < 0 ? double.NaN : _pa[i],
                 Morphology = _morphs[_morph[i]].Length > 0 ? _morphs[_morph[i]] : null,
-                Mag = double.NaN
+                Mag = _mag[i]
             };
             if (_names[i] != null) foreach (var nm in _names[i]) d.AltNames.Add(CatalogManager.Normalize(nm));
             return d;

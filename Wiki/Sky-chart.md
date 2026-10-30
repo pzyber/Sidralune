@@ -107,7 +107,7 @@ The **Limiting magnitude** submenu sets the faintest stars shown (4.0 to 12.0) a
 
 The value chosen in **Layers → Limiting magnitude** (6.5 by default) is the faintest star magnitude shown for the whole sky. With **Deeper when zoomed in** ticked (the default), the limit grows by about 2.2 magnitudes for every tenfold zoom, so the chart always has a useful number of stars without clutter; untick it to keep exactly the chosen limit at every zoom. The limit in use is shown in the caption at the bottom of the chart.
 
-Deep-sky objects have their own limit, and their labels appear progressively as you zoom in. With the PGC galaxies installed (**Settings → Data**), galaxies that are not NGC/IC objects appear once the field is 15° or narrower: the catalogue has no magnitudes, so the larger ones are shown first (at least a third of the field width in arcminutes, so 5′ at 15° and everything at a few arcminutes), and they are labelled with their PGC number below 3°. Comets and asteroids are shown down to about two magnitudes fainter than the star limit (at most magnitude 15).
+Deep-sky objects have their own limit, and their labels appear progressively as you zoom in. With the PGC galaxies installed (**Settings → Data**), galaxies that are not NGC/IC objects appear once the field is 15° or narrower. With the PGC galaxy magnitudes installed too, those within the deep-sky magnitude limit are shown, brightest first; galaxies at least a third of the field width in arcminutes across (5′ at 15°) are shown as well, which covers those without a magnitude. They are labelled with their PGC number below 3°. Comets and asteroids are shown down to about two magnitudes fainter than the star limit (at most magnitude 15).
 
 ## What is drawn and how
 

@@ -125,6 +125,29 @@ namespace Sidralune.Tests
             catch (WebException) { failed = true; }
             CheckTrue("Without a mirror the failure is reported", failed && !File.Exists(Path.Combine(dir, "none.txt")));
             CheckTrue("The PGC galaxies have a mirror", DataManager.Get("pgc").Mirrors.Length > 0);
+
+            // a dataset that is prepared after the download: only the prepared file is kept
+            var again = new TcpListener(IPAddress.Loopback, 0);
+            again.Start();
+            int port2 = ((IPEndPoint)again.LocalEndpoint).Port;
+            var prepared = new Dataset { Name = "Prepared", Url = "http://127.0.0.1:" + port2 + "/raw.txt", FileName = "prepared.txt", Folder = dir, Prepare = (from, to) => File.WriteAllText(to, File.ReadAllText(from).ToUpperInvariant()) };
+            var server2 = Task.Run(() =>
+            {
+                using (var c = again.AcceptTcpClient())
+                using (var s = c.GetStream())
+                {
+                    s.Read(new byte[4096], 0, 4096);
+                    var head = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                    s.Write(head, 0, head.Length);
+                    s.Write(body, 0, body.Length);
+                }
+            });
+            if (File.Exists(prepared.LocalPath)) File.Delete(prepared.LocalPath);
+            DataManager.Install(prepared);
+            server2.Wait(5000);
+            again.Stop();
+            CheckTrue("A prepared dataset keeps only the prepared file", File.ReadAllText(prepared.LocalPath) == "CATALOGUE DATA" && !File.Exists(prepared.LocalPath + ".download"));
+            CheckTrue("The PGC magnitudes are prepared", DataManager.Get("pgc-mag").Prepare != null);
         }
 
         [TestMethod]

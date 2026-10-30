@@ -136,7 +136,7 @@ namespace Sidralune.Core.Catalogs
                 string addendum = FirstExisting(folder, "addendum.csv");
                 if (addendum != null) LoadOpenNgc(addendum, true);
                 string pgc = FirstExisting(folder, "pgc.dat.gz", "pgc.dat");
-                if (pgc != null) LoadPgc(pgc);
+                if (pgc != null) LoadPgc(pgc, FirstExisting(folder, "pgc_bt.csv.gz"));
                 string lines = FirstExisting(folder, "constellationship.fab");
                 if (lines != null) LoadStellariumLines(lines);
                 string bounds = FirstExisting(folder, "constellation_boundaries.dat");
@@ -611,12 +611,14 @@ namespace Sidralune.Core.Catalogs
         }
 
         /// <summary>
-        /// Loads the Principal Galaxies Catalogue (pgc.dat.gz from CDS). A galaxy that is also an OpenNGC object stays
-        /// that object: OpenNGC lists the PGC number of most of its galaxies, and the others are matched by their names.
+        /// Loads the Principal Galaxies Catalogue (pgc.dat.gz from CDS), with HyperLEDA's B magnitudes when given. A galaxy
+        /// that is also an OpenNGC object stays that object: OpenNGC lists the PGC number of most of its galaxies, and the
+        /// others are matched by their names.
         /// </summary>
-        public void LoadPgc(string path)
+        public void LoadPgc(string path, string magnitudes = null)
         {
             var p = PgcCatalog.Load(path);
+            if (magnitudes != null) p.LoadMagnitudes(magnitudes);
             for (int i = 0; i < p.Count; i++)
             {
                 if (_dsoByPgc.ContainsKey(p.Number(i))) continue;
@@ -628,7 +630,7 @@ namespace Sidralune.Core.Catalogs
             }
             lock (_pgcObjects) _pgcObjects.Clear();
             Pgc = p;
-            DeepSkySource += " + PGC (" + p.Count + " galaxies)";
+            DeepSkySource += " + PGC (" + p.Count + " galaxies" + (p.WithMagnitude > 0 ? ", " + p.WithMagnitude + " with magnitudes" : "") + ")";
             Log.Info("Catalogs", "Loaded PGC: " + p.Count + " galaxies");
         }
 
@@ -650,15 +652,15 @@ namespace Sidralune.Core.Catalogs
         }
 
         /// <summary>
-        /// PGC galaxies (when the catalogue is installed) within radius (radians) of a position and at least
-        /// minSizeArcmin across, largest first, at most max. Galaxies that are also OpenNGC objects are left out: those
-        /// come from DeepSky, with their magnitudes and common names.
+        /// PGC galaxies (when the catalogue is installed) within radius (radians) of a position that are brighter than
+        /// magLimit or at least minSizeArcmin across, brightest first (then the largest of those without a magnitude), at
+        /// most max. Galaxies that are also OpenNGC objects are left out: those come from DeepSky, with their common names.
         /// </summary>
-        public void PgcCone(double ra, double dec, double radius, double minSizeArcmin, int max, List<DeepSkyObject> result)
+        public void PgcCone(double ra, double dec, double radius, double magLimit, double minSizeArcmin, int max, List<DeepSkyObject> result)
         {
             var pgc = Pgc;
             if (pgc == null) return;
-            foreach (var i in pgc.Cone(ra, dec, radius, minSizeArcmin, max))
+            foreach (var i in pgc.Cone(ra, dec, radius, magLimit, minSizeArcmin, max))
                 if (!_dsoByPgc.ContainsKey(pgc.Number(i))) result.Add(pgc.Object(i));
         }
 

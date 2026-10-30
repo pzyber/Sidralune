@@ -13,6 +13,8 @@ namespace Sidralune.Core.Util
         public string Id, Name, Description, Url, FileName, Folder, License;
         /// <summary>Other places with the same file, tried in turn when Url cannot be reached.</summary>
         public string[] Mirrors;
+        /// <summary>Turns the downloaded file (first path) into the installed one (second path), e.g. to keep only what is used.</summary>
+        public Action<string, string> Prepare;
         public long ApproxBytes;
         public bool Gzip;
         public bool Recommended;
@@ -35,8 +37,11 @@ namespace Sidralune.Core.Util
             new Dataset { Id = "openngc", Name = "OpenNGC catalogue", Description = "NGC/IC objects with sizes, magnitudes, surface brightness and common names (Mattia Verga).", Url = "https://raw.githubusercontent.com/mattiaverga/OpenNGC/master/database_files/NGC.csv", FileName = "NGC.csv", Folder = AppPaths.Catalogs, ApproxBytes = 4200000, Recommended = true, License = "CC BY-SA 4.0" },
             new Dataset { Id = "openngc-add", Name = "OpenNGC addendum", Description = "Additional objects (Messier not in NGC/IC, Caldwell, Barnard...).", Url = "https://raw.githubusercontent.com/mattiaverga/OpenNGC/master/database_files/addendum.csv", FileName = "addendum.csv", Folder = AppPaths.Catalogs, ApproxBytes = 40000, Recommended = true, License = "CC BY-SA 4.0" },
             // kept compressed: 19 MB instead of 336 MB, and read straight from the .gz
-            new Dataset { Id = "pgc", Name = "PGC galaxies (HyperLEDA)", Description = "Principal Galaxies Catalogue: about 983,000 galaxies with positions, sizes, types and other names (UGC, MCG, ESO…), but no magnitudes. Shown in the sky chart when zoomed in, found by search and labelled on plate-solved images.", Url = "https://cdsarc.cds.unistra.fr/ftp/VII/237/pgc.dat.gz", FileName = "pgc.dat.gz", Folder = AppPaths.Catalogs, ApproxBytes = 19338174,
+            new Dataset { Id = "pgc", Name = "PGC galaxies (HyperLEDA)", Description = "Principal Galaxies Catalogue: about 983,000 galaxies with positions, sizes, types and other names (UGC, MCG, ESO…); magnitudes come with the PGC galaxy magnitudes. Shown in the sky chart when zoomed in, found by search and labelled on plate-solved images.", Url = "https://cdsarc.cds.unistra.fr/ftp/VII/237/pgc.dat.gz", FileName = "pgc.dat.gz", Folder = AppPaths.Catalogs, ApproxBytes = 19338174,
                 Mirrors = new[] { "https://vizier.cfa.harvard.edu/ftp/cats/VII/237/pgc.dat.gz" }, License = "CDS / HyperLEDA (Paturel et al. 2003), free for scientific use" },
+            // HyperLEDA answers the query for every galaxy it knows (64 MB in about 20 s); only the PGC's are kept, compressed
+            new Dataset { Id = "pgc-mag", Name = "PGC galaxy magnitudes (HyperLEDA)", Description = "Total B magnitudes for about 917,000 of the PGC galaxies (93 %), from HyperLEDA. Used with the PGC galaxies: shown for each galaxy, and the sky chart and plate-solve labels pick galaxies by brightness. Kept as about 7 MB.", Url = "http://atlas.obs-hp.fr/hyperleda/fG.cgi?n=meandata&c=o&of=1,leda,simbad&nra=l&nakd=1&d=pgc%2C%20bt&sql=bt%20is%20not%20null&ob=&a=csv%5B%2C%5D", FileName = "pgc_bt.csv.gz", Folder = AppPaths.Catalogs, ApproxBytes = 64653552,
+                Prepare = Catalogs.PgcCatalog.CompactMagnitudes, License = "HyperLEDA (Makarov et al. 2014), free for scientific use" },
             new Dataset { Id = "lines", Name = "Constellation stick figures", Description = "Western constellation lines from Stellarium (HIP based).", Url = "https://raw.githubusercontent.com/Stellarium/stellarium/v0.22.2/skycultures/western/constellationship.fab", FileName = "constellationship.fab", Folder = AppPaths.Catalogs, ApproxBytes = 12000, Recommended = true, License = "GPL (Stellarium)" },
             new Dataset { Id = "bounds", Name = "IAU constellation boundaries", Description = "J2000 boundary segments (Davenhall & Leggett / Stellarium).", Url = "https://raw.githubusercontent.com/Stellarium/stellarium/v0.22.2/data/constellation_boundaries.dat", FileName = "constellation_boundaries.dat", Folder = AppPaths.Catalogs, ApproxBytes = 600000, Recommended = true, License = "GPL (Stellarium)" },
             new Dataset { Id = "comets", Name = "MPC comet elements", Description = "Orbital elements of all comets (Minor Planet Center), updated daily.", Url = "https://minorplanetcenter.net/iau/MPCORB/CometEls.txt", FileName = "CometEls.txt", Folder = AppPaths.Catalogs, ApproxBytes = 200000, Recommended = true, License = "MPC" },
@@ -52,7 +57,7 @@ namespace Sidralune.Core.Util
         public static void Install(Dataset d, Action<long, long> progress = null, CancellationToken ct = default(CancellationToken))
         {
             Directory.CreateDirectory(d.Folder);
-            string target = d.Gzip ? d.LocalPath + ".gz" : d.LocalPath;
+            string target = d.Prepare != null ? d.LocalPath + ".download" : d.Gzip ? d.LocalPath + ".gz" : d.LocalPath;
             // the dataset's own address first, then its mirrors when that server cannot be reached or fails
             var urls = new[] { d.Url }.Concat(d.Mirrors ?? new string[0]).ToList();
             for (int k = 0; ; k++)
@@ -63,7 +68,12 @@ namespace Sidralune.Core.Util
                     Log.Warn("Data", d.Name + ": " + new Uri(urls[k]).Host + " failed (" + ex.Message + "), trying " + new Uri(urls[k + 1]).Host);
                 }
             }
-            if (d.Gzip)
+            if (d.Prepare != null)
+            {
+                try { d.Prepare(target, d.LocalPath); }
+                finally { File.Delete(target); }
+            }
+            else if (d.Gzip)
             {
                 Net.Gunzip(target, d.LocalPath);
                 File.Delete(target);

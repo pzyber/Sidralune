@@ -59,13 +59,30 @@ namespace Sidralune.Tests
             CheckTrue("A multiple system is a galaxy group, a galaxy in one a galaxy", group.Type == ObjectType.GalaxyGroup && pgc.Object(pgc.IndexOf("PGC 8")).Type == ObjectType.Galaxy);
             CheckTrue("Names of multiple systems lose their brackets", pgc.IndexOf("ESO 12-11") == pgc.IndexOf("PGC 8"));
             CheckTrue("An unknown position angle stays unknown", double.IsNaN(pgc.Object(pgc.IndexOf("PGC 190")).PositionAngleDeg));
-            var near = pgc.Cone(d.Ra, d.Dec, 1 * AstroMath.Deg2Rad, 0, 10);
+            var near = pgc.Cone(d.Ra, d.Dec, 1 * AstroMath.Deg2Rad, 99, 0, 10);
             CheckTrue("A search around a position finds the galaxies there", near.Count == 1 && near[0] == m31);
-            CheckTrue("…and leaves out smaller ones than asked for", pgc.Cone(d.Ra, d.Dec, 1 * AstroMath.Deg2Rad, 300, 10).Count == 0);
-            var wide = pgc.Cone(0, 0, 180 * AstroMath.Deg2Rad, 0, 10);
+            CheckTrue("…and leaves out smaller ones than asked for", pgc.Cone(d.Ra, d.Dec, 1 * AstroMath.Deg2Rad, 99, 300, 10).Count == 0);
+            var wide = pgc.Cone(0, 0, 180 * AstroMath.Deg2Rad, 99, 0, 10);
             CheckTrue("…across right ascension 0h and the whole sky, the largest first", wide.Count == 4 && wide[0] == m31);
+            CheckTrue("Without magnitudes loaded, none is known", double.IsNaN(d.Mag) && pgc.WithMagnitude == 0);
             var prefix = pgc.Search("CGCG 49", 10);
             CheckTrue("Names are searched by their beginning", prefix.Count == 1 && pgc.Number(prefix[0]) == 190);
+
+            // HyperLEDA's B magnitudes: its answer (comments, header, galaxies beyond the PGC's numbers) is compacted, then loaded
+            string raw = Path.Combine(dir, "leda.csv"), mags = Path.Combine(dir, "pgc_bt.csv.gz");
+            File.WriteAllLines(raw, new[] { "# Query Description", "#---,---", "pgc, bt", "#---,---", "2557,4.295", "190,15.8", "8,", "130029,17.4", "4000000,18.0", "# Date: 2026-10-30" });
+            PgcCatalog.CompactMagnitudes(raw, mags);
+            string kept;
+            using (var z = new StreamReader(new GZipStream(File.OpenRead(mags), CompressionMode.Decompress))) kept = z.ReadToEnd();
+            CheckTrue("Only galaxies of the PGC's number range with a magnitude are kept", kept == "2557,4.295\n190,15.8\n130029,17.4\n", kept);
+            CheckTrue("Their magnitudes are loaded", pgc.LoadMagnitudes(mags) == 3 && pgc.WithMagnitude == 3);
+            Check("…and given to the galaxy", pgc.Object(m31).Mag, 4.295, 1e-6);
+            CheckTrue("A galaxy without one stays without", double.IsNaN(pgc.Object(pgc.IndexOf("PGC 8")).Mag));
+            var bright = pgc.Cone(0, 0, 180 * AstroMath.Deg2Rad, 16, 99, 10);
+            CheckTrue("Brighter galaxies than the limit are picked, brightest first", bright.Count == 2 && bright[0] == m31 && pgc.Number(bright[1]) == 190);
+            var mixed = pgc.Cone(0, 0, 180 * AstroMath.Deg2Rad, 16, 0.3, 10);
+            CheckTrue("…and the large ones of the rest, after them", mixed.Count == 4 && pgc.Number(mixed[2]) == 130029 && pgc.Number(mixed[3]) == 8,
+                string.Join(", ", mixed.Select(i => pgc.Number(i))));
 
             // with OpenNGC, a galaxy in both catalogues is found and shown once, as its NGC object
             string csv = Path.Combine(dir, "NGC.csv");
@@ -79,16 +96,17 @@ namespace Sidralune.Tests
             cm.LoadOpenNgc(csv);
             var ngc = cm.Find("NGC 224");
             CheckTrue("OpenNGC's zero-padded numbers are found without the zeros", cm.Find("PGC 2557") == ngc && cm.Find("UGC 454") == ngc && cm.Find("UGC 00454") == ngc);
-            cm.LoadPgc(gz);
+            cm.LoadPgc(gz, mags);
             CheckTrue("A PGC galaxy that is also an NGC object stays that object", cm.Find("PGC 2557") == ngc && cm.Find("CGCG 535-17") == ngc && cm.Find("GIN 801") == ngc);
             var only = cm.Find("PGC 190") as DeepSkyObject;
             CheckTrue("Other PGC galaxies are found, with their constellation", only != null && only.Id == "PGC 190" && !string.IsNullOrEmpty(only.Constellation) && cm.Find("MCG 5-01-027") == only);
             CheckTrue("Found twice, it is the same object", cm.Find("PGC 190") == only);
             CheckTrue("Search lists PGC galaxies after the other catalogues", cm.Search("CGCG 49").Contains(only) && cm.Search("PGC 2557").Count(o => o == ngc) == 1);
             var shown = new List<DeepSkyObject>();
-            cm.PgcCone(ngc.Ra, ngc.Dec, 180 * AstroMath.Deg2Rad, 0, 10, shown);
+            cm.PgcCone(ngc.Ra, ngc.Dec, 180 * AstroMath.Deg2Rad, 99, 0, 10, shown);
             CheckTrue("Charts get the PGC galaxies that are not NGC objects", shown.Count == 3 && shown.All(o => o.Id != "PGC 2557"), string.Join(", ", shown.Select(o => o.Id)));
-            CheckTrue("The deep-sky source says PGC is loaded", cm.DeepSkySource.Contains("PGC (4 galaxies)"), cm.DeepSkySource);
+            CheckTrue("The deep-sky source says PGC is loaded, with how many have magnitudes", cm.DeepSkySource.Contains("PGC (4 galaxies, 3 with magnitudes)"), cm.DeepSkySource);
+            CheckTrue("A PGC galaxy found by name has its magnitude", Math.Abs(only.Mag - 15.8) < 1e-6);
         }
 
         [TestMethod]

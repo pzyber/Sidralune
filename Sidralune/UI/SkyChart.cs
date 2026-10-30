@@ -486,9 +486,10 @@ namespace Sidralune.UI
             ci.ToSpherical(out cra, out cdec);
             double mlim = Layers.DsoMagLimit + 2 * Math.Log10(Math.Max(1, 60 / FovDeg));
             CatalogManager.Instance.DeepSky.Cone(cra, cdec, ViewRadius(), 99, list);
-            // PGC galaxies (when installed) have no magnitudes: zoomed in, the larger ones are shown, the largest first
+            // PGC galaxies (when installed), zoomed in: those within the magnitude limit, brightest first, and those at least a
+            // third of the field width in arcminutes across (some have no magnitude)
             int ngc = list.Count;
-            if (FovDeg <= 15) CatalogManager.Instance.PgcCone(cra, cdec, ViewRadius(), FovDeg / 3, 1000, list);
+            if (FovDeg <= 15) CatalogManager.Instance.PgcCone(cra, cdec, ViewRadius(), mlim, FovDeg / 3, 1000, list);
             int drawn = 0;
             for (int k = 0; k < list.Count; k++)
             {
