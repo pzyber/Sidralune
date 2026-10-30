@@ -75,7 +75,7 @@ The table recalculates automatically when you change the active site. After chan
 - Clusters (open and globular)
 - Planetary nebulae
 
-Sidralune then examines every deep-sky object brighter than magnitude 13 at hourly steps through tonight's dark period. An object counts only while it is above 25° altitude. At each step it predicts the detection margin with your telescope, eyepiece, eyes and sky, including moonlight. The 60 objects with the largest margins become a new list named after the type and date, for example "Galaxies 2026-10-18".
+Sidralune then examines every deep-sky object brighter than magnitude 13 at hourly steps through tonight's dark period. An object counts only while it is above 25° altitude. At each step it predicts the detection margin with your telescope, eyepiece, eyes and sky, including moonlight. The 60 objects with the largest margins become a new list named after the type and date, for example "Galaxies 2026-10-18". While it works, the button waits and **Stop**, next to it, ends it; a stopped run adds no list.
 
 ## The altitude graph
 

@@ -583,6 +583,23 @@ namespace Sidralune.UI
 
         private static void HookCheckBox(ButtonBase b)
         {
+            // the box and the text are drawn below, larger than the system's own layout; a box sized by the system would
+            // cut the text off ("Up tonight o..."), so it is sized to the drawing instead, now and when text or font change
+            if (b.AutoSize)
+            {
+                Action fit = () =>
+                {
+                    int box = (int)Math.Round(13 * b.DeviceDpi / 96.0);
+                    int h = b.PreferredSize.Height;
+                    int tw = string.IsNullOrEmpty(b.Text) ? 0 : TextRenderer.MeasureText(b.Text, b.Font, Size.Empty, TextFormatFlags.NoPrefix).Width + 4;
+                    b.AutoSize = false;
+                    b.Size = new Size(box + 5 + tw, Math.Max(h, box + 2));
+                };
+                fit();
+                b.TextChanged += (s, e) => fit();
+                b.FontChanged += (s, e) => fit();
+                b.DpiChangedAfterParent += (s, e) => fit();
+            }
             // ButtonBase raises Paint after its own drawing, so the whole control is redrawn here
             b.Paint += (s, e) =>
             {

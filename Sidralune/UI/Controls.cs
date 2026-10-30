@@ -42,15 +42,28 @@ namespace Sidralune.UI
             AutoSizeToText();
         }
 
+        private int _fitWidth = -1; // the width AutoSizeToText gave; while the button keeps it, it follows changes of text and font
+        private bool Fitted => _fitWidth >= 0 && Width == _fitWidth;
+
+        /// <summary>
+        /// Makes the button as wide as its icon and text need, measured as OnPaint draws them (GDI text, the icon's real
+        /// width at this DPI), so long labels are not cut off with an ellipsis.
+        /// </summary>
         public void AutoSizeToText()
         {
-            using (var g = CreateGraphics())
+            bool hasText = !string.IsNullOrEmpty(Text), hasIcon = !string.IsNullOrEmpty(Icon);
+            int w = 0;
+            if (hasText)
             {
-                int w = string.IsNullOrEmpty(Text) ? 0 : (int)g.MeasureString(Text, Font).Width + 18;
-                if (!string.IsNullOrEmpty(Icon)) w += string.IsNullOrEmpty(Text) ? 34 : 22;
-                Width = Math.Max(32, w);
+                int tw = TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPrefix).Width;
+                // OnPaint: an 8 px margin, the icon and 2 px, the text, and 4 px on the right (plus a little air)
+                w = hasIcon ? 8 + TextRenderer.MeasureText(Icon, Theme.IconFont).Width + 2 + tw + 10 : tw + 18;
             }
+            else if (hasIcon) w = 34;
+            Width = _fitWidth = Math.Max(32, w);
         }
+
+        protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); if (Fitted) AutoSizeToText(); }
 
         public void ApplyTheme(Palette p) => Invalidate();
         public void NotifyDefault(bool value) { }
@@ -63,7 +76,7 @@ namespace Sidralune.UI
         protected override void OnGotFocus(EventArgs e) { Invalidate(); base.OnGotFocus(e); }
         protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
         protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
-        protected override void OnTextChanged(EventArgs e) { Invalidate(); base.OnTextChanged(e); }
+        protected override void OnTextChanged(EventArgs e) { if (Fitted) AutoSizeToText(); Invalidate(); base.OnTextChanged(e); }
 
         protected override void OnClick(EventArgs e)
         {
