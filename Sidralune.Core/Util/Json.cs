@@ -250,10 +250,11 @@ namespace Sidralune.Core.Util
 
         public static object PopulateType(Type t, object value)
         {
-            if (value == null) return t.IsValueType ? Activator.CreateInstance(t) : null;
+            // NaN (an unknown value) is written as null, so a null number is read back as NaN, not as 0
+            if (value == null) return t == typeof(double) ? double.NaN : t == typeof(float) ? float.NaN : t.IsValueType ? Activator.CreateInstance(t) : null;
             if (t == typeof(object)) return value;
             if (t == typeof(string)) return Convert.ToString(value, CultureInfo.InvariantCulture);
-            if (t == typeof(double)) return value == null ? double.NaN : Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            if (t == typeof(double)) return Convert.ToDouble(value, CultureInfo.InvariantCulture);
             if (t == typeof(float)) return Convert.ToSingle(value, CultureInfo.InvariantCulture);
             if (t == typeof(int)) return Convert.ToInt32(value, CultureInfo.InvariantCulture);
             if (t == typeof(long)) return Convert.ToInt64(value, CultureInfo.InvariantCulture);

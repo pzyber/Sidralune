@@ -124,6 +124,8 @@ namespace Sidralune.Views
         {
             try { if (File.Exists(DataPath)) _data = (PlannerData)Json.PopulateType(typeof(PlannerData), Json.Parse(File.ReadAllText(DataPath))) ?? new PlannerData(); }
             catch (Exception ex) { Log.Warn("Planner", ex.Message); }
+            // lists saved before unknown values were read back correctly have sizes of 0 where the size is unknown (stars)
+            foreach (var e in _data.Lists.SelectMany(l => l.Entries)) if (e.SizeArcmin <= 0) e.SizeArcmin = double.NaN;
             if (_data.Lists.Count == 0)
             {
                 var m = new ObservingList { Name = "Messier catalogue" };

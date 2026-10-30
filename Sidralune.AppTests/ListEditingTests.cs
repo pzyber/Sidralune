@@ -22,6 +22,22 @@ namespace Sidralune.AppTests
         private static bool Toasted(string start) => WaitFor(() => Toasts().Any(t => t.StartsWith(start)));
 
         [TestMethod]
+        public void TestPlannerUnknownValues()
+        {
+            // a star has no size: blank in the Planner, also after Sidralune is restarted (the lists are saved and loaded)
+            var view = View<PlannerView>("planner");
+            var data = OnUi(() => Field<PlannerData>(view, "_data"));
+            var list = new ObservingList { Name = "Unknown values test" };
+            list.Entries.Add(new ListEntry { Name = "Test star", RaDeg = 10, DecDeg = 20, Mag = 2.5 });
+            list.Entries.Add(new ListEntry { Name = "Saved with a size of 0", RaDeg = 11, DecDeg = 21, Mag = 3, SizeArcmin = 0 });
+            OnUi(() => { data.Lists.Add(list); Call(view, "Save"); Call(view, "Load"); });
+            var loaded = OnUi(() => Field<PlannerData>(view, "_data").Lists.First(l => l.Name == list.Name));
+            CheckTrue("An unknown size stays unknown after saving and loading", double.IsNaN(loaded.Entries[0].SizeArcmin) && loaded.Entries[0].Mag == 2.5);
+            CheckTrue("A size of 0 from an earlier save is treated as unknown", double.IsNaN(loaded.Entries[1].SizeArcmin));
+            OnUi(() => { var d = Field<PlannerData>(view, "_data"); d.Lists.RemoveAll(l => l.Name == list.Name); Call(view, "Save"); });
+        }
+
+        [TestMethod]
         public void TestLabelsFit()
         {
             // every button and tick box in every workspace shows its whole text (no "Generate best for tonig…", "Up tonight o…")
