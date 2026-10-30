@@ -98,7 +98,6 @@ namespace Sidralune.Views
                 if (_grid.Columns[e.ColumnIndex].Name == "Notes") en.Notes = Convert.ToString(_grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value);
                 Save();
             };
-            _grid.CurrentCellDirtyStateChanged += (s, e) => { if (_grid.IsCurrentCellDirty) _grid.CommitEdit(DataGridViewDataErrorContexts.Commit); };
 
             var right = new Card("Logbook") { Dock = DockStyle.Right, Width = 330 };
             var logBar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40 };

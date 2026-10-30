@@ -22,6 +22,32 @@ namespace Sidralune.AppTests
         private static bool Toasted(string start) => WaitFor(() => Toasts().Any(t => t.StartsWith(start)));
 
         [TestMethod]
+        public void TestTickBoxes()
+        {
+            // Settings → Data: a click on a dataset's tick box ticks it at once, without choosing another row first
+            var view = View<SettingsView>("settings");
+            OnUi(() => ((TabbedPanel)typeof(SettingsView).GetField("_tabs", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(view)).Select(2));
+            Settle();
+            var grid = OnUi(() => All(view).OfType<DataGridView>().First(g => g.Columns.Count > 0 && g.Columns[0] is DataGridViewCheckBoxColumn));
+            Func<int, bool> ticked = row => OnUi(() => Equals(grid.Rows[row].Cells[0].Value, true));
+            int r = OnUi(() => Enumerable.Range(0, grid.Rows.Count).First(i => !Equals(grid.Rows[i].Cells[0].Value, true)));
+            Action click = () => OnUi(() =>
+            {
+                // what a click on the box does: the cell becomes current, its editing value flips and the grid is told
+                grid.CurrentCell = grid.Rows[r].Cells[0];
+                grid.BeginEdit(false);
+                var cell = (DataGridViewCheckBoxCell)grid.CurrentCell;
+                ((IDataGridViewEditingCell)cell).EditingCellFormattedValue = !Equals(cell.EditedFormattedValue, true);
+                grid.NotifyCurrentCellDirty(true);
+            });
+            click();
+            CheckTrue("The tick shows at once, with the same row still chosen", ticked(r) && OnUi(() => grid.CurrentCell.RowIndex == r),
+                OnUi(() => string.Format("visible {0}, current {1}, edit {2}, dirty {3}, value {4}", grid.Visible, grid.CurrentCell == null ? "none" : grid.CurrentCell.RowIndex.ToString(), grid.IsCurrentCellInEditMode, grid.IsCurrentCellDirty, grid.Rows[r].Cells[0].Value)));
+            click();
+            CheckTrue("A second click takes it away again", !ticked(r));
+        }
+
+        [TestMethod]
         public void TestDerotationImages()
         {
             var view = View<PlanetaryView>("planetary");

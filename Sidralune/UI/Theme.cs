@@ -686,6 +686,9 @@ namespace Sidralune.UI
 
         private static void HookGrid(DataGridView g)
         {
+            // a click on a tick box changes its value at once: the grid would otherwise keep the edit, and show the old
+            // tick, until another cell is chosen
+            g.CurrentCellDirtyStateChanged += (s, e) => { if (g.IsCurrentCellDirty && g.CurrentCell is DataGridViewCheckBoxCell) g.CommitEdit(DataGridViewDataErrorContexts.Commit); };
             // check-box cells are drawn by Windows; paint them in the palette instead
             g.CellPainting += (s, e) =>
             {

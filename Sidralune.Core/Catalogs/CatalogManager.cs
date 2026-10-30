@@ -106,6 +106,13 @@ namespace Sidralune.Core.Catalogs
         public List<Constellation> Constellations { get; } = new List<Constellation>();
         public Dictionary<int, Star> StarsByHip { get; } = new Dictionary<int, Star>();
         private readonly Dictionary<string, SkyObject> _names = new Dictionary<string, SkyObject>(StringComparer.OrdinalIgnoreCase);
+        // the deep-sky object (OpenNGC) of a PGC number, so a galaxy in both catalogues is found and shown once
+        private readonly Dictionary<int, DeepSkyObject> _dsoByPgc = new Dictionary<int, DeepSkyObject>();
+        // PGC galaxies made for Find and Search, kept so a galaxy found twice is the same object
+        private readonly Dictionary<int, DeepSkyObject> _pgcObjects = new Dictionary<int, DeepSkyObject>();
+
+        /// <summary>The Principal Galaxies Catalogue when installed (about a million galaxies, kept compactly), else null.</summary>
+        public PgcCatalog Pgc { get; private set; }
         public List<DeepSkyObject> DeepSkyList { get; } = new List<DeepSkyObject>();
         public List<Star> NamedStars { get; } = new List<Star>();
         public string StarSource { get; private set; } = "built-in";
@@ -118,6 +125,7 @@ namespace Sidralune.Core.Catalogs
 
         public void LoadAll(string folder)
         {
+            Pgc = null;
             LoadBuiltIn();
             try
             {
@@ -127,6 +135,8 @@ namespace Sidralune.Core.Catalogs
                 if (ngc != null) LoadOpenNgc(ngc);
                 string addendum = FirstExisting(folder, "addendum.csv");
                 if (addendum != null) LoadOpenNgc(addendum, true);
+                string pgc = FirstExisting(folder, "pgc.dat.gz", "pgc.dat");
+                if (pgc != null) LoadPgc(pgc, FirstExisting(folder, "pgc_bt.csv.gz"));
                 string lines = FirstExisting(folder, "constellationship.fab");
                 if (lines != null) LoadStellariumLines(lines);
                 string bounds = FirstExisting(folder, "constellation_boundaries.dat");
@@ -154,6 +164,8 @@ namespace Sidralune.Core.Catalogs
             Stars = new SkyIndex<Star>();
             DeepSky = new SkyIndex<DeepSkyObject>();
             StarsByHip.Clear(); _names.Clear(); DeepSkyList.Clear(); NamedStars.Clear(); Constellations.Clear();
+            _dsoByPgc.Clear();
+            lock (_pgcObjects) _pgcObjects.Clear();
             foreach (var line in Lines(BuiltInData.BrightStars))
             {
                 var f = line.Split('|');
@@ -241,9 +253,22 @@ namespace Sidralune.Core.Catalogs
             foreach (var key in new[] { d.Id, d.Messier, d.Ngc, d.Ic, d.Caldwell, d.Name })
                 if (!string.IsNullOrEmpty(key)) _names[Normalize(key)] = d;
             foreach (var n in d.AltNames) if (!string.IsNullOrEmpty(n)) _names[Normalize(n)] = d;
+            int pgc;
+            foreach (var n in d.AltNames) if (PgcCatalog.TryNumber(n, out pgc)) _dsoByPgc[pgc] = d;
         }
 
-        private static string Normalize(string s)
+        // "PGC 002557" -> "PGC 2557", "UGC 00454" -> "UGC 454"; names with more than digits after the acronym stay as they are
+        private static string WithoutLeadingZeros(string name)
+        {
+            int sp = name.LastIndexOf(' ');
+            if (sp < 0 || sp == name.Length - 1) return name;
+            string num = name.Substring(sp + 1);
+            if (num[0] != '0' || !num.All(char.IsDigit)) return name;
+            num = num.TrimStart('0');
+            return name.Substring(0, sp + 1) + (num.Length == 0 ? "0" : num);
+        }
+
+        internal static string Normalize(string s)
         {
             s = s.Trim();
             // "M31" -> "M 31", "NGC224" -> "NGC 224"
@@ -356,6 +381,7 @@ namespace Sidralune.Core.Catalogs
                 DeepSky = new SkyIndex<DeepSkyObject>();
                 DeepSkyList.Clear();
                 foreach (var k in _names.Where(kv => kv.Value is DeepSkyObject).Select(kv => kv.Key).ToList()) _names.Remove(k);
+                _dsoByPgc.Clear();
                 foreach (var d in keep) AddDso(d);
                 LoadOpenNgcRows(path, builtinMessier);
                 // re-add Messier objects that OpenNGC lacks (e.g. M40, M45 handled in addendum)
@@ -412,7 +438,14 @@ namespace Sidralune.Core.Catalogs
                         for (int i = 1; i < names.Length; i++) d.AltNames.Add(names[i].Trim());
                     }
                     string ident = CsvReader.S(row, cIdent);
-                    if (ident.Length > 0) foreach (var x in ident.Split(',')) d.AltNames.Add(x.Trim());
+                    if (ident.Length > 0)
+                        foreach (var x in ident.Split(','))
+                        {
+                            // OpenNGC pads numbers with zeros ("PGC 002557"); both spellings find the object
+                            string id2 = x.Trim(), plain = WithoutLeadingZeros(id2);
+                            d.AltNames.Add(id2);
+                            if (plain != id2) d.AltNames.Add(plain);
+                        }
                     if (d.Messier != null && builtinMessier != null)
                     {
                         DeepSkyObject bm;
@@ -568,7 +601,67 @@ namespace Sidralune.Core.Catalogs
             SkyObject o;
             if (_names.TryGetValue(name.Trim(), out o)) return o;
             if (_names.TryGetValue(Normalize(name), out o)) return o;
+            var pgc = Pgc;
+            if (pgc != null)
+            {
+                int i = pgc.IndexOf(name);
+                if (i >= 0) return PgcObject(pgc, i);
+            }
             return null;
+        }
+
+        /// <summary>
+        /// Loads the Principal Galaxies Catalogue (pgc.dat.gz from CDS), with HyperLEDA's B magnitudes when given. A galaxy
+        /// that is also an OpenNGC object stays that object: OpenNGC lists the PGC number of most of its galaxies, and the
+        /// others are matched by their names.
+        /// </summary>
+        public void LoadPgc(string path, string magnitudes = null)
+        {
+            var p = PgcCatalog.Load(path);
+            if (magnitudes != null) p.LoadMagnitudes(magnitudes);
+            for (int i = 0; i < p.Count; i++)
+            {
+                if (_dsoByPgc.ContainsKey(p.Number(i))) continue;
+                foreach (var nm in p.Names(i))
+                {
+                    SkyObject o;
+                    if (_names.TryGetValue(Normalize(nm), out o) && o is DeepSkyObject) { _dsoByPgc[p.Number(i)] = (DeepSkyObject)o; break; }
+                }
+            }
+            lock (_pgcObjects) _pgcObjects.Clear();
+            Pgc = p;
+            DeepSkySource += " + PGC (" + p.Count + " galaxies" + (p.WithMagnitude > 0 ? ", " + p.WithMagnitude + " with magnitudes" : "") + ")";
+            Log.Info("Catalogs", "Loaded PGC: " + p.Count + " galaxies");
+        }
+
+        private DeepSkyObject PgcObject(PgcCatalog pgc, int i)
+        {
+            DeepSkyObject d;
+            if (_dsoByPgc.TryGetValue(pgc.Number(i), out d)) return d;
+            lock (_pgcObjects)
+            {
+                if (!_pgcObjects.TryGetValue(pgc.Number(i), out d))
+                {
+                    d = pgc.Object(i);
+                    var con = ConstellationAt(d.Ra, d.Dec);
+                    if (con != null) d.Constellation = con.Abbr;
+                    _pgcObjects[pgc.Number(i)] = d;
+                }
+                return d;
+            }
+        }
+
+        /// <summary>
+        /// PGC galaxies (when the catalogue is installed) within radius (radians) of a position that are brighter than
+        /// magLimit or at least minSizeArcmin across, brightest first (then the largest of those without a magnitude), at
+        /// most max. Galaxies that are also OpenNGC objects are left out: those come from DeepSky, with their common names.
+        /// </summary>
+        public void PgcCone(double ra, double dec, double radius, double magLimit, double minSizeArcmin, int max, List<DeepSkyObject> result)
+        {
+            var pgc = Pgc;
+            if (pgc == null) return;
+            foreach (var i in pgc.Cone(ra, dec, radius, magLimit, minSizeArcmin, max))
+                if (!_dsoByPgc.ContainsKey(pgc.Number(i))) result.Add(pgc.Object(i));
         }
 
         /// <summary>Prefix/substring search across all names, best matches first.</summary>
@@ -587,7 +680,16 @@ namespace Sidralune.Core.Catalogs
                 else if (t.Length >= 3 && kv.Key.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0) score = 100 + kv.Key.Length;
                 if (score >= 0 && seen.Add(kv.Value)) res.Add(new KeyValuePair<int, SkyObject>(score, kv.Value));
             }
-            return res.OrderBy(k => k.Key).ThenBy(k => double.IsNaN(k.Value.Mag) ? 99 : k.Value.Mag).Take(max).Select(k => k.Value).ToList();
+            var list = res.OrderBy(k => k.Key).ThenBy(k => double.IsNaN(k.Value.Mag) ? 99 : k.Value.Mag).Take(max).Select(k => k.Value).ToList();
+            // then PGC galaxies by their numbers and other names
+            var pgc = Pgc;
+            if (pgc != null && list.Count < max)
+                foreach (var i in pgc.Search(t, max - list.Count))
+                {
+                    var d = PgcObject(pgc, i);
+                    if (!list.Contains(d)) list.Add(d);
+                }
+            return list;
         }
 
         /// <summary>Constellation containing a J2000 position, via boundaries if loaded, else nearest label.</summary>

@@ -316,6 +316,8 @@ namespace Sidralune.Views
             double r = Math.Sqrt(w.FieldWidthDeg * w.FieldWidthDeg + w.FieldHeightDeg * w.FieldHeightDeg) / 2 * AstroMath.Deg2Rad;
             var dsos = new List<DeepSkyObject>();
             CatalogManager.Instance.DeepSky.Cone(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, r, 99, dsos);
+            // PGC galaxies (when installed) brighter than magnitude 16 or at least 8 pixels across, the brightest first
+            CatalogManager.Instance.PgcCone(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, r, 16, 8 * w.PixelScale / 60, 300, dsos);
             foreach (var d in dsos)
             {
                 double x, y;

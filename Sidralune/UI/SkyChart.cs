@@ -486,13 +486,18 @@ namespace Sidralune.UI
             ci.ToSpherical(out cra, out cdec);
             double mlim = Layers.DsoMagLimit + 2 * Math.Log10(Math.Max(1, 60 / FovDeg));
             CatalogManager.Instance.DeepSky.Cone(cra, cdec, ViewRadius(), 99, list);
+            // PGC galaxies (when installed), zoomed in: those within the magnitude limit, brightest first, and those at least a
+            // third of the field width in arcminutes across (some have no magnitude)
+            int ngc = list.Count;
+            if (FovDeg <= 15) CatalogManager.Instance.PgcCone(cra, cdec, ViewRadius(), mlim, FovDeg / 3, 1000, list);
             int drawn = 0;
-            foreach (var d in list)
+            for (int k = 0; k < list.Count; k++)
             {
-                bool messier = d.Messier != null;
+                var d = list[k];
+                bool messier = d.Messier != null, pgc = k >= ngc;
                 double mag = double.IsNaN(d.Mag) ? 14 : d.Mag;
-                if (!messier && mag > mlim) continue;
-                if (!messier && FovDeg > 60 && mag > 9) continue;
+                if (!messier && !pgc && mag > mlim) continue;
+                if (!messier && !pgc && FovDeg > 60 && mag > 9) continue;
                 if (drawn > 1500) break;
                 PointF pt;
                 var f = ToFrame(Vec3.FromSpherical(d.Ra, d.Dec));
@@ -525,7 +530,7 @@ namespace Sidralune.UI
                     g.Restore(st);
                 }
                 _hits.Add(new Hit { P = pt, R = Math.Max(7, rmaj), O = SelectedObject.From(d), Priority = 1 });
-                if (Layers.DeepSkyLabels && (messier || FovDeg < 25))
+                if (Layers.DeepSkyLabels && (messier || FovDeg < 25) && (!pgc || FovDeg < 3))
                 {
                     string label = messier ? d.Messier + (FovDeg < 20 && d.Name != null ? " " + d.Name : "") : (d.Name != null && FovDeg < 10 ? d.Id + " " + d.Name : d.Id);
                     TextRenderer.DrawText(g, label, Theme.SmallFont, new Point((int)(pt.X + rmaj * 0.7f + 2), (int)(pt.Y + rmaj * 0.7f)), c);

@@ -67,8 +67,7 @@ namespace Sidralune.Science.Astrometry
             var res = new SolveResult();
             if (stars.Count < 6) { res.Message = "Too few stars detected (" + stars.Count + ")"; return res; }
             var catalog = opt.Catalog ?? new LocalCatalogProvider();
-            var imgStars = stars.Where(s => !s.Saturated).OrderByDescending(s => s.Flux).Take(opt.MaxImageStars).ToList();
-            if (imgStars.Count < 6) imgStars = stars.OrderByDescending(s => s.Flux).Take(opt.MaxImageStars).ToList();
+            var imgStars = MatchingStars(stars, opt.MaxImageStars);
             var fovs = new List<double>();
             if (!double.IsNaN(opt.ScaleHint)) fovs.Add(Math.Sqrt(width * width + height * height) * opt.ScaleHint / 3600.0);
             // near a hint, the likely field sizes come first; a blind search tiles the whole sky, so it starts with the wide
@@ -143,6 +142,19 @@ namespace Sidralune.Science.Astrometry
         }
 
         private const int MinRefinedMatches = 10;
+
+        /// <summary>
+        /// The image stars to match against the catalogue, brightest first. Saturated stars are left out while there are
+        /// enough others (their brightness is clipped), but a short exposure of a bright field, as for polar alignment,
+        /// saturates many of the brightest stars: matching only the faint rest against the catalogue's brightest stars
+        /// often failed, so with fewer than 20 unsaturated stars the saturated ones are matched too (their centres are still
+        /// good).
+        /// </summary>
+        public static List<DetectedStar> MatchingStars(List<DetectedStar> stars, int max)
+        {
+            var unsaturated = stars.Where(s => !s.Saturated).OrderByDescending(s => s.Flux).Take(max).ToList();
+            return unsaturated.Count >= 20 ? unsaturated : stars.OrderByDescending(s => s.Flux).Take(max).ToList();
+        }
 
         /// <summary>
         /// Reject geometrically impossible solutions: a camera has square pixels and no skew, so the CD matrix must be a
