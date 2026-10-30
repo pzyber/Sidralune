@@ -115,6 +115,41 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestSaturatedFields()
+        {
+            Func<int, bool, DetectedStar> star = (i, sat) => new DetectedStar { X = i, Y = i, Flux = 1000 - i, Saturated = sat };
+            var many = Enumerable.Range(0, 60).Select(i => star(i, i < 10)).ToList();
+            var picked = PlateSolver.MatchingStars(many, 80);
+            CheckTrue("With enough unsaturated stars the saturated ones are left out", picked.Count == 50 && picked.All(s => !s.Saturated));
+            var few = Enumerable.Range(0, 34).Select(i => star(i, i < 19)).ToList();
+            picked = PlateSolver.MatchingStars(few, 80);
+            CheckTrue("With few, the saturated ones are matched too, brightest first", picked.Count == 34 && picked.Count(s => s.Saturated) == 19 && picked[0].Flux == 1000);
+
+            // a short exposure of a bright field (as for polar alignment): the 19 brightest stars are saturated and only
+            // 15 fainter ones are not, as in the frame that made the polar alignment test fail now and then
+            double ra0 = 208.57, dec0 = 44.98;
+            var cat = new FakeCatalog(ra0, dec0, 2, 1500, 9);
+            int W = 1024, H = 768;
+            var truth = Wcs.Create(ra0 + 0.05, dec0 - 0.03, 2.93, 0, W, H, false);
+            var inFrame = new List<DetectedStar>();
+            foreach (var s in cat.Stars.OrderBy(s => s.Mag))
+            {
+                double x, y;
+                if (truth.WorldToPixel(s.Ra, s.Dec, out x, out y) && x > 5 && y > 5 && x < W - 5 && y < H - 5)
+                    inFrame.Add(new DetectedStar { X = x, Y = y, Flux = Math.Pow(10, -0.4 * (s.Mag - 10)), Snr = 50 });
+            }
+            var detected = inFrame.Take(34).Select((s, i) => { s.Saturated = i < 19; return s; }).ToList();
+            var res = PlateSolver.Solve(detected, W, H, new SolveOptions { HintRa = ra0, HintDec = dec0, SearchRadius = 2, ScaleHint = 2.93, Catalog = cat });
+            CheckTrue("A field whose brightest stars are saturated is solved", res.Success, res.Message + " (" + inFrame.Count + " stars in the frame)");
+            if (res.Success)
+            {
+                double tr, td, sr, sd;
+                truth.Centre(out tr, out td); res.Wcs.Centre(out sr, out sd);
+                Check("…at the right place (arcsec)", AstroMath.Separation(tr * AstroMath.Deg2Rad, td * AstroMath.Deg2Rad, sr * AstroMath.Deg2Rad, sd * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec, 0, 5);
+            }
+        }
+
+        [TestMethod]
         public void TestPlateSolveSynthetic()
         {
             foreach (var flip in new[] { false, true })

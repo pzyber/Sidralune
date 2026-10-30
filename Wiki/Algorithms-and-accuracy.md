@@ -125,6 +125,7 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Item | Method |
 |---|---|
 | Star matching | Triangle-similarity invariants (Valdes et al. 1995), using each star's nearest neighbours (Beroiz et al. 2020) |
+| Stars used | The brightest stars detected (at most 80). Saturated stars are left out while at least 20 others remain; in short exposures of bright fields, such as polar alignment frames, they are matched too |
 | Robust fitting | RANSAC, then least squares on the inliers |
 | Transforms | Translation, similarity, affine, homography, 2nd-order polynomial |
 | World coordinates | TAN (gnomonic) projection with a CD matrix and SIP distortion polynomials (Shupe et al. 2005), iteratively refined |

@@ -66,7 +66,6 @@ namespace Sidralune.Views
             foreach (var c in new[] { "Type", "File", "Exposure", "ISO/Gain", "Temp", "Filter", "Score", "Stars", "FWHM", "Ecc.", "Background", "Status" }) _grid.Columns.Add(c, c);
             for (int i = 1; i < _grid.Columns.Count; i++) _grid.Columns[i].ReadOnly = true;
             _grid.Columns["File"].FillWeight = 180; _grid.Columns["Status"].FillWeight = 140; _grid.Columns["Type"].FillWeight = 55;
-            _grid.CurrentCellDirtyStateChanged += (s, e) => { if (_grid.IsCurrentCellDirty) _grid.CommitEdit(DataGridViewDataErrorContexts.Commit); };
             _grid.CellValueChanged += (s, e) => { if (e.RowIndex >= 0 && e.ColumnIndex == 0) ((StackFrame)_grid.Rows[e.RowIndex].Tag).Enabled = (bool)(_grid.Rows[e.RowIndex].Cells[0].Value ?? false); };
             _grid.SelectionChanged += (s, e) => { if (!_filling) Preview(); };
             _grid.AllowDrop = true;

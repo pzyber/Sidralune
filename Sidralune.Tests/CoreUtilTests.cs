@@ -90,6 +90,44 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestDatasetMirrors()
+        {
+            // the dataset's server is down (nothing listens on its port), its mirror has the file
+            var gone = new TcpListener(IPAddress.Loopback, 0);
+            gone.Start();
+            int deadPort = ((IPEndPoint)gone.LocalEndpoint).Port;
+            gone.Stop();
+            var mirror = new TcpListener(IPAddress.Loopback, 0);
+            mirror.Start();
+            int port = ((IPEndPoint)mirror.LocalEndpoint).Port;
+            var body = Encoding.ASCII.GetBytes("catalogue data");
+            var server = Task.Run(() =>
+            {
+                using (var c = mirror.AcceptTcpClient())
+                using (var s = c.GetStream())
+                {
+                    s.Read(new byte[4096], 0, 4096);
+                    var head = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                    s.Write(head, 0, head.Length);
+                    s.Write(body, 0, body.Length);
+                }
+            });
+            string dir = Path.Combine(Path.GetTempPath(), "sidralune_mirror_test");
+            Directory.CreateDirectory(dir);
+            var d = new Dataset { Name = "Test data", Url = "http://127.0.0.1:" + deadPort + "/data.txt", Mirrors = new[] { "http://127.0.0.1:" + port + "/data.txt" }, FileName = "data.txt", Folder = dir };
+            if (File.Exists(d.LocalPath)) File.Delete(d.LocalPath);
+            DataManager.Install(d);
+            CheckTrue("When the dataset's server cannot be reached, its mirror is used", File.Exists(d.LocalPath) && File.ReadAllText(d.LocalPath) == "catalogue data");
+            server.Wait(5000);
+            mirror.Stop();
+            bool failed = false;
+            try { DataManager.Install(new Dataset { Name = "Test data", Url = d.Url, FileName = "none.txt", Folder = dir }); }
+            catch (WebException) { failed = true; }
+            CheckTrue("Without a mirror the failure is reported", failed && !File.Exists(Path.Combine(dir, "none.txt")));
+            CheckTrue("The PGC galaxies have a mirror", DataManager.Get("pgc").Mirrors.Length > 0);
+        }
+
+        [TestMethod]
         public void TestJson()
         {
             var o = Json.ParseObject("{ \"a\": 1, \"b\": -2.5e3, \"s\": \"x\\\"y\\\\z\\n\\u00e9\", \"t\": true, \"f\": false, \"n\": null, \"arr\": [1, [2, 3], {\"k\": \"v\"}], \"e\": {}, \"ea\": [] }");

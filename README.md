@@ -107,6 +107,7 @@ Nothing is downloaded automatically. **Settings → Data** lists every dataset w
 | JPL DE440s | 31 MB | Yes | Milliarcsecond positions of the Sun, Moon and planets, 1849–2150 |
 | HYG v4.1 | 32 MB | Yes | About 120,000 stars with names, Bayer/Flamsteed, colours and proper motions |
 | OpenNGC and addendum | 4 MB | Yes | All NGC/IC objects plus Messier, Caldwell and other extras |
+| PGC galaxies (HyperLEDA) | 19 MB | No | About 983,000 galaxies (Principal Galaxies Catalogue) for search, the sky chart and plate-solve labels |
 | Constellation lines | 12 KB | Yes | Western stick figures (Stellarium) |
 | IAU constellation boundaries | 600 KB | Yes | Boundary lines and "which constellation is this in?" |
 | MPC comet elements | 200 KB | Yes | Every known comet |
