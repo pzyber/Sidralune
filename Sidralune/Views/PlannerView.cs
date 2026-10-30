@@ -78,6 +78,9 @@ namespace Sidralune.Views
             _add.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { AddByName(_add.Text); e.SuppressKeyPress = true; } };
             var addb = new FlatButton("Add", Icons.Add, (s, e) => AddByName(_add.Text)); addb.AutoSizeToText(); bar.Controls.Add(addb);
             var gen = new FlatButton("Generate best for tonight…", Icons.Star, (s, e) => Generate()) { Kind = ButtonKind.Primary }; gen.AutoSizeToText(); bar.Controls.Add(gen);
+            // generating waits for the one running, which Stop ends
+            _generateJob.Guard(gen);
+            bar.Controls.Add(_generateJob.StopButton());
             var rem = new FlatButton("Remove", Icons.Remove, (s, e) => RemoveSelected()); rem.AutoSizeToText(); bar.Controls.Add(rem);
             var refresh = new FlatButton("Recalculate", Icons.Refresh, (s, e) => Fill()); refresh.AutoSizeToText(); bar.Controls.Add(refresh);
             bar.Controls.Add(_onlyVisible);
@@ -426,6 +429,7 @@ namespace Sidralune.Views
             var local = site.ToLocal(now.ToDateTimeUtc());
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
             var ins = AppState.Instrument; var eye = AppState.Eye;
+            ObservingList list = null;
             _generateJob.Run("Generating list", t =>
             {
                 var tw = AstroEvents.Twilight(site, noon);
@@ -447,6 +451,7 @@ namespace Sidralune.Views
                 var scored = new List<Tuple<double, DeepSkyObject>>();
                 foreach (var o in CatalogManager.Instance.DeepSkyList.Where(o => !double.IsNaN(o.Mag) && o.Mag < 13 && filter(o)))
                 {
+                    t.Cts.Token.ThrowIfCancellationRequested();
                     double size = double.IsNaN(o.MajorAxis) ? 1 : o.MajorAxis;
                     double best = double.MinValue;
                     for (int i = 0; i < ctxs.Count; i++)
@@ -459,9 +464,13 @@ namespace Sidralune.Views
                     }
                     if (best > 0) scored.Add(Tuple.Create(best, o));
                 }
-                var list = new ObservingList { Name = choice + " " + local.ToString("yyyy-MM-dd") };
+                list = new ObservingList { Name = choice + " " + local.ToString("yyyy-MM-dd") };
                 foreach (var s in scored.OrderByDescending(x => x.Item1).Take(60)) list.Entries.Add(FromSky(SelectedObject.From(s.Item2)));
-                MainForm.Instance.Post(() => { _data.Lists.Add(list); _data.Active = _data.Lists.Count - 1; Save(); ReloadLists(); MainForm.Instance.Toast(list.Entries.Count + " objects selected for tonight"); });
+            }, () =>
+            {
+                // added once done, so a stopped run adds nothing
+                _data.Lists.Add(list); _data.Active = _data.Lists.Count - 1; Save(); ReloadLists();
+                MainForm.Instance.Toast(list.Entries.Count + " objects selected for tonight");
             });
         }
 

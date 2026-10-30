@@ -94,6 +94,11 @@ namespace Sidralune.AppTests
             CheckStop("Lunar occultations", Field<JobSlot>(solar, "_occJob"), "Lunar occultations", stopNextTo(solar, "Asteroid occultations"));
             CheckStop("Minor body positions", Field<JobSlot>(solar, "_positionsJob"), "Minor body positions", stopNextTo(solar, "List"));
             CheckStop("Ephemeris", Field<JobSlot>(solar, "_ephemJob"), "Ephemeris", stopNextTo(solar, "Compute"));
+            var planner = View<PlannerView>("planner");
+            CheckStop("Planner", Field<JobSlot>(planner, "_generateJob"), "Generating list", () => Button(planner, "Stop"));
+            WhileBusy(Field<JobSlot>(planner, "_generateJob"), () =>
+                CheckTrue("Planner: Generate waits for the list being generated", OnUi(() => !Button(planner, "Generate best for tonight…").Enabled)));
+            CheckTrue("Planner: Generate is back afterwards", OnUi(() => Button(planner, "Generate best for tonight…").Enabled));
             var settings = View<SettingsView>("settings");
             CheckTrue("Startup loading has finished", WaitFor(() => OnUi(() => !Tasks.Data.Busy), 60000));
             CheckStop("Settings downloads", Tasks.Data, "Downloading data", () => Button(settings, "Stop"));
