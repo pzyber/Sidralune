@@ -13,6 +13,7 @@ using Sidralune.Core.MinorBodies;
 using Sidralune.Core.Observing;
 using Sidralune.Core.Time;
 using Sidralune.Devices;
+using Sidralune.Science.SolarSystem;
 using Sidralune.UI;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
 
@@ -232,6 +233,13 @@ namespace Sidralune.Views
             return new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = p.Astrometric.RaHours * 15, DecDeg = p.Astrometric.DecDeg, Mag = p.Magnitude, SizeArcmin = p.DiameterArcsec / 60 };
         }
 
+        /// <summary>One of Jupiter's moons (Io, Europa, Ganymede or Callisto) now; null for any other name.</summary>
+        public static SelectedObject MoonObject(string name)
+        {
+            var m = GalileanMoons.Positions(new SkyContext(AppState.Site, AppState.Now)).FirstOrDefault(x => string.Equals(x.Name, name?.Trim(), StringComparison.OrdinalIgnoreCase));
+            return m == null ? null : SelectedObject.From(m);
+        }
+
         public static SelectedObject MinorObject(MinorBody m)
         {
             var ctx = new SkyContext(AppState.Site, AppState.Now);
@@ -244,6 +252,8 @@ namespace Sidralune.Views
             if (string.IsNullOrWhiteSpace(q)) return;
             Body b;
             if (Enum.TryParse(q.Trim(), true, out b) && b != Body.Earth) { var o = PlanetObject(b); AppState.Select(o); Goto(o); return; }
+            var moon = MoonObject(q);
+            if (moon != null) { AppState.Select(moon); Goto(moon); return; }
             var hit = CatalogManager.Instance.Find(q) ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
             if (hit != null) { var o = SelectedObject.From(hit); AppState.Select(o); Goto(o); return; }
             var mb = MinorBodyStore.Instance.Find(q);
@@ -259,6 +269,7 @@ namespace Sidralune.Views
             Chart.Highlight = o;
             double fov = Chart.FovDeg;
             if (o.Kind == SelectedKind.DeepSky && !double.IsNaN(o.SizeArcmin)) fov = Math.Max(0.3, Math.Min(Chart.FovDeg, o.SizeArcmin / 60 * 8));
+            if (o.Kind == SelectedKind.PlanetMoon) fov = Math.Min(Chart.FovDeg, 0.25); // the moons are drawn below 1°; this shows all four
             Chart.CenterOn(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad, fov);
             ShowInfo(o);
         }
@@ -268,7 +279,7 @@ namespace Sidralune.Views
             _sel = o;
             Chart.Highlight = o;
             _objTitle.Text = o.Name;
-            string type = o.Kind == SelectedKind.DeepSky ? DeepSkyObject.TypeLabel(o.Catalog.Type) : o.Kind.ToString();
+            string type = o.Kind == SelectedKind.DeepSky ? DeepSkyObject.TypeLabel(o.Catalog.Type) : o.Kind == SelectedKind.PlanetMoon ? "Moon of " + o.Planet : o.Kind.ToString();
             var con = CatalogManager.Instance.ConstellationAt(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad);
             _objSub.Text = type + (con != null ? " in " + con.Name : "");
             UpdateLiveInfo();
@@ -302,7 +313,8 @@ namespace Sidralune.Views
 
         private double AltitudeAt(SelectedObject o, AstroTime t)
         {
-            if (o.Kind == SelectedKind.Planet && o.Planet.HasValue)
+            // a moon of a planet rises and sets with it
+            if ((o.Kind == SelectedKind.Planet || o.Kind == SelectedKind.PlanetMoon) && o.Planet.HasValue)
                 return new SkyContext(AppState.Site, t) { ApplyRefraction = false }.BodyPlace(o.Planet.Value).Horizontal.AltDeg;
             if (o.Kind == SelectedKind.MinorBody && o.Minor != null)
                 return MinorBodyStore.Place(new SkyContext(AppState.Site, t) { ApplyRefraction = false }, o.Minor).Horizontal.AltDeg;
@@ -346,6 +358,23 @@ namespace Sidralune.Views
                     lines.Add(string.Format("CM {0:0.0}°  sub-Earth lat {1:+0.0;-0.0}°  pole PA {2:0.0}°", cm, lat, pa));
                 }
             }
+            else if (o.Kind == SelectedKind.PlanetMoon && GalileanMoons.Names.Contains(o.Name))
+            {
+                int i = Array.IndexOf(GalileanMoons.Names, o.Name);
+                var m = GalileanMoons.Positions(ctx)[i];
+                var jup = ctx.BodyPlace(Body.Jupiter);
+                ra = m.Ra * AstroMath.Rad2Deg; dec = m.Dec * AstroMath.Rad2Deg; mag = m.Mag; size = m.DiameterArcsec / 60;
+                hz = ctx.IcrsToHorizontal(m.Ra, m.Dec);
+                app = ctx.IcrsToApparent(m.Ra, m.Dec);
+                // the chart and other views follow the moon as it moves
+                o.RaDeg = ra; o.DecDeg = dec;
+                string place = m.Occulted ? "hidden behind Jupiter" : m.Transit ? "crossing Jupiter's disc" : string.Format("{0:0.0}\" {1} of Jupiter ({2:0.0} Jupiter radii{3})",
+                    m.SeparationArcsec, m.EastArcsec >= 0 ? "east" : "west", Math.Sqrt(m.X * m.X + m.Y * m.Y), m.InFront ? ", in front" : ", behind");
+                lines.Add("Position        " + place);
+                lines.Add(string.Format("Distance        {0:0.0000} AU ({1:N0} km)", jup.Distance, jup.Distance * AstroMath.AU_km));
+                lines.Add(string.Format("Diameter        {0:N0} km   apparent {1:0.00}\"", GalileanMoons.DiameterKm[i], m.DiameterArcsec));
+                lines.Add(string.Format("Orbital period  {0:0.000} days", GalileanMoons.PeriodDays[i]));
+            }
             else if (o.Kind == SelectedKind.MinorBody && o.Minor != null)
             {
                 var p = MinorBodyStore.Place(ctx, o.Minor);
@@ -387,14 +416,15 @@ namespace Sidralune.Views
             // rise / transit / set
             try
             {
-                RiseSetResult rs = o.Kind == SelectedKind.Planet && o.Planet.HasValue ? AstroEvents.BodyRiseSet(o.Planet.Value, site, AppState.Now.AddHours(-12))
+                RiseSetResult rs = (o.Kind == SelectedKind.Planet || o.Kind == SelectedKind.PlanetMoon) && o.Planet.HasValue ? AstroEvents.BodyRiseSet(o.Planet.Value, site, AppState.Now.AddHours(-12))
                     : AstroEvents.FixedRiseSet(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, site, AppState.Now.AddHours(-12));
                 Func<AstroTime?, string> fmt = t => t.HasValue ? site.ToLocal(t.Value.ToDateTimeUtc()).ToString("HH:mm") : "—";
                 head.Add(rs.AlwaysUp ? "Circumpolar (never sets)" : rs.NeverUp ? "Never rises today" : string.Format("Rise {0}  Transit {1} ({2:0}°)  Set {3}", fmt(rs.Rise), fmt(rs.Transit), rs.TransitAltitudeDeg, fmt(rs.Set)));
             }
             catch { }
             // visibility with the current instrument (SkyTools-style)
-            if (!double.IsNaN(mag) && o.Kind != SelectedKind.Planet)
+            // not for planets and their moons, whose light the model (for stars and nebulae against the sky) does not cover
+            if (!double.IsNaN(mag) && o.Kind != SelectedKind.Planet && o.Kind != SelectedKind.PlanetMoon)
             {
                 double alt;
                 double sky = VisibilityModel.SkyBrightnessAt(ctx, ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, out alt);

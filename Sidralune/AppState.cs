@@ -148,7 +148,7 @@ namespace Sidralune
         }
     }
 
-    public enum SelectedKind { Star, DeepSky, Planet, MinorBody, Satellite, Coordinates, RadioSource }
+    public enum SelectedKind { Star, DeepSky, Planet, MinorBody, Satellite, Coordinates, RadioSource, PlanetMoon }
 
     /// <summary>An object picked anywhere in the UI (sky chart, planner, search).</summary>
     public class SelectedObject
@@ -157,7 +157,7 @@ namespace Sidralune
         public string Name;
         public double RaDeg, DecDeg; // J2000
         public SkyObject Catalog;
-        public Body? Planet;
+        public Body? Planet; // for a PlanetMoon, the planet it orbits
         public MinorBody Minor;
         public double Mag = double.NaN;
         public double SizeArcmin = double.NaN;
@@ -170,6 +170,10 @@ namespace Sidralune
             if (d != null && !double.IsNaN(d.MajorAxis)) s.SizeArcmin = double.IsNaN(d.MinorAxis) ? d.MajorAxis : Math.Sqrt(d.MajorAxis * d.MinorAxis);
             return s;
         }
+
+        /// <summary>A moon of Jupiter, placed by GalileanMoons.Positions(SkyContext).</summary>
+        public static SelectedObject From(Science.SolarSystem.GalileanMoon m) =>
+            new SelectedObject { Kind = SelectedKind.PlanetMoon, Name = m.Name, Planet = Body.Jupiter, RaDeg = m.Ra * 180 / Math.PI, DecDeg = m.Dec * 180 / Math.PI, Mag = m.Mag, SizeArcmin = m.DiameterArcsec / 60 };
     }
 
     public class BackgroundTask

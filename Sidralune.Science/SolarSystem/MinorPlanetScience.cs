@@ -283,12 +283,53 @@ namespace Sidralune.Science.SolarSystem
         public double X, Y;     // Jupiter equatorial radii; X positive to the west, Y to the north
         public bool InFront;    // between Jupiter and the observer
         public bool Transit, Occulted;
+        // filled by Positions(SkyContext): ICRS RA and Dec (radians, like Jupiter's astrometric place), magnitude, and
+        // the distance from Jupiter's centre on the sky (arcsec) with eastward and northward parts
+        public double Ra = double.NaN, Dec = double.NaN, Mag = double.NaN, DiameterArcsec = double.NaN;
+        public double SeparationArcsec = double.NaN, EastArcsec = double.NaN, NorthArcsec = double.NaN;
     }
 
     /// <summary>Positions of Io, Europa, Ganymede and Callisto (Meeus, Astronomical Algorithms ch. 44, low accuracy).</summary>
     public static class GalileanMoons
     {
         public static readonly string[] Names = { "Io", "Europa", "Ganymede", "Callisto" };
+        /// <summary>Mean diameters (km) and orbital periods (days).</summary>
+        public static readonly double[] DiameterKm = { 3643.2, 3121.6, 5268.2, 4820.6 }, PeriodDays = { 1.769138, 3.551181, 7.154553, 16.689017 };
+        // absolute magnitudes V(1, 0)
+        private static readonly double[] V10 = { -1.68, -1.41, -2.09, -1.05 };
+
+        /// <summary>
+        /// The moons as seen from the context's site and time, with their RA, Dec and magnitudes. Meeus's X runs along
+        /// Jupiter's equator and Y along its axis, so they are turned by the position angle of Jupiter's north pole.
+        /// </summary>
+        public static GalileanMoon[] Positions(SkyContext ctx)
+        {
+            var jup = ctx.BodyPlace(Body.Jupiter);
+            PlanetPhysics.Fill(Body.Jupiter, jup, ctx.JdTT);
+            double cm, lat, poleDeg;
+            PlanetPhysics.Orientation(Body.Jupiter, ctx.JdTDB, jup.Astrometric.ToVector(), jup.LightTimeDays, out cm, out lat, out poleDeg);
+            double radius = jup.DiameterArcsec / 2, p = poleDeg * AstroMath.Deg2Rad, ra = jup.Astrometric.Ra;
+            var c = jup.Astrometric.ToVector().Normalized();
+            var east = new Vec3(-Math.Sin(ra), Math.Cos(ra), 0);
+            var north = Vec3.Cross(c, east);
+            var moons = Positions(ctx.JdTT);
+            for (int i = 0; i < moons.Length; i++)
+            {
+                var m = moons[i];
+                // west along the equator is (east, north) = (−cos P, sin P); the axis is (sin P, cos P)
+                m.EastArcsec = (-m.X * Math.Cos(p) + m.Y * Math.Sin(p)) * radius;
+                m.NorthArcsec = (m.X * Math.Sin(p) + m.Y * Math.Cos(p)) * radius;
+                m.SeparationArcsec = Math.Sqrt(m.EastArcsec * m.EastArcsec + m.NorthArcsec * m.NorthArcsec);
+                double k = AstroMath.Deg2Rad / 3600;
+                var v = (c + east * (m.EastArcsec * k) + north * (m.NorthArcsec * k)).Normalized();
+                double lon, la;
+                v.ToSpherical(out lon, out la);
+                m.Ra = AstroMath.NormalizeRad(lon); m.Dec = la;
+                m.Mag = V10[i] + 5 * Math.Log10(jup.HelioDistance * jup.Distance);
+                m.DiameterArcsec = DiameterKm[i] / (jup.Distance * AstroMath.AU_km) * AstroMath.Rad2Deg * 3600;
+            }
+            return moons;
+        }
 
         public static GalileanMoon[] Positions(double jdTT)
         {

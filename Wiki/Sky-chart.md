@@ -113,7 +113,7 @@ Deep-sky objects have their own limit, and their labels appear progressively as 
 
 - **Stars** are dots sized by brightness and tinted by colour index (B−V), so you can tell red giants from blue stars.
 - **Deep-sky objects** use standard atlas symbols: ellipses at true size and position angle for galaxies, circles with crosses for globular clusters, dashed circles for open clusters, squares for nebulae, circles with a ring for planetary nebulae.
-- **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings, and when zoomed in below 1°, Jupiter shows its four Galilean moons in their current positions.
+- **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings, and when zoomed in below 1°, Jupiter shows its four Galilean moons in their current positions, turned with Jupiter's axis and the chart. Click a moon to select it, as any other object.
 - **The Moon** is drawn with its correct phase and orientation; the Sun at its true size.
 - **Comets** are drawn with a short tail pointing away from the Sun, **asteroids** as small crosses, both labelled when bright enough or when you zoom in. They come from the installed MPC files, the four built-in asteroids, and anything you added in the [Solar system](Solar-system#minor-bodies) workspace.
 - **Milky Way** is shaded along the galactic plane at night.
@@ -142,6 +142,7 @@ The details include, as applicable:
 - for deep-sky objects: morphology, surface brightness, other names,
 - for planets: distance, illuminated fraction, phase angle, elongation, apparent size, and central meridians (Jupiter's systems I, II and III; Mars, Saturn and Venus central meridian, sub-Earth latitude and pole angle),
 - for the Moon: age in days,
+- for Jupiter's moons (Io, Europa, Ganymede and Callisto): where it is around Jupiter (how far east or west, in arcseconds and Jupiter radii, and whether it is in front, behind, crossing the disc or hidden), distance, diameter and apparent size, and orbital period. Rise, set and the altitude graph are Jupiter's,
 - for comets and asteroids: distance from Earth and Sun, elongation, phase angle and orbit type.
 
 The **Altitude tonight** graph below shows the object's altitude through the night, with the dark period shaded and a marker at the current time.

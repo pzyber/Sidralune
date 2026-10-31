@@ -151,12 +151,15 @@ namespace Sidralune.Views
         {
             var e = new ListEntry { Name = o.Name, RaDeg = o.RaDeg, DecDeg = o.DecDeg, Mag = o.Mag, SizeArcmin = o.SizeArcmin, Planet = o.Planet.HasValue ? o.Planet.Value.ToString() : null };
             if (o.Catalog != null) { e.Type = o.Catalog is Star ? "Star" : DeepSkyObject.TypeLabel(o.Catalog.Type); e.Constellation = o.Catalog.Constellation ?? ""; }
-            else e.Type = o.Kind.ToString();
+            else e.Type = o.Kind == SelectedKind.PlanetMoon ? "Moon of " + o.Planet : o.Kind.ToString();
             return e;
         }
 
         private static SelectedObject ToSelected(ListEntry e)
         {
+            // a moon of Jupiter: where it is now (its list entry also names Jupiter, for rising and setting)
+            var moon = e.Type != null && e.Type.StartsWith("Moon of ") ? SkyView.MoonObject(e.Name) : null;
+            if (moon != null) return moon;
             Body b;
             if (e.Planet != null && Enum.TryParse(e.Planet, out b)) return SkyView.PlanetObject(b);
             var cat = CatalogManager.Instance.Find(e.Name);
