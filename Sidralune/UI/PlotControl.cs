@@ -89,6 +89,24 @@ namespace Sidralune.UI
         public void Clear() { Series.Clear(); Bands.Clear(); Markers.Clear(); _zoomed = false; Invalidate(); }
         public void ResetZoom() { _zoomed = false; Invalidate(); }
 
+        /// <summary>
+        /// Shows the given ranges, as a dragged box does. A range narrower than a ten-billionth of its values (or than
+        /// 1e-10) is widened to that around its middle: deeper than that the axis steps can no longer be told apart.
+        /// </summary>
+        public void ZoomTo(double x0, double x1, double y0, double y1)
+        {
+            Widen(ref x0, ref x1); Widen(ref y0, ref y1);
+            _x0 = x0; _x1 = x1; _y0 = y0; _y1 = y1; _zoomed = true;
+            Invalidate();
+        }
+
+        private static void Widen(ref double a, ref double b)
+        {
+            if (a > b) { var t = a; a = b; b = t; }
+            double mid = (a + b) / 2, min = Math.Max(Math.Abs(mid) * 1e-10, 1e-10);
+            if (b - a < min) { a = mid - min / 2; b = mid + min / 2; }
+        }
+
         private void ComputeRange()
         {
             if (_zoomed) return;
@@ -108,8 +126,54 @@ namespace Sidralune.UI
             _x0 = FixedXMin ?? xmin; _x1 = FixedXMax ?? xmax; _y0 = FixedYMin ?? ymin - py; _y1 = FixedYMax ?? ymax + py;
         }
 
-        private float Sx(double x) => (float)(_plot.Left + (x - _x0) / (_x1 - _x0) * _plot.Width);
-        private float Sy(double y) => InvertY ? (float)(_plot.Top + (y - _y0) / (_y1 - _y0) * _plot.Height) : (float)(_plot.Bottom - (y - _y0) / (_y1 - _y0) * _plot.Height);
+        private double SxD(double x) => _plot.Left + (x - _x0) / (_x1 - _x0) * _plot.Width;
+        private double SyD(double y) => InvertY ? _plot.Top + (y - _y0) / (_y1 - _y0) * _plot.Height : _plot.Bottom - (y - _y0) / (_y1 - _y0) * _plot.Height;
+        private float Sx(double x) => (float)SxD(x);
+        private float Sy(double y) => (float)SyD(y);
+
+        // GDI+ fails with an OverflowException on coordinates far outside the plot, and zoomed in deeply the points around
+        // the shown range are millions of pixels away: what is drawn is first cut to the plot and this much around it
+        private const float Reach = 1000;
+        private RectangleF Reachable => RectangleF.FromLTRB(_plot.Left - Reach, _plot.Top - Reach, _plot.Right + Reach, _plot.Bottom + Reach);
+        private float ClampX(float x) => Math.Max(_plot.Left - Reach, Math.Min(_plot.Right + Reach, x));
+        private float ClampY(float y) => Math.Max(_plot.Top - Reach, Math.Min(_plot.Bottom + Reach, y));
+        private bool InReach(float x, float y) => x >= _plot.Left - Reach && x <= _plot.Right + Reach && y >= _plot.Top - Reach && y <= _plot.Bottom + Reach;
+
+        /// <summary>Liang–Barsky: cuts the segment (x0, y0)–(x1, y1) to r; false when none of it is inside.</summary>
+        private static bool ClipSegment(RectangleF r, ref double x0, ref double y0, ref double x1, ref double y1, out bool endCut)
+        {
+            endCut = false;
+            if (double.IsNaN(x0 + y0 + x1 + y1) || double.IsInfinity(x0 + y0 + x1 + y1)) return false;
+            double dx = x1 - x0, dy = y1 - y0, t0 = 0, t1 = 1;
+            double[] p = { -dx, dx, -dy, dy }, q = { x0 - r.Left, r.Right - x0, y0 - r.Top, r.Bottom - y0 };
+            for (int k = 0; k < 4; k++)
+            {
+                if (p[k] == 0) { if (q[k] < 0) return false; continue; }
+                double t = q[k] / p[k];
+                if (p[k] < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
+                else { if (t < t0) return false; if (t < t1) t1 = t; }
+            }
+            endCut = t1 < 1;
+            double ax = x0 + t0 * dx, ay = y0 + t0 * dy;
+            x1 = x0 + t1 * dx; y1 = y0 + t1 * dy; x0 = ax; y0 = ay;
+            return true;
+        }
+
+        // adds the visible part of a segment to the polyline being built, drawing it when the line leaves the plot
+        private void AddSegment(Graphics g, Pen pen, List<PointF> pts, double x0, double y0, double x1, double y1)
+        {
+            bool endCut;
+            if (!ClipSegment(Reachable, ref x0, ref y0, ref x1, ref y1, out endCut)) { DrawPolyline(g, pen, pts); return; }
+            if (pts.Count == 0) pts.Add(new PointF((float)x0, (float)y0));
+            pts.Add(new PointF((float)x1, (float)y1));
+            if (endCut) DrawPolyline(g, pen, pts);
+        }
+
+        private static void DrawPolyline(Graphics g, Pen pen, List<PointF> pts)
+        {
+            if (pts.Count > 1) g.DrawLines(pen, pts.ToArray());
+            pts.Clear();
+        }
         private double Ix(float sx) => _x0 + (sx - _plot.Left) / (double)_plot.Width * (_x1 - _x0);
         private double Iy(float sy) => InvertY ? _y0 + (sy - _plot.Top) / (double)_plot.Height * (_y1 - _y0) : _y0 + (_plot.Bottom - sy) / (double)_plot.Height * (_y1 - _y0);
 
@@ -162,7 +226,8 @@ namespace Sidralune.UI
         private static List<double> LinearTicks(double x0, double x1, double step)
         {
             var ticks = new List<double>();
-            for (double x = Math.Ceiling(x0 / step) * step; x <= x1 + 1e-12; x += step) ticks.Add(x);
+            if (!(step > 0) || x0 + step == x0) return ticks; // a step too small to add would never end
+            for (double x = Math.Ceiling(x0 / step) * step; x <= x1 + 1e-12 && ticks.Count < 1000; x += step) ticks.Add(x);
             return ticks;
         }
 
@@ -195,7 +260,10 @@ namespace Sidralune.UI
             // bands
             g.SetClip(_plot);
             foreach (var b in Bands)
-                using (var br = new SolidBrush(b.ThemeColor != null ? b.ThemeColor(p) : b.Color)) g.FillRectangle(br, Math.Min(Sx(b.X0), Sx(b.X1)), _plot.Top, Math.Abs(Sx(b.X1) - Sx(b.X0)), _plot.Height);
+            {
+                float bx0 = ClampX(Sx(b.X0)), bx1 = ClampX(Sx(b.X1));
+                using (var br = new SolidBrush(b.ThemeColor != null ? b.ThemeColor(p) : b.Color)) g.FillRectangle(br, Math.Min(bx0, bx1), _plot.Top, Math.Abs(bx1 - bx0), _plot.Height);
+            }
             g.Clip = clip;
             // grid and ticks
             double xs = NiceStep(_x1 - _x0, Math.Max(2, _plot.Width / 90)), ys = NiceStep(_y1 - _y0, Math.Max(2, _plot.Height / 50));
@@ -216,7 +284,7 @@ namespace Sidralune.UI
                     var sz = TextRenderer.MeasureText(t, Theme.SmallFont);
                     TextRenderer.DrawText(g, t, Theme.SmallFont, new Point((int)sx - sz.Width / 2, _plot.Bottom + 4), p.ChartText);
                 }
-                for (double y = Math.Ceiling(_y0 / ys) * ys; y <= _y1 + 1e-12; y += ys)
+                foreach (var y in LinearTicks(_y0, _y1, ys))
                 {
                     float sy = Sy(y);
                     g.DrawLine(gp, _plot.Left, sy, _plot.Right, sy);
@@ -250,22 +318,28 @@ namespace Sidralune.UI
                     if (s.Style == SeriesStyle.Line || s.Style == SeriesStyle.LineScatter || s.Style == SeriesStyle.Step)
                     {
                         var pts = new List<PointF>();
+                        double px = double.NaN, py = double.NaN; // the previous point, in pixels
                         for (int i = 0; i < s.X.Count; i++)
                         {
-                            if (double.IsNaN(s.Y[i]) || double.IsNaN(s.X[i])) { if (pts.Count > 1) g.DrawLines(pen, pts.ToArray()); pts.Clear(); continue; }
-                            var pt = new PointF(Sx(s.X[i]), Sy(s.Y[i]));
-                            if (s.Style == SeriesStyle.Step && pts.Count > 0) pts.Add(new PointF(pt.X, pts[pts.Count - 1].Y));
-                            pts.Add(pt);
+                            if (double.IsNaN(s.Y[i]) || double.IsNaN(s.X[i])) { DrawPolyline(g, pen, pts); px = double.NaN; continue; }
+                            double x = SxD(s.X[i]), y = SyD(s.Y[i]);
+                            if (!double.IsNaN(px))
+                            {
+                                if (s.Style == SeriesStyle.Step) { AddSegment(g, pen, pts, px, py, x, py); px = x; }
+                                AddSegment(g, pen, pts, px, py, x, y);
+                            }
+                            px = x; py = y;
                         }
-                        if (pts.Count > 1) g.DrawLines(pen, pts.ToArray());
+                        DrawPolyline(g, pen, pts);
                     }
                     if (s.Style == SeriesStyle.Bars)
                     {
-                        float bw = s.X.Count > 1 ? Math.Max(1, Math.Abs(Sx(s.X[1]) - Sx(s.X[0])) - 1) : 4;
+                        float bw = s.X.Count > 1 ? Math.Min(_plot.Width, Math.Max(1, Math.Abs(Sx(s.X[1]) - Sx(s.X[0])) - 1)) : 4;
                         for (int i = 0; i < s.X.Count; i++)
                         {
-                            float y0 = Sy(Math.Max(_y0, 0)), y1 = Sy(s.Y[i]);
-                            g.FillRectangle(br, Sx(s.X[i]) - bw / 2, Math.Min(y0, y1), bw, Math.Abs(y1 - y0));
+                            float x = Sx(s.X[i]), y0 = ClampY(Sy(Math.Max(_y0, 0))), y1 = ClampY(Sy(s.Y[i]));
+                            if (double.IsNaN(s.Y[i]) || !InReach(x, _plot.Top)) continue;
+                            g.FillRectangle(br, x - bw / 2, Math.Min(y0, y1), bw, Math.Abs(y1 - y0));
                         }
                     }
                     if (s.Style == SeriesStyle.Scatter || s.Style == SeriesStyle.LineScatter)
@@ -275,12 +349,13 @@ namespace Sidralune.UI
                         {
                             if (double.IsNaN(s.Y[i])) continue;
                             float x = Sx(s.X[i]), y = Sy(s.Y[i]);
+                            if (!InReach(x, _plot.Top)) continue;
                             if (s.YErr != null && i < s.YErr.Count && !double.IsNaN(s.YErr[i]))
                             {
-                                float e1 = Sy(s.Y[i] - s.YErr[i]), e2 = Sy(s.Y[i] + s.YErr[i]);
-                                g.DrawLine(ep, x, e1, x, e2);
+                                float e1 = ClampY(Sy(s.Y[i] - s.YErr[i])), e2 = ClampY(Sy(s.Y[i] + s.YErr[i]));
+                                if (e1 != e2) g.DrawLine(ep, x, e1, x, e2);
                             }
-                            g.FillEllipse(br, x - m / 2, y - m / 2, m, m);
+                            if (InReach(x, y)) g.FillEllipse(br, x - m / 2, y - m / 2, m, m);
                         }
                     }
                 }
@@ -290,6 +365,7 @@ namespace Sidralune.UI
                 var mc = mk.ThemeColor != null ? mk.ThemeColor(p) : mk.Color ?? p.Warning;
                 using (var pen = new Pen(mc, 1.2f) { DashStyle = DashStyle.Dash })
                 {
+                    if (mk.Horizontal ? !InReach(_plot.Left, Sy(mk.X)) : !InReach(Sx(mk.X), _plot.Top)) continue;
                     if (mk.Horizontal) { float y = Sy(mk.X); g.DrawLine(pen, _plot.Left, y, _plot.Right, y); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point(_plot.Left + 4, (int)y - 16), mc); }
                     else { float x = Sx(mk.X); g.DrawLine(pen, x, _plot.Top, x, _plot.Bottom); if (mk.Label != null) TextRenderer.DrawText(g, mk.Label, Theme.SmallFont, new Point((int)x + 3, _plot.Top + 2), mc); }
                 }
@@ -360,8 +436,7 @@ namespace Sidralune.UI
                     if (SelectRangeMode) RangeSelected?.Invoke(ax, bx);
                     else
                     {
-                        double ay = Iy(r.Top), by = Iy(r.Bottom);
-                        _x0 = ax; _x1 = bx; _y0 = Math.Min(ay, by); _y1 = Math.Max(ay, by); _zoomed = true;
+                        ZoomTo(ax, bx, Iy(r.Top), Iy(r.Bottom));
                     }
                 }
                 else PlotClick?.Invoke(Ix(e.X), Iy(e.Y));
