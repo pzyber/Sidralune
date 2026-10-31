@@ -404,7 +404,9 @@ namespace Sidralune.UI
             return lat < horizon;
         }
 
-        private bool InView(PointF p) => p.X >= -20 && p.Y >= -20 && p.X <= Width + 20 && p.Y <= Height + 20;
+        private bool InView(PointF p) => InView(p, 20);
+        // a point this far outside the chart may still show: a disc, rings, a label or moons around it
+        private bool InView(PointF p, float margin) => p.X >= -margin && p.Y >= -margin && p.X <= Width + margin && p.Y <= Height + margin;
 
         private double ViewRadius()
         {
@@ -570,21 +572,28 @@ namespace Sidralune.UI
                 PointF pt;
                 var f = ToFrame(pl.Astrometric.ToVector().Normalized());
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) continue;
-                if (!Project(f, out pt) || !InView(pt)) continue;
+                if (!Project(f, out pt)) continue;
                 float r = (float)Math.Max(Math.Max(2.5, 1.2 * (4 - pl.Magnitude * 0.6)), pl.DiameterArcsec / 3600 * AstroMath.Deg2Rad / 2 * _scale * 2);
+                // drawn while any of it is in view, not only its middle: the disc, Saturn's rings, the label to the right
+                // and, zoomed in, Jupiter's moons (up to about 26 radii out)
+                Science.SolarSystem.GalileanMoon[] moons = b == Body.Jupiter && FovDeg < 1 ? Science.SolarSystem.GalileanMoons.Positions(_ctx.JdTT) : null;
+                float reach = (b == Body.Saturn ? 2.2f * r : r) + 120;
+                if (moons != null) reach = Math.Max(reach, (float)moons.Max(m => Math.Max(Math.Abs(m.X), Math.Abs(m.Y))) * r + 40);
+                if (!InView(pt, reach)) continue;
                 using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
                 if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
                 TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
                 _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
-                if (b == Body.Jupiter && FovDeg < 1) DrawGalileans(g, pt, r);
+                if (moons != null) DrawGalileans(g, pt, r, moons);
             }
             // Sun
             {
                 PointF pt;
                 var f = ToFrame(sunPlace.Astrometric.ToVector().Normalized());
-                if (!(Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) && Project(f, out pt) && InView(pt))
+                float r = (float)Math.Max(7, 0.267 * AstroMath.Deg2Rad * _scale);
+                // the glow reaches twice the radius out; the label is to the right
+                if (!(Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) && Project(f, out pt) && InView(pt, 2 * r + 60))
                 {
-                    float r = (float)Math.Max(7, 0.267 * AstroMath.Deg2Rad * _scale);
                     using (var glow = new SolidBrush(Theme.WithAlpha(_p.Sun, 60))) g.FillEllipse(glow, pt.X - r * 2, pt.Y - r * 2, r * 4, r * 4);
                     using (var br = new SolidBrush(_p.Sun)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
                     TextRenderer.DrawText(g, "Sun", Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)pt.Y - 8), _p.Sun);
@@ -596,9 +605,9 @@ namespace Sidralune.UI
                 var moon = _ctx.BodyPlace(Body.Moon);
                 PointF pt;
                 var f = ToFrame(moon.Astrometric.ToVector().Normalized());
-                if (!(Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) && Project(f, out pt) && InView(pt))
+                float r = (float)Math.Max(8, Math.Asin(1737.4 / (moon.Distance * AstroMath.AU_km)) * _scale);
+                if (!(Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) && Project(f, out pt) && InView(pt, r + 60))
                 {
-                    float r = (float)Math.Max(8, Math.Asin(1737.4 / (moon.Distance * AstroMath.AU_km)) * _scale);
                     double k = moon.IlluminatedFraction;
                     double limbPa = PlanetPhysics.BrightLimbAngle(moon.Apparent, sunPlace.Apparent) * AstroMath.Rad2Deg;
                     double north = NorthAngle(moon.Astrometric.Ra, moon.Astrometric.Dec, pt);
@@ -628,10 +637,8 @@ namespace Sidralune.UI
             g.Restore(st);
         }
 
-        private void DrawGalileans(Graphics g, PointF jup, float r)
+        private void DrawGalileans(Graphics g, PointF jup, float r, Science.SolarSystem.GalileanMoon[] moons)
         {
-            var moons = Science.SolarSystem.GalileanMoons.Positions(_ctx.JdTT);
-            double north = 0;
             foreach (var m in moons)
             {
                 // X positive west -> screen right for north-up, east-left view
