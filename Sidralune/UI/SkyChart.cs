@@ -573,18 +573,29 @@ namespace Sidralune.UI
                 var f = ToFrame(pl.Astrometric.ToVector().Normalized());
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) continue;
                 if (!Project(f, out pt)) continue;
-                float r = (float)Math.Max(Math.Max(2.5, 1.2 * (4 - pl.Magnitude * 0.6)), pl.DiameterArcsec / 3600 * AstroMath.Deg2Rad / 2 * _scale * 2);
+                // the apparent radius, or a dot sized by brightness while that is larger
+                float r = (float)Math.Max(Math.Max(2.5, 1.2 * (4 - pl.Magnitude * 0.6)), pl.DiameterArcsec / 2 / 3600 * AstroMath.Deg2Rad * _scale);
                 // drawn while any of it is in view, not only its middle: the disc, Saturn's rings, the label to the right
-                // and, zoomed in, Jupiter's moons (up to about 26 radii out)
-                Science.SolarSystem.GalileanMoon[] moons = b == Body.Jupiter && FovDeg < 1 ? Science.SolarSystem.GalileanMoons.Positions(_ctx.JdTT) : null;
+                // and, zoomed in, Jupiter's moons at their places in the sky
+                Science.SolarSystem.GalileanMoon[] moons = null;
+                PointF[] moonPts = null;
                 float reach = (b == Body.Saturn ? 2.2f * r : r) + 120;
-                if (moons != null) reach = Math.Max(reach, (float)moons.Max(m => Math.Max(Math.Abs(m.X), Math.Abs(m.Y))) * r + 40);
+                if (b == Body.Jupiter && FovDeg < 1)
+                {
+                    moons = Science.SolarSystem.GalileanMoons.Positions(_ctx);
+                    moonPts = new PointF[moons.Length];
+                    for (int i = 0; i < moons.Length; i++)
+                    {
+                        if (!ProjectIcrs(moons[i].Ra, moons[i].Dec, out moonPts[i])) moonPts[i] = pt;
+                        reach = Math.Max(reach, Math.Max(Math.Abs(moonPts[i].X - pt.X), Math.Abs(moonPts[i].Y - pt.Y)) + 40);
+                    }
+                }
                 if (!InView(pt, reach)) continue;
                 using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
                 if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
                 TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
                 _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
-                if (moons != null) DrawGalileans(g, pt, r, moons);
+                if (moons != null) DrawGalileans(g, moons, moonPts);
             }
             // Sun
             {
@@ -637,15 +648,20 @@ namespace Sidralune.UI
             g.Restore(st);
         }
 
-        private void DrawGalileans(Graphics g, PointF jup, float r, Science.SolarSystem.GalileanMoon[] moons)
+        // the moons at their projected places, so they follow the chart's orientation, mirroring and rotation
+        private void DrawGalileans(Graphics g, Science.SolarSystem.GalileanMoon[] moons, PointF[] pts)
         {
-            foreach (var m in moons)
+            for (int i = 0; i < moons.Length; i++)
             {
-                // X positive west -> screen right for north-up, east-left view
-                float x = jup.X + (float)(m.X * r * (FlipX ? -1 : 1)), y = jup.Y - (float)(m.Y * r * (FlipY ? -1 : 1));
+                var m = moons[i];
+                float x = pts[i].X, y = pts[i].Y;
                 if (m.Occulted) continue;
                 using (var b = new SolidBrush(m.InFront && m.Transit ? _p.TextDim : _p.Text)) g.FillEllipse(b, x - 2, y - 2, 4, 4);
                 TextRenderer.DrawText(g, m.Name.Substring(0, 2), Theme.SmallFont, new Point((int)x - 6, (int)y + 4), _p.TextDim);
+                var o = SelectedObject.From(m);
+                _hits.Add(new Hit { P = pts[i], R = 6, O = o, Priority = 0 });
+                // a selected moon is marked where it is now, as it moves around Jupiter
+                if (Highlight != null && Highlight.Kind == SelectedKind.PlanetMoon && Highlight.Name == m.Name) { Highlight.RaDeg = o.RaDeg; Highlight.DecDeg = o.DecDeg; }
             }
         }
 

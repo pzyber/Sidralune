@@ -26,6 +26,40 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestGalileanMoonsInTheSky()
+        {
+            var ctx = new Core.SkyContext(new Core.Observer { LatitudeDeg = 59.3, LongitudeDeg = 18.1 }, Core.Time.AstroTime.FromDateTime(new DateTime(2026, 10, 31, 1, 0, 0, DateTimeKind.Utc)));
+            var jup = ctx.BodyPlace(Core.Ephemeris.Body.Jupiter);
+            Core.Ephemeris.PlanetPhysics.Fill(Core.Ephemeris.Body.Jupiter, jup, ctx.JdTT);
+            double cm, lat, pole;
+            Core.Ephemeris.PlanetPhysics.Orientation(Core.Ephemeris.Body.Jupiter, ctx.JdTDB, jup.Astrometric.ToVector(), jup.LightTimeDays, out cm, out lat, out pole);
+            CheckTrue("Jupiter's axis is within 35° of celestial north", Math.Cos(pole * AstroMath.Deg2Rad) > Math.Cos(35 * AstroMath.Deg2Rad), pole + "°");
+            var moons = GalileanMoons.Positions(ctx);
+            var plain = GalileanMoons.Positions(ctx.JdTT);
+            for (int i = 0; i < 4; i++)
+            {
+                var m = moons[i];
+                string n = m.Name + ": ";
+                Check(n + "same place around Jupiter as without the sky (X)", m.X, plain[i].X, 1e-12);
+                double sep = AstroMath.Separation(jup.Astrometric.Ra, jup.Astrometric.Dec, m.Ra, m.Dec) * AstroMath.Rad2Deg * 3600;
+                Check(n + "RA/Dec are the stated distance from Jupiter (\")", sep, m.SeparationArcsec, 0.05);
+                Check(n + "that distance is X, Y in Jupiter radii (\")", m.SeparationArcsec, Math.Sqrt(m.X * m.X + m.Y * m.Y) * jup.DiameterArcsec / 2, 0.01);
+                if (Math.Abs(m.X) > 3)
+                {
+                    // the moons lie along Jupiter's equator, 90° from its pole: west of it for positive X
+                    double pa = AstroMath.PositionAngle(jup.Astrometric.Ra, jup.Astrometric.Dec, m.Ra, m.Dec) * AstroMath.Rad2Deg;
+                    double expected = pole + (m.X > 0 ? -90 : 90), off = Math.Abs(AstroMath.NormalizeDeg(pa - expected + 180) - 180);
+                    CheckTrue(n + "along Jupiter's equator, on the " + (m.X > 0 ? "west" : "east") + " side", off < 6, pa.ToString("0.0") + "° vs " + expected.ToString("0.0") + "°");
+                    CheckTrue(n + "east and north parts agree with RA/Dec", Math.Abs(AstroMath.NormalizeDeg(Math.Atan2(m.EastArcsec, m.NorthArcsec) * AstroMath.Rad2Deg - pa + 180) - 180) < 0.1);
+                }
+                // 4.6 to 5.7 at opposition; Jupiter is 5.5 AU away on this date
+                CheckTrue(n + "magnitude 4.3 to 6.6", m.Mag > 4.3 && m.Mag < 6.6, m.Mag.ToString("0.00"));
+            }
+            CheckTrue("Ganymede is the brightest and largest, Callisto the faintest", moons[2].Mag < moons.Where((x, i) => i != 2).Min(x => x.Mag) && moons[3].Mag > moons.Take(3).Max(x => x.Mag)
+                && moons[2].DiameterArcsec > 1.2 && moons[2].DiameterArcsec < 1.9, string.Join(", ", moons.Select(x => x.Name + " " + x.Mag.ToString("0.00") + " " + x.DiameterArcsec.ToString("0.00") + "\"")));
+        }
+
+        [TestMethod]
         public void TestPeriodograms()
         {
             var rng = new Random(2);
