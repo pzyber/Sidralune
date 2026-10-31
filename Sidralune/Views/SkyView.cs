@@ -233,11 +233,11 @@ namespace Sidralune.Views
             return new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = p.Astrometric.RaHours * 15, DecDeg = p.Astrometric.DecDeg, Mag = p.Magnitude, SizeArcmin = p.DiameterArcsec / 60 };
         }
 
-        /// <summary>One of Jupiter's moons (Io, Europa, Ganymede or Callisto) now; null for any other name.</summary>
+        /// <summary>A moon of a planet (Ganymede, Titan, Triton…) now; null for any other name.</summary>
         public static SelectedObject MoonObject(string name)
         {
-            var m = GalileanMoons.Positions(new SkyContext(AppState.Site, AppState.Now)).FirstOrDefault(x => string.Equals(x.Name, name?.Trim(), StringComparison.OrdinalIgnoreCase));
-            return m == null ? null : SelectedObject.From(m);
+            var m = PlanetMoons.Find(name);
+            return m == null ? null : SelectedObject.From(PlanetMoons.Place(new SkyContext(AppState.Site, AppState.Now), m));
         }
 
         public static SelectedObject MinorObject(MinorBody m)
@@ -269,7 +269,13 @@ namespace Sidralune.Views
             Chart.Highlight = o;
             double fov = Chart.FovDeg;
             if (o.Kind == SelectedKind.DeepSky && !double.IsNaN(o.SizeArcmin)) fov = Math.Max(0.3, Math.Min(Chart.FovDeg, o.SizeArcmin / 60 * 8));
-            if (o.Kind == SelectedKind.PlanetMoon) fov = Math.Min(Chart.FovDeg, 0.25); // the moons are drawn below 1°; this shows all four
+            if (o.Kind == SelectedKind.PlanetMoon && o.Planet.HasValue)
+            {
+                // close enough to tell the moon from its planet, with the planet in view too
+                var pl = PlanetObject(o.Planet.Value);
+                double sep = AstroMath.Separation(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad, pl.RaDeg * AstroMath.Deg2Rad, pl.DecDeg * AstroMath.Deg2Rad) * AstroMath.Rad2Deg;
+                fov = Math.Min(Chart.FovDeg, Math.Max(SkyChart.MinFovDeg, sep * 4));
+            }
             Chart.CenterOn(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad, fov);
             ShowInfo(o);
         }
@@ -358,22 +364,21 @@ namespace Sidralune.Views
                     lines.Add(string.Format("CM {0:0.0}°  sub-Earth lat {1:+0.0;-0.0}°  pole PA {2:0.0}°", cm, lat, pa));
                 }
             }
-            else if (o.Kind == SelectedKind.PlanetMoon && GalileanMoons.Names.Contains(o.Name))
+            else if (o.Kind == SelectedKind.PlanetMoon && PlanetMoons.Find(o.Name) != null)
             {
-                int i = Array.IndexOf(GalileanMoons.Names, o.Name);
-                var m = GalileanMoons.Positions(ctx)[i];
-                var jup = ctx.BodyPlace(Body.Jupiter);
-                ra = m.Ra * AstroMath.Rad2Deg; dec = m.Dec * AstroMath.Rad2Deg; mag = m.Mag; size = m.DiameterArcsec / 60;
-                hz = ctx.IcrsToHorizontal(m.Ra, m.Dec);
-                app = ctx.IcrsToApparent(m.Ra, m.Dec);
+                var moon = PlanetMoons.Find(o.Name);
+                var m = PlanetMoons.Place(ctx, moon);
+                var p = m.Place;
+                ra = p.Astrometric.RaHours * 15; dec = p.Astrometric.DecDeg; hz = p.Horizontal; app = p.Apparent; mag = m.Mag; size = m.DiameterArcsec / 60;
                 // the chart and other views follow the moon as it moves
                 o.RaDeg = ra; o.DecDeg = dec;
-                string place = m.Occulted ? "hidden behind Jupiter" : m.Transit ? "crossing Jupiter's disc" : string.Format("{0:0.0}\" {1} of Jupiter ({2:0.0} Jupiter radii{3})",
-                    m.SeparationArcsec, m.EastArcsec >= 0 ? "east" : "west", Math.Sqrt(m.X * m.X + m.Y * m.Y), m.InFront ? ", in front" : ", behind");
+                string planet = moon.Planet.ToString();
+                string place = m.Occulted ? "hidden behind " + planet : m.Transit ? "crossing " + planet + "'s disc" : string.Format("{0} {1} of {2} ({3:0.0} {2} radii{4})",
+                    FormatOffset(m.SeparationArcsec), m.EastArcsec >= 0 ? "east" : "west", planet, m.PlanetRadii, m.Behind ? ", behind" : ", in front");
                 lines.Add("Position        " + place);
-                lines.Add(string.Format("Distance        {0:0.0000} AU ({1:N0} km)", jup.Distance, jup.Distance * AstroMath.AU_km));
-                lines.Add(string.Format("Diameter        {0:N0} km   apparent {1:0.00}\"", GalileanMoons.DiameterKm[i], m.DiameterArcsec));
-                lines.Add(string.Format("Orbital period  {0:0.000} days", GalileanMoons.PeriodDays[i]));
+                lines.Add(string.Format("Distance        {0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km));
+                lines.Add(string.Format("Diameter        {0:N0} km   apparent {1}\"", 2 * moon.RadiusKm, m.DiameterArcsec.ToString(m.DiameterArcsec < 0.01 ? "0.0000" : m.DiameterArcsec < 0.1 ? "0.000" : "0.00")));
+                lines.Add(string.Format("Orbital period  {0} days{1}", moon.PeriodDays.ToString(moon.PeriodDays < 100 ? "0.000" : "0.0"), moon.Retrograde ? " (retrograde)" : ""));
             }
             else if (o.Kind == SelectedKind.MinorBody && o.Minor != null)
             {
@@ -435,6 +440,10 @@ namespace Sidralune.Views
             }
             _objInfo.Text = string.Join("\r\n", head.Concat(new[] { "" }).Concat(lines));
         }
+
+        // a moon's distance from its planet: arcseconds, arcminutes for the outer moons
+        public static string FormatOffset(double arcsec) =>
+            arcsec < 60 ? arcsec.ToString("0.0") + "\"" : arcsec < 3600 ? (arcsec / 60).ToString("0.0") + "′" : (arcsec / 3600).ToString("0.00") + "°";
 
         private void SlewTo(SelectedObject o)
         {

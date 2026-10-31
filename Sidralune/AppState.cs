@@ -171,9 +171,9 @@ namespace Sidralune
             return s;
         }
 
-        /// <summary>A moon of Jupiter, placed by GalileanMoons.Positions(SkyContext).</summary>
-        public static SelectedObject From(Science.SolarSystem.GalileanMoon m) =>
-            new SelectedObject { Kind = SelectedKind.PlanetMoon, Name = m.Name, Planet = Body.Jupiter, RaDeg = m.Ra * 180 / Math.PI, DecDeg = m.Dec * 180 / Math.PI, Mag = m.Mag, SizeArcmin = m.DiameterArcsec / 60 };
+        /// <summary>A moon of a planet, placed by PlanetMoons.Places.</summary>
+        public static SelectedObject From(Science.SolarSystem.MoonPlace m) =>
+            new SelectedObject { Kind = SelectedKind.PlanetMoon, Name = m.Moon.Name, Planet = m.Moon.Planet, RaDeg = m.Place.Astrometric.RaHours * 15, DecDeg = m.Place.Astrometric.DecDeg, Mag = m.Mag, SizeArcmin = m.DiameterArcsec / 60 };
     }
 
     public class BackgroundTask

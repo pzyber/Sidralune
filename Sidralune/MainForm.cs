@@ -479,13 +479,13 @@ namespace Sidralune
                         entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = b.ToString(), Sub = "Solar system  ·  show in sky chart", Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.PlanetObject(body)) }));
                     }
                 }
-                foreach (var name in Science.SolarSystem.GalileanMoons.Names)
+                foreach (var moon in Science.SolarSystem.PlanetMoons.All)
                 {
-                    int s = Score(name, q);
+                    int s = Score(moon.Name, q);
                     if (s > 20)
                     {
-                        var moonName = name;
-                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = name, Sub = "Moon of Jupiter  ·  show in sky chart", Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MoonObject(moonName)) }));
+                        var moonName = moon.Name;
+                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = moon.Name, Sub = "Moon of " + moon.Planet + "  ·  show in sky chart", Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MoonObject(moonName)) }));
                     }
                 }
                 foreach (var mb in Core.MinorBodies.MinorBodyStore.Instance.All.Where(m => m.DisplayName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).Take(8))

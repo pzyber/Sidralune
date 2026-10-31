@@ -157,7 +157,7 @@ namespace Sidralune.Views
 
         private static SelectedObject ToSelected(ListEntry e)
         {
-            // a moon of Jupiter: where it is now (its list entry also names Jupiter, for rising and setting)
+            // a moon of a planet: where it is now (its list entry also names the planet, for rising and setting)
             var moon = e.Type != null && e.Type.StartsWith("Moon of ") ? SkyView.MoonObject(e.Name) : null;
             if (moon != null) return moon;
             Body b;

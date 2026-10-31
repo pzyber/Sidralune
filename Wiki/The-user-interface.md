@@ -65,7 +65,7 @@ From left to right:
 
 Press **Ctrl+K** (or Ctrl+F, or Ctrl+Shift+P) anywhere, or click the search box. Type a few letters:
 
-- **Objects**: star names (`Vega`), catalogue designations (`M 31`, `NGC 7000`, `IC 434`, `HIP 91262`, and with the PGC galaxies installed `PGC 2557` or another galaxy name such as `UGC 454`), planets (`Saturn`), Jupiter's moons (`Ganymede`), comets and asteroids (`Ceres`, `12P`). Choosing one selects it and centres it in the Sky chart.
+- **Objects**: star names (`Vega`), catalogue designations (`M 31`, `NGC 7000`, `IC 434`, `HIP 91262`, and with the PGC galaxies installed `PGC 2557` or another galaxy name such as `UGC 454`), planets (`Saturn`), the planets' moons (`Ganymede`, `Titan`, `Triton`), comets and asteroids (`Ceres`, `12P`). Choosing one selects it and centres it in the Sky chart.
 - **Coordinates** are not searched in the palette, but the find box on the **Sky** toolbar accepts `hh mm ss +dd mm ss` and centres the chart on that position.
 - **Commands**: every important action of every workspace, for example `stack`, `print finder chart`, `polar alignment`, `new observing list`, `night`, `+1 day`. Each entry shows its category and keyboard shortcut.
 
