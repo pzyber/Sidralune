@@ -18,7 +18,7 @@ If you are new, start with [Getting started](Getting-started), then read [The us
 | Page | What it covers |
 |---|---|
 | [Tonight](Tonight) | The nightly dashboard |
-| [Sky chart](Sky-chart) | Planetarium and atlas modes, layers, fields of view, object information, printing |
+| [Sky chart](Sky-chart) | Planetarium and atlas modes, the printable all-sky star chart, layers, fields of view, object information, printing |
 | [Observation planning](Observation-planning) | Observing lists, visibility predictions, the altitude graph, the logbook |
 | [Observatory and devices](Observatory-and-devices) | Connecting equipment, imaging, focusing, guiding, dome and weather, polar alignment |
 | [Sequencer](Sequencer) | Automated imaging sessions with instructions, loops and triggers |

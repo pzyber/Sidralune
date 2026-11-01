@@ -1,9 +1,10 @@
-The **Sky** workspace is Sidralune's planetarium and star atlas. It shows stars, deep-sky objects, planets, the Moon, comets and asteroids for your site and time, overlays the fields of view of your equipment, gives detailed information about any object, controls your telescope and prints finder charts.
+The **Sky** workspace is Sidralune's planetarium and star atlas. It shows stars, deep-sky objects, planets, the Moon, comets and asteroids for your site and time, overlays the fields of view of your equipment, gives detailed information about any object, controls your telescope and prints finder charts and all-sky star charts.
 
 ## Contents
 
 - [Layout](#layout)
 - [Planetarium and Atlas modes](#planetarium-and-atlas-modes)
+- [Star chart](#star-chart)
 - [Moving around](#moving-around)
 - [Finding objects](#finding-objects)
 - [Fields of view](#fields-of-view)
@@ -29,7 +30,7 @@ The **Sky** workspace is Sidralune's planetarium and star atlas. It shows stars,
 
 ## Planetarium and Atlas modes
 
-Switch with **Planetarium** / **Atlas** on the toolbar.
+Switch with **Planetarium** / **Atlas** on the toolbar. The third tab, **Chart**, is the fixed all-sky [star chart](#star-chart).
 
 | | Planetarium | Atlas |
 |---|---|---|
@@ -38,6 +39,48 @@ Switch with **Planetarium** / **Atlas** on the toolbar.
 | Typical use | "What is up now and where?" | Star-hopping, framing, printed charts |
 
 Both modes use a stereographic projection, which keeps the shapes of constellations and fields of view correct over a wide angle.
+
+## Star chart
+
+The **Chart** tab shows a classic all-sky star chart for your site and the current time, laid out as a page to read on screen or to print and take outside. It is fixed: there is nothing to pan or zoom, and it follows the time controls.
+
+**The circle** is the whole sky above your horizon. The zenith is in the middle and the horizon is the edge. North is at the top and east is on the **left**, because the chart is meant to be held up over your head. Round the edge are tick marks every 5° and the directions: NORTH, EAST, SOUTH and WEST, with NE, SE, SW and NW between them. The circle uses the same stereographic projection as the other modes, so constellations keep their shapes, although they look larger near the horizon.
+
+**Labels turn towards the zenith.** Every name is turned so that its top points at the middle of the chart. To use the chart, face a direction and hold that edge of the chart down. The direction name and everything near that horizon then read the right way up, and the chart matches the sky in front of you. Labels near the middle stay upright on the page.
+
+The chart shows:
+
+- stars to a limit that suits the size of the chart. On screen it follows the window. In print it is about magnitude 5.5 on A4, 6.0 on A3 and A3+, and 6.5 on A2. To choose the limit yourself, turn off **Layers → Limiting magnitude → Deeper when zoomed in** and pick a value.
+- names of the brighter stars, constellation names in capitals, and Bayer letters (α, β…) when **Bayer / Flamsteed** is on,
+- constellation lines, the Milky Way, the ecliptic, and the 30° and 60° altitude circles,
+- Messier objects and the brighter NGC objects, with the same symbols as the atlas,
+- the planets, the Sun when it is up, and the Moon with its phase, its lit side towards the Sun,
+- your site's horizon profile (trees, buildings), shaded in from the edge.
+
+The **Layers** menu turns these on and off as in the other modes. Click an object to select it, and the object panel shows its details. Searching marks the object on the chart without moving anything. An object below the horizon has no mark.
+
+**Beside or below the circle**, depending on which leaves the larger circle, the page lists:
+
+| Block | Contents |
+|---|---|
+| The same sky | Other dates (the 1st and 15th of the months round the chart's date) and the local time on each when the stars stand the same. That is about 4 minutes earlier each day, or 2 hours a month, with summer time allowed for. |
+| Sun | Sunset, the start and end of astronomical darkness, and sunrise |
+| Moon | Phase, how much of it is lit, moonrise and moonset, and the constellation it is in |
+| Planets tonight | Each planet that is up at some time between sunset and sunrise, with its magnitude, constellation, rise (↑) and set (↓) |
+| Key | Star dots for each whole magnitude, as drawn on this chart, and the symbols |
+| Worth a look | The brightest Messier objects at least 25° up |
+| Meteor showers | Showers active on the date, with their peak and ZHR |
+
+The title gives the site, date, time and coordinates. The footer gives the projection and the magnitude limit, and a reminder of how to hold the chart.
+
+### Printing and saving the star chart
+
+On the **Chart** tab, a paper list replaces the field-of-view presets and the mirror and invert buttons. It offers A4, A3, A3+ (329 × 483 mm, also called Super A3 or 13 × 19 in) and A2, each in portrait or landscape.
+
+- **Print** (the printer button) opens the print dialog with the chosen paper selected. If the printer has that size under any name, its own paper is used; otherwise a custom size is set. Pick the printer there, then check the page in the preview and print it. The chart is laid out again for the paper and margins the printer reports. It is sent as vector graphics, so lines and text are as sharp as the printer allows (300, 600 dpi or more), in black on white with 10 mm margins.
+- **Export** (the save button) writes the page as a 300 dpi PNG of the chosen paper, also in black on white, with 8 mm margins. For example, A4 is 2480 × 3508 pixels and A3+ is 3886 × 5705.
+
+Text and symbols are a little larger on larger paper, so a chart on the wall reads from further away. Larger paper also shows more stars.
 
 ## Moving around
 
@@ -200,7 +243,7 @@ Changing the time here changes it for the whole program; see [Time](The-user-int
 
 ## Printing finder charts
 
-Click the printer button to open a print preview of the current view. The printed chart:
+In Planetarium and Atlas modes, click the printer button to open a print preview of the current view. (On the Chart tab, it prints the star chart instead: see [Printing and saving the star chart](#printing-and-saving-the-star-chart).) The printed chart:
 
 - uses a black-on-white print palette that saves ink and reads well under a red torch,
 - is rendered at three times screen resolution for crisp output,
@@ -212,8 +255,8 @@ Typical use: select the target, choose **Finder (5°)** for a finder chart and *
 
 ## Exporting images
 
-The save button writes the chart as a PNG at twice the screen resolution, in the current colours.
+In Planetarium and Atlas modes, the save button writes the chart as a PNG at twice the screen resolution, in the current colours. On the Chart tab it saves the star chart page at 300 dpi.
 
 ## Commands
 
-The command palette (Ctrl+K) includes `Sky: planetarium mode`, `Sky: atlas mode`, `Sky: look north`, `Sky: look south`, `Sky: zenith` and `Sky: print finder chart`.
+The command palette (Ctrl+K) includes `Sky: planetarium mode`, `Sky: atlas mode`, `Sky: star chart mode`, `Sky: look north`, `Sky: look south`, `Sky: zenith`, `Sky: print finder chart` and `Sky: print star chart`.

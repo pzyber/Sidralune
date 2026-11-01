@@ -83,7 +83,7 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 | Workspace | Purpose | Wiki page |
 |---|---|---|
 | Tonight | Darkness times, Moon, planets, best targets, upcoming events, Jupiter's moons, bright comets | [Tonight](https://github.com/pzyber/Sidralune/wiki/Tonight) |
-| Sky | Planetarium and atlas chart, object information, printing | [Sky chart](https://github.com/pzyber/Sidralune/wiki/Sky-chart) |
+| Sky | Planetarium and atlas chart, printable all-sky star chart (A4 to A2, including A3+), object information, printing | [Sky chart](https://github.com/pzyber/Sidralune/wiki/Sky-chart) |
 | Planner | Observing lists, visibility ranking, altitude graph, logbook | [Observation planning](https://github.com/pzyber/Sidralune/wiki/Observation-planning) |
 | Observatory | Equipment, imaging and planetary video recording, guiding, dome and weather, polar alignment, sequencer | [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices), [Sequencer](https://github.com/pzyber/Sidralune/wiki/Sequencer) |
 | Deep sky | Calibrate, register and stack deep-sky frames | [Deep-sky stacking](https://github.com/pzyber/Sidralune/wiki/Deep-sky-stacking) |

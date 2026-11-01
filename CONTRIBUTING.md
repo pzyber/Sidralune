@@ -125,7 +125,7 @@ Always build and run the library tests before building the application, build th
 | `Sidralune/MainForm.cs` | Main window, navigation rail, command palette, status bar |
 | `Sidralune/AppState.cs` | Settings, simulated time, current selection, background tasks |
 | `Sidralune/Views` | One `UserControl` per workspace (`SkyView`, `PlannerView`, `StackingView`, …) |
-| `Sidralune/UI` | Theme and palettes, custom controls, `ImageViewer`, `PlotControl`, `SkyChart`, and the hooks that theme native Windows parts (`ScrollOverlays` for scroll bars, `SystemColorHook` for text selection) |
+| `Sidralune/UI` | Theme and palettes, custom controls, `ImageViewer`, `PlotControl`, `SkyChart`, `StarChart` (the all-sky star chart page, drawn in millimetres for screen, printer and 300 dpi images), and the hooks that theme native Windows parts (`ScrollOverlays` for scroll bars, `SystemColorHook` for text selection) |
 | `Sidralune/Scripting` | C# script host and example scripts |
 | `Sidralune.Core/Math` | Vectors, statistics, FFT, linear algebra, optimisation (Levenberg-Marquardt, Nelder-Mead, MCMC) |
 | `Sidralune.Core/Time` | Time scales, Julian dates, leap seconds, ΔT |

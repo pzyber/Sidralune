@@ -124,4 +124,4 @@ The **Amateur science** tab lists 24 projects where amateur observations are use
 | Ephemeris comparison | JPL Horizons |
 | Online plate solving | nova.astrometry.net |
 
-All queries run in the background, and Sidralune identifies itself to the services with a `Sidralune/0.3.1` user agent. Only what each query needs is sent: names, coordinates or ADQL text, and for astrometry.net the image being solved and your API key.
+All queries run in the background, and Sidralune identifies itself to the services with a `Sidralune/0.4.0` user agent. Only what each query needs is sent: names, coordinates or ADQL text, and for astrometry.net the image being solved and your API key.

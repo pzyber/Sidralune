@@ -11,7 +11,7 @@ namespace Sidralune.Core.Util
     /// <summary>HTTP helpers on top of HttpWebRequest (no external dependencies).</summary>
     public static class Net
     {
-        public static string UserAgent = "Sidralune/0.3.1 (astronomy suite)";
+        public static string UserAgent = "Sidralune/0.4.0 (astronomy suite)";
 
         static Net()
         {
