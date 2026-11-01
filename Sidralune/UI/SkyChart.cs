@@ -267,36 +267,59 @@ namespace Sidralune.UI
 
         private void DrawMilkyWay(Graphics g, double strength)
         {
-            // soft band along the galactic plane. The plane is a closed ring: draw it as one closed figure when all of it
-            // projects, otherwise start each visible stretch just after a hidden point so no seam (an open end at the
-            // starting longitude, which used to leave a gap at the anticentre in Auriga) falls in view.
-            const int n = 180; // 2° steps in galactic longitude
-            var ring = new PointF[n];
+            // soft band along the galactic plane: three nested strips (galactic latitude within ±8.6°, ±5.2° and ±2.3°),
+            // each filled as one shape of pieces 2° long, cut to the chart so they stay right however far it is zoomed in.
+            // (A wide pen along the plane lost its points thousands of pixels outside the chart, and with them the band.)
+            const int n = 180; // 2° steps in galactic longitude, all round the ring so no seam falls in view
+            var near = new RectangleF(-50, -50, Width + 100, Height + 100);
+            var up = new PointF[n]; var lo = new PointF[n];
             var ok = new bool[n];
-            int firstHidden = -1;
-            for (int i = 0; i < n; i++)
+            foreach (var strip in new[] { Tuple.Create(0.15, 50), Tuple.Create(0.09, 70), Tuple.Create(0.04, 90) })
             {
-                double ra, dec;
-                Transforms.GalacticToEquatorial((-180 + 2.0 * i) * AstroMath.Deg2Rad, 0, out ra, out dec);
-                ok[i] = ProjectIcrs(ra, dec, out ring[i]);
-                if (!ok[i] && firstHidden < 0) firstHidden = i;
-            }
-            for (int pass = 0; pass < 3; pass++)
-            {
-                float width = (float)(_scale * (pass == 0 ? 0.30 : pass == 1 ? 0.18 : 0.08));
-                using (var pen = new Pen(Theme.WithAlpha(_p.MilkyWay, (int)((pass == 0 ? 50 : pass == 1 ? 70 : 90) * strength)), width) { LineJoin = LineJoin.Round, StartCap = LineCap.Flat, EndCap = LineCap.Flat })
+                for (int i = 0; i < n; i++)
                 {
-                    if (firstHidden < 0) { g.DrawPolygon(pen, ring); continue; }
-                    var pts = new List<PointF>();
-                    for (int k = 1; k <= n; k++)
+                    double l = (-180 + 2.0 * i) * AstroMath.Deg2Rad, ra, dec;
+                    Transforms.GalacticToEquatorial(l, strip.Item1, out ra, out dec);
+                    ok[i] = ProjectFar(ToFrame(Vec3.FromSpherical(ra, dec)), out up[i]);
+                    Transforms.GalacticToEquatorial(l, -strip.Item1, out ra, out dec);
+                    ok[i] &= ProjectFar(ToFrame(Vec3.FromSpherical(ra, dec)), out lo[i]);
+                }
+                using (var path = new GraphicsPath(FillMode.Winding))
+                {
+                    for (int i = 0; i < n; i++)
                     {
-                        int i = (firstHidden + k) % n;
-                        if (ok[i]) pts.Add(ring[i]);
-                        else { if (pts.Count > 1) g.DrawLines(pen, pts.ToArray()); pts.Clear(); }
+                        int j = (i + 1) % n;
+                        if (!ok[i] || !ok[j]) continue;
+                        var piece = ClipToRect(new[] { up[i], up[j], lo[j], lo[i] }, near);
+                        if (piece.Count >= 3) path.AddPolygon(piece.ToArray());
                     }
-                    if (pts.Count > 1) g.DrawLines(pen, pts.ToArray());
+                    using (var br = new SolidBrush(Theme.WithAlpha(_p.MilkyWay, (int)(strip.Item2 * strength)))) g.FillPath(br, path);
                 }
             }
+        }
+
+        // a polygon cut to a rectangle (Sutherland–Hodgman), so shapes reaching far outside the chart are drawn exactly
+        private static List<PointF> ClipToRect(IList<PointF> poly, RectangleF r)
+        {
+            var pts = new List<PointF>(poly);
+            for (int edge = 0; edge < 4 && pts.Count > 0; edge++)
+            {
+                Func<PointF, double> side = p => edge == 0 ? p.X - r.Left : edge == 1 ? r.Right - p.X : edge == 2 ? p.Y - r.Top : r.Bottom - p.Y;
+                var res = new List<PointF>();
+                for (int k = 0; k < pts.Count; k++)
+                {
+                    PointF a = pts[k], b = pts[(k + 1) % pts.Count];
+                    double sa = side(a), sb = side(b);
+                    if (sa >= 0) res.Add(a);
+                    if (sa >= 0 != sb >= 0)
+                    {
+                        double t = sa / (sa - sb);
+                        res.Add(new PointF((float)(a.X + t * (b.X - a.X)), (float)(a.Y + t * (b.Y - a.Y))));
+                    }
+                }
+                pts = res;
+            }
+            return pts;
         }
 
         private void DrawPolyline(Graphics g, Pen pen, IEnumerable<Vec3> frameVectors)
