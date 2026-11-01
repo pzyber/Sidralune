@@ -106,7 +106,7 @@ The **Limiting magnitude** submenu sets the faintest stars shown (4.0 to 12.0) a
 
 ## Limiting magnitude
 
-The value chosen in **Layers → Limiting magnitude** (6.5 by default) is the faintest star magnitude shown for the whole sky. With **Deeper when zoomed in** ticked (the default), the limit grows by about 2.2 magnitudes for every tenfold zoom, so the chart always has a useful number of stars without clutter; untick it to keep exactly the chosen limit at every zoom. The limit in use is shown in the caption at the bottom of the chart.
+The value chosen in **Layers → Limiting magnitude** (6.5 by default) is the faintest star magnitude shown for the whole sky. With **Deeper when zoomed in** ticked (the default), the limit grows by about 2.2 magnitudes for every tenfold zoom, so the chart always has a useful number of stars without clutter. Below a 1° field it grows faster, so at the narrowest field (36″) every star in the installed catalogue is shown, whatever limit you chose. Untick it to keep exactly the chosen limit at every zoom. The limit in use is shown in the caption at the bottom of the chart.
 
 Deep-sky objects have their own limit, and their labels appear progressively as you zoom in. With the PGC galaxies installed (**Settings → Data**), galaxies that are not NGC/IC objects appear once the field is 15° or narrower. With the PGC galaxy magnitudes installed too, those within the deep-sky magnitude limit are shown, brightest first; galaxies at least a third of the field width in arcminutes across (5′ at 15°) are shown as well, which covers those without a magnitude. They are labelled with their PGC number below 3°. Comets and asteroids are shown down to about two magnitudes fainter than the star limit (at most magnitude 15).
 
@@ -137,7 +137,7 @@ The chart has 65 moons of the planets:
 | Pluto | Charon, Nix, Hydra, Kerberos, Styx |
 
 - A moon is drawn as a dot sized by its brightness, with its name once it is clear of the planet. It is left out while it is too close to the planet to tell apart and while it is hidden behind it; a moon crossing the disc is drawn dimmer.
-- The classical moons (the Galilean moons, Saturn's eight largest, Uranus' five, Triton, Phobos, Deimos and Charon) are always drawn. The fainter ones appear as you zoom in, down to two magnitudes fainter than the star limit (with **Deeper when zoomed in**, and without the cap that the installed star catalogue sets). A moon you select or search for is always drawn.
+- With **Deeper when zoomed in** ticked (the default), every moon is drawn once it is clear of its planet, however faint. With it unticked, the classical moons (the Galilean moons, Saturn's eight largest, Uranus' five, Triton, Phobos, Deimos and Charon) are always drawn and the others down to two magnitudes fainter than the chosen limit. A moon you select or search for is always drawn.
 - Searching for a moon centres it and zooms in until the moon and its planet are both in view and apart.
 - Positions come from orbits fitted to JPL's ephemerides and are within 3″ of JPL Horizons from 2000 to 2050, most within 1″. Outside those years the regular moons stay close and the irregular outer moons are rough; see [Algorithms and accuracy](Algorithms-and-accuracy).
 
