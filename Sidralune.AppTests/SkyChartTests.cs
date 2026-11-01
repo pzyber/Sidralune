@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sidralune.Core;
 using Sidralune.Core.Catalogs;
+using Sidralune.Core.Coordinates;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
@@ -211,6 +212,44 @@ namespace Sidralune.AppTests
                 });
                 CheckTrue("Iapetus is drawn and clickable at " + SkyView.FormatOffset(fov * 3600), result == null, result);
             }
+        }
+
+        [TestMethod]
+        public void TestMilkyWayZoomedIn()
+        {
+            // the share of the chart the Milky Way shades (a grid of pixels that differ with it turned off), and the shade
+            // in the middle, centred on galactic latitude b (deg) in Monoceros
+            Func<double, double, Tuple<double, int>> shaded = (b, fov) => OnUi(() =>
+            {
+                double ra, dec;
+                Transforms.GalacticToEquatorial(203 * AstroMath.Deg2Rad, b * AstroMath.Deg2Rad, out ra, out dec);
+                var shots = new Bitmap[2];
+                for (int k = 0; k < 2; k++)
+                    using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000) })
+                    using (var g = Graphics.FromImage(shots[k] = new Bitmap(1600, 1000)))
+                    {
+                        chart.Layers.Stars = false; chart.Layers.DeepSky = false; chart.Layers.MilkyWay = k == 1;
+                        chart.CenterOn(ra, dec, fov);
+                        chart.Render(g, 1600, 1000, Theme.Current, false);
+                    }
+                int differ = 0, all = 0;
+                for (int x = 10; x < 1600; x += 20)
+                    for (int y = 10; y < 1000; y += 20, all++)
+                        if (shots[0].GetPixel(x, y).ToArgb() != shots[1].GetPixel(x, y).ToArgb()) differ++;
+                var mid = shots[1].GetPixel(803, 497);
+                foreach (var s in shots) s.Dispose();
+                return Tuple.Create((double)differ / all, mid.R + mid.G + mid.B);
+            });
+            // in the plane the whole chart is shaded at every zoom; it used to break up below 2° and vanish by 1°
+            var inPlane = new[] { 30, 2.25, 1.8, 1.15, 0.1, SkyChart.MinFovDeg }.Select(fov => Tuple.Create(fov, shaded(0, fov))).ToList();
+            foreach (var s in inPlane.Skip(1))
+                CheckTrue("in the plane, all of the chart shaded at " + SkyView.FormatOffset(s.Item1 * 3600), s.Item2.Item1 > 0.98, (s.Item2.Item1 * 100).ToString("0") + "%");
+            CheckTrue("…as brightly at every zoom", inPlane.Skip(1).All(s => s.Item2.Item2 == inPlane[1].Item2.Item2), string.Join(", ", inPlane.Select(s => s.Item2.Item2)));
+            CheckTrue("…and as a band, not all of it, at 30°", inPlane[0].Item2.Item1 > 0.2 && inPlane[0].Item2.Item1 < 0.98, (inPlane[0].Item2.Item1 * 100).ToString("0") + "%");
+            // 6° from the plane only the outer strip, fainter; 20° away none
+            var outer = shaded(6, 0.5);
+            CheckTrue("6° from the plane, shaded by the outer strip only", outer.Item1 > 0.98 && outer.Item2 < inPlane[1].Item2.Item2, (outer.Item1 * 100).ToString("0") + "%, shade " + outer.Item2);
+            CheckTrue("20° from the plane, not shaded", shaded(20, 0.5).Item1 < 0.01);
         }
 
         [TestMethod]
