@@ -205,7 +205,7 @@ namespace Sidralune.UI
                 if (!Layers.AutoMagLimit) return Layers.MagLimit;
                 // more stars when zoomed in (≈ +2.2 mag per 10x zoom); below a 1° field it rises faster, reaching the
                 // catalog's faintest star at the narrowest field
-                double cap = CatalogManager.Instance.StarLimitingMagnitude + 0.5, m = ZoomedMagLimit;
+                double cap = CatalogManager.Instance.StarLimitingMagnitude + 0.5, m = Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg));
                 if (FovDeg < 1)
                 {
                     double atOne = Layers.MagLimit + 2.2 * Math.Log10(90);
@@ -216,9 +216,23 @@ namespace Sidralune.UI
             }
         }
 
-        // the limit growing ≈ 2.2 magnitudes per tenfold zoom, without the catalog's cap: it sizes the star dots, so the
-        // brighter stars keep their size as the limit rises towards the catalog's end
-        private double ZoomedMagLimit => Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg));
+        /// <summary>
+        /// Radius (px) of a star's dot under a limiting magnitude, as in a printed atlas: the faintest star shown gets the
+        /// smallest dot, Sirius (−1.5) the largest, whatever the limit. The 8 magnitudes of the default chart (limit 6.5)
+        /// are spread evenly; a deeper limit squeezes its extra magnitudes into the faint end, so the bright stars still
+        /// stand out instead of every star growing.
+        /// </summary>
+        public static float StarDotRadius(double mag, double lim)
+        {
+            double span = Math.Max(1, lim + 1.5), f = AstroMath.Clamp((lim - mag) / span, 0, 1);
+            return (float)Math.Max(0.7, 0.55 * Math.Pow(1.2 + 8 * Math.Pow(f, Math.Max(1, span / 8)), 0.95));
+        }
+
+        /// <summary>
+        /// How much bigger star dots are drawn at a field of view: as in an eyepiece of higher power, stars grow as you
+        /// zoom in, evenly with each tenfold zoom from 90° (about 0.38 per tenfold), to 2.5 times at the narrowest field.
+        /// </summary>
+        public static float StarZoomFactor(double fovDeg) => (float)(1 + 1.5 * Math.Log10(Math.Max(1, 90 / fovDeg)) / Math.Log10(90 / MinFovDeg));
 
         // ------------------------------------------------------------------ rendering
 
@@ -481,7 +495,6 @@ namespace Sidralune.UI
             double cra, cdec;
             ci.ToSpherical(out cra, out cdec);
             CatalogManager.Instance.Stars.Cone(cra, cdec, ViewRadius(), lim, stars);
-            double sizeLim = Layers.AutoMagLimit ? Math.Min(lim, ZoomedMagLimit) : lim;
             var labels = new List<RectangleF>();
             int labelled = 0;
             foreach (var s in stars.OrderBy(s => s.Mag))
@@ -491,8 +504,7 @@ namespace Sidralune.UI
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) continue;
                 if (!Project(f, out pt) || !InView(pt)) continue;
                 double m = s.Mag;
-                float r = (float)Math.Max(0.7, 0.55 * Math.Pow(Math.Max(0.1, sizeLim + 1.2 - m), 0.95));
-                if (FovDeg < 5) r *= 1.2f;
+                float r = StarDotRadius(m, lim) * StarZoomFactor(FovDeg);
                 var col = _print ? Color.Black : _p.StarColor(s.BV);
                 // atmospheric extinction dimming near the horizon (planetarium)
                 int alpha = 255;

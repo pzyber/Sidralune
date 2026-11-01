@@ -215,6 +215,73 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestStarDotSizes()
+        {
+            // the default chart keeps the sizes it had
+            for (double m = -1.5; m <= 6.5; m += 0.5)
+                Check("limit 6.5: mag " + m + " as before (px)", SkyChart.StarDotRadius(m, 6.5), Math.Max(0.7, 0.55 * Math.Pow(7.7 - m, 0.95)), 1e-5);
+            var limits = new[] { 4.0, 6.5, 9, 12, 16, 21.5 };
+            foreach (double lim in limits)
+            {
+                // as in an atlas: the faintest star shown the smallest dot, Sirius the largest, whatever the limit
+                Check("limit " + lim + ": the faintest star the smallest dot (px)", SkyChart.StarDotRadius(lim, lim), 0.7, 1e-6);
+                Check("limit " + lim + ": Sirius the largest (px)", SkyChart.StarDotRadius(-1.5, lim), SkyChart.StarDotRadius(-1.5, 6.5), 1e-5);
+                bool graded = true;
+                for (double m = -1.5; m < lim; m += 0.25) graded &= SkyChart.StarDotRadius(m, lim) >= SkyChart.StarDotRadius(m + 0.25, lim);
+                CheckTrue("limit " + lim + ": brighter stars never smaller", graded);
+            }
+            // a deep limit squeezes the sizes instead of growing every star (as they used to, which made a mass of large dots)
+            foreach (double lim in limits.Where(l => l > 6.5))
+            {
+                bool smaller = true;
+                for (double m = -1; m <= lim; m += 0.25) smaller &= SkyChart.StarDotRadius(m, lim) <= Math.Max(0.7, 0.55 * Math.Pow(lim + 1.2 - m, 0.95)) + 1e-6;
+                CheckTrue("limit " + lim + ": no star bigger than it used to be", smaller);
+            }
+            Check("limit 12: a mag 6 star (px)", SkyChart.StarDotRadius(6, 12), 1.7, 0.2);
+            Check("limit 12: a mag 9 star (px)", SkyChart.StarDotRadius(9, 12), 1.0, 0.2);
+            // zoomed in all the way every limit ends at the same one, so the chart looks the same
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 1, 1, 43, 0, DateTimeKind.Utc));
+            var betelgeuse = CatalogManager.Instance.Find("Betelgeuse");
+            var shots = new[] { 4.0, 6.5, 12 }.Select(lim => OnUi(() =>
+            {
+                using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time })
+                using (var bmp = new Bitmap(1600, 1000))
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    chart.Layers.MagLimit = lim;
+                    chart.CenterOn(betelgeuse.Ra, betelgeuse.Dec, SkyChart.MinFovDeg);
+                    chart.Render(g, 1600, 1000, Theme.Current, false);
+                    var px = new int[200 * 200];
+                    for (int x = 0; x < 200; x++) for (int y = 0; y < 200; y++) px[x * 200 + y] = bmp.GetPixel(700 + x, 400 + y).ToArgb();
+                    return px;
+                }
+            })).ToList();
+            CheckTrue("at 36″, limits 4, 6.5 and 12 draw Betelgeuse alike", shots[0].SequenceEqual(shots[1]) && shots[1].SequenceEqual(shots[2]));
+            CheckTrue("…and it is drawn", shots[0].Distinct().Count() > 2);
+            // stars grow as you zoom in, smoothly, to 2.5 times their size at the narrowest field
+            Check("zoom factor at 90° and wider", SkyChart.StarZoomFactor(90), 1, 1e-6);
+            Check("…at 160°", SkyChart.StarZoomFactor(160), 1, 1e-6);
+            Check("…at 9°", SkyChart.StarZoomFactor(9), 1 + 1.5 / Math.Log10(9000), 1e-6);
+            Check("…at 36″", SkyChart.StarZoomFactor(SkyChart.MinFovDeg), 2.5, 1e-6);
+            var fovs = new[] { 60, 10, 2, 0.3, 0.05, SkyChart.MinFovDeg };
+            var sizes = fovs.Select(fov => OnUi(() =>
+            {
+                using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time })
+                using (var bmp = new Bitmap(1600, 1000))
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    chart.CenterOn(betelgeuse.Ra, betelgeuse.Dec, fov);
+                    chart.Render(g, 1600, 1000, Theme.Current, false);
+                    var d = Drawn(chart, "Betelgeuse");
+                    return d == null ? 0 : d.Item2;
+                }
+            })).ToList();
+            bool grows = sizes[0] > 0;
+            for (int k = 1; k < sizes.Count; k++) grows &= sizes[k] > sizes[k - 1];
+            CheckTrue("Betelgeuse grows as you zoom in from 60° to 36″", grows, string.Join(", ", sizes.Select(s => s.ToString("0.0"))));
+        }
+
+        [TestMethod]
         public void TestMilkyWayZoomedIn()
         {
             // the share of the chart the Milky Way shades (a grid of pixels that differ with it turned off), and the shade
