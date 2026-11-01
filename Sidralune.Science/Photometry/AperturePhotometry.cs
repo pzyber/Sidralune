@@ -230,7 +230,7 @@ namespace Sidralune.Science.Photometry
         /// <summary>
         /// AAVSO Extended File Format report (one target). obsCode = AAVSO observer code; chart = AAVSO chart id.
         /// </summary>
-        public static string AavsoExtended(string targetName, IEnumerable<LightCurvePoint> pts, string obsCode, string compName, string checkName, string chart, string software = "Sidralune 0.3.0", bool transformed = false)
+        public static string AavsoExtended(string targetName, IEnumerable<LightCurvePoint> pts, string obsCode, string compName, string checkName, string chart, string software = "Sidralune 0.3.1", bool transformed = false)
         {
             var sb = new StringBuilder();
             sb.AppendLine("#TYPE=EXTENDED");
