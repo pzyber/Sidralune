@@ -69,6 +69,7 @@
     <Compile Include="UI\ScrollOverlays.cs" />
     <Compile Include="UI\SystemColorHook.cs" />
     <Compile Include="UI\SkyChart.cs" />
+    <Compile Include="UI\StarChart.cs" />
     <Compile Include="UI\Theme.cs" />
     <Compile Include="Views\AstrometryView.cs">
       <SubType>UserControl</SubType>

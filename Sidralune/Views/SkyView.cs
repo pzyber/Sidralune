@@ -22,8 +22,14 @@ namespace Sidralune.Views
     public class SkyView : UserControl, ICommandSource, IActivatable
     {
         public readonly SkyChart Chart = new SkyChart { Dock = DockStyle.Fill };
+        /// <summary>The all-sky star chart of the Chart tab, sharing the chart's layers.</summary>
+        public readonly StarChartView StarChart = new StarChartView { Dock = DockStyle.Fill, Visible = false };
         private readonly Panel _side = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8), AutoScroll = true };
-        private readonly SegmentedTabs _mode = new SegmentedTabs { Width = 220 };
+        private readonly SegmentedTabs _mode = new SegmentedTabs { Width = 300 };
+        // paper for printing and exporting the star chart, upright or on its side
+        private readonly ComboBox _paper = Ui.Combo(ChartPaper.All.SelectMany(p => new[] { p.Name + " portrait", p.Name + " landscape" }).ToArray());
+        // controls for the planetarium and atlas only, hidden on the fixed star chart
+        private readonly List<Control> _viewOnly = new List<Control>();
         private readonly TextBox _find = new TextBox { Width = 200 };
         private readonly ComboBox _fov = Ui.Combo("Naked eye (100°)", "Wide (60°)", "Binoculars (7°)", "Finder (5°)", "Low power (2°)", "Eyepiece", "Camera", "Custom");
         private readonly Timer _anim = new Timer { Interval = 100 };
@@ -38,8 +44,8 @@ namespace Sidralune.Views
         public SkyView()
         {
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(6, 6, 6, 0), WrapContents = false };
-            _mode.Tabs.AddRange(new[] { "Planetarium", "Atlas" });
-            _mode.SelectedChanged += i => { SetMode(i == 0 ? ChartMode.Planetarium : ChartMode.Atlas); };
+            _mode.Tabs.AddRange(new[] { "Planetarium", "Atlas", "Chart" });
+            _mode.SelectedChanged += i => { if (i == 2) ShowStarChart(true); else { ShowStarChart(false); SetMode(i == 0 ? ChartMode.Planetarium : ChartMode.Atlas); } };
             bar.Controls.Add(_mode);
             bar.Controls.Add(Ui.Separator());
             _find.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { FindObject(_find.Text); e.SuppressKeyPress = true; } };
@@ -70,27 +76,46 @@ namespace Sidralune.Views
             flip.AutoSizeToText();
             flip.CheckedChanged += (s, e) => { Chart.FlipX = flip.Checked ^ mirror.Checked; Chart.FlipY = flip.Checked; Chart.Invalidate(); };
             bar.Controls.Add(flip);
-            bar.Controls.Add(Btn(null, Icons.Print, "Print chart for the telescope…", PrintChart));
-            bar.Controls.Add(Btn(null, Icons.Save, "Export chart as PNG…", ExportPng));
+            _viewOnly.AddRange(new Control[] { _fov, mirror, flip });
+            _paper.Width = 130;
+            _paper.Visible = false;
+            bar.Controls.Add(_paper);
+            bar.Controls.Add(Btn(null, Icons.Print, "Print the chart…", Print));
+            bar.Controls.Add(Btn(null, Icons.Save, "Export the chart as PNG…", Export));
 
             BuildSide();
+            StarChart.Layers = Chart.Layers;
             Controls.Add(Chart);
+            Controls.Add(StarChart);
             Controls.Add(_side);
             Controls.Add(bar);
 
             Chart.ObjectClicked += o => { AppState.Select(o); };
             Chart.ContextRequested += ShowContext;
+            StarChart.ObjectClicked += o => { AppState.Select(o); };
             AppState.ObjectSelected += o => { if (o != null) ShowInfo(o); };
-            AppState.TimeChanged += (s, e) => { Chart.Invalidate(); dt.Value = AppState.Site.ToLocal(AppState.Now.ToDateTimeUtc()); if (_sel != null) ShowInfo(_sel); };
-            AppState.SiteChanged += (s, e) => Chart.Invalidate();
-            _live.Tick += (s, e) => { if (Visible) { Chart.Invalidate(); if (_sel != null) UpdateLiveInfo(); } };
+            AppState.TimeChanged += (s, e) => { Redraw(); dt.Value = AppState.Site.ToLocal(AppState.Now.ToDateTimeUtc()); if (_sel != null) ShowInfo(_sel); };
+            AppState.SiteChanged += (s, e) => Redraw();
+            _live.Tick += (s, e) => { if (Visible) { Redraw(); if (_sel != null) UpdateLiveInfo(); } };
             _live.Start();
-            Theme.Changed += (s, e) => Chart.Invalidate();
-            CatalogManager.Instance.CatalogsChanged += (s, e) => { if (IsHandleCreated) BeginInvoke(new Action(Chart.Invalidate)); };
+            Theme.Changed += (s, e) => Redraw();
+            CatalogManager.Instance.CatalogsChanged += (s, e) => { if (IsHandleCreated) BeginInvoke(new Action(Redraw)); };
             dt.Value = AppState.Site.ToLocal(AppState.Now.ToDateTimeUtc());
         }
 
-        public void Activated() => Chart.Focus();
+        public void Activated() { if (StarChart.Visible) StarChart.Focus(); else Chart.Focus(); }
+
+        private void Redraw() { Chart.Invalidate(); StarChart.Invalidate(); }
+
+        /// <summary>Show the fixed all-sky star chart in place of the planetarium or atlas, or go back to them.</summary>
+        private void ShowStarChart(bool on)
+        {
+            StarChart.Visible = on;
+            Chart.Visible = !on;
+            foreach (var c in _viewOnly) c.Visible = !on;
+            _paper.Visible = on;
+            if (on) StarChart.Focus(); else Chart.Focus();
+        }
 
         private FlatButton Btn(string text, string icon, string tip, Action a)
         {
@@ -109,7 +134,7 @@ namespace Sidralune.Views
             Action<string, Func<bool>, Action<bool>> add = (name, get, set) =>
             {
                 var it = new ToolStripMenuItem(name) { CheckOnClick = true, Checked = get() };
-                it.Click += (s, e) => { set(it.Checked); Chart.Invalidate(); };
+                it.Click += (s, e) => { set(it.Checked); Redraw(); };
                 refresh.Add(() => it.Checked = get());
                 menu.Items.Add(it);
             };
@@ -145,13 +170,13 @@ namespace Sidralune.Views
             {
                 var mm = m;
                 var mi = new ToolStripMenuItem(m.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
-                mi.Click += (s, e) => { L.MagLimit = mm; Chart.Invalidate(); };
+                mi.Click += (s, e) => { L.MagLimit = mm; Redraw(); };
                 refresh.Add(() => mi.Checked = Math.Abs(L.MagLimit - mm) < 0.01);
                 mag.DropDownItems.Add(mi);
             }
             mag.DropDownItems.Add(new ToolStripSeparator());
-            var auto = new ToolStripMenuItem("Deeper when zoomed in") { CheckOnClick = true, ToolTipText = "Show fainter stars as the field of view gets smaller" };
-            auto.Click += (s, e) => { L.AutoMagLimit = auto.Checked; Chart.Invalidate(); };
+            var auto = new ToolStripMenuItem("Deeper when zoomed in") { CheckOnClick = true, ToolTipText = "Show fainter stars as the field of view gets smaller, and on the star chart as the paper gets larger" };
+            auto.Click += (s, e) => { L.AutoMagLimit = auto.Checked; Redraw(); };
             refresh.Add(() => auto.Checked = L.AutoMagLimit);
             mag.DropDownItems.Add(auto);
             menu.Items.Add(mag);
@@ -267,6 +292,12 @@ namespace Sidralune.Views
         {
             if (o == null) return;
             Chart.Highlight = o;
+            if (StarChart.Visible)
+            {
+                // the star chart stays fixed: the object is only marked, where it is above the horizon
+                ShowInfo(o);
+                return;
+            }
             double fov = Chart.FovDeg;
             if (o.Kind == SelectedKind.DeepSky && !double.IsNaN(o.SizeArcmin)) fov = Math.Max(0.3, Math.Min(Chart.FovDeg, o.SizeArcmin / 60 * 8));
             if (o.Kind == SelectedKind.PlanetMoon && o.Planet.HasValue)
@@ -284,6 +315,8 @@ namespace Sidralune.Views
         {
             _sel = o;
             Chart.Highlight = o;
+            StarChart.Page.Highlight = o;
+            StarChart.Invalidate();
             _objTitle.Text = o.Name;
             string type = o.Kind == SelectedKind.DeepSky ? DeepSkyObject.TypeLabel(o.Catalog.Type) : o.Kind == SelectedKind.PlanetMoon ? "Moon of " + o.Planet : o.Kind.ToString();
             var con = CatalogManager.Instance.ConstellationAt(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad);
@@ -527,10 +560,59 @@ namespace Sidralune.Views
             }
         }
 
+        private void Print() { if (StarChart.Visible) PrintStarChart(); else PrintChart(); }
+
+        private void Export() { if (StarChart.Visible) ExportStarChart(); else ExportPng(); }
+
+        private ChartPaper SelectedPaper(out bool landscape)
+        {
+            int i = Math.Max(0, _paper.SelectedIndex);
+            landscape = i % 2 == 1;
+            return ChartPaper.All[i / 2];
+        }
+
+        private StarChartPage PaperPage() => new StarChartPage { Site = AppState.Site, Time = AppState.Now, Layers = Chart.Layers, Refraction = AppState.Settings.UseRefraction };
+
+        /// <summary>The star chart on the chosen paper: pick the printer, check the page in the preview, then print.</summary>
+        private void PrintStarChart()
+        {
+            bool landscape;
+            var paper = SelectedPaper(out landscape);
+            var doc = new PrintDocument { DocumentName = "Sidralune star chart" };
+            doc.DefaultPageSettings.Landscape = landscape;
+            doc.DefaultPageSettings.Margins = new Margins(39, 39, 39, 39); // 10 mm
+            try { doc.DefaultPageSettings.PaperSize = StarChartPage.FindPaperSize(doc.PrinterSettings, paper); }
+            catch (InvalidPrinterException) { MainForm.Instance.Toast("No printer is installed", Icons.Warning); return; }
+            var page = PaperPage();
+            doc.PrintPage += (s, e) => page.PrintPage(s, e);
+            using (var pd = new PrintDialog { Document = doc, UseEXDialog = true })
+                if (pd.ShowDialog(this) != DialogResult.OK) return;
+            using (var dlg = new PrintPreviewDialog { Document = doc, Width = 1000, Height = 1100, Text = "Star chart on " + paper.Name })
+                dlg.ShowDialog(this);
+        }
+
+        private void ExportStarChart()
+        {
+            bool landscape;
+            var paper = SelectedPaper(out landscape);
+            using (var d = new SaveFileDialog { Filter = "PNG|*.png", FileName = "Star chart " + paper.Name + ".png" })
+            {
+                if (d.ShowDialog() != DialogResult.OK) return;
+                try
+                {
+                    using (var bmp = PaperPage().RenderImage(paper, landscape, 300)) bmp.Save(d.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                    MainForm.Instance.Toast("Star chart saved: " + paper.Name + " at 300 dpi");
+                }
+                catch (Exception ex) { MainForm.Instance.Toast("Could not save the star chart: " + ex.Message, Icons.Warning); }
+            }
+        }
+
         public IEnumerable<AppCommand> GetCommands()
         {
             yield return new AppCommand { Title = "Sky: planetarium mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 0; } };
             yield return new AppCommand { Title = "Sky: atlas mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 1; } };
+            yield return new AppCommand { Title = "Sky: star chart mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; } };
+            yield return new AppCommand { Title = "Sky: print star chart", Icon = Icons.Print, Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; PrintStarChart(); } };
             yield return new AppCommand { Title = "Sky: print finder chart", Icon = Icons.Print, Run = PrintChart };
             yield return new AppCommand { Title = "Sky: look south", Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(180, 30); } };
             yield return new AppCommand { Title = "Sky: look north", Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(0, 30); } };
