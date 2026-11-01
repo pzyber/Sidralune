@@ -41,6 +41,14 @@ namespace Sidralune.Core.Catalogs
             Count++;
         }
 
+        public void Remove(T o)
+        {
+            int b = Band(o.Dec);
+            int n = _raCells[b];
+            int i = AstroMath.Clamp((int)(AstroMath.NormalizeRad(o.Ra) / AstroMath.TwoPi * n), 0, n - 1);
+            if (_cells[b][i].Remove(o)) Count--;
+        }
+
         /// <summary>Sort each cell by magnitude so queries can stop early at the limiting magnitude.</summary>
         public void Finish()
         {
@@ -110,6 +118,9 @@ namespace Sidralune.Core.Catalogs
         private readonly Dictionary<int, DeepSkyObject> _dsoByPgc = new Dictionary<int, DeepSkyObject>();
         // PGC galaxies made for Find and Search, kept so a galaxy found twice is the same object
         private readonly Dictionary<int, DeepSkyObject> _pgcObjects = new Dictionary<int, DeepSkyObject>();
+        // built-in Messier objects that no OpenNGC file has replaced yet (after the main file: M40, M45, which the
+        // addendum has)
+        private readonly Dictionary<string, DeepSkyObject> _messierFallbacks = new Dictionary<string, DeepSkyObject>();
 
         /// <summary>The Principal Galaxies Catalogue when installed (about a million galaxies, kept compactly), else null.</summary>
         public PgcCatalog Pgc { get; private set; }
@@ -164,7 +175,7 @@ namespace Sidralune.Core.Catalogs
             Stars = new SkyIndex<Star>();
             DeepSky = new SkyIndex<DeepSkyObject>();
             StarsByHip.Clear(); _names.Clear(); DeepSkyList.Clear(); NamedStars.Clear(); Constellations.Clear();
-            _dsoByPgc.Clear();
+            _dsoByPgc.Clear(); _messierFallbacks.Clear();
             lock (_pgcObjects) _pgcObjects.Clear();
             foreach (var line in Lines(BuiltInData.BrightStars))
             {
@@ -196,7 +207,8 @@ namespace Sidralune.Core.Catalogs
                 };
                 ParseSize(f[6], d);
                 d.PositionAngleDeg = AstroMath.ParseInvariant(f[7]);
-                if (d.Id.StartsWith("M") && char.IsDigit(d.Id[1])) { d.Messier = d.Id; }
+                // until an OpenNGC file brings its own
+                if (d.Id.StartsWith("M") && char.IsDigit(d.Id[1])) { d.Messier = d.Id; _messierFallbacks[d.Messier] = d; }
                 AddDso(d);
             }
             foreach (var line in Lines(BuiltInData.Constellations))
@@ -255,6 +267,14 @@ namespace Sidralune.Core.Catalogs
             foreach (var n in d.AltNames) if (!string.IsNullOrEmpty(n)) _names[Normalize(n)] = d;
             int pgc;
             foreach (var n in d.AltNames) if (PgcCatalog.TryNumber(n, out pgc)) _dsoByPgc[pgc] = d;
+        }
+
+        private void RemoveDso(DeepSkyObject d)
+        {
+            DeepSky.Remove(d);
+            DeepSkyList.Remove(d);
+            foreach (var k in _names.Where(kv => kv.Value == d).Select(kv => kv.Key).ToList()) _names.Remove(k);
+            foreach (var k in _dsoByPgc.Where(kv => kv.Value == d).Select(kv => kv.Key).ToList()) _dsoByPgc.Remove(k);
         }
 
         // "PGC 002557" -> "PGC 2557", "UGC 00454" -> "UGC 454"; names with more than digits after the acronym stay as they are
@@ -384,10 +404,11 @@ namespace Sidralune.Core.Catalogs
                 _dsoByPgc.Clear();
                 foreach (var d in keep) AddDso(d);
                 LoadOpenNgcRows(path, builtinMessier);
-                // re-add Messier objects that OpenNGC lacks (e.g. M40, M45 handled in addendum)
-                foreach (var m in builtinMessier.Values) if (Find(m.Messier) == null) AddDso(m);
+                // re-add Messier objects that the main file lacks (M40, M45), until the addendum brings its own
+                _messierFallbacks.Clear();
+                foreach (var m in builtinMessier.Values) if (Find(m.Messier) == null) { AddDso(m); _messierFallbacks[m.Messier] = m; }
             }
-            else LoadOpenNgcRows(path, null);
+            else LoadOpenNgcRows(path, _messierFallbacks);
             DeepSky.Finish();
             DeepSkySource = "OpenNGC (" + DeepSkyList.Count + " objects)";
             Log.Info("Catalogs", "Loaded " + DeepSkySource);
@@ -446,17 +467,16 @@ namespace Sidralune.Core.Catalogs
                             d.AltNames.Add(id2);
                             if (plain != id2) d.AltNames.Add(plain);
                         }
-                    if (d.Messier != null && builtinMessier != null)
-                    {
-                        DeepSkyObject bm;
-                        if (builtinMessier.TryGetValue(d.Messier, out bm))
-                        {
-                            if (d.Name == null) d.Name = bm.Name;
-                            if (double.IsNaN(d.Mag)) d.Mag = bm.Mag;
-                            builtinMessier.Remove(d.Messier);
-                        }
-                    }
                     if (double.IsNaN(d.Ra) || double.IsNaN(d.Dec)) continue;
+                    DeepSkyObject bm;
+                    if (d.Messier != null && builtinMessier.TryGetValue(d.Messier, out bm))
+                    {
+                        if (d.Name == null) d.Name = bm.Name;
+                        if (double.IsNaN(d.Mag)) d.Mag = bm.Mag;
+                        builtinMessier.Remove(d.Messier);
+                        // the addendum's object in place of the built-in one added back after the main file
+                        if (DeepSkyList.Contains(bm)) RemoveDso(bm);
+                    }
                     AddDso(d);
                 }
             }

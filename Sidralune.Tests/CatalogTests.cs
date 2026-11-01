@@ -110,6 +110,50 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestMessierOnce()
+        {
+            // OpenNGC's main file lacks M40 and M45, its addendum has them: they replace the built-in ones, not join them
+            string dir = Path.Combine(Path.GetTempPath(), "sidralune_messier_test");
+            Directory.CreateDirectory(dir);
+            const string header = "Name;Type;RA;Dec;Const;MajAx;MinAx;PosAng;B-Mag;V-Mag;SurfBr;Hubble;Redshift;M;Identifiers;Common names";
+            string ngc = Path.Combine(dir, "NGC.csv"), add = Path.Combine(dir, "addendum.csv");
+            File.WriteAllLines(ngc, new[] { header, "NGC0224;G;00:42:44.35;+41:16:08.6;And;177.83;69.66;35;4.29;3.44;13.35;Sb;;31;PGC 002557;Andromeda Galaxy" });
+            File.WriteAllLines(add, new[]
+            {
+                header,
+                "M040;**;12:22:12.53;+58:04:59.0;UMa;;;;9.65;9.04;;;;040;WNC 4;Winnecke 4",
+                "M102;Dup;15:06:29.56;+55:45:47.9;Dra;;;;;;;;;101;;",
+                "Mel022;OCl;03:47:28.6;+24:06:19;Tau;150.0;;;;1.20;;;;045;MWSC 0305;Pleiades"
+            });
+            foreach (bool withMain in new[] { true, false })
+            {
+                var cm = new CatalogManager();
+                cm.LoadBuiltIn();
+                if (withMain) cm.LoadOpenNgc(ngc);
+                cm.LoadOpenNgc(add, true);
+                string how = withMain ? "with the main file: " : "with the addendum only: ";
+                var m45 = cm.DeepSkyList.Where(d => d.Messier == "M45").ToList();
+                CheckTrue(how + "one M45, the addendum's", m45.Count == 1 && m45[0].AltNames.Contains("MWSC 0305") && Math.Abs(m45[0].Mag - 1.2) < 1e-6,
+                    string.Join(", ", m45.Select(d => d.Id + " " + d.Mag)));
+                CheckTrue(how + "the charts have it once", cm.DeepSky.All().Count(d => d.Messier == "M45") == 1);
+                CheckTrue(how + "found by its names", cm.Find("M45") == m45[0] && cm.Find("Pleiades") == m45[0] && cm.Find("MWSC 0305") == m45[0]);
+                CheckTrue(how + "one M40, the addendum's", cm.DeepSkyList.Count(d => d.Messier == "M40") == 1 && ((DeepSkyObject)cm.Find("M40")).AltNames.Contains("WNC 4"));
+                CheckTrue(how + "a duplicate row leaves the built-in M102", cm.DeepSkyList.Count(d => d.Messier == "M102") == 1 && cm.Find("M102") != null);
+                var twice = cm.DeepSkyList.Where(d => d.Messier != null).GroupBy(d => d.Messier).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+                CheckTrue(how + "every Messier object once", twice.Count == 0 && cm.DeepSkyList.Count(d => d.Messier != null) == 110, string.Join(", ", twice));
+            }
+            // and with the installed OpenNGC files
+            var main = DataManager.Get("openngc"); var addendum = DataManager.Get("openngc-add");
+            if (main == null || !main.Installed || addendum == null || !addendum.Installed) { Info("OpenNGC not installed, the installed files skipped"); return; }
+            var real = new CatalogManager();
+            real.LoadBuiltIn();
+            real.LoadOpenNgc(main.LocalPath);
+            real.LoadOpenNgc(addendum.LocalPath, true);
+            var dup = real.DeepSkyList.Where(d => d.Messier != null).GroupBy(d => d.Messier).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            CheckTrue("Installed OpenNGC: every Messier object once", dup.Count == 0 && real.DeepSkyList.Select(d => d.Messier).Where(m => m != null).Distinct().Count() == 110, string.Join(", ", dup));
+        }
+
+        [TestMethod]
         public void TestConstellationBoundaries()
         {
             var ds = DataManager.Get("bounds");
