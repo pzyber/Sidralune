@@ -129,6 +129,35 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestFarMoonZoomedIn()
+        {
+            // Iapetus 6.8′ from Saturn: zoomed in on the moon, Saturn is thousands of pixels outside the chart
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 1, 1, 8, 0, DateTimeKind.Utc));
+            var iapetus = PlanetMoons.Place(new SkyContext(AppState.Site, time), PlanetMoons.Find("Iapetus"));
+            CheckTrue("Iapetus is far from Saturn", iapetus.SeparationArcsec > 300, iapetus.SeparationArcsec.ToString("0") + "\"");
+            foreach (double fov in new[] { 0.075, 0.06, 0.02, SkyChart.MinFovDeg })
+            {
+                var result = OnUi(() =>
+                {
+                    using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time, Highlight = SelectedObject.From(iapetus) })
+                    using (var bmp = new Bitmap(1600, 1000))
+                    using (var g = Graphics.FromImage(bmp))
+                    {
+                        chart.CenterOn(iapetus.Place.Astrometric.Ra, iapetus.Place.Astrometric.Dec, fov);
+                        chart.Render(g, 1600, 1000, Theme.Current, false);
+                        var m = Drawn(chart, "Iapetus");
+                        if (m == null) return "Iapetus was not drawn";
+                        if (Math.Abs(m.Item1.X - 800) > 3 || Math.Abs(m.Item1.Y - 500) > 3) return "Iapetus drawn at " + m.Item1 + ", not in the middle";
+                        var hit = chart.HitTest(new Point(800, 500));
+                        if (hit == null || hit.Name != "Iapetus") return "a click on it selects " + (hit == null ? "nothing" : hit.Name);
+                        return Drawn(chart, "Saturn") != null ? "Saturn was drawn although it is outside the chart" : null;
+                    }
+                });
+                CheckTrue("Iapetus is drawn and clickable at " + SkyView.FormatOffset(fov * 3600), result == null, result);
+            }
+        }
+
+        [TestMethod]
         public void TestPlanetMoonInfo()
         {
             // the info panel describes a clicked moon

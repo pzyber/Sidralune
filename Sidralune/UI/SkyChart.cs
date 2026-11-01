@@ -129,6 +129,12 @@ namespace Sidralune.UI
 
         private bool Project(Vec3 f, out PointF pt)
         {
+            return ProjectFar(f, out pt) && pt.X > -2000 && pt.X < Width + 2000 && pt.Y > -2000 && pt.Y < Height + 2000;
+        }
+
+        // the same without the limit to near the chart: for a planet whose moons are in view while it is far outside
+        private bool ProjectFar(Vec3 f, out PointF pt)
+        {
             double d = Vec3.Dot(f, _c);
             pt = PointF.Empty;
             if (d < -0.5) return false;
@@ -143,7 +149,7 @@ namespace Sidralune.UI
                 double t = sx * c - sy * s; sy = sx * s + sy * c; sx = t;
             }
             pt = new PointF((float)(_cx + sx), (float)(_cy + sy));
-            return pt.X > -2000 && pt.X < Width + 2000 && pt.Y > -2000 && pt.Y < Height + 2000;
+            return true;
         }
 
         private bool ProjectIcrs(double ra, double dec, out PointF pt) => Project(ToFrame(Vec3.FromSpherical(ra, dec)), out pt);
@@ -574,14 +580,15 @@ namespace Sidralune.UI
                 PointF pt;
                 var f = ToFrame(pl.Astrometric.ToVector().Normalized());
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) continue;
-                if (!Project(f, out pt)) continue;
+                // far outside the chart too: zoomed in, a moon may be in view while its planet is thousands of pixels away
+                if (!ProjectFar(f, out pt)) continue;
                 // the apparent radius, or a dot sized by brightness while that is larger
                 float r = (float)Math.Max(Math.Max(2.5, 1.2 * (4 - pl.Magnitude * 0.6)), pl.DiameterArcsec / 2 / 3600 * AstroMath.Deg2Rad * _scale);
                 // drawn while any of it is in view, not only its middle: the disc, Saturn's rings, the label to the right
                 // and, zoomed in, the moons at their places in the sky
                 var moons = new List<Science.SolarSystem.MoonPlace>();
                 var moonPts = new List<PointF>();
-                float reach = (b == Body.Saturn ? 2.2f * r : r) + 120;
+                float discReach = (b == Body.Saturn ? 2.2f * r : r) + 120, reach = discReach;
                 if (FovDeg < 3 && b != Body.Mercury && b != Body.Venus)
                 {
                     double lim = MoonMagLimit;
@@ -598,10 +605,13 @@ namespace Sidralune.UI
                     }
                 }
                 if (!InView(pt, reach)) continue;
-                using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
-                if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
-                TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
-                _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
+                if (InView(pt, discReach))
+                {
+                    using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
+                    if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
+                    TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
+                    _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
+                }
                 DrawMoons(g, pt, r, moons, moonPts);
             }
             // Sun
