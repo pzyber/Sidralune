@@ -112,7 +112,7 @@ Deep-sky objects have their own limit, and their labels appear progressively as 
 
 ## What is drawn and how
 
-- **Stars** are dots sized by brightness and tinted by colour index (B−V), so you can tell red giants from blue stars.
+- **Stars** are dots sized by brightness and tinted by colour index (B−V), so you can tell red giants from blue stars. As in a printed atlas, the sizes follow the limit in use: the faintest star shown gets the smallest dot and the brightest the largest, whatever the limit. A deeper limit fits its extra stars in as small dots instead of making every star bigger, and zoomed in all the way every limit gives the same chart. As in an eyepiece of higher power, the stars grow as you zoom in: evenly with each tenfold zoom from 90°, to 2.5 times their size at the narrowest field.
 - **Deep-sky objects** use standard atlas symbols: ellipses at true size and position angle for galaxies, circles with crosses for globular clusters, dashed circles for open clusters, squares for nebulae, circles with a ring for planetary nebulae.
 - **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings.
 - **Moons** of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto appear when the field is narrower than 3°, at their current places around the planet (see [Planets' moons](#planets-moons)). Click a moon to select it, as any other object.
