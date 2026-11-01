@@ -364,13 +364,14 @@ namespace Sidralune.Views
             using (var b = new SolidBrush(p.Planet)) g.FillEllipse(b, cx - scale, cy - scale * 0.935f, 2 * scale, 2 * scale * 0.935f);
             TextRenderer.DrawText(g, "E", Theme.SmallFont, new Point(4, (int)cy - 6), p.TextDim);
             TextRenderer.DrawText(g, "W", Theme.SmallFont, new Point(Width - 16, (int)cy - 6), p.TextDim);
-            for (int i = 0; i < _m.Length; i++)
+            // names alternately under and over the dots, moved aside where two would overlap
+            var shown = _m.Select((m, i) => new { m, i }).Where(o => !o.m.Occulted).ToList();
+            var dots = shown.Select(o => new PointF(cx + (float)o.m.X * scale, cy - (float)o.m.Y * scale)).ToList();
+            var at = LabelStack.Place(dots, shown.Select(o => TextRenderer.MeasureText(o.m.Name, Theme.SmallFont)).ToList(), shown.Select(o => o.i % 2 == 1).ToList(), 5, 5);
+            for (int k = 0; k < shown.Count; k++)
             {
-                var m = _m[i];
-                float x = cx + (float)m.X * scale, y = cy - (float)m.Y * scale;
-                if (m.Occulted) continue;
-                using (var b = new SolidBrush(m.Transit ? p.TextDim : p.Text)) g.FillEllipse(b, x - 3, y - 3, 6, 6);
-                TextRenderer.DrawText(g, m.Name, Theme.SmallFont, new Point((int)x - 14, (int)y + (i % 2 == 0 ? 8 : -22)), p.TextDim);
+                using (var b = new SolidBrush(shown[k].m.Transit ? p.TextDim : p.Text)) g.FillEllipse(b, dots[k].X - 3, dots[k].Y - 3, 6, 6);
+                TextRenderer.DrawText(g, shown[k].m.Name, Theme.SmallFont, at[k], p.TextDim);
             }
             string ev = string.Join(", ", _m.Where(m => m.Transit || m.Occulted).Select(m => m.Name + (m.Transit ? " in transit" : " hidden")));
             if (ev.Length > 0) TextRenderer.DrawText(g, ev, Theme.SmallFont, new Point(6, Height - 18), p.Warning);

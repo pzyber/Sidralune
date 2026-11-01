@@ -831,4 +831,37 @@ namespace Sidralune.UI
             base.OnKeyDown(e);
         }
     }
+
+    /// <summary>Names under or over a row of dots (Jupiter's moons) placed so that none of them overlap.</summary>
+    public static class LabelStack
+    {
+        /// <summary>
+        /// Where to draw each label: on its preferred side (below at <paramref name="below"/> px, or above with its foot
+        /// <paramref name="above"/> px over the dot), else the other side, else stacked further out, clear of the labels
+        /// placed before it and of the dots. Labels are placed in the order given.
+        /// </summary>
+        public static Point[] Place(IList<PointF> dots, IList<Size> sizes, IList<bool> preferAbove, int below, int above, int dotRadius = 3)
+        {
+            var taken = dots.Select(d => new Rectangle((int)(d.X - dotRadius), (int)(d.Y - dotRadius), 2 * dotRadius, 2 * dotRadius)).ToList();
+            var res = new Point[dots.Count];
+            for (int i = 0; i < dots.Count; i++)
+            {
+                int x = (int)dots[i].X - sizes[i].Width / 2, h = sizes[i].Height;
+                Func<int, bool, int> top = (k, up) => up ? (int)dots[i].Y - above - h - k * h : (int)dots[i].Y + below + k * h;
+                Point? found = null;
+                for (int k = 0; k < 4 && found == null; k++)
+                    foreach (bool up in new[] { preferAbove[i], !preferAbove[i] })
+                    {
+                        var r = new Rectangle(x, top(k, up), sizes[i].Width, h);
+                        // the dot's own mark is under or over its label, never in it
+                        if (taken.Where((t, j) => j != i).Any(t => t.IntersectsWith(r))) continue;
+                        found = r.Location;
+                        break;
+                    }
+                res[i] = found ?? new Point(x, top(0, preferAbove[i]));
+                taken.Add(new Rectangle(res[i], sizes[i]));
+            }
+            return res;
+        }
+    }
 }

@@ -32,6 +32,37 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestLabelStack()
+        {
+            var size = new Size(60, 15);
+            Func<Point[], Size[], bool> clear = (pos, sz) =>
+                !Enumerable.Range(0, pos.Length).Any(i => Enumerable.Range(i + 1, pos.Length - i - 1).Any(j => new Rectangle(pos[i], sz[i]).IntersectsWith(new Rectangle(pos[j], sz[j]))));
+            // apart, each name keeps its side: under, or over with its foot 5 px above the dot
+            var apart = LabelStack.Place(new[] { new PointF(100, 100), new PointF(300, 100) }, new[] { size, size }, new[] { false, true }, 5, 5);
+            CheckTrue("Names apart keep their side", apart[0] == new Point(70, 105) && apart[1] == new Point(270, 80), apart[0] + " " + apart[1]);
+            // two dots at one place, both preferring below: the second goes over
+            var two = LabelStack.Place(new[] { new PointF(100, 100), new PointF(102, 101) }, new[] { size, size }, new[] { false, false }, 5, 5);
+            CheckTrue("Two names at one place, one under and one over", clear(two, new[] { size, size }) && two[0].Y > 100 && two[1].Y + 15 < 100, two[0] + " " + two[1]);
+            // four at one place: stacked further out, none overlapping
+            var dots = Enumerable.Range(0, 4).Select(i => new PointF(100 + i, 100)).ToArray();
+            var sizes = Enumerable.Repeat(size, 4).ToArray();
+            CheckTrue("Four names at one place, none overlapping", clear(LabelStack.Place(dots, sizes, new[] { false, true, false, true }, 5, 5), sizes));
+
+            // Io and Ganymede side by side on 1 November 2026 (as in Tonight and Solar system → Planets & moons)
+            var time = Sidralune.Core.Time.AstroTime.FromDateTime(new DateTime(2026, 11, 1, 1, 43, 0, DateTimeKind.Utc));
+            var moons = Sidralune.Science.SolarSystem.GalileanMoons.Positions(new Sidralune.Core.SkyContext(AppState.Site, time).JdTT);
+            var shown = moons.Where(m => !m.Occulted).ToArray();
+            CheckTrue("Io and Ganymede within 1.5 Jupiter radii of each other", Math.Abs(moons[0].X - moons[2].X) < 1.5 && Math.Abs(moons[0].Y - moons[2].Y) < 1.5,
+                moons[0].X.ToString("0.00") + " " + moons[2].X.ToString("0.00"));
+            foreach (var scale in new[] { 10f, 20f })
+            {
+                var names = OnUi(() => shown.Select(m => TextRenderer.MeasureText(m.Name, Theme.SmallFont)).ToArray());
+                var at = LabelStack.Place(shown.Select(m => new PointF(300 + (float)m.X * scale, 60 - (float)m.Y * scale)).ToList(), names, shown.Select(m => Array.IndexOf(moons, m) % 2 == 1).ToList(), 5, 5);
+                CheckTrue("Their names do not overlap at " + scale + " px per Jupiter radius", clear(at, names));
+            }
+        }
+
+        [TestMethod]
         public void TestButtonsAndTabs()
         {
             OnUi(() =>

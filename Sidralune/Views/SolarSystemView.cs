@@ -510,13 +510,15 @@ namespace Sidralune.Views
                 TextRenderer.DrawText(g, "Jupiter's Galilean moons (as seen in binoculars: north up, west right)", Theme.SmallFont, new Point(4, 4), p.TextDim);
                 if (Moons == null) return;
                 var cols = p.IsNight ? new[] { p.Series[0], p.Series[2], p.Series[4], p.Series[1] } : new[] { Color.Gold, Color.LightSkyBlue, Color.Silver, Color.SandyBrown };
-                for (int i = 0; i < Moons.Length; i++)
+                // names alternately under and over the dots, moved aside where two would overlap
+                var shown = Enumerable.Range(0, Moons.Length).Where(i => !Moons[i].Occulted).ToList();
+                var dots = shown.Select(i => new PointF(cx + (float)Moons[i].X * r, cy - (float)Moons[i].Y * r)).ToList();
+                var at = LabelStack.Place(dots, shown.Select(i => TextRenderer.MeasureText(Moons[i].Name.Substring(0, 2), Theme.SmallFont)).ToList(), shown.Select(i => i % 2 == 1).ToList(), 3, 3);
+                for (int k = 0; k < shown.Count; k++)
                 {
-                    var m = Moons[i];
-                    float x = cx + (float)m.X * r, y = cy - (float)m.Y * r;
-                    if (m.Occulted) continue;
-                    using (var b = new SolidBrush(cols[i])) g.FillEllipse(b, x - 3, y - 3, 6, 6);
-                    TextRenderer.DrawText(g, m.Name.Substring(0, 2), Theme.SmallFont, new Point((int)x - 7, (int)y + (i % 2 == 0 ? 6 : -20)), cols[i]);
+                    int i = shown[k];
+                    using (var b = new SolidBrush(cols[i])) g.FillEllipse(b, dots[k].X - 3, dots[k].Y - 3, 6, 6);
+                    TextRenderer.DrawText(g, Moons[i].Name.Substring(0, 2), Theme.SmallFont, at[k], cols[i]);
                 }
             }
         }
