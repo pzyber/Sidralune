@@ -203,11 +203,22 @@ namespace Sidralune.UI
             get
             {
                 if (!Layers.AutoMagLimit) return Layers.MagLimit;
-                // more stars when zoomed in (≈ +2.5 mag per 10x zoom), capped by the catalog
-                double m = Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg));
-                return Math.Min(m, CatalogManager.Instance.StarLimitingMagnitude + 0.5);
+                // more stars when zoomed in (≈ +2.2 mag per 10x zoom); below a 1° field it rises faster, reaching the
+                // catalog's faintest star at the narrowest field
+                double cap = CatalogManager.Instance.StarLimitingMagnitude + 0.5, m = ZoomedMagLimit;
+                if (FovDeg < 1)
+                {
+                    double atOne = Layers.MagLimit + 2.2 * Math.Log10(90);
+                    double t = AstroMath.Clamp(Math.Log10(1 / FovDeg) / Math.Log10(1 / MinFovDeg), 0, 1);
+                    m = Math.Max(m, atOne + (cap - atOne) * t);
+                }
+                return Math.Min(m, cap);
             }
         }
+
+        // the limit growing ≈ 2.2 magnitudes per tenfold zoom, without the catalog's cap: it sizes the star dots, so the
+        // brighter stars keep their size as the limit rises towards the catalog's end
+        private double ZoomedMagLimit => Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg));
 
         // ------------------------------------------------------------------ rendering
 
@@ -447,6 +458,7 @@ namespace Sidralune.UI
             double cra, cdec;
             ci.ToSpherical(out cra, out cdec);
             CatalogManager.Instance.Stars.Cone(cra, cdec, ViewRadius(), lim, stars);
+            double sizeLim = Layers.AutoMagLimit ? Math.Min(lim, ZoomedMagLimit) : lim;
             var labels = new List<RectangleF>();
             int labelled = 0;
             foreach (var s in stars.OrderBy(s => s.Mag))
@@ -456,7 +468,7 @@ namespace Sidralune.UI
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < -0.01) continue;
                 if (!Project(f, out pt) || !InView(pt)) continue;
                 double m = s.Mag;
-                float r = (float)Math.Max(0.7, 0.55 * Math.Pow(Math.Max(0.1, lim + 1.2 - m), 0.95));
+                float r = (float)Math.Max(0.7, 0.55 * Math.Pow(Math.Max(0.1, sizeLim + 1.2 - m), 0.95));
                 if (FovDeg < 5) r *= 1.2f;
                 var col = _print ? Color.Black : _p.StarColor(s.BV);
                 // atmospheric extinction dimming near the horizon (planetarium)
@@ -597,7 +609,8 @@ namespace Sidralune.UI
                         PointF mp;
                         if (m.Occulted || !ProjectIcrs(m.Place.Astrometric.Ra, m.Place.Astrometric.Dec, out mp)) continue;
                         bool selected = Highlight != null && Highlight.Kind == SelectedKind.PlanetMoon && Highlight.Name == m.Moon.Name;
-                        // clear of the planet's disc, and bright enough (the classical moons always, the selected one too)
+                        // clear of the planet's disc, and bright enough (the classical moons always, the selected one too, all
+                        // of them with Deeper when zoomed in)
                         double px = Math.Sqrt((mp.X - pt.X) * (mp.X - pt.X) + (mp.Y - pt.Y) * (mp.Y - pt.Y));
                         if (!selected && (px < r + 2 || !(m.Moon.Major || m.Mag <= lim))) continue;
                         moons.Add(m); moonPts.Add(mp);
@@ -666,22 +679,28 @@ namespace Sidralune.UI
         }
 
         /// <summary>
-        /// Faintest moon drawn besides the classical ones: two magnitudes below the star limit, which grows as you zoom
-        /// in without the installed catalogue's cap, since the moons do not come from it.
+        /// Faintest moon drawn besides the classical ones. With Deeper when zoomed in, every moon clear of its planet's
+        /// disc: a planet has at most 18, too few to clutter the chart. Otherwise two magnitudes below the chosen limit.
         /// </summary>
-        public double MoonMagLimit => (Layers.AutoMagLimit ? Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg)) : Layers.MagLimit) + 2;
+        public double MoonMagLimit => Layers.AutoMagLimit ? double.PositiveInfinity : Layers.MagLimit + 2;
 
         // the moons at their projected places, so they follow the chart's orientation, mirroring and rotation; a dot
-        // sized by brightness, named when clear of the planet
+        // sized by brightness, named when clear of the planet and of the names of brighter moons
         private void DrawMoons(Graphics g, PointF planet, float planetR, List<Science.SolarSystem.MoonPlace> moons, List<PointF> pts)
         {
-            for (int i = 0; i < moons.Count; i++)
+            var labels = new List<Rectangle>();
+            foreach (int i in Enumerable.Range(0, moons.Count).OrderBy(k => moons[k].Mag))
             {
                 var m = moons[i];
                 float x = pts[i].X, y = pts[i].Y, s = m.Mag < 8 ? 2.5f : m.Mag < 13 ? 2f : 1.5f;
                 using (var b = new SolidBrush(m.Transit ? _p.TextDim : _p.Text)) g.FillEllipse(b, x - s, y - s, 2 * s, 2 * s);
                 double px = Math.Sqrt((x - planet.X) * (x - planet.X) + (y - planet.Y) * (y - planet.Y));
-                if (px > planetR + 12) TextRenderer.DrawText(g, m.Moon.Name, Theme.SmallFont, new Point((int)x - 6, (int)y + 4), _p.TextDim);
+                var lr = new Rectangle(new Point((int)x - 6, (int)y + 4), TextRenderer.MeasureText(m.Moon.Name, Theme.SmallFont));
+                if (px > planetR + 12 && !labels.Any(l => l.IntersectsWith(lr)))
+                {
+                    labels.Add(lr);
+                    TextRenderer.DrawText(g, m.Moon.Name, Theme.SmallFont, lr.Location, _p.TextDim);
+                }
                 var o = SelectedObject.From(m);
                 _hits.Add(new Hit { P = pts[i], R = 6, O = o, Priority = 0 });
                 // a selected moon is marked where it is now, as it moves around its planet

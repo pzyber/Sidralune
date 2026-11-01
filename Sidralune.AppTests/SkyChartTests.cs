@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sidralune.Core;
+using Sidralune.Core.Catalogs;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
@@ -67,7 +68,7 @@ namespace Sidralune.AppTests
 
         // the planet centred in a 1600 x 1000 atlas chart of this width (deg): the planet's drawn radius and, for each
         // moon of it drawn, the moon, what a click there selects and its drawn distance from the planet (arcsec)
-        private static Tuple<double, System.Collections.Generic.List<Tuple<MoonPlace, SelectedObject, double>>> DrawnMoons(AstroTime time, Body planet, double fovDeg, SelectedObject highlight = null)
+        private static Tuple<double, System.Collections.Generic.List<Tuple<MoonPlace, SelectedObject, double>>> DrawnMoons(AstroTime time, Body planet, double fovDeg, SelectedObject highlight = null, bool deeper = true, double magLimit = 6.5)
         {
             var ctx = new SkyContext(AppState.Site, time);
             var pl = ctx.BodyPlace(planet);
@@ -78,6 +79,7 @@ namespace Sidralune.AppTests
                 using (var bmp = new Bitmap(1600, 1000))
                 using (var g = Graphics.FromImage(bmp))
                 {
+                    chart.Layers.AutoMagLimit = deeper; chart.Layers.MagLimit = magLimit;
                     chart.CenterOn(pl.Astrometric.Ra, pl.Astrometric.Dec, fovDeg);
                     chart.Render(g, 1600, 1000, Theme.Current, false);
                     var p = Drawn(chart, planet.ToString());
@@ -112,7 +114,10 @@ namespace Sidralune.AppTests
                 foreach (var d in drawn.Item2)
                 {
                     var m = d.Item1;
-                    CheckTrue(m.Moon.Name + ": a click on it selects it", d.Item2 != null && d.Item2.Kind == SelectedKind.PlanetMoon && d.Item2.Name == m.Moon.Name && d.Item2.Planet == f.Item1,
+                    // a click selects the moon, or one drawn on top of it (Naiad and Thalassa are seen nearly in line)
+                    var hit = d.Item2 == null ? null : drawn.Item2.FirstOrDefault(o => o.Item1.Moon.Name == d.Item2.Name);
+                    bool onTop = hit != null && Math.Abs(hit.Item1.EastArcsec - m.EastArcsec) * 1600 / (f.Item2 * 3600) < 1.5 && Math.Abs(hit.Item1.NorthArcsec - m.NorthArcsec) * 1600 / (f.Item2 * 3600) < 1.5;
+                    CheckTrue(m.Moon.Name + ": a click on it selects it", d.Item2 != null && d.Item2.Kind == SelectedKind.PlanetMoon && (d.Item2.Name == m.Moon.Name || onTop) && d.Item2.Planet == f.Item1,
                         d.Item2 == null ? "nothing" : d.Item2.Kind + " " + d.Item2.Name);
                     Check(m.Moon.Name + ": drawn at its distance from " + f.Item1 + " (\")", d.Item3, m.SeparationArcsec, Math.Max(0.05, 0.01 * m.SeparationArcsec));
                 }
@@ -121,11 +126,62 @@ namespace Sidralune.AppTests
             var saturn = DrawnMoons(time, Body.Saturn, 0.4).Item2.Select(d => d.Item1.Moon.Name).ToList();
             var named = new[] { "Titan", "Rhea", "Tethys", "Dione", "Enceladus", "Iapetus", "Mimas" }.Where(n => { var m = PlanetMoons.Place(ctx, PlanetMoons.Find(n)); return !m.Occulted && m.PlanetRadii > 1.5 && m.SeparationArcsec < 450; }).ToList();
             CheckTrue("Saturn: " + string.Join(", ", named), named.All(saturn.Contains), string.Join(", ", saturn));
-            // a faint moon only when it is bright enough or selected
-            var jupiter = DrawnMoons(time, Body.Jupiter, 0.05).Item2;
+            // without Deeper when zoomed in, a faint moon only when it is bright enough or selected
+            var jupiter = DrawnMoons(time, Body.Jupiter, 0.05, deeper: false).Item2;
             var adrastea = PlanetMoons.Place(ctx, PlanetMoons.Find("Adrastea"));
-            CheckTrue("Adrastea (magnitude " + adrastea.Mag.ToString("0.0") + ") is not drawn at 3′", !jupiter.Any(d => d.Item1.Moon.Name == "Adrastea"));
-            CheckTrue("…but is when selected", adrastea.Occulted || DrawnMoons(time, Body.Jupiter, 0.05, SelectedObject.From(adrastea)).Item2.Any(d => d.Item1.Moon.Name == "Adrastea"));
+            CheckTrue("Adrastea (magnitude " + adrastea.Mag.ToString("0.0") + ") is not drawn at 3′ with a fixed limit", !jupiter.Any(d => d.Item1.Moon.Name == "Adrastea"));
+            CheckTrue("…but is when selected", adrastea.Occulted || DrawnMoons(time, Body.Jupiter, 0.05, SelectedObject.From(adrastea), deeper: false).Item2.Any(d => d.Item1.Moon.Name == "Adrastea"));
+            CheckTrue("…and with Deeper when zoomed in", adrastea.Occulted || DrawnMoons(time, Body.Jupiter, 0.05).Item2.Any(d => d.Item1.Moon.Name == "Adrastea"));
+        }
+
+        [TestMethod]
+        public void TestDeeperWhenZoomedIn()
+        {
+            // whatever limit is chosen, zoomed in all the way every moon and every catalogue star is drawn
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 1, 1, 0, 0, DateTimeKind.Utc));
+            var ctx = new SkyContext(AppState.Site, time);
+            double cap = CatalogManager.Instance.StarLimitingMagnitude + 0.5;
+            foreach (double lim in new[] { 4.0, 6.5, 12 })
+            {
+                var limits = OnUi(() =>
+                {
+                    using (var chart = new SkyChart { Size = new Size(1600, 1000) })
+                    {
+                        chart.Layers.MagLimit = lim;
+                        Func<double, double> at = fov => { chart.FovDeg = fov; return chart.EffectiveMagLimit; };
+                        var r = new[] { at(90), at(2), at(SkyChart.MinFovDeg), 0 };
+                        chart.Layers.AutoMagLimit = false;
+                        r[3] = at(SkyChart.MinFovDeg);
+                        return r;
+                    }
+                });
+                Check("limit " + lim + ": at 90°", limits[0], Math.Min(lim, cap), 1e-9);
+                Check("limit " + lim + ": at 2°, as before", limits[1], Math.Min(lim + 2.2 * Math.Log10(45), cap), 1e-9);
+                Check("limit " + lim + ": at 36″, the catalogue's faintest star", limits[2], cap, 1e-9);
+                Check("limit " + lim + ": at 36″ without Deeper when zoomed in", limits[3], lim, 1e-9);
+            }
+            // Neptune's moons at 36″ with the limit at 4: all of them clear of its disc and in view
+            var drawn = DrawnMoons(time, Body.Neptune, SkyChart.MinFovDeg, magLimit: 4).Item2;
+            double half = SkyChart.MinFovDeg / 2 * 3600 * 1000 / 1600 - 0.5;
+            var shown = PlanetMoons.Places(ctx, Body.Neptune).Where(m => !m.Occulted && Math.Abs(m.NorthArcsec) < half && Math.Abs(m.EastArcsec) < half * 1.6 && m.PlanetRadii > 1.1).ToList();
+            var missing = shown.Where(m => !drawn.Any(d => d.Item1.Moon == m.Moon)).Select(m => m.Moon.Name + " (" + m.Mag.ToString("0.0") + ")").ToList();
+            CheckTrue("Neptune: every moon in view is drawn at 36″ with the limit at 4", shown.Count >= 3 && missing.Count == 0, shown.Count + " in view, missing " + string.Join(", ", missing));
+            // the faintest catalogue star, at 36″ with the limit at 4
+            var faintest = CatalogManager.Instance.Stars.All().Where(s => !double.IsNaN(s.Mag)).OrderByDescending(s => s.Mag).First();
+            var hit = OnUi(() =>
+            {
+                using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time })
+                using (var bmp = new Bitmap(1600, 1000))
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    chart.Layers.MagLimit = 4;
+                    chart.CenterOn(faintest.Ra, faintest.Dec, SkyChart.MinFovDeg);
+                    chart.Render(g, 1600, 1000, Theme.Current, false);
+                    return chart.HitTest(new Point(800, 500));
+                }
+            });
+            CheckTrue("the faintest catalogue star (magnitude " + faintest.Mag.ToString("0.0") + ") is drawn at 36″ with the limit at 4",
+                hit != null && hit.Kind == SelectedKind.Star && Math.Abs(hit.Mag - faintest.Mag) < 0.01, hit == null ? "nothing" : hit.Kind + " " + hit.Name + " " + hit.Mag);
         }
 
         [TestMethod]
