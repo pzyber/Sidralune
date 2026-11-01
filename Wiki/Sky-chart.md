@@ -11,6 +11,7 @@ The **Sky** workspace is Sidralune's planetarium and star atlas. It shows stars,
 - [Layers](#layers)
 - [Limiting magnitude](#limiting-magnitude)
 - [What is drawn and how](#what-is-drawn-and-how)
+- [Planets' moons](#planets-moons)
 - [Object information panel](#object-information-panel)
 - [Right-click menu](#right-click-menu)
 - [Controlling the telescope](#controlling-the-telescope)
@@ -50,11 +51,11 @@ Both modes use a stereographic projection, which keeps the shapes of constellati
 | Look at the zenith | | Z (planetarium) |
 | Context menu | Right-click | |
 
-The chart can zoom from the whole sky (200°) down to a few arcminutes.
+The chart can zoom from the whole sky (200°) down to 36″ (0.01°), close enough to see Charon beside Pluto.
 
 ## Finding objects
 
-- Type in the **find box** on the toolbar and press Enter. It accepts names (`Albireo`, `Ring Nebula`), designations (`M 57`, `NGC 6720`, `HIP 95947`), planets, comets and asteroids, and coordinates in the form `hh mm ss +dd mm ss`.
+- Type in the **find box** on the toolbar and press Enter. It accepts names (`Albireo`, `Ring Nebula`), designations (`M 57`, `NGC 6720`, `HIP 95947`), planets and their moons (`Titan`, `Oberon`), comets and asteroids, and coordinates in the form `hh mm ss +dd mm ss`.
 - Or press **Ctrl+K** anywhere for the [command palette](The-user-interface#command-palette).
 
 The chart centres on the object and selects it. If a name is not found in the local catalogues, try **Databases → Online databases → Resolve name**, which asks the CDS Sesame service.
@@ -113,13 +114,32 @@ Deep-sky objects have their own limit, and their labels appear progressively as 
 
 - **Stars** are dots sized by brightness and tinted by colour index (B−V), so you can tell red giants from blue stars.
 - **Deep-sky objects** use standard atlas symbols: ellipses at true size and position angle for galaxies, circles with crosses for globular clusters, dashed circles for open clusters, squares for nebulae, circles with a ring for planetary nebulae.
-- **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings, and when zoomed in below 1°, Jupiter shows its four Galilean moons in their current positions, turned with Jupiter's axis and the chart. Click a moon to select it, as any other object.
+- **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings.
+- **Moons** of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto appear when the field is narrower than 3°, at their current places around the planet (see [Planets' moons](#planets-moons)). Click a moon to select it, as any other object.
 - **The Moon** is drawn with its correct phase and orientation; the Sun at its true size.
 - **Comets** are drawn with a short tail pointing away from the Sun, **asteroids** as small crosses, both labelled when bright enough or when you zoom in. They come from the installed MPC files, the four built-in asteroids, and anything you added in the [Solar system](Solar-system#minor-bodies) workspace.
 - **Milky Way** is shaded along the galactic plane at night.
 - **Telescope position** is a crosshair at the connected mount's current pointing.
 - In planetarium mode during the day, the sky is coloured by the Sun's altitude and fainter stars fade out, as in reality.
 - Your **horizon profile** from **Settings → Location** is drawn as part of the ground.
+
+## Planets' moons
+
+The chart has 65 moons of the planets:
+
+| Planet | Moons |
+|---|---|
+| Mars | Phobos, Deimos |
+| Jupiter | Io, Europa, Ganymede, Callisto, Amalthea, Thebe, Metis, Adrastea, Himalia, Elara, Lysithea, Leda, Pasiphae, Sinope, Carme, Ananke |
+| Saturn | Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Hyperion, Iapetus, Phoebe, Janus, Epimetheus, Helene, Telesto, Calypso, Atlas, Prometheus, Pandora, Pan |
+| Uranus | Miranda, Ariel, Umbriel, Titania, Oberon, Cordelia, Ophelia, Cressida, Desdemona, Juliet, Puck |
+| Neptune | Triton, Nereid, Proteus, Larissa, Galatea, Despina, Thalassa, Naiad, Halimede, Sao, Laomedeia, Psamathe, Neso |
+| Pluto | Charon, Nix, Hydra, Kerberos, Styx |
+
+- A moon is drawn as a dot sized by its brightness, with its name once it is clear of the planet. It is left out while it is too close to the planet to tell apart and while it is hidden behind it; a moon crossing the disc is drawn dimmer.
+- The classical moons (the Galilean moons, Saturn's eight largest, Uranus' five, Triton, Phobos, Deimos and Charon) are always drawn. The fainter ones appear as you zoom in, down to two magnitudes fainter than the star limit (with **Deeper when zoomed in**, and without the cap that the installed star catalogue sets). A moon you select or search for is always drawn.
+- Searching for a moon centres it and zooms in until the moon and its planet are both in view and apart.
+- Positions come from orbits fitted to JPL's ephemerides and are within 3″ of JPL Horizons from 2000 to 2050, most within 1″. Outside those years the regular moons stay close and the irregular outer moons are rough; see [Algorithms and accuracy](Algorithms-and-accuracy).
 
 ## Object information panel
 
@@ -142,7 +162,7 @@ The details include, as applicable:
 - for deep-sky objects: morphology, surface brightness, other names,
 - for planets: distance, illuminated fraction, phase angle, elongation, apparent size, and central meridians (Jupiter's systems I, II and III; Mars, Saturn and Venus central meridian, sub-Earth latitude and pole angle),
 - for the Moon: age in days,
-- for Jupiter's moons (Io, Europa, Ganymede and Callisto): where it is around Jupiter (how far east or west, in arcseconds and Jupiter radii, and whether it is in front, behind, crossing the disc or hidden), distance, diameter and apparent size, and orbital period. Rise, set and the altitude graph are Jupiter's,
+- for the planets' moons: where it is around its planet (how far east or west, in arcseconds or arcminutes and in planet radii, and whether it is in front, behind, crossing the disc or hidden), distance, diameter and apparent size, and orbital period, marked retrograde for moons that orbit against the planet's spin, such as Triton. Rise, set and the altitude graph are the planet's,
 - for comets and asteroids: distance from Earth and Sun, elongation, phase angle and orbit type.
 
 The **Altitude tonight** graph below shows the object's altitude through the night, with the dark period shaded and a marker at the current time.

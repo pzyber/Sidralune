@@ -50,6 +50,8 @@ namespace Sidralune.UI
         /// <summary>Centre in frame coordinates (radians): lon = RA (atlas) or -Az (planetarium).</summary>
         public double CenterLon, CenterLat = 0.5;
         public double FovDeg = 100;
+        /// <summary>The narrowest field (deg), 36″: enough to tell Pluto from Charon.</summary>
+        public const double MinFovDeg = 0.01;
         public double RotationDeg;
         public bool FlipX, FlipY;
         public AstroTime? FixedTime;
@@ -127,6 +129,12 @@ namespace Sidralune.UI
 
         private bool Project(Vec3 f, out PointF pt)
         {
+            return ProjectFar(f, out pt) && pt.X > -2000 && pt.X < Width + 2000 && pt.Y > -2000 && pt.Y < Height + 2000;
+        }
+
+        // the same without the limit to near the chart: for a planet whose moons are in view while it is far outside
+        private bool ProjectFar(Vec3 f, out PointF pt)
+        {
             double d = Vec3.Dot(f, _c);
             pt = PointF.Empty;
             if (d < -0.5) return false;
@@ -141,7 +149,7 @@ namespace Sidralune.UI
                 double t = sx * c - sy * s; sy = sx * s + sy * c; sx = t;
             }
             pt = new PointF((float)(_cx + sx), (float)(_cy + sy));
-            return pt.X > -2000 && pt.X < Width + 2000 && pt.Y > -2000 && pt.Y < Height + 2000;
+            return true;
         }
 
         private bool ProjectIcrs(double ra, double dec, out PointF pt) => Project(ToFrame(Vec3.FromSpherical(ra, dec)), out pt);
@@ -572,30 +580,39 @@ namespace Sidralune.UI
                 PointF pt;
                 var f = ToFrame(pl.Astrometric.ToVector().Normalized());
                 if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) continue;
-                if (!Project(f, out pt)) continue;
+                // far outside the chart too: zoomed in, a moon may be in view while its planet is thousands of pixels away
+                if (!ProjectFar(f, out pt)) continue;
                 // the apparent radius, or a dot sized by brightness while that is larger
                 float r = (float)Math.Max(Math.Max(2.5, 1.2 * (4 - pl.Magnitude * 0.6)), pl.DiameterArcsec / 2 / 3600 * AstroMath.Deg2Rad * _scale);
                 // drawn while any of it is in view, not only its middle: the disc, Saturn's rings, the label to the right
-                // and, zoomed in, Jupiter's moons at their places in the sky
-                Science.SolarSystem.GalileanMoon[] moons = null;
-                PointF[] moonPts = null;
-                float reach = (b == Body.Saturn ? 2.2f * r : r) + 120;
-                if (b == Body.Jupiter && FovDeg < 1)
+                // and, zoomed in, the moons at their places in the sky
+                var moons = new List<Science.SolarSystem.MoonPlace>();
+                var moonPts = new List<PointF>();
+                float discReach = (b == Body.Saturn ? 2.2f * r : r) + 120, reach = discReach;
+                if (FovDeg < 3 && b != Body.Mercury && b != Body.Venus)
                 {
-                    moons = Science.SolarSystem.GalileanMoons.Positions(_ctx);
-                    moonPts = new PointF[moons.Length];
-                    for (int i = 0; i < moons.Length; i++)
+                    double lim = MoonMagLimit;
+                    foreach (var m in Science.SolarSystem.PlanetMoons.Places(_ctx, b))
                     {
-                        if (!ProjectIcrs(moons[i].Ra, moons[i].Dec, out moonPts[i])) moonPts[i] = pt;
-                        reach = Math.Max(reach, Math.Max(Math.Abs(moonPts[i].X - pt.X), Math.Abs(moonPts[i].Y - pt.Y)) + 40);
+                        PointF mp;
+                        if (m.Occulted || !ProjectIcrs(m.Place.Astrometric.Ra, m.Place.Astrometric.Dec, out mp)) continue;
+                        bool selected = Highlight != null && Highlight.Kind == SelectedKind.PlanetMoon && Highlight.Name == m.Moon.Name;
+                        // clear of the planet's disc, and bright enough (the classical moons always, the selected one too)
+                        double px = Math.Sqrt((mp.X - pt.X) * (mp.X - pt.X) + (mp.Y - pt.Y) * (mp.Y - pt.Y));
+                        if (!selected && (px < r + 2 || !(m.Moon.Major || m.Mag <= lim))) continue;
+                        moons.Add(m); moonPts.Add(mp);
+                        reach = Math.Max(reach, Math.Max(Math.Abs(mp.X - pt.X), Math.Abs(mp.Y - pt.Y)) + 80);
                     }
                 }
                 if (!InView(pt, reach)) continue;
-                using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
-                if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
-                TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
-                _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
-                if (moons != null) DrawGalileans(g, moons, moonPts);
+                if (InView(pt, discReach))
+                {
+                    using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
+                    if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
+                    TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
+                    _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
+                }
+                DrawMoons(g, pt, r, moons, moonPts);
             }
             // Sun
             {
@@ -648,20 +665,27 @@ namespace Sidralune.UI
             g.Restore(st);
         }
 
-        // the moons at their projected places, so they follow the chart's orientation, mirroring and rotation
-        private void DrawGalileans(Graphics g, Science.SolarSystem.GalileanMoon[] moons, PointF[] pts)
+        /// <summary>
+        /// Faintest moon drawn besides the classical ones: two magnitudes below the star limit, which grows as you zoom
+        /// in without the installed catalogue's cap, since the moons do not come from it.
+        /// </summary>
+        public double MoonMagLimit => (Layers.AutoMagLimit ? Layers.MagLimit + 2.2 * Math.Log10(Math.Max(1, 90 / FovDeg)) : Layers.MagLimit) + 2;
+
+        // the moons at their projected places, so they follow the chart's orientation, mirroring and rotation; a dot
+        // sized by brightness, named when clear of the planet
+        private void DrawMoons(Graphics g, PointF planet, float planetR, List<Science.SolarSystem.MoonPlace> moons, List<PointF> pts)
         {
-            for (int i = 0; i < moons.Length; i++)
+            for (int i = 0; i < moons.Count; i++)
             {
                 var m = moons[i];
-                float x = pts[i].X, y = pts[i].Y;
-                if (m.Occulted) continue;
-                using (var b = new SolidBrush(m.InFront && m.Transit ? _p.TextDim : _p.Text)) g.FillEllipse(b, x - 2, y - 2, 4, 4);
-                TextRenderer.DrawText(g, m.Name.Substring(0, 2), Theme.SmallFont, new Point((int)x - 6, (int)y + 4), _p.TextDim);
+                float x = pts[i].X, y = pts[i].Y, s = m.Mag < 8 ? 2.5f : m.Mag < 13 ? 2f : 1.5f;
+                using (var b = new SolidBrush(m.Transit ? _p.TextDim : _p.Text)) g.FillEllipse(b, x - s, y - s, 2 * s, 2 * s);
+                double px = Math.Sqrt((x - planet.X) * (x - planet.X) + (y - planet.Y) * (y - planet.Y));
+                if (px > planetR + 12) TextRenderer.DrawText(g, m.Moon.Name, Theme.SmallFont, new Point((int)x - 6, (int)y + 4), _p.TextDim);
                 var o = SelectedObject.From(m);
                 _hits.Add(new Hit { P = pts[i], R = 6, O = o, Priority = 0 });
-                // a selected moon is marked where it is now, as it moves around Jupiter
-                if (Highlight != null && Highlight.Kind == SelectedKind.PlanetMoon && Highlight.Name == m.Name) { Highlight.RaDeg = o.RaDeg; Highlight.DecDeg = o.DecDeg; }
+                // a selected moon is marked where it is now, as it moves around its planet
+                if (Highlight != null && Highlight.Kind == SelectedKind.PlanetMoon && Highlight.Name == m.Moon.Name) { Highlight.RaDeg = o.RaDeg; Highlight.DecDeg = o.DecDeg; }
             }
         }
 
@@ -987,7 +1011,7 @@ namespace Sidralune.UI
 
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            FovDeg = AstroMath.Clamp(FovDeg * (e.Delta > 0 ? 0.8 : 1.25), 0.05, Mode == ChartMode.Planetarium ? 200 : 180);
+            FovDeg = AstroMath.Clamp(FovDeg * (e.Delta > 0 ? 0.8 : 1.25), MinFovDeg, Mode == ChartMode.Planetarium ? 200 : 180);
             Invalidate();
             ViewChanged?.Invoke();
             base.OnMouseWheel(e);
@@ -1004,7 +1028,7 @@ namespace Sidralune.UI
                 case Keys.Right: CenterLon -= step / Math.Max(0.2, Math.Cos(CenterLat)) * (FlipX ? -1 : 1); break;
                 case Keys.Up: CenterLat = Math.Min(AstroMath.HalfPi - 0.001, CenterLat + step); break;
                 case Keys.Down: CenterLat = Math.Max(-AstroMath.HalfPi + 0.001, CenterLat - step); break;
-                case Keys.Oemplus: case Keys.Add: case Keys.PageUp: FovDeg = Math.Max(0.05, FovDeg * 0.8); break;
+                case Keys.Oemplus: case Keys.Add: case Keys.PageUp: FovDeg = Math.Max(MinFovDeg, FovDeg * 0.8); break;
                 case Keys.OemMinus: case Keys.Subtract: case Keys.PageDown: FovDeg = Math.Min(200, FovDeg * 1.25); break;
                 case Keys.N: if (Mode == ChartMode.Planetarium) LookAt(0, 30); break;
                 case Keys.E: if (Mode == ChartMode.Planetarium) LookAt(90, 30); break;

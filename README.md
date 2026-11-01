@@ -30,7 +30,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 
 | Area | Highlights |
 |---|---|
-| Planning | Tonight dashboard, planetarium and atlas charts, printable finder charts, comets and asteroids on every chart, observing lists that rank targets by predicted visibility, logbook |
+| Planning | Tonight dashboard, planetarium and atlas charts, printable finder charts, comets and asteroids on every chart, 65 moons of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto, observing lists that rank targets by predicted visibility, logbook |
 | Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, planetary video (SER) recording, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers and planetary video |
 | Deep-sky imaging | Calibration with masters, star registration, 12 pixel-combine methods, drizzle, comet stacking, mosaics |
 | Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history |

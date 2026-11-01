@@ -26,37 +26,135 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
-        public void TestGalileanMoonsInTheSky()
+        public void TestPlanetMoonsList()
+        {
+            // the moons of each planet (and Pluto)
+            var expected = new Dictionary<Core.Ephemeris.Body, string[]>
+            {
+                { Core.Ephemeris.Body.Mars, new[] { "Phobos", "Deimos" } },
+                { Core.Ephemeris.Body.Jupiter, new[] { "Io", "Europa", "Ganymede", "Callisto", "Amalthea", "Himalia", "Elara", "Pasiphae", "Sinope", "Lysithea", "Carme", "Ananke", "Leda", "Thebe", "Adrastea", "Metis" } },
+                { Core.Ephemeris.Body.Saturn, new[] { "Mimas", "Enceladus", "Tethys", "Dione", "Rhea", "Titan", "Hyperion", "Iapetus", "Phoebe", "Janus", "Epimetheus", "Helene", "Telesto", "Calypso", "Atlas", "Prometheus", "Pandora", "Pan" } },
+                { Core.Ephemeris.Body.Uranus, new[] { "Ariel", "Umbriel", "Titania", "Oberon", "Miranda", "Cordelia", "Ophelia", "Cressida", "Desdemona", "Juliet", "Puck" } },
+                { Core.Ephemeris.Body.Neptune, new[] { "Triton", "Nereid", "Naiad", "Thalassa", "Despina", "Galatea", "Larissa", "Proteus", "Halimede", "Psamathe", "Sao", "Laomedeia", "Neso" } },
+                { Core.Ephemeris.Body.Pluto, new[] { "Charon", "Nix", "Hydra", "Kerberos", "Styx" } },
+            };
+            foreach (var kv in expected)
+            {
+                var missing = kv.Value.Where(n => PlanetMoons.Find(n) == null || PlanetMoons.Find(n).Planet != kv.Key).ToList();
+                CheckTrue(kv.Key + ": all " + kv.Value.Length + " moons", missing.Count == 0 && PlanetMoons.Of(kv.Key).Count() == kv.Value.Length, string.Join(", ", missing));
+            }
+            CheckTrue("Found by name in any case; not the Earth's Moon or a planet", PlanetMoons.Find(" titania ") != null && PlanetMoons.Find("Moon") == null && PlanetMoons.Find("Saturn") == null);
+            CheckTrue("Every moon has a size, a magnitude and a period", PlanetMoons.All.All(m => m.RadiusKm > 1 && m.AbsMag > -3 && m.AbsMag < 15 && m.PeriodDays > 0.25),
+                string.Join(", ", PlanetMoons.All.Where(m => !(m.RadiusKm > 1 && m.AbsMag > -3 && m.AbsMag < 15 && m.PeriodDays > 0.25)).Select(m => m.Name)));
+            var retro = new[] { "Triton", "Phoebe", "Sinope", "Pasiphae", "Carme", "Ananke", "Halimede", "Psamathe", "Neso" };
+            CheckTrue("Retrograde: " + string.Join(", ", retro) + " and no others", PlanetMoons.All.All(m => m.Retrograde == retro.Contains(m.Name)),
+                string.Join(", ", PlanetMoons.All.Where(m => m.Retrograde != retro.Contains(m.Name)).Select(m => m.Name)));
+        }
+
+        [TestMethod]
+        public void TestPlanetMoonsAgainstHorizons()
+        {
+            // JPL Horizons, geometric ICRF positions (km) from the planet's centre (barycentre for Himalia, Sinope, Phoebe,
+            // Nereid, Neso and Hydra), at 2026-10-31 and 2043-04-23 0h TDB: each kind of orbit model in use
+            var refs = new object[,]
+            {
+                { "Phobos", 2461344.5, 2870, -7235, -5186 },
+                { "Phobos", 2467344.5, 6573, -3936, -5593 },
+                { "Io", 2461344.5, 153072, 353117, 170949 },
+                { "Io", 2467344.5, -197361, -333311, -162434 },
+                { "Ganymede", 2461344.5, -325038, 923037, 437537 },
+                { "Ganymede", 2467344.5, 951723, -444908, -194505 },
+                { "Himalia", 2461344.5, -9280762, 1069000, 5033543 },
+                { "Himalia", 2467344.5, -6964596, 3527122, 5648301 },
+                { "Sinope", 2461344.5, -27170216, 7250927, -6632105 },
+                { "Sinope", 2467344.5, -26235372, -270091, -10464878 },
+                { "Mimas", 2461344.5, 144669, -111711, 830 },
+                { "Mimas", 2467344.5, -153519, -97377, 17097 },
+                { "Titan", 2461344.5, 1117631, -393371, -72647 },
+                { "Titan", 2467344.5, 74319, 1214980, -87169 },
+                { "Hyperion", 2461344.5, -39451, -1363048, 80277 },
+                { "Hyperion", 2467344.5, -288143, -1303173, 102968 },
+                { "Iapetus", 2461344.5, 2181803, 2708532, 67393 },
+                { "Iapetus", 2467344.5, 158705, -3506352, -700580 },
+                { "Phoebe", 2461344.5, 3342114, -9391134, -4490752 },
+                { "Phoebe", 2467344.5, 10737612, -4715898, -3405477 },
+                { "Janus", 2461344.5, -140753, -52225, 16112 },
+                { "Janus", 2467344.5, -16738, -149886, 12064 },
+                { "Epimetheus", 2461344.5, -1462, -151364, 11107 },
+                { "Epimetheus", 2467344.5, 145803, 36974, -15754 },
+                { "Helene", 2461344.5, -359418, -111473, 39369 },
+                { "Helene", 2467344.5, 129947, -351915, 13387 },
+                { "Titania", 2461344.5, 332517, -142732, 244796 },
+                { "Titania", 2467344.5, 369998, -19196, -230292 },
+                { "Miranda", 2461344.5, -35708, 42906, -117392 },
+                { "Miranda", 2467344.5, 76838, 1804, -104879 },
+                { "Triton", 2461344.5, 229445, 34179, -268450 },
+                { "Triton", 2467344.5, 266641, 103161, -210070 },
+                { "Nereid", 2461344.5, -2010285, 5793266, 2856576 },
+                { "Nereid", 2467344.5, 2623729, 8181771, 4381931 },
+                { "Neso", 2461344.5, -49714686, 64972667, -23163084 },
+                { "Neso", 2467344.5, -50336912, 20367912, -36216652 },
+                { "Charon", 2461344.5, -13266, -10974, 9363 },
+                { "Charon", 2467344.5, 13364, 13274, 5392 },
+                { "Hydra", 2461344.5, -28261, -18469, 55644 },
+                { "Hydra", 2467344.5, -12060, -1681, 63870 },
+            };
+            // the planets' usual distances (AU), to turn kilometres into arcseconds
+            var au = new Dictionary<Core.Ephemeris.Body, double> { { Core.Ephemeris.Body.Mars, 0.6 }, { Core.Ephemeris.Body.Jupiter, 4.2 }, { Core.Ephemeris.Body.Saturn, 8.5 }, { Core.Ephemeris.Body.Uranus, 18.2 }, { Core.Ephemeris.Body.Neptune, 29 }, { Core.Ephemeris.Body.Pluto, 33 } };
+            for (int k = 0; k < refs.GetLength(0); k++)
+            {
+                var m = PlanetMoons.Find((string)refs[k, 0]);
+                double jd = (double)refs[k, 1];
+                var truth = new Vec3((int)refs[k, 2], (int)refs[k, 3], (int)refs[k, 4]);
+                double km = (PlanetMoons.OffsetKm(m, jd) - truth).Length, arcsec = km / (au[m.Planet] * AstroMath.AU_km) * AstroMath.Rad2ArcSec;
+                // within 3" as seen from Earth, and 5 % of its distance from the planet
+                CheckTrue(string.Format("{0} {1:0.0}: within 3\" of Horizons", m.Name, jd), arcsec < 3 && km < 0.05 * truth.Length, string.Format("{0:0} km, {1:0.00}\"", km, arcsec));
+            }
+            // outside 2000-2050 the ellipses still keep each moon on its orbit
+            foreach (var m in PlanetMoons.All)
+            {
+                double r = PlanetMoons.OffsetKm(m, 2451545.0 - 36525 / 2.0).Length, a = m.SemiMajorAxisKm;
+                CheckTrue(m.Name + " in 1950: at a sensible distance from its planet", r > a * (1 - m.Eccentricity) * 0.8 && r < a * (1 + m.Eccentricity) * 1.2, r.ToString("0") + " km");
+            }
+        }
+
+        [TestMethod]
+        public void TestPlanetMoonsInTheSky()
         {
             var ctx = new Core.SkyContext(new Core.Observer { LatitudeDeg = 59.3, LongitudeDeg = 18.1 }, Core.Time.AstroTime.FromDateTime(new DateTime(2026, 10, 31, 1, 0, 0, DateTimeKind.Utc)));
-            var jup = ctx.BodyPlace(Core.Ephemeris.Body.Jupiter);
-            Core.Ephemeris.PlanetPhysics.Fill(Core.Ephemeris.Body.Jupiter, jup, ctx.JdTT);
-            double cm, lat, pole;
-            Core.Ephemeris.PlanetPhysics.Orientation(Core.Ephemeris.Body.Jupiter, ctx.JdTDB, jup.Astrometric.ToVector(), jup.LightTimeDays, out cm, out lat, out pole);
-            CheckTrue("Jupiter's axis is within 35° of celestial north", Math.Cos(pole * AstroMath.Deg2Rad) > Math.Cos(35 * AstroMath.Deg2Rad), pole + "°");
-            var moons = GalileanMoons.Positions(ctx);
-            var plain = GalileanMoons.Positions(ctx.JdTT);
-            for (int i = 0; i < 4; i++)
+            foreach (var planet in PlanetMoons.Planets)
             {
-                var m = moons[i];
-                string n = m.Name + ": ";
-                Check(n + "same place around Jupiter as without the sky (X)", m.X, plain[i].X, 1e-12);
-                double sep = AstroMath.Separation(jup.Astrometric.Ra, jup.Astrometric.Dec, m.Ra, m.Dec) * AstroMath.Rad2Deg * 3600;
-                Check(n + "RA/Dec are the stated distance from Jupiter (\")", sep, m.SeparationArcsec, 0.05);
-                Check(n + "that distance is X, Y in Jupiter radii (\")", m.SeparationArcsec, Math.Sqrt(m.X * m.X + m.Y * m.Y) * jup.DiameterArcsec / 2, 0.01);
-                if (Math.Abs(m.X) > 3)
+                var pl = ctx.BodyPlace(planet);
+                double rKm = Core.Ephemeris.PlanetPhysics.EquatorialRadiusKm(planet);
+                foreach (var m in PlanetMoons.Places(ctx, planet))
                 {
-                    // the moons lie along Jupiter's equator, 90° from its pole: west of it for positive X
-                    double pa = AstroMath.PositionAngle(jup.Astrometric.Ra, jup.Astrometric.Dec, m.Ra, m.Dec) * AstroMath.Rad2Deg;
-                    double expected = pole + (m.X > 0 ? -90 : 90), off = Math.Abs(AstroMath.NormalizeDeg(pa - expected + 180) - 180);
-                    CheckTrue(n + "along Jupiter's equator, on the " + (m.X > 0 ? "west" : "east") + " side", off < 6, pa.ToString("0.0") + "° vs " + expected.ToString("0.0") + "°");
-                    CheckTrue(n + "east and north parts agree with RA/Dec", Math.Abs(AstroMath.NormalizeDeg(Math.Atan2(m.EastArcsec, m.NorthArcsec) * AstroMath.Rad2Deg - pa + 180) - 180) < 0.1);
+                    string n = m.Moon.Name + ": ";
+                    var a = m.Place.Astrometric;
+                    double sep = AstroMath.Separation(pl.Astrometric.Ra, pl.Astrometric.Dec, a.Ra, a.Dec) * AstroMath.Rad2ArcSec;
+                    // the moon's own light time differs from the planet's: a few hundredths of an arcsecond for the outer ones
+                    Check(n + "RA/Dec are the stated distance from " + planet + " (\")", sep, m.SeparationArcsec, Math.Max(0.01, 0.001 * sep));
+                    double pa = AstroMath.PositionAngle(pl.Astrometric.Ra, pl.Astrometric.Dec, a.Ra, a.Dec);
+                    if (sep > 1) CheckTrue(n + "east and north parts agree with RA/Dec", Math.Abs(AstroMath.NormalizeDeg180((Math.Atan2(m.EastArcsec, m.NorthArcsec) - pa) * AstroMath.Rad2Deg)) < 0.2);
+                    Check(n + "planet radii from the distance across the line of sight", m.PlanetRadii, m.SeparationArcsec / AstroMath.Rad2ArcSec * m.Place.Distance * AstroMath.AU_km / rKm, 1e-3 * m.PlanetRadii + 1e-6);
+                    CheckTrue(n + "in front or behind, from its distance", m.Behind == (m.Place.Distance > pl.Distance), m.Place.Distance + " vs " + pl.Distance);
+                    CheckTrue(n + "over the disc only when within a radius", (m.Transit || m.Occulted) == (m.PlanetRadii < 1));
                 }
-                // 4.6 to 5.7 at opposition; Jupiter is 5.5 AU away on this date
-                CheckTrue(n + "magnitude 4.3 to 6.6", m.Mag > 4.3 && m.Mag < 6.6, m.Mag.ToString("0.00"));
             }
-            CheckTrue("Ganymede is the brightest and largest, Callisto the faintest", moons[2].Mag < moons.Where((x, i) => i != 2).Min(x => x.Mag) && moons[3].Mag > moons.Take(3).Max(x => x.Mag)
-                && moons[2].DiameterArcsec > 1.2 && moons[2].DiameterArcsec < 1.9, string.Join(", ", moons.Select(x => x.Name + " " + x.Mag.ToString("0.00") + " " + x.DiameterArcsec.ToString("0.00") + "\"")));
+            Func<string, MoonPlace> place = name => PlanetMoons.Place(ctx, PlanetMoons.Find(name));
+            // magnitudes near those published, for the planets' distances on this date
+            var mags = new Dictionary<string, double[]>
+            {
+                { "Ganymede", new[] { 4.9, 5.4 } }, { "Callisto", new[] { 5.9, 6.5 } }, { "Titan", new[] { 8.0, 8.9 } }, { "Rhea", new[] { 9.4, 10.3 } },
+                { "Titania", new[] { 13.6, 14.3 } }, { "Miranda", new[] { 16.0, 16.8 } }, { "Triton", new[] { 13.2, 13.8 } }, { "Charon", new[] { 16.5, 17.5 } },
+            };
+            foreach (var kv in mags)
+            {
+                var m = place(kv.Key);
+                CheckTrue(kv.Key + ": magnitude " + kv.Value[0] + " to " + kv.Value[1], m.Mag > kv.Value[0] && m.Mag < kv.Value[1], m.Mag.ToString("0.00"));
+            }
+            var g = place("Ganymede");
+            CheckTrue("Ganymede 1.2-1.9\" across", g.DiameterArcsec > 1.2 && g.DiameterArcsec < 1.9, g.DiameterArcsec.ToString("0.00"));
+            CheckTrue("Titan is within 23 Saturn radii, Iapetus within 62", place("Titan").PlanetRadii < 23 && place("Iapetus").PlanetRadii < 62);
         }
 
         [TestMethod]

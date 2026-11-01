@@ -63,7 +63,8 @@ Every calculation in Sidralune is based on published methods. This page lists th
 | Saturn's rings | Ring-plane tilt B and position angle P (Meeus chapter 45) |
 | Sun | P, B0, L0 and Carrington rotation (Meeus chapter 29) |
 | Moon | Optical libration, position angle of the axis, selenographic colongitude (Meeus chapter 53) |
-| Galilean moons | Meeus chapter 44 (lower-accuracy method), with transit and occultation geometry |
+| Galilean moons (Tonight, Solar system, Radio) | Meeus chapter 44 (lower-accuracy method), with transit and occultation geometry |
+| Planets' moons (sky chart) | 65 moons of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto: precessing ellipses fitted to JPL Horizons for 2000–2050, with tables of corrections along the orbit for moons that librate or share an orbit (Mimas, Tethys, Janus, Epimetheus, Helene, Telesto, Calypso, Atlas, Prometheus, Pandora); Hyperion and the irregular outer moons integrated from JPL states a year (Jupiter's, Hyperion) or four years apart, with the planet's and the Sun's gravity and, for Hyperion, Saturn's oblateness and Titan. Within 2000–2050 every moon is within 3″ of JPL Horizons (most within 1″); outside it they follow their mean ellipses, which keeps the regular moons close and the irregular ones rough |
 
 ## Rise, set, twilight and events
 

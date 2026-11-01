@@ -65,59 +65,127 @@ namespace Sidralune.AppTests
             CheckTrue("Jupiter and its moons are drawn while its middle is just outside the chart", result == null, result);
         }
 
-        [TestMethod]
-        public void TestJupiterMoonsClickable()
+        // the planet centred in a 1600 x 1000 atlas chart of this width (deg): the planet's drawn radius and, for each
+        // moon of it drawn, the moon, what a click there selects and its drawn distance from the planet (arcsec)
+        private static Tuple<double, System.Collections.Generic.List<Tuple<MoonPlace, SelectedObject, double>>> DrawnMoons(AstroTime time, Body planet, double fovDeg, SelectedObject highlight = null)
         {
-            var time = AstroTime.FromDateTime(new DateTime(2026, 10, 31, 1, 0, 0, DateTimeKind.Utc));
             var ctx = new SkyContext(AppState.Site, time);
-            var expected = GalileanMoons.Positions(ctx);
-            var jup = ctx.BodyPlace(Body.Jupiter);
-            PlanetPhysics.Fill(Body.Jupiter, jup, ctx.JdTT);
-            var found = OnUi(() =>
+            var pl = ctx.BodyPlace(planet);
+            var places = PlanetMoons.Places(ctx, planet);
+            return OnUi(() =>
             {
-                using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time })
+                using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time, Highlight = highlight })
                 using (var bmp = new Bitmap(1600, 1000))
                 using (var g = Graphics.FromImage(bmp))
                 {
-                    chart.CenterOn(jup.Astrometric.Ra, jup.Astrometric.Dec, 0.25);
+                    chart.CenterOn(pl.Astrometric.Ra, pl.Astrometric.Dec, fovDeg);
                     chart.Render(g, 1600, 1000, Theme.Current, false);
-                    var j = Drawn(chart, "Jupiter");
+                    var p = Drawn(chart, planet.ToString());
                     double scale = Field<double>(chart, "_scale"); // pixels per radian
-                    var res = expected.Where(m => !m.Occulted).Select(m =>
+                    var res = places.Select(m => new { m, d = Drawn(chart, m.Moon.Name) }).Where(x => x.d != null).Select(x =>
                     {
-                        var d = Drawn(chart, m.Name);
-                        var hit = d == null ? null : chart.HitTest(Point.Round(d.Item1));
-                        double px = d == null ? double.NaN : Math.Sqrt(Math.Pow(d.Item1.X - j.Item1.X, 2) + Math.Pow(d.Item1.Y - j.Item1.Y, 2));
-                        return Tuple.Create(m, hit, px / scale * AstroMath.Rad2Deg * 3600);
+                        double px = Math.Sqrt(Math.Pow(x.d.Item1.X - p.Item1.X, 2) + Math.Pow(x.d.Item1.Y - p.Item1.Y, 2));
+                        return Tuple.Create(x.m, chart.HitTest(Point.Round(x.d.Item1)), px / scale * AstroMath.Rad2ArcSec);
                     }).ToList();
-                    return Tuple.Create(res, (double)j.Item2 / scale * AstroMath.Rad2Deg * 3600);
+                    return Tuple.Create(p.Item2 / scale * AstroMath.Rad2ArcSec, res);
                 }
             });
-            Check("Jupiter is drawn at its apparent radius (\")", found.Item2, jup.DiameterArcsec / 2, 0.6);
-            CheckTrue("Some moons are visible", found.Item1.Count >= 2, found.Item1.Count + " moons");
-            foreach (var f in found.Item1)
-            {
-                CheckTrue(f.Item1.Name + ": a click on it selects it", f.Item2 != null && f.Item2.Kind == SelectedKind.PlanetMoon && f.Item2.Name == f.Item1.Name && f.Item2.Planet == Body.Jupiter,
-                    f.Item2 == null ? "nothing" : f.Item2.Kind + " " + f.Item2.Name);
-                Check(f.Item1.Name + ": drawn at its distance from Jupiter (\")", f.Item3, f.Item1.SeparationArcsec, 1.5);
-            }
+        }
 
+        [TestMethod]
+        public void TestPlanetMoonsClickable()
+        {
+            var time = AstroTime.FromDateTime(new DateTime(2026, 10, 31, 1, 0, 0, DateTimeKind.Utc));
+            var ctx = new SkyContext(AppState.Site, time);
+            var jup = ctx.BodyPlace(Body.Jupiter);
+            PlanetPhysics.Fill(Body.Jupiter, jup, ctx.JdTT);
+            Check("Jupiter is drawn at its apparent radius (\")", DrawnMoons(time, Body.Jupiter, 0.25).Item1, jup.DiameterArcsec / 2, 0.6);
+            // fields that show each planet's classical moons apart from it
+            var fields = new[] { Tuple.Create(Body.Mars, 0.02), Tuple.Create(Body.Jupiter, 0.5), Tuple.Create(Body.Saturn, 0.4), Tuple.Create(Body.Uranus, 0.05), Tuple.Create(Body.Neptune, 0.05), Tuple.Create(Body.Pluto, 0.01) };
+            foreach (var f in fields)
+            {
+                var drawn = DrawnMoons(time, f.Item1, f.Item2);
+                double half = f.Item2 / 2 * 3600 * 1000 / 1600; // half the chart's height, arcsec
+                var shown = PlanetMoons.Places(ctx, f.Item1).Where(m => m.Moon.Major && !m.Occulted && m.SeparationArcsec < half && m.PlanetRadii > 1.5).ToList();
+                var missing = shown.Where(m => !drawn.Item2.Any(d => d.Item1.Moon == m.Moon)).Select(m => m.Moon.Name).ToList();
+                CheckTrue(f.Item1 + ": the classical moons in view are drawn", missing.Count == 0 && shown.Count > 0, shown.Count + " in view, missing " + string.Join(", ", missing));
+                foreach (var d in drawn.Item2)
+                {
+                    var m = d.Item1;
+                    CheckTrue(m.Moon.Name + ": a click on it selects it", d.Item2 != null && d.Item2.Kind == SelectedKind.PlanetMoon && d.Item2.Name == m.Moon.Name && d.Item2.Planet == f.Item1,
+                        d.Item2 == null ? "nothing" : d.Item2.Kind + " " + d.Item2.Name);
+                    Check(m.Moon.Name + ": drawn at its distance from " + f.Item1 + " (\")", d.Item3, m.SeparationArcsec, Math.Max(0.05, 0.01 * m.SeparationArcsec));
+                }
+            }
+            // the moons the user named are all there
+            var saturn = DrawnMoons(time, Body.Saturn, 0.4).Item2.Select(d => d.Item1.Moon.Name).ToList();
+            var named = new[] { "Titan", "Rhea", "Tethys", "Dione", "Enceladus", "Iapetus", "Mimas" }.Where(n => { var m = PlanetMoons.Place(ctx, PlanetMoons.Find(n)); return !m.Occulted && m.PlanetRadii > 1.5 && m.SeparationArcsec < 450; }).ToList();
+            CheckTrue("Saturn: " + string.Join(", ", named), named.All(saturn.Contains), string.Join(", ", saturn));
+            // a faint moon only when it is bright enough or selected
+            var jupiter = DrawnMoons(time, Body.Jupiter, 0.05).Item2;
+            var adrastea = PlanetMoons.Place(ctx, PlanetMoons.Find("Adrastea"));
+            CheckTrue("Adrastea (magnitude " + adrastea.Mag.ToString("0.0") + ") is not drawn at 3′", !jupiter.Any(d => d.Item1.Moon.Name == "Adrastea"));
+            CheckTrue("…but is when selected", adrastea.Occulted || DrawnMoons(time, Body.Jupiter, 0.05, SelectedObject.From(adrastea)).Item2.Any(d => d.Item1.Moon.Name == "Adrastea"));
+        }
+
+        [TestMethod]
+        public void TestFarMoonZoomedIn()
+        {
+            // Iapetus 6.8′ from Saturn: zoomed in on the moon, Saturn is thousands of pixels outside the chart
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 1, 1, 8, 0, DateTimeKind.Utc));
+            var iapetus = PlanetMoons.Place(new SkyContext(AppState.Site, time), PlanetMoons.Find("Iapetus"));
+            CheckTrue("Iapetus is far from Saturn", iapetus.SeparationArcsec > 300, iapetus.SeparationArcsec.ToString("0") + "\"");
+            foreach (double fov in new[] { 0.075, 0.06, 0.02, SkyChart.MinFovDeg })
+            {
+                var result = OnUi(() =>
+                {
+                    using (var chart = new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time, Highlight = SelectedObject.From(iapetus) })
+                    using (var bmp = new Bitmap(1600, 1000))
+                    using (var g = Graphics.FromImage(bmp))
+                    {
+                        chart.CenterOn(iapetus.Place.Astrometric.Ra, iapetus.Place.Astrometric.Dec, fov);
+                        chart.Render(g, 1600, 1000, Theme.Current, false);
+                        var m = Drawn(chart, "Iapetus");
+                        if (m == null) return "Iapetus was not drawn";
+                        if (Math.Abs(m.Item1.X - 800) > 3 || Math.Abs(m.Item1.Y - 500) > 3) return "Iapetus drawn at " + m.Item1 + ", not in the middle";
+                        var hit = chart.HitTest(new Point(800, 500));
+                        if (hit == null || hit.Name != "Iapetus") return "a click on it selects " + (hit == null ? "nothing" : hit.Name);
+                        return Drawn(chart, "Saturn") != null ? "Saturn was drawn although it is outside the chart" : null;
+                    }
+                });
+                CheckTrue("Iapetus is drawn and clickable at " + SkyView.FormatOffset(fov * 3600), result == null, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestPlanetMoonInfo()
+        {
             // the info panel describes a clicked moon
             var sky = View<SkyView>("sky");
-            var info = OnUi(() =>
+            Func<string, Tuple<string, string, string>> info = name => OnUi(() =>
             {
-                Call(sky, "ShowInfo", SkyView.MoonObject("ganymede"));
+                Call(sky, "ShowInfo", SkyView.MoonObject(name));
                 return Tuple.Create(Field<Control>(sky, "_objTitle").Text, Field<Control>(sky, "_objSub").Text, Field<Control>(sky, "_objInfo").Text);
             });
-            CheckTrue("Info: the moon's name and what it orbits", info.Item1 == "Ganymede" && info.Item2.StartsWith("Moon of Jupiter"), info.Item1 + " / " + info.Item2);
-            CheckTrue("Info: magnitude, place, position around Jupiter, size and orbit", new[] { "Magnitude", "RA/Dec J2000", "Alt/Az", "Rise", "Position", "of Jupiter", "Diameter", "km", "Orbital period", "days" }
-                .All(s => info.Item3.Contains(s)) && !info.Item3.Contains("Magnitude       —"), info.Item3);
-            // in an observing list, a moon stays a moon (not Jupiter, which the entry also names)
+            foreach (var t in new[] { Tuple.Create("ganymede", "Ganymede", "Jupiter"), Tuple.Create("Titan", "Titan", "Saturn"), Tuple.Create("titania", "Titania", "Uranus"), Tuple.Create("Triton", "Triton", "Neptune"), Tuple.Create("Charon", "Charon", "Pluto"), Tuple.Create("Phobos", "Phobos", "Mars") })
+            {
+                var i = info(t.Item1);
+                CheckTrue(t.Item2 + ": the moon's name and what it orbits", i.Item1 == t.Item2 && i.Item2.StartsWith("Moon of " + t.Item3), i.Item1 + " / " + i.Item2);
+                CheckTrue(t.Item2 + ": magnitude, place, position around " + t.Item3 + ", size and orbit",
+                    new[] { "Magnitude", "RA/Dec J2000", "Alt/Az", "Rise", "Position", t.Item3, "Diameter", "km", "Orbital period", "days" }.All(s => i.Item3.Contains(s)) && !i.Item3.Contains("Magnitude       —"), i.Item3);
+                CheckTrue(t.Item2 + ": retrograde only for Triton", i.Item3.Contains("(retrograde)") == (t.Item2 == "Triton"));
+            }
+            // in an observing list, a moon stays a moon (not its planet, which the entry also names)
             var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
-            var entry = typeof(PlannerView).GetMethod("FromSky", flags).Invoke(null, new object[] { SkyView.MoonObject("Europa") });
-            var back = (SelectedObject)typeof(PlannerView).GetMethod("ToSelected", flags).Invoke(null, new[] { entry });
-            CheckTrue("Planner: a listed moon comes back as that moon", back.Kind == SelectedKind.PlanetMoon && back.Name == "Europa", back.Kind + " " + back.Name);
-            CheckTrue("Only Jupiter's four big moons are found by name", SkyView.MoonObject("Io") != null && SkyView.MoonObject("Titan") == null && SkyView.MoonObject("Jupiter") == null);
+            foreach (var name in new[] { "Europa", "Titania" })
+            {
+                var entry = typeof(PlannerView).GetMethod("FromSky", flags).Invoke(null, new object[] { SkyView.MoonObject(name) });
+                var back = (SelectedObject)typeof(PlannerView).GetMethod("ToSelected", flags).Invoke(null, new[] { entry });
+                CheckTrue("Planner: a listed " + name + " comes back as that moon", back.Kind == SelectedKind.PlanetMoon && back.Name == name, back.Kind + " " + back.Name);
+            }
+            CheckTrue("Moons of all planets are found by name, planets and the Moon are not", new[] { "Io", "Titan", "Miranda", "Triton", "Nix", "Deimos" }.All(n => SkyView.MoonObject(n) != null)
+                && SkyView.MoonObject("Jupiter") == null && SkyView.MoonObject("Moon") == null);
+            CheckTrue("Distances from the planet in arcseconds, arcminutes or degrees", SkyView.FormatOffset(12.34) == 12.3.ToString("0.0") + "\"" && SkyView.FormatOffset(600) == 10.0.ToString("0.0") + "′" && SkyView.FormatOffset(7200) == 2.0.ToString("0.00") + "°");
         }
     }
 }

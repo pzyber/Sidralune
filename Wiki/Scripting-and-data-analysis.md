@@ -72,7 +72,7 @@ The script is compiled with these namespaces already imported, so their classes 
 | Application | `Sidralune`, `Sidralune.UI`, `Sidralune.Views` | `AppState`, `MainForm`, `Theme`, the workspace views |
 | Core | `Sidralune.Core`, `.Mathematics`, `.Time`, `.Coordinates`, `.Ephemeris`, `.Catalogs`, `.MinorBodies`, `.Satellites`, `.Util` | `AstroMath`, `Stats`, `LevenbergMarquardt`, `AstroTime`, `Transforms`, `Events`, `PlanetPhysics`, `MinorBodyStore`, `Sgp4`, `Csv` |
 | Imaging | `Sidralune.Imaging`, `.IO`, `.Analysis`, `.Processing`, `.Stacking`, `.Registration`, `.Planetary` | `AstroImage`, `ImageFile`, `FitsIO`, `StarDetector`, `StretchOps`, `Deconvolution`, `StackingEngine`, `StarMatcher`, `LuckyStacker`, `Preprocessor` |
-| Science | `Sidralune.Science.Astrometry`, `.Photometry`, `.Spectroscopy`, `.SolarSystem`, `.Radio`, `.Databases` | `PlateSolver`, `Wcs`, `AperturePhotometry`, `PeriodSearch`, `TransitModel`, `SpectroTools`, `GalileanMoons`, `OccultationPredictor`, `RadioMath`, `OnlineServices` |
+| Science | `Sidralune.Science.Astrometry`, `.Photometry`, `.Spectroscopy`, `.SolarSystem`, `.Radio`, `.Databases` | `PlateSolver`, `Wcs`, `AperturePhotometry`, `PeriodSearch`, `TransitModel`, `SpectroTools`, `GalileanMoons`, `PlanetMoons`, `OccultationPredictor`, `RadioMath`, `OnlineServices` |
 | Devices | `Sidralune.Devices`, `.Automation` | `DeviceManager`, `CaptureService`, `Autofocus`, `Centering`, `PolarAlignment`, `Sequencer` |
 
 To change the user interface from a script, run the code on the UI thread: `MainForm.Instance.Invoke((Action)(() => { … }))`.
