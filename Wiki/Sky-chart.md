@@ -48,6 +48,8 @@ The **Chart** tab shows a classic all-sky star chart for your site and the curre
 
 **Labels turn towards the zenith.** Every name is turned so that its top points at the middle of the chart. To use the chart, face a direction and hold that edge of the chart down. The direction name and everything near that horizon then read the right way up, and the chart matches the sky in front of you. Labels near the middle stay upright on the page.
 
+Labels never overlap. Where the sky is crowded, fainter stars and deep-sky objects lose their names first. The Sun, Moon and planets are always named first and keep clear of each other's discs. When two of them are close together, a name moves further out and a thin line joins it to its object.
+
 The chart shows:
 
 - stars to a limit that suits the size of the chart. On screen it follows the window. In print it is about magnitude 5.5 on A4, 6.0 on A3 and A3+, and 6.5 on A2. To choose the limit yourself, turn off **Layers → Limiting magnitude → Deeper when zoomed in** and pick a value.

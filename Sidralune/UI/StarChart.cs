@@ -527,8 +527,18 @@ namespace Sidralune.UI
                     planets.Add(Tuple.Create("Moon", pt, r));
                 }
             }
-            // the Sun, Moon and planets are named first, so nothing pushes their names away
-            _labelJobs.Add(Tuple.Create(0, (Action)(() => { using (var f = Font(6.5f, FontStyle.Bold)) foreach (var l in planets) Label(l.Item1, f, Print ? Color.Black : (l.Item1 == "Moon" ? p.Moon : l.Item1 == "Sun" ? p.Sun : p.Planet), l.Item2, l.Item3 + 0.6f * _s); })));
+            // the Sun, Moon and planets are named first, so nothing pushes their names away; when they crowd each other
+            // a name looks further for room, keeping off the other discs
+            _labelJobs.Add(Tuple.Create(0, (Action)(() =>
+            {
+                var discs = planets.Select(l => new[] { new PointF(l.Item2.X - l.Item3, l.Item2.Y - l.Item3), new PointF(l.Item2.X + l.Item3, l.Item2.Y - l.Item3), new PointF(l.Item2.X + l.Item3, l.Item2.Y + l.Item3), new PointF(l.Item2.X - l.Item3, l.Item2.Y + l.Item3) }).ToList();
+                using (var f = Font(6.5f, FontStyle.Bold))
+                    for (int i = 0; i < planets.Count; i++)
+                    {
+                        var l = planets[i];
+                        Label(l.Item1, f, Print ? Color.Black : (l.Item1 == "Moon" ? p.Moon : l.Item1 == "Sun" ? p.Sun : p.Planet), l.Item2, l.Item3 + 0.6f * _s, keen: true, avoid: discs.Where((d, j) => j != i).ToList());
+                    }
+            })));
         }
 
         // the lit part of a disc, its bright limb turned towards brightLimbDeg (clockwise from up on the page)
@@ -570,27 +580,48 @@ namespace Sidralune.UI
 
         /// <summary>
         /// A label turned to the zenith beside an object (to its right, left, outside or inside, whichever is free), or
-        /// centred on its point; left out when it would overlap another label or reach past the horizon.
+        /// centred on its point; left out when it would overlap another label, anything in avoid, or reach past the
+        /// horizon. A keen label (the Sun, Moon and planets) also tries the diagonals, then further out with a line back
+        /// to its object.
         /// </summary>
-        private bool Label(string text, Font f, Color c, PointF at, float gap, bool centred = false)
+        private bool Label(string text, Font f, Color c, PointF at, float gap, bool centred = false, bool keen = false, IList<PointF[]> avoid = null)
         {
             var size = _g.MeasureString(text, f, PointF.Empty, _sf);
             float w = size.Width, h = size.Height, pad = 0.25f * _s;
             float angle = LabelAngle(at);
             double a = angle * AstroMath.Deg2Rad, ca = Math.Cos(a), sa = Math.Sin(a);
+            Func<float, PointF[]> around = d =>
+            {
+                float e = d * 0.7f;
+                return new[] { new PointF(d, -h / 2), new PointF(-d - w, -h / 2), new PointF(-w / 2, d), new PointF(-w / 2, -d - h),
+                    new PointF(e, e), new PointF(-e - w, e), new PointF(e, -e - h), new PointF(-e - w, -e - h) };
+            };
             // a centred name may move a little round its point to find room
             var offsets = centred ? new[] { 0f, -1.3f, 1.3f, -2.6f, 2.6f }.SelectMany(dy => new[] { 0f, -0.4f, 0.4f }.Select(dx => new PointF(-w / 2 + dx * w, -h / 2 + dy * h))).ToArray()
-                : new[] { new PointF(gap, -h / 2), new PointF(-gap - w, -h / 2), new PointF(-w / 2, gap), new PointF(-w / 2, -gap - h) };
-            foreach (var o in offsets)
+                : keen ? around(gap).Concat(around(gap + 1.5f * h)).Concat(around(gap + 3 * h)).ToArray()
+                : around(gap).Take(4).ToArray();
+            Func<PointF[], PointF[]> toPage = qs => qs.Select(q => new PointF((float)(at.X + q.X * ca - q.Y * sa), (float)(at.Y + q.X * sa + q.Y * ca))).ToArray();
+            Func<PointF[], bool> blocked = qs => LabelBoxes.Any(b => Overlap(b, qs)) || (avoid != null && avoid.Any(b => Overlap(b, qs)));
+            for (int i = 0; i < offsets.Length; i++)
             {
-                var box = new[] { new PointF(o.X - pad, o.Y - pad), new PointF(o.X + w + pad, o.Y - pad), new PointF(o.X + w + pad, o.Y + h + pad), new PointF(o.X - pad, o.Y + h + pad) }
-                    .Select(q => new PointF((float)(at.X + q.X * ca - q.Y * sa), (float)(at.Y + q.X * sa + q.Y * ca))).ToArray();
+                var o = offsets[i];
+                var box = toPage(new[] { new PointF(o.X - pad, o.Y - pad), new PointF(o.X + w + pad, o.Y - pad), new PointF(o.X + w + pad, o.Y + h + pad), new PointF(o.X - pad, o.Y + h + pad) });
                 if (box.Any(q => Math.Sqrt((q.X - Centre.X) * (q.X - Centre.X) + (q.Y - Centre.Y) * (q.Y - Centre.Y)) > Radius - 0.3f)) continue;
-                if (LabelBoxes.Any(b => Overlap(b, box))) continue;
+                if (blocked(box)) continue;
+                // further out, a leader from the object's edge to the nearest point of the name, clear of other names
+                PointF from = PointF.Empty, to = PointF.Empty;
+                if (keen && i >= 8)
+                {
+                    float nx = AstroMath.Clamp(0f, o.X, o.X + w), ny = AstroMath.Clamp(0f, o.Y, o.Y + h), len = (float)Math.Sqrt(nx * nx + ny * ny);
+                    float ux = nx / len, uy = ny / len, start = gap - 0.3f * _s, end = len - pad, half = 0.2f * _s;
+                    from = new PointF(ux * start, uy * start); to = new PointF(ux * end, uy * end);
+                    if (blocked(toPage(new[] { new PointF(from.X - uy * half, from.Y + ux * half), new PointF(to.X - uy * half, to.Y + ux * half), new PointF(to.X + uy * half, to.Y - ux * half), new PointF(from.X + uy * half, from.Y - ux * half) }))) continue;
+                }
                 LabelBoxes.Add(box); LabelTexts.Add(text);
                 var st = _g.Save();
                 _g.TranslateTransform(at.X, at.Y);
                 _g.RotateTransform(angle);
+                if (from != to) using (var pen = Pen(c, 0.15f)) _g.DrawLine(pen, from, to);
                 using (var b = new SolidBrush(c)) _g.DrawString(text, f, b, o.X, o.Y, _sf);
                 _g.Restore(st);
                 return true;

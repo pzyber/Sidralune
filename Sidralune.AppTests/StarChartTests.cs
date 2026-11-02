@@ -102,6 +102,51 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestStarChartPlanetNames()
+        {
+            // Saturn and Neptune about a degree apart on 2 November 2026: both named, minute by minute, on paper and on screen
+            var home = new Observer { Name = "Home", LatitudeDeg = 58.5, LongitudeDeg = 13.3, TimeZoneId = "W. Europe Standard Time" };
+            var missed = OnUi(() =>
+            {
+                var gone = new System.Collections.Generic.List<string>();
+                for (int min = 5; min < 35; min++)
+                {
+                    var t = AstroTime.FromDateTime(new DateTime(2026, 11, 2, 20, min, 0, DateTimeKind.Utc));
+                    var paper = new StarChartPage { Site = home, Time = t, Layers = new ChartLayers() };
+                    using (var bmp = paper.RenderImage(ChartPaper.All[0], false, 150))
+                    {
+                        var dir = Environment.GetEnvironmentVariable("SIDRALUNE_RENDER_DIR");
+                        if (min == 23 && !string.IsNullOrEmpty(dir)) bmp.Save(Path.Combine(dir, "starchart-saturn-neptune.png"));
+                    }
+                    // a full-screen view, 440 × 260 mm at 96 dpi
+                    var screen = new StarChartPage { Site = home, Time = t, Layers = new ChartLayers() };
+                    using (var bmp = new Bitmap(1663, 983))
+                    using (var g = Graphics.FromImage(bmp))
+                    {
+                        g.ScaleTransform(96 / 25.4f, 96 / 25.4f);
+                        screen.Render(g, new RectangleF(5, 5, 430, 250));
+                    }
+                    foreach (var pg in new[] { paper, screen })
+                    {
+                        string where = (pg == paper ? " on A4" : " on screen") + " at 20:" + min.ToString("00");
+                        foreach (var name in new[] { "Saturn", "Neptune" })
+                            if (!pg.LabelTexts.Contains(name)) gone.Add(name + " unnamed" + where);
+                        // no name covers a planet's disc
+                        foreach (var hit in pg.Hits.Where(x => x.O.Kind == SelectedKind.Planet))
+                        {
+                            float q = hit.R / 2;
+                            var disc = new[] { new PointF(hit.P.X - q, hit.P.Y - q), new PointF(hit.P.X + q, hit.P.Y - q), new PointF(hit.P.X + q, hit.P.Y + q), new PointF(hit.P.X - q, hit.P.Y + q) };
+                            for (int i = 0; i < pg.LabelBoxes.Count; i++)
+                                if (pg.LabelTexts[i] != hit.O.Name && StarChartPage.Overlap(pg.LabelBoxes[i], disc)) gone.Add(pg.LabelTexts[i] + " over " + hit.O.Name + where);
+                        }
+                    }
+                }
+                return gone;
+            });
+            CheckTrue("Planets keep their names when they crowd each other", missed.Count == 0, string.Join(", ", missed));
+        }
+
+        [TestMethod]
         public void TestStarChartPages()
         {
             double lastLimit = 0;
