@@ -313,7 +313,7 @@ namespace Sidralune.Views
         {
             var card = new Card("Sidralune") { Dock = DockStyle.Fill };
             var t = new Label { Dock = DockStyle.Fill, UseMnemonic = false, Text =
-                T("Sidralune {0} — an integrated astronomy suite for planning, observing, imaging and science.", "0.4.1") + "\r\n\r\n" +
+                T("Sidralune {0} — an integrated astronomy suite for planning, observing, imaging and science.", "0.5.0") + "\r\n\r\n" +
                 "Copyright © Jimmy Nordström\r\n\r\n" +
                 T("Algorithms: IAU 2006 precession and nutation, JPL DE440 (SPK) or Standish/ELP2000 analytic ephemerides, SGP4 (Vallado 2006),\n" +
                 "Krisciunas & Schaefer sky brightness, Schaefer visual thresholds, triangle-invariant star matching with RANSAC, TAN-SIP WCS,\n" +
