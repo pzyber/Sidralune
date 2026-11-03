@@ -6,6 +6,7 @@ The **Settings** workspace, at the bottom of the navigation rail, holds everythi
 - [Equipment](#equipment)
 - [Observer & accounts](#observer--accounts)
 - [Appearance](#appearance)
+  - [Languages](#languages)
 - [Data](#data)
 - [About](#about)
 
@@ -89,10 +90,30 @@ Click **Save** to store the changes.
 
 | Setting | Meaning |
 |---|---|
+| **Language** | The interface language. **Same as Windows** follows the Windows display language and falls back to English if Sidralune has no translation for it. The new language is used after a restart; **Restart now to change the language** appears when you choose another one, and closes Sidralune and starts it again in the new language |
 | **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N; this box and the moon button always show the same state |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 
 A list of keyboard shortcuts is shown on this tab; see also [Keyboard shortcuts](Keyboard-shortcuts).
+
+### Languages
+
+Sidralune is written in English and translated into **Swedish** so far. The whole interface is translated:
+
+- the main window, the command palette and Settings, including the downloadable datasets in Settings → Data and the loaded catalogues in the status bar,
+- **Tonight** and **Sky**, including the object information, the layers menu and the printed star chart and finder chart,
+- **Planner** and **Observatory**, including the sequencer's instructions and triggers and the messages from autofocus, centring and polar alignment,
+- **Deep sky**, **Process** and **Planetary**, including the progress messages and results of stacking, pre-processing and lucky imaging,
+- **Astrometry**, **Photometry** and **Spectra**, including the messages from the plate solvers (spectral line names such as Hα and [O III] stay as they are),
+- **Solar system**, **Radio**, **Databases** and **Scripts** (results that online services return, such as SIMBAD tables, and the scripting API stay as they are),
+- the option names and choices in the property grids (stacking, planetary, photometry, equipment profiles, observing log and sequencer settings), and Yes/No for on/off options,
+- planet names, object types, visibility ratings, moon phases, eclipses and other events, and meteor shower names, wherever they appear.
+
+A language whose file lacks some texts shows those in English.
+
+Only words change with the language. Numbers are always written with a decimal point, and dates as `yyyy-MM-dd`, so values look the same as in reports, FITS headers and scripts; day and month names such as `mån 2 nov` do follow the language. Constellation and star names stay as they are. Searching accepts the translated planet names as well as the English ones. Log messages and files written for other programs (AAVSO and MPC reports, FITS headers) stay in English.
+
+The **Pseudo-language** entry is for testing: it shows every translated text with accents, in brackets and a third longer, so text that is not yet translated, and places where a longer translation would not fit, stand out. To help translate Sidralune into your language, see [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#translating-sidralune).
 
 ## Data
 

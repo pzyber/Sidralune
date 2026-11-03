@@ -9,6 +9,7 @@ using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.MinorBodies;
 using Sidralune.Core.Time;
+using Sidralune.Core.Util;
 using Sidralune.Science.Astrometry;
 
 namespace Sidralune.Science.SolarSystem
@@ -358,6 +359,31 @@ namespace Sidralune.Science.SolarSystem
         public double PeakSolarLongitude, RadiantRa, RadiantDec, VelocityKms, Zhr;
         public int ActiveFromDay, ActiveToDay; // day of year (approx.)
         public double PopulationIndex = 2.5;
+
+        /// <summary>The shower's name in the interface language ("Perseiderna" in Swedish); Name stays English.</summary>
+        public string DisplayName
+        {
+            get
+            {
+                switch (Code)
+                {
+                    case "QUA": return Lang.T("Quadrantids");
+                    case "LYR": return Lang.T("Lyrids");
+                    case "ETA": return Lang.T("η-Aquariids");
+                    case "SDA": return Lang.T("Southern δ-Aquariids");
+                    case "CAP": return Lang.T("α-Capricornids");
+                    case "PER": return Lang.T("Perseids");
+                    case "DRA": return Lang.T("Draconids");
+                    case "ORI": return Lang.T("Orionids");
+                    case "STA": return Lang.T("Southern Taurids");
+                    case "NTA": return Lang.T("Northern Taurids");
+                    case "LEO": return Lang.T("Leonids");
+                    case "GEM": return Lang.T("Geminids");
+                    case "URS": return Lang.T("Ursids");
+                    default: return Name;
+                }
+            }
+        }
 
         /// <summary>Peak date in a given year from the solar longitude.</summary>
         public AstroTime PeakIn(int year)

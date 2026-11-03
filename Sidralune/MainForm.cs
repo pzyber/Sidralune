@@ -10,6 +10,7 @@ using Sidralune.Core.Util;
 using Sidralune.Devices;
 using Sidralune.UI;
 using Sidralune.Views;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune
 {
@@ -30,10 +31,10 @@ namespace Sidralune
         private readonly Panel _status = new Panel { Dock = DockStyle.Bottom, Height = 28 };
         private readonly Label _title = new Label { AutoSize = true, Font = Theme.TitleFont, Text = "Sidralune" };
         private readonly Label _viewTitle = new Label { AutoSize = true, Font = Theme.HeaderFont };
-        private readonly FlatButton _search = new FlatButton { Text = "Search objects and commands…   Ctrl+K", Icon = Icons.Search, Width = 360 };
+        private readonly FlatButton _search = new FlatButton { Text = T("Search objects and commands…   Ctrl+K"), Icon = Icons.Search, Width = 360 };
         private readonly Label _clock = new Label { AutoSize = true, Font = Theme.UiFont };
-        private readonly FlatButton _night = new FlatButton { Icon = Icons.Night, Toggle = true, Width = 34, Kind = ButtonKind.Subtle, ToolTipText = "Night vision (red) mode  Ctrl+Shift+N" };
-        private readonly FlatButton _live = new FlatButton { Text = "Live", Icon = Icons.Clock, Kind = ButtonKind.Subtle, ToolTipText = "Return to the current time" };
+        private readonly FlatButton _night = new FlatButton { Icon = Icons.Night, Toggle = true, Width = 34, Kind = ButtonKind.Subtle, ToolTipText = T("Night vision (red) mode  Ctrl+Shift+N") };
+        private readonly FlatButton _live = new FlatButton { Text = T("Live"), Icon = Icons.Clock, Kind = ButtonKind.Subtle, ToolTipText = T("Return to the current time") };
         private readonly FlowLayoutPanel _statusLeft = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(4, 3, 0, 0) };
         private readonly StatusPill _statusMsg = new StatusPill { ShowDot = false, Dock = DockStyle.Right, Width = 0 };
         private FlatButton _logBtn;
@@ -48,7 +49,7 @@ namespace Sidralune
         public MainForm()
         {
             Instance = this;
-            Text = "Sidralune — Astronomy Suite";
+            Text = T("Sidralune — Astronomy Suite");
             Font = Theme.UiFont;
             MinimumSize = new Size(1100, 700);
             Size = new Size(1500, 950);
@@ -136,7 +137,7 @@ namespace Sidralune
             foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Guider, DeviceKind.Dome })
             {
                 var pill = new StatusPill { Margin = new Padding(0, 0, 4, 0) };
-                pill.Set(k.ToString(), Color.Gray);
+                pill.Set(DeviceTitle(k), Color.Gray);
                 pill.Cursor = Cursors.Hand;
                 pill.Click += (s, e) => Navigate("observatory");
                 _devicePills[k] = pill;
@@ -147,7 +148,7 @@ namespace Sidralune
             _dataPill.Cursor = Cursors.Hand;
             _dataPill.Click += (s, e) => Navigate("settings");
             _statusLeft.Controls.Add(_taskPill);
-            var logBtn = _logBtn = new FlatButton { Text = "Log", Icon = Icons.List, Kind = ButtonKind.Subtle, Height = 22, Dock = DockStyle.Right };
+            var logBtn = _logBtn = new FlatButton { Text = T("Log"), Icon = Icons.List, Kind = ButtonKind.Subtle, Height = 22, Dock = DockStyle.Right };
             logBtn.AutoSizeToText();
             logBtn.Click += (s, e) => _log.Visible = !_log.Visible;
             _status.Resize += (s, e) => LayoutStatus();
@@ -160,21 +161,35 @@ namespace Sidralune
         private void RegisterViews()
         {
             Action<string, string, string, string, Func<Control>> add = (key, title, icon, group, f) => _rail.Items.Add(new NavItem { Key = key, Title = title, Icon = icon, Group = group, Factory = f, Tooltip = title });
-            add("home", "Tonight", Icons.Home, "plan", () => new TonightView());
-            add("sky", "Sky", Icons.Sky, "plan", () => new SkyView());
-            add("planner", "Planner", Icons.Planner, "plan", () => new PlannerView());
-            add("observatory", "Observatory", Icons.Observatory, "acquire", () => new ObservatoryView());
-            add("stacking", "Deep sky", Icons.Stack, "process", () => new StackingView());
-            add("processing", "Process", Icons.Process, "process", () => new ProcessingView());
-            add("planetary", "Planetary", Icons.Planet, "process", () => new PlanetaryView());
-            add("astrometry", "Astrometry", Icons.Target, "science", () => new AstrometryView());
-            add("photometry", "Photometry", Icons.Photometry, "science", () => new PhotometryView());
-            add("spectro", "Spectra", Icons.Spectrum, "science", () => new SpectroscopyView());
-            add("solarsystem", "Solar sys.", Icons.Comet, "science", () => new SolarSystemView());
-            add("radio", "Radio", Icons.Radio, "science", () => new RadioView());
-            add("databases", "Databases", Icons.Database, "tools", () => new DatabaseView());
-            add("scripting", "Scripts", Icons.Code, "tools", () => new ScriptingView());
-            add("settings", "Settings", Icons.Settings, "tools", () => new SettingsView());
+            add("home", T("Tonight"), Icons.Home, "plan", () => new TonightView());
+            add("sky", T("Sky"), Icons.Sky, "plan", () => new SkyView());
+            add("planner", T("Planner"), Icons.Planner, "plan", () => new PlannerView());
+            add("observatory", T("Observatory"), Icons.Observatory, "acquire", () => new ObservatoryView());
+            add("stacking", T("Deep sky"), Icons.Stack, "process", () => new StackingView());
+            add("processing", T("Process"), Icons.Process, "process", () => new ProcessingView());
+            add("planetary", T("Planetary"), Icons.Planet, "process", () => new PlanetaryView());
+            add("astrometry", T("Astrometry"), Icons.Target, "science", () => new AstrometryView());
+            add("photometry", T("Photometry"), Icons.Photometry, "science", () => new PhotometryView());
+            add("spectro", T("Spectra"), Icons.Spectrum, "science", () => new SpectroscopyView());
+            add("solarsystem", T("Solar sys."), Icons.Comet, "science", () => new SolarSystemView());
+            add("radio", T("Radio"), Icons.Radio, "science", () => new RadioView());
+            add("databases", T("Databases"), Icons.Database, "tools", () => new DatabaseView());
+            add("scripting", T("Scripts"), Icons.Code, "tools", () => new ScriptingView());
+            add("settings", T("Settings"), Icons.Settings, "tools", () => new SettingsView());
+        }
+
+        private static string DeviceTitle(DeviceKind k)
+        {
+            switch (k)
+            {
+                case DeviceKind.Telescope: return T("Telescope");
+                case DeviceKind.Camera: return T("Camera");
+                case DeviceKind.Focuser: return T("Focuser");
+                case DeviceKind.FilterWheel: return T("FilterWheel");
+                case DeviceKind.Guider: return T("Guider");
+                case DeviceKind.Dome: return T("Dome");
+                default: return k.ToString();
+            }
         }
 
         private void RegisterCommands()
@@ -182,17 +197,17 @@ namespace Sidralune
             foreach (var it in _rail.Items)
             {
                 var item = it;
-                Commands.Add(new AppCommand { Title = "Go to " + item.Title, Category = "Navigate", Icon = item.Icon, Run = () => Navigate(item.Key) });
+                Commands.Add(new AppCommand { Title = T("Go to {0}", item.Title), Category = T("Navigate"), Icon = item.Icon, Run = () => Navigate(item.Key) });
             }
-            Commands.Add(new AppCommand { Title = "Toggle night vision mode", Category = "View", Shortcut = "Ctrl+Shift+N", Icon = Icons.Night, Run = () => SetNightMode(!Theme.Current.IsNight) });
-            Commands.Add(new AppCommand { Title = "Return to live time", Category = "Time", Icon = Icons.Clock, Run = AppState.GoLive });
-            Commands.Add(new AppCommand { Title = "Time: +1 hour", Category = "Time", Run = () => AppState.Step(1 / 24.0) });
-            Commands.Add(new AppCommand { Title = "Time: -1 hour", Category = "Time", Run = () => AppState.Step(-1 / 24.0) });
-            Commands.Add(new AppCommand { Title = "Time: +1 day", Category = "Time", Run = () => AppState.Step(1) });
-            Commands.Add(new AppCommand { Title = "Connect simulated observatory", Category = "Devices", Icon = Icons.Connect, Run = () => Tasks.Run("Connect simulators", t => DeviceManager.Instance.ConnectSimulators(), () => Toast("Simulated observatory connected")) });
-            Commands.Add(new AppCommand { Title = "Disconnect all devices", Category = "Devices", Run = () => DeviceManager.Instance.DisconnectAll() });
-            Commands.Add(new AppCommand { Title = "Download recommended data (catalogs, DE440)", Category = "Data", Icon = Icons.Download, Run = () => Navigate("settings") });
-            Commands.Add(new AppCommand { Title = "Show log", Category = "View", Run = () => _log.Visible = true });
+            Commands.Add(new AppCommand { Title = T("Toggle night vision mode"), Category = T("View"), Shortcut = "Ctrl+Shift+N", Icon = Icons.Night, Run = () => SetNightMode(!Theme.Current.IsNight) });
+            Commands.Add(new AppCommand { Title = T("Return to live time"), Category = T("Time"), Icon = Icons.Clock, Run = AppState.GoLive });
+            Commands.Add(new AppCommand { Title = T("Time: +1 hour"), Category = T("Time"), Run = () => AppState.Step(1 / 24.0) });
+            Commands.Add(new AppCommand { Title = T("Time: -1 hour"), Category = T("Time"), Run = () => AppState.Step(-1 / 24.0) });
+            Commands.Add(new AppCommand { Title = T("Time: +1 day"), Category = T("Time"), Run = () => AppState.Step(1) });
+            Commands.Add(new AppCommand { Title = T("Connect simulated observatory"), Category = T("Devices"), Icon = Icons.Connect, Run = () => Tasks.Run(T("Connect simulators"), t => DeviceManager.Instance.ConnectSimulators(), () => Toast(T("Simulated observatory connected"))) });
+            Commands.Add(new AppCommand { Title = T("Disconnect all devices"), Category = T("Devices"), Run = () => DeviceManager.Instance.DisconnectAll() });
+            Commands.Add(new AppCommand { Title = T("Download recommended data (catalogs, DE440)"), Category = T("Data"), Icon = Icons.Download, Run = () => Navigate("settings") });
+            Commands.Add(new AppCommand { Title = T("Show log"), Category = T("View"), Run = () => _log.Visible = true });
         }
 
         /// <summary>Run on the UI thread (synchronously if no window handle exists yet).</summary>
@@ -232,7 +247,7 @@ namespace Sidralune
                 _viewTitle.Text = item.Title == "Tonight" ? "Tonight" : item.Title;
                 (item.Instance as IActivatable)?.Activated();
             }
-            catch (Exception ex) { Log.Error("UI", ex); Toast("Could not open " + item.Title + ": " + ex.Message, Icons.Warning, Theme.Current.Danger); }
+            catch (Exception ex) { Log.Error("UI", ex); Toast(T("Could not open {0}: {1}", item.Title, ex.Message), Icons.Warning, Theme.Current.Danger); }
             finally { Cursor = Cursors.Default; }
         }
 
@@ -268,7 +283,7 @@ namespace Sidralune
         {
             var t = AppState.Now;
             var local = AppState.Site.ToLocal(t.ToDateTimeUtc());
-            _clock.Text = string.Format("{0}   {1:ddd yyyy-MM-dd  HH:mm:ss}   LST {2}", AppState.Site.Name, local, AstroMath.FormatHms(t.LocalSiderealHours(AppState.Site.LongitudeDeg), 0, true));
+            _clock.Text = string.Format(DateNames, T("{0}   {1:ddd yyyy-MM-dd  HH:mm:ss}   LST {2}"), AppState.Site.Name, local, AstroMath.FormatHms(t.LocalSiderealHours(AppState.Site.LongitudeDeg), 0, true));
             _clock.ForeColor = AppState.IsLive ? Theme.Current.TextDim : Theme.Current.Warning;
             _live.Visible = !AppState.IsLive;
             LayoutTop();
@@ -292,16 +307,16 @@ namespace Sidralune
             foreach (var kv in _devicePills)
             {
                 var d = dm.Get(kv.Key);
-                string state = d == null ? "" : (d.Connected ? "" : " (lost)");
+                string state = d == null ? "" : (d.Connected ? "" : " " + T("(lost)"));
                 string extra = "";
                 try
                 {
-                    if (kv.Key == DeviceKind.Telescope && dm.Telescope != null && dm.Telescope.Connected) extra = dm.Telescope.Slewing ? " · slewing" : dm.Telescope.AtPark ? " · parked" : dm.Telescope.Tracking ? " · tracking" : "";
+                    if (kv.Key == DeviceKind.Telescope && dm.Telescope != null && dm.Telescope.Connected) extra = dm.Telescope.Slewing ? " · " + T("slewing") : dm.Telescope.AtPark ? " · " + T("parked") : dm.Telescope.Tracking ? " · " + T("tracking") : "";
                     if (kv.Key == DeviceKind.Camera && dm.Camera != null && dm.Camera.Connected && !double.IsNaN(dm.Camera.CcdTemperature)) extra = string.Format(" · {0:0.0}°C", dm.Camera.CcdTemperature);
                     if (kv.Key == DeviceKind.Guider && dm.Guider != null) extra = " · " + dm.Guider.State;
                 }
                 catch { }
-                kv.Value.Set(kv.Key + state + extra, d == null ? Theme.Current.TextFaint : (d.Connected ? Theme.Current.Success : Theme.Current.Danger));
+                kv.Value.Set(DeviceTitle(kv.Key) + state + extra, d == null ? Theme.Current.TextFaint : (d.Connected ? Theme.Current.Success : Theme.Current.Danger));
             }
         }
 
@@ -309,7 +324,7 @@ namespace Sidralune
         {
             List<BackgroundTask> tasks;
             lock (Tasks.Running) tasks = Tasks.Running.ToList();
-            if (tasks.Count == 0) { _taskPill.Set("Idle", Theme.Current.TextFaint); LayoutStatus(); return; }
+            if (tasks.Count == 0) { _taskPill.Set(T("Idle"),Theme.Current.TextFaint); LayoutStatus(); return; }
             var t = tasks[0];
             string p = double.IsNaN(t.Progress) ? "" : string.Format(" {0:0}%", t.Progress * 100);
             _taskPill.Set(t.Name + p + (tasks.Count > 1 ? " (+" + (tasks.Count - 1) + ")" : "") + (string.IsNullOrEmpty(t.Status) ? "" : " — " + t.Status), Theme.Current.Accent);
@@ -320,7 +335,7 @@ namespace Sidralune
         {
             bool hi = EphemerisManager.HasHighPrecision;
             var cm = CatalogManager.Instance;
-            _dataPill.Set((hi ? "DE440" : "Analytic ephemeris") + " · " + cm.StarSource + " · " + cm.DeepSkySource, hi && !cm.StarSource.StartsWith("built") ? Theme.Current.Success : Theme.Current.Warning);
+            _dataPill.Set((hi ? "DE440" : T("Analytic ephemeris")) +" · " + cm.StarSource + " · " + cm.DeepSkySource, hi && !cm.BuiltInStars ? Theme.Current.Success : Theme.Current.Warning);
             LayoutStatus();
         }
 
@@ -414,7 +429,7 @@ namespace Sidralune
             _box.BackColor = p.Surface; _box.ForeColor = p.Text;
             boxHost.Controls.Add(_box);
             _list.BackColor = p.SurfaceRaised; _list.ForeColor = p.Text;
-            var hint = new Label { Dock = DockStyle.Bottom, Height = 22, Text = "↑↓ to move · Enter to run · Esc to close · type an object name (M 31, Vega, Jupiter) or a command", ForeColor = p.TextFaint, Font = Theme.SmallFont };
+            var hint = new Label { Dock = DockStyle.Bottom, Height = 22, Text = T("↑↓ to move · Enter to run · Esc to close · type an object name (M 31, Vega, Jupiter) or a command"), ForeColor = p.TextFaint, Font = Theme.SmallFont };
             inner.Controls.Add(_list);
             inner.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 8, BackColor = p.SurfaceRaised });
             inner.Controls.Add(boxHost);
@@ -465,18 +480,19 @@ namespace Sidralune
                     entries.Add(new KeyValuePair<int, Entry>(Score(o.DisplayName, q) + 5, new Entry
                     {
                         Title = o.DisplayName, Icon = o is Star ? Icons.Star : Icons.Target,
-                        Sub = (o is Star ? "Star" : DeepSkyObject.TypeLabel(o.Type)) + (double.IsNaN(o.Mag) ? "" : string.Format("  ·  mag {0:0.0}", o.Mag)) + (o.Constellation != null ? "  ·  " + o.Constellation : "") + "  ·  show in sky chart",
+                        Sub = (o is Star ? T("Star") : DeepSkyObject.TypeLabel(o.Type)) + (double.IsNaN(o.Mag) ? "" : "  ·  " + T("mag {0:0.0}", o.Mag)) + (o.Constellation != null ? "  ·  " + o.Constellation : "") + "  ·  " + T("show in sky chart"),
                         Run = () => MainForm.Instance.ShowObject(SelectedObject.From(obj))
                     }));
                 }
                 foreach (Body b in Enum.GetValues(typeof(Body)))
                 {
                     if (b == Body.Earth || b == Body.EarthMoonBarycenter) continue;
-                    int s = Score(b.ToString(), q);
+                    // found by the English name or the one shown
+                    int s = Math.Max(Score(b.ToString(), q), Score(BodyNames.Name(b), q));
                     if (s > 20)
                     {
                         var body = b;
-                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = b.ToString(), Sub = "Solar system  ·  show in sky chart", Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.PlanetObject(body)) }));
+                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = BodyNames.Name(b), Sub = T("Solar system") + "  ·  " + T("show in sky chart"), Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.PlanetObject(body)) }));
                     }
                 }
                 foreach (var moon in Science.SolarSystem.PlanetMoons.All)
@@ -485,13 +501,13 @@ namespace Sidralune
                     if (s > 20)
                     {
                         var moonName = moon.Name;
-                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = moon.Name, Sub = "Moon of " + moon.Planet + "  ·  show in sky chart", Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MoonObject(moonName)) }));
+                        entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = moon.Name, Sub = T("Moon of {0}", BodyNames.Name(moon.Planet)) +"  ·  " + T("show in sky chart"), Icon = Icons.Planet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MoonObject(moonName)) }));
                     }
                 }
                 foreach (var mb in Core.MinorBodies.MinorBodyStore.Instance.All.Where(m => m.DisplayName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0).Take(8))
                 {
                     var m = mb;
-                    entries.Add(new KeyValuePair<int, Entry>(40, new Entry { Title = m.DisplayName, Sub = (m.IsComet ? "Comet" : "Asteroid") + "  ·  show in sky chart", Icon = Icons.Comet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MinorObject(m)) }));
+                    entries.Add(new KeyValuePair<int, Entry>(40, new Entry { Title = m.DisplayName, Sub = (m.IsComet ? T("Comet") : T("Asteroid")) + "  ·  " + T("show in sky chart"), Icon = Icons.Comet, Run = () => MainForm.Instance.ShowObject(Views.SkyView.MinorObject(m)) }));
                 }
             }
             _list.BeginUpdate();

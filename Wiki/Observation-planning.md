@@ -67,7 +67,7 @@ The table recalculates automatically when you change the active site. After chan
 
 ## Generating a list for tonight
 
-**Generate best for tonight…** (or the `Planner: generate tonight's best list` command) asks which kind of object you want:
+**Generate best for tonight…** (or the `Planner: generate tonight's best list` command) asks which kind of object you want; pick one from the list:
 
 - All deep-sky
 - Galaxies

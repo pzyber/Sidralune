@@ -62,10 +62,10 @@ namespace Sidralune.UI
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
             var menu = new ContextMenuStrip { Renderer = new DarkToolStripRenderer() };
-            menu.Items.Add("Reset zoom", null, (s, e) => ResetZoom());
-            menu.Items.Add("Copy image", null, (s, e) => { using (var b = Render(Width, Height)) Clipboard.SetImage(b); });
-            menu.Items.Add("Save as PNG…", null, (s, e) => SavePng());
-            menu.Items.Add("Export data as CSV…", null, (s, e) => ExportCsv());
+            menu.Items.Add(Sidralune.Core.Util.Lang.T("Reset zoom"), null, (s, e) => ResetZoom());
+            menu.Items.Add(Sidralune.Core.Util.Lang.T("Copy image"), null, (s, e) => { using (var b = Render(Width, Height)) Clipboard.SetImage(b); });
+            menu.Items.Add(Sidralune.Core.Util.Lang.T("Save as PNG…"), null, (s, e) => SavePng());
+            menu.Items.Add(Sidralune.Core.Util.Lang.T("Export data as CSV…"), null, (s, e) => ExportCsv());
             ContextMenuStrip = menu;
         }
 

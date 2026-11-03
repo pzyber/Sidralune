@@ -126,8 +126,12 @@ namespace Sidralune.Core.Catalogs
         public PgcCatalog Pgc { get; private set; }
         public List<DeepSkyObject> DeepSkyList { get; } = new List<DeepSkyObject>();
         public List<Star> NamedStars { get; } = new List<Star>();
-        public string StarSource { get; private set; } = "built-in";
-        public string DeepSkySource { get; private set; } = "built-in";
+        // what is loaded, shown in the interface language and logged in English
+        private Func<string> _starSource = () => Lang.T("built-in"), _deepSkySource = () => Lang.T("built-in");
+        public string StarSource => _starSource();
+        public string DeepSkySource => _deepSkySource();
+        /// <summary>True while only the few built-in stars are loaded (no HYG).</summary>
+        public bool BuiltInStars { get; private set; } = true;
         public bool HasBoundaries { get; private set; }
         public double StarLimitingMagnitude { get; private set; } = 4.0;
         public event EventHandler CatalogsChanged;
@@ -234,8 +238,10 @@ namespace Sidralune.Core.Catalogs
                 }
             }
             Stars.Finish(); DeepSky.Finish();
-            StarSource = "built-in (" + Stars.Count + " stars)";
-            DeepSkySource = "built-in (" + DeepSkyList.Count + " objects)";
+            int ns = Stars.Count, nd = DeepSkyList.Count;
+            _starSource = () => Lang.Tn("built-in ({0} star)", "built-in ({0} stars)", ns);
+            _deepSkySource = () => Lang.Tn("built-in ({0} object)", "built-in ({0} objects)", nd);
+            BuiltInStars = true;
         }
 
         private static IEnumerable<string> Lines(string block)
@@ -385,9 +391,11 @@ namespace Sidralune.Core.Catalogs
             // keep any built-in named stars not in HYG
             foreach (var s in builtInNames.Values) AddStar(s);
             stars.Finish();
-            StarSource = "HYG (" + stars.Count + " stars)";
+            int count = stars.Count;
+            _starSource = () => Lang.Tn("HYG ({0} star)", "HYG ({0} stars)", count);
+            BuiltInStars = false;
             StarLimitingMagnitude = maxMag;
-            Log.Info("Catalogs", "Loaded " + StarSource);
+            Log.Info("Catalogs", "Loaded " + Lang.InEnglish(_starSource));
         }
 
         /// <summary>OpenNGC catalog (semicolon separated) by Mattia Verga.</summary>
@@ -410,8 +418,9 @@ namespace Sidralune.Core.Catalogs
             }
             else LoadOpenNgcRows(path, _messierFallbacks);
             DeepSky.Finish();
-            DeepSkySource = "OpenNGC (" + DeepSkyList.Count + " objects)";
-            Log.Info("Catalogs", "Loaded " + DeepSkySource);
+            int objects = DeepSkyList.Count;
+            _deepSkySource = () => Lang.Tn("OpenNGC ({0} object)", "OpenNGC ({0} objects)", objects);
+            Log.Info("Catalogs", "Loaded " + Lang.InEnglish(_deepSkySource));
         }
 
         private void LoadOpenNgcRows(string path, Dictionary<string, DeepSkyObject> builtinMessier)
@@ -650,7 +659,9 @@ namespace Sidralune.Core.Catalogs
             }
             lock (_pgcObjects) _pgcObjects.Clear();
             Pgc = p;
-            DeepSkySource += " + PGC (" + p.Count + " galaxies" + (p.WithMagnitude > 0 ? ", " + p.WithMagnitude + " with magnitudes" : "") + ")";
+            var before = _deepSkySource;
+            int galaxies = p.Count, withMag = p.WithMagnitude;
+            _deepSkySource = () => before() + " + " + (withMag > 0 ? Lang.T("PGC ({0} galaxies, {1} with magnitudes)", galaxies, withMag) : Lang.T("PGC ({0} galaxies)", galaxies));
             Log.Info("Catalogs", "Loaded PGC: " + p.Count + " galaxies");
         }
 

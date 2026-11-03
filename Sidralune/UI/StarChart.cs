@@ -15,6 +15,7 @@ using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
 using Sidralune.Science.SolarSystem;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.UI
 {
@@ -178,7 +179,7 @@ namespace Sidralune.UI
             using (var b = new SolidBrush(_dim))
             {
                 var v = typeof(StarChartPage).Assembly.GetName().Version;
-                string foot = string.Format(Inv, "Sidralune {0}.{1}.{2}  ·  stereographic, zenith at the centre  ·  stars to magnitude {3:0.0}  ·  Face a direction and hold that edge of the chart down", v.Major, v.Minor, v.Build, MagLimit);
+                string foot = T("Sidralune {0}.{1}.{2}  ·  stereographic, zenith at the centre  ·  stars to magnitude {3:0.0}  ·  Face a direction and hold that edge of the chart down", v.Major, v.Minor, v.Build, MagLimit);
                 g.DrawString(foot, f, b, page.Left, page.Bottom - footH + 1.2f * _s, _sf);
             }
         }
@@ -193,9 +194,9 @@ namespace Sidralune.UI
             using (var tb = new SolidBrush(_text))
             using (var db = new SolidBrush(_dim))
             {
-                _g.DrawString("The sky over " + Site.Name, tf, tb, page.Left, page.Top, _sf);
-                string sub = string.Format(Inv, "{0:dddd d MMMM yyyy}, {0:HH:mm} local time  ·  {1:0.0}° {2}, {3:0.0}° {4}", local,
-                    Math.Abs(Site.LatitudeDeg), Site.LatitudeDeg >= 0 ? "N" : "S", Math.Abs(Site.LongitudeDeg), Site.LongitudeDeg >= 0 ? "E" : "W");
+                _g.DrawString(T("The sky over {0}", Site.Name), tf, tb, page.Left, page.Top, _sf);
+                string sub = T("{0:dddd d MMMM yyyy}, {0:HH:mm} local time  ·  {1:0.0}° {2}, {3:0.0}° {4}", local,
+                    Math.Abs(Site.LatitudeDeg), Site.LatitudeDeg >= 0 ? Tc("compass", "N") : Tc("compass", "S"), Math.Abs(Site.LongitudeDeg), Site.LongitudeDeg >= 0 ? Tc("compass", "E") : Tc("compass", "W"));
                 _g.DrawString(sub, sf, db, page.Left, page.Top + 7.6f * _s, _sf);
             }
         }
@@ -473,7 +474,7 @@ namespace Sidralune.UI
         {
             var g = _g;
             var p = Palette;
-            var planets = new List<Tuple<string, PointF, float>>();
+            var planets = new List<Tuple<Body, PointF, float>>();
             Color planetCol = Print ? Color.Black : p.Planet;
             foreach (var b in new[] { Body.Mercury, Body.Venus, Body.Mars, Body.Jupiter, Body.Saturn, Body.Uranus, Body.Neptune })
             {
@@ -486,7 +487,7 @@ namespace Sidralune.UI
                 using (var br = new SolidBrush(planetCol)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
                 if (b == Body.Saturn) using (var pen = Pen(planetCol, 0.25f)) g.DrawEllipse(pen, pt.X - r * 1.9f, pt.Y - r * 0.6f, r * 3.8f, r * 1.2f);
                 Hits.Add(new Hit { P = pt, R = r + 0.8f * _s, O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 } });
-                planets.Add(Tuple.Create(b.ToString(), pt, b == Body.Saturn ? r * 1.9f : r));
+                planets.Add(Tuple.Create(b, pt, b == Body.Saturn ? r * 1.9f : r));
             }
             var sun = _ctx.BodyPlace(Body.Sun);
             {
@@ -505,7 +506,7 @@ namespace Sidralune.UI
                         }
                     }
                     Hits.Add(new Hit { P = pt, R = r, O = new SelectedObject { Kind = SelectedKind.Planet, Name = "Sun", Planet = Body.Sun, RaDeg = sun.Astrometric.RaHours * 15, DecDeg = sun.Astrometric.DecDeg, Mag = -26.7 } });
-                    planets.Add(Tuple.Create("Sun", pt, r * 1.7f));
+                    planets.Add(Tuple.Create(Body.Sun, pt, r * 1.7f));
                 }
             }
             var moon = _ctx.BodyPlace(Body.Moon);
@@ -524,7 +525,7 @@ namespace Sidralune.UI
                     double angle = ToPage(az, alt, out step) ? Math.Atan2(step.X - pt.X, -(step.Y - pt.Y)) * AstroMath.Rad2Deg : 0;
                     DrawMoonPhase(pt, r, moon.IlluminatedFraction, (float)angle);
                     Hits.Add(new Hit { P = pt, R = r, O = new SelectedObject { Kind = SelectedKind.Planet, Name = "Moon", Planet = Body.Moon, RaDeg = moon.Astrometric.RaHours * 15, DecDeg = moon.Astrometric.DecDeg } });
-                    planets.Add(Tuple.Create("Moon", pt, r));
+                    planets.Add(Tuple.Create(Body.Moon, pt, r));
                 }
             }
             // the Sun, Moon and planets are named first, so nothing pushes their names away; when they crowd each other
@@ -536,7 +537,7 @@ namespace Sidralune.UI
                     for (int i = 0; i < planets.Count; i++)
                     {
                         var l = planets[i];
-                        Label(l.Item1, f, Print ? Color.Black : (l.Item1 == "Moon" ? p.Moon : l.Item1 == "Sun" ? p.Sun : p.Planet), l.Item2, l.Item3 + 0.6f * _s, keen: true, avoid: discs.Where((d, j) => j != i).ToList());
+                        Label(BodyNames.Name(l.Item1), f, Print ? Color.Black : (l.Item1 == Body.Moon ? p.Moon : l.Item1 == Body.Sun ? p.Sun : p.Planet), l.Item2, l.Item3 + 0.6f * _s, keen: true, avoid: discs.Where((d, j) => j != i).ToList());
                     }
             })));
         }
@@ -661,7 +662,7 @@ namespace Sidralune.UI
                     g.DrawLine(pen, Centre.X + sx * Radius, Centre.Y + sy * Radius, Centre.X + sx * (Radius + len), Centre.Y + sy * (Radius + len));
                 }
             // the names of the directions read upright with that edge held down, like everything near that horizon
-            string[] names = { "NORTH", "NE", "EAST", "SE", "SOUTH", "SW", "WEST", "NW" };
+            string[] names = { Tc("compass", "NORTH"), Tc("compass", "NE"), Tc("compass", "EAST"), Tc("compass", "SE"), Tc("compass", "SOUTH"), Tc("compass", "SW"), Tc("compass", "WEST"), Tc("compass", "NW") };
             using (var big = Font(9f, FontStyle.Bold))
             using (var small = Font(6.5f, FontStyle.Bold))
                 for (int i = 0; i < 8; i++)
@@ -725,31 +726,31 @@ namespace Sidralune.UI
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
             var tw = AstroEvents.Twilight(site, noon);
 
-            var same = new Block { Heading = "The same sky" };
+            var same = new Block { Heading = T("The same sky") };
             foreach (var t in SameSkyTimes(site, Time))
-                same.Rows.Add(new[] { t.Item1.ToString("d MMM", Inv), t.Item2.ToString("HH:mm", Inv) + (t.Item2.Date != t.Item1 ? " (next day)" : "") });
+                same.Rows.Add(new[] { t.Item1.ToString("d MMM", DateNames), t.Item2.ToString("HH:mm", Inv) + (t.Item2.Date != t.Item1 ? " " + T("(next day)") : "") });
             blocks.Add(same);
 
-            var sun = new Block { Heading = "Sun" };
-            sun.Rows.Add(new[] { "Sets", Hm(site, tw.SunSet) });
-            if (tw.AstronomicalDusk.HasValue) { sun.Rows.Add(new[] { "Dark from", Hm(site, tw.AstronomicalDusk) }); sun.Rows.Add(new[] { "Dark until", Hm(site, tw.AstronomicalDawn) }); }
-            else sun.Rows.Add(new[] { "Darkness", tw.DarkHours >= 24 ? "all day" : "none, twilight all night" });
-            sun.Rows.Add(new[] { "Rises", Hm(site, tw.SunRise) });
+            var sun = new Block { Heading = BodyNames.Name(Body.Sun) };
+            sun.Rows.Add(new[] { T("Sets"), Hm(site, tw.SunSet) });
+            if (tw.AstronomicalDusk.HasValue) { sun.Rows.Add(new[] { T("Dark from"), Hm(site, tw.AstronomicalDusk) }); sun.Rows.Add(new[] { T("Dark until"), Hm(site, tw.AstronomicalDawn) }); }
+            else sun.Rows.Add(new[] { T("Darkness"), tw.DarkHours >= 24 ? T("all day") : T("none, twilight all night") });
+            sun.Rows.Add(new[] { T("Rises"), Hm(site, tw.SunRise) });
             blocks.Add(sun);
 
-            var moonBlock = new Block { Heading = "Moon" };
+            var moonBlock = new Block { Heading = BodyNames.Name(Body.Moon) };
             var mp = _ctx.BodyPlace(Body.Moon);
             double el = AstroEvents.MoonSunElongation(_ctx.JdTT);
-            string phase = el < 10 || el >= 350 ? "New" : el < 80 ? "Waxing crescent" : el < 100 ? "First quarter" : el < 170 ? "Waxing gibbous" : el < 190 ? "Full" : el < 260 ? "Waning gibbous" : el < 280 ? "Last quarter" : "Waning crescent";
-            moonBlock.Rows.Add(new[] { phase, string.Format(Inv, "{0:0}% lit", mp.IlluminatedFraction * 100) });
+            string phase = el < 10 || el >= 350 ? Tc("moon phase", "New") : el < 80 ? T("Waxing crescent") : el < 100 ? T("First Quarter") : el < 170 ? T("Waxing gibbous") : el < 190 ? Tc("moon phase", "Full") : el < 260 ? T("Waning gibbous") : el < 280 ? T("Last Quarter") : T("Waning crescent");
+            moonBlock.Rows.Add(new[] { phase, T("{0:0}% lit", mp.IlluminatedFraction * 100) });
             var mrs = AstroEvents.BodyRiseSet(Body.Moon, site, noon);
-            moonBlock.Rows.Add(new[] { "Rises", mrs.AlwaysUp ? "up all day" : mrs.NeverUp ? "does not rise" : Hm(site, mrs.Rise) });
-            moonBlock.Rows.Add(new[] { "Sets", mrs.AlwaysUp || mrs.NeverUp ? "—" : Hm(site, mrs.Set) });
-            moonBlock.Rows.Add(new[] { "In", CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)?.Name ?? "—" });
+            moonBlock.Rows.Add(new[] { T("Rises"), mrs.AlwaysUp ? T("up all day") : mrs.NeverUp ? T("does not rise") : Hm(site, mrs.Rise) });
+            moonBlock.Rows.Add(new[] { T("Sets"), mrs.AlwaysUp || mrs.NeverUp ? "—" : Hm(site, mrs.Set) });
+            moonBlock.Rows.Add(new[] { T("In"), CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)?.Name ?? "—" });
             blocks.Add(moonBlock);
 
             // planets above the horizon at some time between sunset and sunrise
-            var planets = new Block { Heading = "Planets tonight" };
+            var planets = new Block { Heading = T("Planets tonight") };
             double n0 = tw.SunSet?.JdUtc ?? noon.JdUtc + 0.25, n1 = tw.SunRise?.JdUtc ?? noon.JdUtc + 0.75;
             if (n1 < n0) n1 = n0;
             foreach (var b in new[] { Body.Mercury, Body.Venus, Body.Mars, Body.Jupiter, Body.Saturn, Body.Uranus, Body.Neptune })
@@ -760,17 +761,17 @@ namespace Sidralune.UI
                 var pl = _ctx.BodyPlace(b);
                 PlanetPhysics.Fill(b, pl, _ctx.JdTT);
                 var rs = AstroEvents.BodyRiseSet(b, site, noon);
-                string when = rs.AlwaysUp ? "up all night" : string.Format("↑{0} ↓{1}", Hm(site, rs.Rise), Hm(site, rs.Set));
+                string when = rs.AlwaysUp ? T("up all night") : string.Format("↑{0} ↓{1}", Hm(site, rs.Rise), Hm(site, rs.Set));
                 string con = CatalogManager.Instance.ConstellationAt(pl.Astrometric.Ra, pl.Astrometric.Dec)?.Abbr ?? "";
-                planets.Rows.Add(new[] { b.ToString(), string.Format(Inv, "{0:0.0}  {1}  {2}", pl.Magnitude, con, when) });
+                planets.Rows.Add(new[] { BodyNames.Name(b), string.Format(Inv, "{0:0.0}  {1}  {2}", pl.Magnitude, con, when) });
             }
-            if (planets.Rows.Count == 0) planets.Rows.Add(new[] { "None", "" });
+            if (planets.Rows.Count == 0) planets.Rows.Add(new[] { T("None"), "" });
             blocks.Add(planets);
 
             blocks.Add(KeyBlock());
 
             // bright Messier objects well up at the chart's time
-            var dso = new Block { Heading = "Worth a look" };
+            var dso = new Block { Heading = T("Worth a look") };
             var list = new List<DeepSkyObject>();
             var zen = _ctx.HorizontalToIcrs(0, AstroMath.HalfPi);
             CatalogManager.Instance.DeepSky.Cone(zen.Ra, zen.Dec, 65 * AstroMath.Deg2Rad, 99, list);
@@ -778,7 +779,7 @@ namespace Sidralune.UI
                 dso.Rows.Add(new[] { o.Messier + (o.Name != null ? " " + o.Name : ""), string.Format(Inv, "{0} {1:0.0}", DeepSkyObject.TypeLabel(o.Type).ToLowerInvariant(), o.Mag) });
             if (dso.Rows.Count > 0) blocks.Add(dso);
 
-            var showers = new Block { Heading = "Meteor showers" };
+            var showers = new Block { Heading = T("Meteor showers") };
             int doy = local.DayOfYear;
             foreach (var ms in MeteorShowers.Major)
             {
@@ -786,7 +787,7 @@ namespace Sidralune.UI
                 if (!active) continue;
                 var peak = ms.PeakIn(local.Year);
                 if (Math.Abs(peak.JdUtc - Time.JdUtc) > 200) peak = ms.PeakIn(local.Year + (peak.JdUtc < Time.JdUtc ? 1 : -1));
-                showers.Rows.Add(new[] { ms.Name, string.Format(Inv, "peak {0:d MMM}, ZHR {1:0}", site.ToLocal(peak.ToDateTimeUtc()), ms.Zhr) });
+                showers.Rows.Add(new[] { ms.DisplayName, T("peak {0:d MMM}, ZHR {1:0}", site.ToLocal(peak.ToDateTimeUtc()), ms.Zhr) });
             }
             if (showers.Rows.Count > 0) blocks.Add(showers);
 
@@ -800,19 +801,19 @@ namespace Sidralune.UI
         {
             var items = new List<Tuple<string, Action<PointF, float>>>
             {
-                Tuple.Create<string, Action<PointF, float>>("Galaxy", (pt, r) => DrawDsoSymbol(ObjectType.Galaxy, pt, r, Palette.Galaxy)),
-                Tuple.Create<string, Action<PointF, float>>("Open cluster", (pt, r) => DrawDsoSymbol(ObjectType.OpenCluster, pt, r, Palette.Cluster)),
-                Tuple.Create<string, Action<PointF, float>>("Globular cluster", (pt, r) => DrawDsoSymbol(ObjectType.GlobularCluster, pt, r, Palette.Cluster)),
-                Tuple.Create<string, Action<PointF, float>>("Nebula", (pt, r) => DrawDsoSymbol(ObjectType.EmissionNebula, pt, r, Palette.Nebula)),
-                Tuple.Create<string, Action<PointF, float>>("Planetary nebula", (pt, r) => DrawDsoSymbol(ObjectType.PlanetaryNebula, pt, r, Palette.PlanetaryNebula)),
-                Tuple.Create<string, Action<PointF, float>>("Planet", (pt, r) => { using (var b = new SolidBrush(Print ? Color.Black : Palette.Planet)) _g.FillEllipse(b, pt.X - r * 0.8f, pt.Y - r * 0.8f, r * 1.6f, r * 1.6f); }),
-                Tuple.Create<string, Action<PointF, float>>("Ecliptic", (pt, r) => { using (var pen = Pen(Palette.Ecliptic, 0.25f, DashStyle.Dash)) _g.DrawLine(pen, pt.X - r * 1.6f, pt.Y, pt.X + r * 1.6f, pt.Y); }),
-                Tuple.Create<string, Action<PointF, float>>("Constellation", (pt, r) => { using (var pen = Pen(Palette.ConstellationLine, 0.22f)) _g.DrawLine(pen, pt.X - r * 1.6f, pt.Y + r * 0.5f, pt.X + r * 1.6f, pt.Y - r * 0.5f); }),
+                Tuple.Create<string, Action<PointF, float>>(T("Galaxy"), (pt, r) => DrawDsoSymbol(ObjectType.Galaxy, pt, r, Palette.Galaxy)),
+                Tuple.Create<string, Action<PointF, float>>(T("Open cluster"), (pt, r) => DrawDsoSymbol(ObjectType.OpenCluster, pt, r, Palette.Cluster)),
+                Tuple.Create<string, Action<PointF, float>>(T("Globular cluster"), (pt, r) => DrawDsoSymbol(ObjectType.GlobularCluster, pt, r, Palette.Cluster)),
+                Tuple.Create<string, Action<PointF, float>>(T("Nebula"), (pt, r) => DrawDsoSymbol(ObjectType.EmissionNebula, pt, r, Palette.Nebula)),
+                Tuple.Create<string, Action<PointF, float>>(T("Planetary nebula"), (pt, r) => DrawDsoSymbol(ObjectType.PlanetaryNebula, pt, r, Palette.PlanetaryNebula)),
+                Tuple.Create<string, Action<PointF, float>>(T("Planet"), (pt, r) => { using (var b = new SolidBrush(Print ? Color.Black : Palette.Planet)) _g.FillEllipse(b, pt.X - r * 0.8f, pt.Y - r * 0.8f, r * 1.6f, r * 1.6f); }),
+                Tuple.Create<string, Action<PointF, float>>(T("Ecliptic"), (pt, r) => { using (var pen = Pen(Palette.Ecliptic, 0.25f, DashStyle.Dash)) _g.DrawLine(pen, pt.X - r * 1.6f, pt.Y, pt.X + r * 1.6f, pt.Y); }),
+                Tuple.Create<string, Action<PointF, float>>(T("Constellation"), (pt, r) => { using (var pen = Pen(Palette.ConstellationLine, 0.22f)) _g.DrawLine(pen, pt.X - r * 1.6f, pt.Y + r * 0.5f, pt.X + r * 1.6f, pt.Y - r * 0.5f); }),
             };
             float row = 3.6f * _s, magRow = 7 * _s;
             return new Block
             {
-                Heading = "Key",
+                Heading = T("Key"),
                 ExtraHeight = w => magRow + (items.Count + 1) / 2 * row,
                 DrawExtra = (x, y, w) =>
                 {

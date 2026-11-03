@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Sidralune.Core;
+using Sidralune.Core.Util;
 using Sidralune.Imaging.IO;
 
 namespace Sidralune.Imaging.Planetary
@@ -157,7 +158,7 @@ namespace Sidralune.Imaging.Planetary
                 foreach (var g in sorted.Skip(keep)) { g.Rejected = true; g.Reason = "Quality"; }
                 good = o.Order == PippOutputOrder.Quality ? sorted.Take(keep).ToList() : good.Where(g => !g.Rejected).ToList();
             }
-            if (good.Count == 0) { res.Summary = "All frames rejected"; return res; }
+            if (good.Count == 0) { res.Summary = Lang.T("All frames rejected"); return res; }
             // crop size
             int cw = o.CropWidth, ch = o.CropHeight;
             if ((cw <= 0 || ch <= 0) && good[0].Object != null)
@@ -243,7 +244,7 @@ namespace Sidralune.Imaging.Planetary
                 }
             }
             finally { writer?.Dispose(); }
-            res.Summary = string.Format("{0} of {1} frames written ({2} rejected), crop {3}×{4}", res.Written, indices.Count, indices.Count - good.Count, cw, ch);
+            res.Summary = Lang.T("{0} of {1} frames written ({2} rejected), crop {3}×{4}", res.Written, indices.Count, indices.Count - good.Count, cw, ch);
             return res;
         }
 

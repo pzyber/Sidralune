@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.Util;
 using Sidralune.Imaging.IO;
 
 namespace Sidralune.Imaging.Planetary
@@ -63,7 +64,7 @@ namespace Sidralune.Imaging.Planetary
             int n = src.FrameCount;
             int w = src.Width, h = src.Height;
             // 1. analyse frames: quality + global alignment on luminance
-            status?.Report("Analysing " + n + " frames");
+            status?.Report(Lang.T("Analysing {0} frames", n));
             var frames = new LuckyFrame[n];
             var first = src.ReadFrame(0);
             bool debayer = first.Channels == 1 && first.Bayer != BayerPattern.None;
@@ -114,7 +115,7 @@ namespace Sidralune.Imaging.Planetary
             }
             // 2. reference: average of the best frames, globally aligned
             int nref = o.ReferenceFrames > 0 ? o.ReferenceFrames : Math.Max(3, Math.Min(50, n / 20));
-            status?.Report("Building reference from " + nref + " best frames");
+            status?.Report(Lang.T("Building reference from {0} best frames", nref));
             var reference = new AstroImage(w, h, ch);
             foreach (var fr in ranked.Take(nref))
             {
@@ -126,7 +127,7 @@ namespace Sidralune.Imaging.Planetary
             // 3. alignment points
             var aps = PlaceAps(refLum, w, h, o);
             res.AlignmentPoints = aps;
-            status?.Report(aps.Count + " alignment points");
+            status?.Report(Lang.Tn("{0} alignment point", "{0} alignment points", aps.Count));
             double maxPercent = o.StackPercents.Max();
             int maxFrames = Math.Max(1, (int)Math.Round(n * maxPercent / 100));
             var candidates = ranked.Take(Math.Min(n, Math.Max(maxFrames * 2, maxFrames + 10))).ToList();
@@ -159,7 +160,7 @@ namespace Sidralune.Imaging.Planetary
             {
                 ct.ThrowIfCancellationRequested();
                 int take = Math.Max(1, (int)Math.Round(n * pct / 100));
-                status?.Report(string.Format("Stacking best {0}% ({1} frames)", pct, take));
+                status?.Report(Lang.T("Stacking best {0}% ({1} frames)", pct, take));
                 var acc = new double[ch][];
                 for (int c = 0; c < ch; c++) acc[c] = new double[ow * oh];
                 var wsum = new double[ow * oh];
@@ -237,7 +238,7 @@ namespace Sidralune.Imaging.Planetary
                 res.Stacks.Add(outImg);
             }
             progress?.Report(1);
-            res.Report = string.Format("{0} frames analysed, {1} APs, stacks: {2}", n, aps.Count, string.Join(", ", o.StackPercents.Select(p => p + "%")));
+            res.Report = Lang.T("{0} frames analysed, {1} APs, stacks: {2}", n, aps.Count, string.Join(", ", o.StackPercents.Select(p => p + "%")));
             return res;
         }
 

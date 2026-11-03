@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.Util;
 
 namespace Sidralune.Core.Catalogs
 {
@@ -113,22 +114,26 @@ namespace Sidralune.Core.Catalogs
         {
             switch (t)
             {
-                case ObjectType.Galaxy: return "Galaxy";
-                case ObjectType.GalaxyPair: return "Galaxy pair";
-                case ObjectType.GalaxyGroup: return "Galaxy group";
-                case ObjectType.GlobularCluster: return "Globular cluster";
-                case ObjectType.OpenCluster: return "Open cluster";
-                case ObjectType.ClusterNebula: return "Cluster + nebula";
-                case ObjectType.EmissionNebula: return "Emission nebula";
-                case ObjectType.ReflectionNebula: return "Reflection nebula";
-                case ObjectType.PlanetaryNebula: return "Planetary nebula";
-                case ObjectType.SupernovaRemnant: return "Supernova remnant";
-                case ObjectType.DarkNebula: return "Dark nebula";
-                case ObjectType.HIIRegion: return "HII region";
-                case ObjectType.Asterism: return "Asterism";
-                case ObjectType.StarCloud: return "Star cloud";
-                case ObjectType.DoubleStar: return "Double star";
-                case ObjectType.Quasar: return "Quasar";
+                case ObjectType.Galaxy: return Lang.T("Galaxy");
+                case ObjectType.GalaxyPair: return Lang.T("Galaxy pair");
+                case ObjectType.GalaxyGroup: return Lang.T("Galaxy group");
+                case ObjectType.GlobularCluster: return Lang.T("Globular cluster");
+                case ObjectType.OpenCluster: return Lang.T("Open cluster");
+                case ObjectType.ClusterNebula: return Lang.T("Cluster + nebula");
+                case ObjectType.EmissionNebula: return Lang.T("Emission nebula");
+                case ObjectType.ReflectionNebula: return Lang.T("Reflection nebula");
+                case ObjectType.PlanetaryNebula: return Lang.T("Planetary nebula");
+                case ObjectType.SupernovaRemnant: return Lang.T("Supernova remnant");
+                case ObjectType.DarkNebula: return Lang.T("Dark nebula");
+                case ObjectType.HIIRegion: return Lang.T("HII region");
+                case ObjectType.Asterism: return Lang.T("Asterism");
+                case ObjectType.StarCloud: return Lang.T("Star cloud");
+                case ObjectType.DoubleStar: return Lang.T("Double star");
+                case ObjectType.Quasar: return Lang.T("Quasar");
+                case ObjectType.Star: return Lang.T("Star");
+                case ObjectType.VariableStar: return Lang.T("Variable star");
+                case ObjectType.Unknown: return Lang.T("Unknown");
+                case ObjectType.Other: return Lang.T("Other");
             }
             return t.ToString();
         }

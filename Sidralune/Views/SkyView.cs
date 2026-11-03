@@ -16,6 +16,7 @@ using Sidralune.Devices;
 using Sidralune.Science.SolarSystem;
 using Sidralune.UI;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
@@ -27,11 +28,11 @@ namespace Sidralune.Views
         private readonly Panel _side = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8), AutoScroll = true };
         private readonly SegmentedTabs _mode = new SegmentedTabs { Width = 300 };
         // paper for printing and exporting the star chart, upright or on its side
-        private readonly ComboBox _paper = Ui.Combo(ChartPaper.All.SelectMany(p => new[] { p.Name + " portrait", p.Name + " landscape" }).ToArray());
+        private readonly ComboBox _paper = Ui.Combo(ChartPaper.All.SelectMany(p => new[] { T("{0} portrait", p.Name), T("{0} landscape", p.Name) }).ToArray());
         // controls for the planetarium and atlas only, hidden on the fixed star chart
         private readonly List<Control> _viewOnly = new List<Control>();
         private readonly TextBox _find = new TextBox { Width = 200 };
-        private readonly ComboBox _fov = Ui.Combo("Naked eye (100°)", "Wide (60°)", "Binoculars (7°)", "Finder (5°)", "Low power (2°)", "Eyepiece", "Camera", "Custom");
+        private readonly ComboBox _fov = Ui.Combo(T("Naked eye (100°)"), T("Wide (60°)"), T("Binoculars (7°)"), T("Finder (5°)"), T("Low power (2°)"), T("Eyepiece"), T("Camera"), T("Custom"));
         private readonly Timer _anim = new Timer { Interval = 100 };
         private readonly Label _objTitle = new Label { Font = Theme.TitleFont, AutoSize = false, Height = 30, Dock = DockStyle.Top };
         private readonly Label _objSub = new Label { AutoSize = false, Height = 20, Dock = DockStyle.Top, Tag = "dim" };
@@ -44,7 +45,7 @@ namespace Sidralune.Views
         public SkyView()
         {
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(6, 6, 6, 0), WrapContents = false };
-            _mode.Tabs.AddRange(new[] { "Planetarium", "Atlas", "Chart" });
+            _mode.Tabs.AddRange(new[] { T("Planetarium"), T("Atlas"), T("Chart") });
             _mode.SelectedChanged += i => { if (i == 2) ShowStarChart(true); else { ShowStarChart(false); SetMode(i == 0 ? ChartMode.Planetarium : ChartMode.Atlas); } };
             bar.Controls.Add(_mode);
             bar.Controls.Add(Ui.Separator());
@@ -52,12 +53,12 @@ namespace Sidralune.Views
             var cue = new Label { Text = Icons.Search, Font = Theme.IconFont, AutoSize = true, Margin = new Padding(0, 7, 2, 0) };
             bar.Controls.Add(cue); bar.Controls.Add(_find);
             bar.Controls.Add(Ui.Separator());
-            bar.Controls.Add(Btn(null, Icons.Left + Icons.Left, "Back 1 day", () => AppState.Step(-1)));
-            bar.Controls.Add(Btn(null, Icons.Left, "Back 1 hour", () => AppState.Step(-1 / 24.0)));
-            bar.Controls.Add(Btn("Now", Icons.Clock, "Return to live time", AppState.GoLive));
-            bar.Controls.Add(Btn(null, Icons.Right, "Forward 1 hour", () => AppState.Step(1 / 24.0)));
-            bar.Controls.Add(Btn(null, Icons.Right + Icons.Right, "Forward 1 day", () => AppState.Step(1)));
-            var play = new FlatButton { Icon = Icons.Play, Toggle = true, Width = 34, ToolTipText = "Animate time (×300)" };
+            bar.Controls.Add(Btn(null, Icons.Left + Icons.Left, T("Back 1 day"), () => AppState.Step(-1)));
+            bar.Controls.Add(Btn(null, Icons.Left, T("Back 1 hour"), () => AppState.Step(-1 / 24.0)));
+            bar.Controls.Add(Btn(T("Now"), Icons.Clock, T("Return to live time"), AppState.GoLive));
+            bar.Controls.Add(Btn(null, Icons.Right, T("Forward 1 hour"), () => AppState.Step(1 / 24.0)));
+            bar.Controls.Add(Btn(null, Icons.Right + Icons.Right, T("Forward 1 day"), () => AppState.Step(1)));
+            var play = new FlatButton { Icon = Icons.Play, Toggle = true, Width = 34, ToolTipText = T("Animate time (×300)") };
             play.CheckedChanged += (s, e) => { if (play.Checked) AppState.Play(300); else AppState.SetTime(AppState.Now); };
             bar.Controls.Add(play);
             var dt = new TimeField();
@@ -68,11 +69,11 @@ namespace Sidralune.Views
             _fov.SelectedIndexChanged += (s, e) => ApplyFovPreset();
             bar.Controls.Add(_fov);
             bar.Controls.Add(LayersButton());
-            var mirror = new FlatButton { Text = "Mirror", Toggle = true, ToolTipText = "Mirror image (star diagonal / refractor view)" };
+            var mirror = new FlatButton { Text = T("Mirror"), Toggle = true, ToolTipText = T("Mirror image (star diagonal / refractor view)") };
             mirror.AutoSizeToText();
             mirror.CheckedChanged += (s, e) => { Chart.FlipX = mirror.Checked; Chart.Invalidate(); };
             bar.Controls.Add(mirror);
-            var flip = new FlatButton { Text = "Invert", Toggle = true, ToolTipText = "Rotate 180° (Newtonian view)" };
+            var flip = new FlatButton { Text = T("Invert"), Toggle = true, ToolTipText = T("Rotate 180° (Newtonian view)") };
             flip.AutoSizeToText();
             flip.CheckedChanged += (s, e) => { Chart.FlipX = flip.Checked ^ mirror.Checked; Chart.FlipY = flip.Checked; Chart.Invalidate(); };
             bar.Controls.Add(flip);
@@ -80,8 +81,8 @@ namespace Sidralune.Views
             _paper.Width = 130;
             _paper.Visible = false;
             bar.Controls.Add(_paper);
-            bar.Controls.Add(Btn(null, Icons.Print, "Print the chart…", Print));
-            bar.Controls.Add(Btn(null, Icons.Save, "Export the chart as PNG…", Export));
+            bar.Controls.Add(Btn(null, Icons.Print, T("Print the chart…"), Print));
+            bar.Controls.Add(Btn(null, Icons.Save, T("Export the chart as PNG…"), Export));
 
             BuildSide();
             StarChart.Layers = Chart.Layers;
@@ -126,7 +127,7 @@ namespace Sidralune.Views
 
         private FlatButton LayersButton()
         {
-            var b = new FlatButton("Layers", Icons.Layers);
+            var b = new FlatButton(T("Layers"), Icons.Layers);
             var menu = new ContextMenuStrip { Renderer = new DarkToolStripRenderer() };
             var L = Chart.Layers;
             // ticks are refreshed every time the menu opens, since other controls (FOV presets, scripts) change layers too
@@ -138,34 +139,34 @@ namespace Sidralune.Views
                 refresh.Add(() => it.Checked = get());
                 menu.Items.Add(it);
             };
-            add("Stars", () => L.Stars, v => L.Stars = v);
-            add("Star names", () => L.StarNames, v => L.StarNames = v);
-            add("Bayer / Flamsteed", () => L.Bayer, v => L.Bayer = v);
-            add("Deep-sky objects", () => L.DeepSky, v => L.DeepSky = v);
-            add("Deep-sky labels", () => L.DeepSkyLabels, v => L.DeepSkyLabels = v);
-            add("Planets, Sun and Moon", () => L.Planets, v => L.Planets = v);
-            add("Comets and asteroids", () => L.MinorBodies, v => L.MinorBodies = v);
+            add(T("Stars"), () => L.Stars, v => L.Stars = v);
+            add(T("Star names"), () => L.StarNames, v => L.StarNames = v);
+            add(T("Bayer / Flamsteed"), () => L.Bayer, v => L.Bayer = v);
+            add(T("Deep-sky objects"), () => L.DeepSky, v => L.DeepSky = v);
+            add(T("Deep-sky labels"), () => L.DeepSkyLabels, v => L.DeepSkyLabels = v);
+            add(T("Planets, Sun and Moon"), () => L.Planets, v => L.Planets = v);
+            add(T("Comets and asteroids"), () => L.MinorBodies, v => L.MinorBodies = v);
             menu.Items.Add(new ToolStripSeparator());
-            add("Constellation lines", () => L.ConstellationLines, v => L.ConstellationLines = v);
-            add("Constellation names", () => L.ConstellationNames, v => L.ConstellationNames = v);
-            add("Constellation boundaries", () => L.Boundaries, v => L.Boundaries = v);
-            add("Milky Way", () => L.MilkyWay, v => L.MilkyWay = v);
+            add(T("Constellation lines"), () => L.ConstellationLines, v => L.ConstellationLines = v);
+            add(T("Constellation names"), () => L.ConstellationNames, v => L.ConstellationNames = v);
+            add(T("Constellation boundaries"), () => L.Boundaries, v => L.Boundaries = v);
+            add(T("Milky Way"), () => L.MilkyWay, v => L.MilkyWay = v);
             menu.Items.Add(new ToolStripSeparator());
-            add("Equatorial grid", () => L.EquatorialGrid, v => L.EquatorialGrid = v);
-            add("Alt-azimuth grid", () => L.AltAzGrid, v => L.AltAzGrid = v);
-            add("Ecliptic", () => L.Ecliptic, v => L.Ecliptic = v);
-            add("Galactic equator", () => L.GalacticEquator, v => L.GalacticEquator = v);
-            add("Meridian", () => L.Meridian, v => L.Meridian = v);
+            add(T("Equatorial grid"), () => L.EquatorialGrid, v => L.EquatorialGrid = v);
+            add(T("Alt-azimuth grid"), () => L.AltAzGrid, v => L.AltAzGrid = v);
+            add(T("Ecliptic"), () => L.Ecliptic, v => L.Ecliptic = v);
+            add(T("Galactic equator"), () => L.GalacticEquator, v => L.GalacticEquator = v);
+            add(T("Meridian"), () => L.Meridian, v => L.Meridian = v);
             menu.Items.Add(new ToolStripSeparator());
-            add("Horizon and ground", () => L.Horizon, v => L.Horizon = v);
-            add("Atmosphere (daylight sky)", () => L.Atmosphere, v => L.Atmosphere = v);
-            add("Cardinal points", () => L.Cardinals, v => L.Cardinals = v);
-            add("Telescope position", () => L.Telescope, v => L.Telescope = v);
-            add("Field-of-view indicators", () => L.FovIndicators, v => L.FovIndicators = v);
-            add("Telrad rings", () => L.Telrad, v => L.Telrad = v);
-            add("Refraction", () => AppState.Settings.UseRefraction, v => AppState.Settings.UseRefraction = v);
+            add(T("Horizon and ground"), () => L.Horizon, v => L.Horizon = v);
+            add(T("Atmosphere (daylight sky)"), () => L.Atmosphere, v => L.Atmosphere = v);
+            add(T("Cardinal points"), () => L.Cardinals, v => L.Cardinals = v);
+            add(T("Telescope position"), () => L.Telescope, v => L.Telescope = v);
+            add(T("Field-of-view indicators"), () => L.FovIndicators, v => L.FovIndicators = v);
+            add(T("Telrad rings"), () => L.Telrad, v => L.Telrad = v);
+            add(T("Refraction"), () => AppState.Settings.UseRefraction, v => AppState.Settings.UseRefraction = v);
             menu.Items.Add(new ToolStripSeparator());
-            var mag = new ToolStripMenuItem("Limiting magnitude");
+            var mag = new ToolStripMenuItem(T("Limiting magnitude"));
             foreach (var m in new[] { 4.0, 5.0, 6.0, 6.5, 7.5, 8.5, 10.0, 12.0 })
             {
                 var mm = m;
@@ -175,7 +176,7 @@ namespace Sidralune.Views
                 mag.DropDownItems.Add(mi);
             }
             mag.DropDownItems.Add(new ToolStripSeparator());
-            var auto = new ToolStripMenuItem("Deeper when zoomed in") { CheckOnClick = true, ToolTipText = "Show fainter stars as the field of view gets smaller, and on the star chart as the paper gets larger" };
+            var auto = new ToolStripMenuItem(T("Deeper when zoomed in")) { CheckOnClick = true, ToolTipText = T("Show fainter stars as the field of view gets smaller, and on the star chart as the paper gets larger") };
             auto.Click += (s, e) => { L.AutoMagLimit = auto.Checked; Redraw(); };
             refresh.Add(() => auto.Checked = L.AutoMagLimit);
             mag.DropDownItems.Add(auto);
@@ -193,15 +194,15 @@ namespace Sidralune.Views
             _side.Controls.Add(_objInfo);
             _side.Controls.Add(_objSub);
             _side.Controls.Add(_objTitle);
-            _objTitle.Text = "No object selected";
-            _objSub.Text = "Click an object in the chart, or search (Ctrl+K).";
-            _actions.Controls.Add(new FlatButton("Center", Icons.Target, (s, e) => { if (_sel != null) Goto(_sel); }));
-            _actions.Controls.Add(new FlatButton("Slew", Icons.Observatory, (s, e) => SlewTo(_sel)) { ToolTipText = "Slew the connected telescope" });
-            _actions.Controls.Add(new FlatButton("Add to list", Icons.Add, (s, e) => { if (_sel != null) { MainForm.Instance.GetView<PlannerView>("planner")?.AddObject(_sel); MainForm.Instance.Toast(_sel.Name + " added to the observing list"); } }));
-            _actions.Controls.Add(new FlatButton("Frame", Icons.Camera, (s, e) => { if (_sel != null) { MainForm.Instance.Navigate("astrometry"); MainForm.Instance.GetView<AstrometryView>("astrometry")?.FrameTarget(_sel); } }) { ToolTipText = "Plan framing / mosaic" });
-            _actions.Controls.Add(new FlatButton("Copy", Icons.List, (s, e) => { if (_sel != null) Clipboard.SetText(_sel.Name + " " + AstroMath.FormatHms(_sel.RaDeg / 15, 1) + " " + AstroMath.FormatDms(_sel.DecDeg, 0)); }) { ToolTipText = "Copy name and coordinates" });
+            _objTitle.Text = T("No object selected");
+            _objSub.Text = T("Click an object in the chart, or search (Ctrl+K).");
+            _actions.Controls.Add(new FlatButton(T("Center"), Icons.Target, (s, e) => { if (_sel != null) Goto(_sel); }));
+            _actions.Controls.Add(new FlatButton(T("Slew"), Icons.Observatory, (s, e) => SlewTo(_sel)) { ToolTipText = T("Slew the connected telescope") });
+            _actions.Controls.Add(new FlatButton(T("Add to list"), Icons.Add, (s, e) => { if (_sel != null) { MainForm.Instance.GetView<PlannerView>("planner")?.AddObject(_sel); MainForm.Instance.Toast(T("{0} added to the observing list", DisplayName(_sel))); } }));
+            _actions.Controls.Add(new FlatButton(T("Frame"), Icons.Camera, (s, e) => { if (_sel != null) { MainForm.Instance.Navigate("astrometry"); MainForm.Instance.GetView<AstrometryView>("astrometry")?.FrameTarget(_sel); } }) { ToolTipText = T("Plan framing / mosaic") });
+            _actions.Controls.Add(new FlatButton(T("Copy"), Icons.List, (s, e) => { if (_sel != null) Clipboard.SetText(_sel.Name + " " + AstroMath.FormatHms(_sel.RaDeg / 15, 1) + " " + AstroMath.FormatDms(_sel.DecDeg, 0)); }) { ToolTipText = T("Copy name and coordinates") });
             foreach (Control c in _actions.Controls) ((FlatButton)c).AutoSizeToText();
-            _alt.Title = "Altitude tonight";
+            _alt.Title = T("Altitude tonight");
         }
 
         /// <summary>Show a field fixed on the sky (e.g. a plate-solved image) in atlas mode, centred and framed.</summary>
@@ -232,8 +233,8 @@ namespace Sidralune.Views
             {
                 case 0: Chart.FovDeg = 100; break;
                 case 1: Chart.FovDeg = 60; break;
-                case 2: Chart.FovDeg = 12; Chart.Fovs.Add(new ChartFov { Name = "10×50 binoculars", WidthDeg = 6.5 }); break;
-                case 3: Chart.FovDeg = 9; Chart.Fovs.Add(new ChartFov { Name = "Finder 8×50", WidthDeg = 5 }); Chart.Layers.Telrad = true; break;
+                case 2: Chart.FovDeg = 12; Chart.Fovs.Add(new ChartFov { Name = T("10×50 binoculars"), WidthDeg = 6.5 }); break;
+                case 3: Chart.FovDeg = 9; Chart.Fovs.Add(new ChartFov { Name = T("Finder 8×50"), WidthDeg = 5 }); Chart.Layers.Telrad = true; break;
                 case 4: Chart.FovDeg = 4; break;
                 case 5:
                     Chart.FovDeg = Math.Max(0.2, ins.TrueFieldDeg * 2.2);
@@ -275,8 +276,11 @@ namespace Sidralune.Views
         private void FindObject(string q)
         {
             if (string.IsNullOrWhiteSpace(q)) return;
-            Body b;
-            if (Enum.TryParse(q.Trim(), true, out b) && b != Body.Earth) { var o = PlanetObject(b); AppState.Select(o); Goto(o); return; }
+            // the Sun, Moon or a planet by its English name or the one shown ("Saturnus")
+            string name = q.Trim();
+            var body = Enum.GetValues(typeof(Body)).Cast<Body>().Where(x => x != Body.Earth && x != Body.EarthMoonBarycenter)
+                .Where(x => string.Equals(x.ToString(), name, StringComparison.OrdinalIgnoreCase) || string.Equals(BodyNames.Name(x), name, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            if (body.Count > 0) { var o = PlanetObject(body[0]); AppState.Select(o); Goto(o); return; }
             var moon = MoonObject(q);
             if (moon != null) { AppState.Select(moon); Goto(moon); return; }
             var hit = CatalogManager.Instance.Find(q) ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
@@ -285,7 +289,7 @@ namespace Sidralune.Views
             if (mb != null) { var o = MinorObject(mb); AppState.Select(o); Goto(o); return; }
             // coordinates "hh mm ss +dd mm ss"
             var parts = q.Split(new[] { ',', ';' });
-            MainForm.Instance.Toast("Not found: " + q + " (try the Databases view for SIMBAD lookups)", Icons.Warning);
+            MainForm.Instance.Toast(T("Not found: {0} (try the Databases view for SIMBAD lookups)", q), Icons.Warning);
         }
 
         public void Goto(SelectedObject o)
@@ -317,10 +321,9 @@ namespace Sidralune.Views
             Chart.Highlight = o;
             StarChart.Page.Highlight = o;
             StarChart.Invalidate();
-            _objTitle.Text = o.Name;
-            string type = o.Kind == SelectedKind.DeepSky ? DeepSkyObject.TypeLabel(o.Catalog.Type) : o.Kind == SelectedKind.PlanetMoon ? "Moon of " + o.Planet : o.Kind.ToString();
+            _objTitle.Text = DisplayName(o);
             var con = CatalogManager.Instance.ConstellationAt(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad);
-            _objSub.Text = type + (con != null ? " in " + con.Name : "");
+            _objSub.Text = con != null ? T("{0} in {1}", KindLabel(o), con.Name) : KindLabel(o);
             UpdateLiveInfo();
             // altitude curve for the coming night
             _alt.Clear();
@@ -346,8 +349,28 @@ namespace Sidralune.Views
             band(tw.NauticalDusk, tw.NauticalDawn, 18);
             band(tw.AstronomicalDusk, tw.AstronomicalDawn, 22);
             _alt.FixedYMin = 0; _alt.FixedYMax = 90;
-            _alt.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = "now" });
+            _alt.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = T("now") });
             _alt.Invalidate();
+        }
+
+        /// <summary>An object's name as shown: the Sun, Moon and planets in the interface language.</summary>
+        public static string DisplayName(SelectedObject o) => o.Kind == SelectedKind.Planet && o.Planet.HasValue ? BodyNames.Name(o.Planet.Value) : o.Name;
+
+        // what kind of object it is, in words
+        private static string KindLabel(SelectedObject o)
+        {
+            switch (o.Kind)
+            {
+                case SelectedKind.DeepSky: return DeepSkyObject.TypeLabel(o.Catalog.Type);
+                case SelectedKind.PlanetMoon: return T("Moon of {0}", o.Planet.HasValue ? BodyNames.Name(o.Planet.Value) : "");
+                case SelectedKind.Star: return T("Star");
+                case SelectedKind.Planet: return o.Planet == Body.Sun ? T("Star") : o.Planet == Body.Moon ? T("Moon") : T("Planet");
+                case SelectedKind.MinorBody: return o.Minor != null && o.Minor.IsComet ? T("Comet") : T("Asteroid");
+                case SelectedKind.Satellite: return T("Satellite");
+                case SelectedKind.Coordinates: return T("Position");
+                case SelectedKind.RadioSource: return T("Radio source");
+                default: return o.Kind.ToString();
+            }
         }
 
         private double AltitudeAt(SelectedObject o, AstroTime t)
@@ -367,6 +390,8 @@ namespace Sidralune.Views
             var site = AppState.Site;
             var ctx = new SkyContext(site, AppState.Now);
             var lines = new List<string>();
+            // a label and its value; the labels are padded so short ones line up
+            Func<string, string, string> row = (label, value) => (label + " ").PadRight(16) + value;
             double ra = o.RaDeg, dec = o.DecDeg, mag = o.Mag, size = o.SizeArcmin;
             Horizontal hz;
             Equatorial app;
@@ -376,25 +401,25 @@ namespace Sidralune.Views
                 if (o.Planet.Value != Body.Sun && o.Planet.Value != Body.Moon) PlanetPhysics.Fill(o.Planet.Value, p, ctx.JdTT);
                 ra = p.Astrometric.RaHours * 15; dec = p.Astrometric.DecDeg; hz = p.Horizontal; app = p.Apparent;
                 if (o.Planet.Value != Body.Moon && o.Planet.Value != Body.Sun) { mag = p.Magnitude; size = p.DiameterArcsec / 60; }
-                lines.Add(string.Format("Distance        {0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km));
+                lines.Add(row(T("Distance"), T("{0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km)));
                 if (o.Planet.Value != Body.Sun)
                 {
-                    lines.Add(string.Format("Illuminated     {0:0.0}%   phase angle {1:0.0}°", p.IlluminatedFraction * 100, p.PhaseAngle * AstroMath.Rad2Deg));
-                    lines.Add(string.Format("Elongation      {0:0.0}°", p.Elongation * AstroMath.Rad2Deg));
+                    lines.Add(row(T("Illuminated"), T("{0:0.0}%   phase angle {1:0.0}°", p.IlluminatedFraction * 100, p.PhaseAngle * AstroMath.Rad2Deg)));
+                    lines.Add(row(T("Elongation"), T("{0:0.0}°", p.Elongation * AstroMath.Rad2Deg)));
                 }
-                if (o.Planet.Value == Body.Moon) lines.Add(string.Format("Age             {0:0.0} days", AstroEvents.MoonAgeDays(ctx.JdTT)));
-                if (!double.IsNaN(p.DiameterArcsec)) lines.Add(string.Format("Apparent size   {0:0.0}\"", p.DiameterArcsec));
+                if (o.Planet.Value == Body.Moon) lines.Add(row(T("Age"), T("{0:0.0} days", AstroEvents.MoonAgeDays(ctx.JdTT))));
+                if (!double.IsNaN(p.DiameterArcsec)) lines.Add(row(T("Apparent size"), T("{0:0.0}\"", p.DiameterArcsec)));
                 if (o.Planet.Value == Body.Jupiter)
                 {
                     double s1, s2, s3;
                     PlanetPhysics.JupiterCentralMeridians(ctx.JdTDB, p.Astrometric.ToVector(), p.LightTimeDays, out s1, out s2, out s3);
-                    lines.Add(string.Format("CM  I {0:0.0}°  II {1:0.0}°  III {2:0.0}°", s1, s2, s3));
+                    lines.Add(T("CM  I {0:0.0}°  II {1:0.0}°  III {2:0.0}°", s1, s2, s3));
                 }
                 if (o.Planet.Value == Body.Mars || o.Planet.Value == Body.Saturn)
                 {
                     double cm, lat, pa;
                     PlanetPhysics.Orientation(o.Planet.Value, ctx.JdTDB, p.Astrometric.ToVector(), p.LightTimeDays, out cm, out lat, out pa);
-                    lines.Add(string.Format("CM {0:0.0}°  sub-Earth lat {1:+0.0;-0.0}°  pole PA {2:0.0}°", cm, lat, pa));
+                    lines.Add(T("CM {0:0.0}°  sub-Earth lat {1:+0.0;-0.0}°  pole PA {2:0.0}°", cm, lat, pa));
                 }
             }
             else if (o.Kind == SelectedKind.PlanetMoon && PlanetMoons.Find(o.Name) != null)
@@ -405,21 +430,22 @@ namespace Sidralune.Views
                 ra = p.Astrometric.RaHours * 15; dec = p.Astrometric.DecDeg; hz = p.Horizontal; app = p.Apparent; mag = m.Mag; size = m.DiameterArcsec / 60;
                 // the chart and other views follow the moon as it moves
                 o.RaDeg = ra; o.DecDeg = dec;
-                string planet = moon.Planet.ToString();
-                string place = m.Occulted ? "hidden behind " + planet : m.Transit ? "crossing " + planet + "'s disc" : string.Format("{0} {1} of {2} ({3:0.0} {2} radii{4})",
-                    FormatOffset(m.SeparationArcsec), m.EastArcsec >= 0 ? "east" : "west", planet, m.PlanetRadii, m.Behind ? ", behind" : ", in front");
-                lines.Add("Position        " + place);
-                lines.Add(string.Format("Distance        {0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km));
-                lines.Add(string.Format("Diameter        {0:N0} km   apparent {1}\"", 2 * moon.RadiusKm, m.DiameterArcsec.ToString(m.DiameterArcsec < 0.01 ? "0.0000" : m.DiameterArcsec < 0.1 ? "0.000" : "0.00")));
-                lines.Add(string.Format("Orbital period  {0} days{1}", moon.PeriodDays.ToString(moon.PeriodDays < 100 ? "0.000" : "0.0"), moon.Retrograde ? " (retrograde)" : ""));
+                string planet = BodyNames.Name(moon.Planet);
+                string place = m.Occulted ? T("hidden behind {0}", planet) : m.Transit ? T("crossing {0}'s disc", planet) :
+                    (m.EastArcsec >= 0 ? T("{0} east of {1}", FormatOffset(m.SeparationArcsec), planet) : T("{0} west of {1}", FormatOffset(m.SeparationArcsec), planet)) + " (" +
+                    T("{0:0.0} {1} radii", m.PlanetRadii, planet) + ", " + (m.Behind ? T("behind") : T("in front")) + ")";
+                lines.Add(row(T("Position"), place));
+                lines.Add(row(T("Distance"), T("{0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km)));
+                lines.Add(row(T("Diameter"), T("{0:N0} km   apparent {1}\"", 2 * moon.RadiusKm, m.DiameterArcsec.ToString(m.DiameterArcsec < 0.01 ? "0.0000" : m.DiameterArcsec < 0.1 ? "0.000" : "0.00"))));
+                lines.Add(row(T("Orbital period"), T("{0} days", moon.PeriodDays.ToString(moon.PeriodDays < 100 ? "0.000" : "0.0")) + (moon.Retrograde ? " " + T("(retrograde)") : "")));
             }
             else if (o.Kind == SelectedKind.MinorBody && o.Minor != null)
             {
                 var p = MinorBodyStore.Place(ctx, o.Minor);
                 ra = p.Astrometric.RaHours * 15; dec = p.Astrometric.DecDeg; hz = p.Horizontal; app = p.Apparent; mag = p.Magnitude;
-                lines.Add(string.Format("Distance        Δ {0:0.000} AU   r {1:0.000} AU", p.Distance, p.HelioDistance));
-                lines.Add(string.Format("Elongation      {0:0.0}°   phase {1:0.0}°", p.Elongation * AstroMath.Rad2Deg, p.PhaseAngle * AstroMath.Rad2Deg));
-                lines.Add("Orbit           " + o.Minor.OrbitType);
+                lines.Add(row(T("Distance"), string.Format("Δ {0:0.000} AU   r {1:0.000} AU", p.Distance, p.HelioDistance)));
+                lines.Add(row(T("Elongation"), T("{0:0.0}°   phase {1:0.0}°", p.Elongation * AstroMath.Rad2Deg, p.PhaseAngle * AstroMath.Rad2Deg)));
+                lines.Add(row(T("Orbit"), o.Minor.OrbitType));
             }
             else
             {
@@ -428,28 +454,28 @@ namespace Sidralune.Views
                 var st = o.Catalog as Star;
                 if (st != null)
                 {
-                    if (!float.IsNaN(st.BV)) lines.Add(string.Format("B−V             {0:0.00}   (~{1:N0} K)", st.BV, st.TemperatureK));
-                    if (!string.IsNullOrEmpty(st.SpectralType)) lines.Add("Spectral type   " + st.SpectralType);
-                    if (!float.IsNaN(st.Parallax) && st.Parallax > 0) lines.Add(string.Format("Distance        {0:0.0} ly", 3261.56 / st.Parallax));
+                    if (!float.IsNaN(st.BV)) lines.Add(row("B−V", string.Format("{0:0.00}   (~{1:N0} K)", st.BV, st.TemperatureK)));
+                    if (!string.IsNullOrEmpty(st.SpectralType)) lines.Add(row(T("Spectral type"), st.SpectralType));
+                    if (!float.IsNaN(st.Parallax) && st.Parallax > 0) lines.Add(row(T("Distance"), T("{0:0.0} ly", 3261.56 / st.Parallax)));
                     if (st.Hip > 0) lines.Add("HIP " + st.Hip + (st.Hd > 0 ? "   HD " + st.Hd : "") + (st.Bayer != null ? "   " + st.Bayer : ""));
-                    if (st.VariableType != null) lines.Add("Variable        " + st.VariableType + (float.IsNaN(st.MagMin) ? "" : string.Format(" (to {0:0.0})", st.MagMin)));
+                    if (st.VariableType != null) lines.Add(row(T("Variable"), st.VariableType + (float.IsNaN(st.MagMin) ? "" : " " + T("(to {0:0.0})", st.MagMin))));
                 }
                 var d = o.Catalog as DeepSkyObject;
                 if (d != null)
                 {
-                    if (d.Morphology != null) lines.Add("Morphology      " + d.Morphology);
-                    if (!double.IsNaN(d.EffectiveSurfaceBrightness)) lines.Add(string.Format("Surface bright. {0:0.0} mag/arcsec²", d.EffectiveSurfaceBrightness));
-                    if (d.AltNames.Count > 0) lines.Add("Also            " + string.Join(", ", d.AltNames.Take(4)));
+                    if (d.Morphology != null) lines.Add(row(T("Morphology"), d.Morphology));
+                    if (!double.IsNaN(d.EffectiveSurfaceBrightness)) lines.Add(row(T("Surface bright."), T("{0:0.0} mag/arcsec²", d.EffectiveSurfaceBrightness)));
+                    if (d.AltNames.Count > 0) lines.Add(row(T("Also"), string.Join(", ", d.AltNames.Take(4))));
                 }
             }
             var head = new List<string>
             {
-                string.Format("Magnitude       {0}", double.IsNaN(mag) ? "—" : mag.ToString("0.0")),
-                string.Format("Size            {0}", double.IsNaN(size) ? "—" : AstroMath.FormatAngleAuto(size / 60)),
-                "RA/Dec J2000    " + AstroMath.FormatHms(ra / 15, 1) + "  " + AstroMath.FormatDms(dec, 0),
-                "RA/Dec apparent " + AstroMath.FormatHms(app.RaHours, 1) + "  " + AstroMath.FormatDms(app.DecDeg, 0),
-                string.Format("Alt/Az          {0:+0.0;-0.0}°  /  {1:0.0}°   airmass {2}", hz.AltDeg, hz.AzDeg, hz.Alt > 0 ? Transforms.Airmass(hz.Alt).ToString("0.00") : "—"),
-                "Hour angle      " + AstroMath.FormatHms(AstroMath.NormalizeHours(ctx.LastHours - app.RaHours), 0, true)
+                row(T("Magnitude"), double.IsNaN(mag) ? "—" : mag.ToString("0.0")),
+                row(T("Size"), double.IsNaN(size) ? "—" : AstroMath.FormatAngleAuto(size / 60)),
+                row(T("RA/Dec J2000"), AstroMath.FormatHms(ra / 15, 1) + "  " + AstroMath.FormatDms(dec, 0)),
+                row(T("RA/Dec apparent"), AstroMath.FormatHms(app.RaHours, 1) + "  " + AstroMath.FormatDms(app.DecDeg, 0)),
+                row(T("Alt/Az"), T("{0:+0.0;-0.0}°  /  {1:0.0}°   airmass {2}", hz.AltDeg, hz.AzDeg, hz.Alt > 0 ? Transforms.Airmass(hz.Alt).ToString("0.00") : "—")),
+                row(T("Hour angle"), AstroMath.FormatHms(AstroMath.NormalizeHours(ctx.LastHours - app.RaHours), 0, true))
             };
             // rise / transit / set
             try
@@ -457,7 +483,7 @@ namespace Sidralune.Views
                 RiseSetResult rs = (o.Kind == SelectedKind.Planet || o.Kind == SelectedKind.PlanetMoon) && o.Planet.HasValue ? AstroEvents.BodyRiseSet(o.Planet.Value, site, AppState.Now.AddHours(-12))
                     : AstroEvents.FixedRiseSet(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, site, AppState.Now.AddHours(-12));
                 Func<AstroTime?, string> fmt = t => t.HasValue ? site.ToLocal(t.Value.ToDateTimeUtc()).ToString("HH:mm") : "—";
-                head.Add(rs.AlwaysUp ? "Circumpolar (never sets)" : rs.NeverUp ? "Never rises today" : string.Format("Rise {0}  Transit {1} ({2:0}°)  Set {3}", fmt(rs.Rise), fmt(rs.Transit), rs.TransitAltitudeDeg, fmt(rs.Set)));
+                head.Add(rs.AlwaysUp ? T("Circumpolar (never sets)") : rs.NeverUp ? T("Never rises today") : T("Rise {0}  Transit {1} ({2:0}°)  Set {3}", fmt(rs.Rise), fmt(rs.Transit), rs.TransitAltitudeDeg, fmt(rs.Set)));
             }
             catch { }
             // visibility with the current instrument (SkyTools-style)
@@ -467,9 +493,9 @@ namespace Sidralune.Views
                 double alt;
                 double sky = VisibilityModel.SkyBrightnessAt(ctx, ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, out alt);
                 var vis = VisibilityModel.Predict(mag, double.IsNaN(size) ? 0 : size, alt, sky, site, AppState.Instrument, AppState.Eye);
-                head.Add(string.Format("Visibility      {0}  (margin {1:+0.0;-0.0} mag)", vis.Summary, vis.BestMargin));
-                head.Add(string.Format("Best view       ×{0:0} with {1}", vis.BestMagnification, AppState.Instrument.Name));
-                head.Add(string.Format("Sky brightness  {0:0.00} mag/arcsec²", sky));
+                head.Add(row(T("Visibility"), T("{0}  (margin {1:+0.0;-0.0} mag)", vis.Summary, vis.BestMargin)));
+                head.Add(row(T("Best view"), T("×{0:0} with {1}", vis.BestMagnification, AppState.Instrument.Name)));
+                head.Add(row(T("Sky brightness"), T("{0:0.00} mag/arcsec²", sky)));
             }
             _objInfo.Text = string.Join("\r\n", head.Concat(new[] { "" }).Concat(lines));
         }
@@ -482,9 +508,9 @@ namespace Sidralune.Views
         {
             if (o == null) return;
             var tel = DeviceManager.Instance.Telescope;
-            if (tel == null) { MainForm.Instance.Toast("No telescope connected (Observatory → Equipment)", Icons.Warning); return; }
+            if (tel == null) { MainForm.Instance.Toast(T("No telescope connected (Observatory → Equipment)"), Icons.Warning); return; }
             var app = new SkyContext(AppState.Site, Core.Time.AstroTime.Now).IcrsToApparent(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad);
-            Tasks.Run("Slewing to " + o.Name, t => tel.SlewToCoordinatesAsync(app.RaHours, app.DecDeg), () => MainForm.Instance.Toast("Slewing to " + o.Name));
+            Tasks.Run(T("Slewing to {0}", DisplayName(o)), t => tel.SlewToCoordinatesAsync(app.RaHours, app.DecDeg), () => MainForm.Instance.Toast(T("Slewing to {0}", DisplayName(o))));
         }
 
         private void ShowContext(double ra, double dec, MouseEventArgs e)
@@ -494,12 +520,12 @@ namespace Sidralune.Views
             var hit = Chart.HitTest(e.Location);
             if (hit != null)
             {
-                m.Items.Add("Select " + hit.Name, null, (s, a) => AppState.Select(hit));
-                m.Items.Add("Add " + hit.Name + " to observing list", null, (s, a) => MainForm.Instance.GetView<PlannerView>("planner")?.AddObject(hit));
+                m.Items.Add(T("Select {0}", DisplayName(hit)), null, (s, a) => AppState.Select(hit));
+                m.Items.Add(T("Add {0} to observing list", DisplayName(hit)), null, (s, a) => MainForm.Instance.GetView<PlannerView>("planner")?.AddObject(hit));
             }
-            m.Items.Add("Center here", null, (s, a) => Chart.CenterOn(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad));
-            m.Items.Add("Slew telescope here", null, (s, a) => SlewTo(new SelectedObject { Name = "position", RaDeg = ra, DecDeg = dec }));
-            m.Items.Add("Frame with camera here", null, (s, a) => { MainForm.Instance.Navigate("astrometry"); MainForm.Instance.GetView<AstrometryView>("astrometry")?.FrameTarget(new SelectedObject { Name = "Field", RaDeg = ra, DecDeg = dec }); });
+            m.Items.Add(T("Center here"), null, (s, a) => Chart.CenterOn(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad));
+            m.Items.Add(T("Slew telescope here"), null, (s, a) => SlewTo(new SelectedObject { Name = T("position"), RaDeg = ra, DecDeg = dec }));
+            m.Items.Add(T("Frame with camera here"), null, (s, a) => { MainForm.Instance.Navigate("astrometry"); MainForm.Instance.GetView<AstrometryView>("astrometry")?.FrameTarget(new SelectedObject { Name = T("Field"), RaDeg = ra, DecDeg = dec }); });
             m.Show(Chart, e.Location);
         }
 
@@ -507,7 +533,7 @@ namespace Sidralune.Views
 
         private void PrintChart()
         {
-            var doc = new PrintDocument { DocumentName = "Sidralune sky chart" };
+            var doc = new PrintDocument { DocumentName = T("Sidralune sky chart") };
             doc.DefaultPageSettings.Landscape = true;
             doc.PrintPage += (s, e) =>
             {
@@ -531,12 +557,12 @@ namespace Sidralune.Views
                 }
                 g.DrawRectangle(Pens.Black, chartRect);
                 var local = AppState.Site.ToLocal(AppState.Now.ToDateTimeUtc());
-                using (var tf = new Font("Segoe UI Semibold", 14f)) g.DrawString((_sel != null ? _sel.Name + " — " : "") + "Sidralune finder chart", tf, Brushes.Black, r.X, r.Y);
+                using (var tf = new Font("Segoe UI Semibold", 14f)) g.DrawString((_sel != null ? DisplayName(_sel) + " — " : "") + T("Sidralune finder chart"), tf, Brushes.Black, r.X, r.Y);
                 using (var sf = new Font("Segoe UI", 9f))
                 {
-                    g.DrawString(string.Format("{0:yyyy-MM-dd HH:mm} local, {1}   ·   field {2}   ·   limiting magnitude {3:0.0}   ·   {4}", local, AppState.Site, AstroMath.FormatAngleAuto(Chart.FovDeg), Chart.EffectiveMagLimit, Chart.FlipX ? "mirror view" : "normal view"), sf, Brushes.Black, r.X, r.Y + 26);
+                    g.DrawString(T("{0:yyyy-MM-dd HH:mm} local, {1}   ·   field {2}   ·   limiting magnitude {3:0.0}   ·   {4}", local, AppState.Site, AstroMath.FormatAngleAuto(Chart.FovDeg), Chart.EffectiveMagLimit, Chart.FlipX ? T("mirror view") : T("normal view")), sf, Brushes.Black, r.X, r.Y + 26);
                     int ly = chartRect.Bottom + 10, lx = r.X;
-                    string[] items = { "● stars (size ∝ brightness)", "◯ galaxy (true size & PA)", "⊕ globular cluster", "◌ open cluster", "□ nebula", "◎ planetary nebula", "+ asteroid", "• comet" };
+                    string[] items = { "● " + T("stars (size ∝ brightness)"), "◯ " + T("galaxy (true size & PA)"), "⊕ " + T("globular cluster"), "◌ " + T("open cluster"), "□ " + T("nebula"), "◎ " + T("planetary nebula"), "+ " + T("asteroid"), "• " + T("comet") };
                     foreach (var it in items) { g.DrawString(it, sf, Brushes.Black, lx, ly); lx += 160; if (lx > r.Right - 160) { lx = r.X; ly += 18; } }
                 }
             };
@@ -578,16 +604,16 @@ namespace Sidralune.Views
         {
             bool landscape;
             var paper = SelectedPaper(out landscape);
-            var doc = new PrintDocument { DocumentName = "Sidralune star chart" };
+            var doc = new PrintDocument { DocumentName = T("Sidralune star chart") };
             doc.DefaultPageSettings.Landscape = landscape;
             doc.DefaultPageSettings.Margins = new Margins(39, 39, 39, 39); // 10 mm
             try { doc.DefaultPageSettings.PaperSize = StarChartPage.FindPaperSize(doc.PrinterSettings, paper); }
-            catch (InvalidPrinterException) { MainForm.Instance.Toast("No printer is installed", Icons.Warning); return; }
+            catch (InvalidPrinterException) { MainForm.Instance.Toast(T("No printer is installed"), Icons.Warning); return; }
             var page = PaperPage();
             doc.PrintPage += (s, e) => page.PrintPage(s, e);
             using (var pd = new PrintDialog { Document = doc, UseEXDialog = true })
                 if (pd.ShowDialog(this) != DialogResult.OK) return;
-            using (var dlg = new PrintPreviewDialog { Document = doc, Width = 1000, Height = 1100, Text = "Star chart on " + paper.Name })
+            using (var dlg = new PrintPreviewDialog { Document = doc, Width = 1000, Height = 1100, Text = T("Star chart on {0}", paper.Name) })
                 dlg.ShowDialog(this);
         }
 
@@ -595,28 +621,28 @@ namespace Sidralune.Views
         {
             bool landscape;
             var paper = SelectedPaper(out landscape);
-            using (var d = new SaveFileDialog { Filter = "PNG|*.png", FileName = "Star chart " + paper.Name + ".png" })
+            using (var d = new SaveFileDialog { Filter = "PNG|*.png", FileName = T("Star chart {0}", paper.Name) + ".png" })
             {
                 if (d.ShowDialog() != DialogResult.OK) return;
                 try
                 {
                     using (var bmp = PaperPage().RenderImage(paper, landscape, 300)) bmp.Save(d.FileName, System.Drawing.Imaging.ImageFormat.Png);
-                    MainForm.Instance.Toast("Star chart saved: " + paper.Name + " at 300 dpi");
+                    MainForm.Instance.Toast(T("Star chart saved: {0} at 300 dpi", paper.Name));
                 }
-                catch (Exception ex) { MainForm.Instance.Toast("Could not save the star chart: " + ex.Message, Icons.Warning); }
+                catch (Exception ex) { MainForm.Instance.Toast(T("Could not save the star chart: {0}", ex.Message), Icons.Warning); }
             }
         }
 
         public IEnumerable<AppCommand> GetCommands()
         {
-            yield return new AppCommand { Title = "Sky: planetarium mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 0; } };
-            yield return new AppCommand { Title = "Sky: atlas mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 1; } };
-            yield return new AppCommand { Title = "Sky: star chart mode", Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; } };
-            yield return new AppCommand { Title = "Sky: print star chart", Icon = Icons.Print, Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; PrintStarChart(); } };
-            yield return new AppCommand { Title = "Sky: print finder chart", Icon = Icons.Print, Run = PrintChart };
-            yield return new AppCommand { Title = "Sky: look south", Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(180, 30); } };
-            yield return new AppCommand { Title = "Sky: look north", Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(0, 30); } };
-            yield return new AppCommand { Title = "Sky: zenith", Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(180, 89.9); } };
+            yield return new AppCommand { Title = T("Sky: planetarium mode"), Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 0; } };
+            yield return new AppCommand { Title = T("Sky: atlas mode"), Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 1; } };
+            yield return new AppCommand { Title = T("Sky: star chart mode"), Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; } };
+            yield return new AppCommand { Title = T("Sky: print star chart"), Icon = Icons.Print, Run = () => { MainForm.Instance.Navigate("sky"); _mode.SelectedIndex = 2; PrintStarChart(); } };
+            yield return new AppCommand { Title = T("Sky: print finder chart"), Icon = Icons.Print, Run = PrintChart };
+            yield return new AppCommand { Title = T("Sky: look south"), Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(180, 30); } };
+            yield return new AppCommand { Title = T("Sky: look north"), Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(0, 30); } };
+            yield return new AppCommand { Title = T("Sky: zenith"), Run = () => { _mode.SelectedIndex = 0; Chart.LookAt(180, 89.9); } };
         }
     }
 }

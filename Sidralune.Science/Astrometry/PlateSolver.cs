@@ -65,7 +65,7 @@ namespace Sidralune.Science.Astrometry
         public static SolveResult Solve(List<DetectedStar> stars, int width, int height, SolveOptions opt, IProgress<string> status = null, CancellationToken ct = default(CancellationToken))
         {
             var res = new SolveResult();
-            if (stars.Count < 6) { res.Message = "Too few stars detected (" + stars.Count + ")"; return res; }
+            if (stars.Count < 6) { res.Message = Lang.T("Too few stars detected ({0})", stars.Count); return res; }
             var catalog = opt.Catalog ?? new LocalCatalogProvider();
             var imgStars = MatchingStars(stars, opt.MaxImageStars);
             var fovs = new List<double>();
@@ -107,7 +107,7 @@ namespace Sidralune.Science.Astrometry
                         for (int k = 0; k < n; k++) centres.Add(new[] { 360.0 * k / n, dec });
                     }
                 }
-                else { res.Message = "No position hint and blind solving disabled"; return res; }
+                else { res.Message = Lang.T("No position hint and blind solving disabled"); return res; }
                 double searchR = fovDeg * 0.6;
                 double magLim = !double.IsNaN(opt.MagLimit) ? opt.MagLimit : AstroMath.Clamp(9.5 + 2.5 * Math.Log10(Math.Max(1e-3, 30.0 / (fovDeg * fovDeg))), 6, 18);
                 foreach (var c in centres)
@@ -117,7 +117,7 @@ namespace Sidralune.Science.Astrometry
                     if (status != null && (tried % 10 == 1)) status.Report(string.Format("Searching {0} {1}, field {2:0.##}° ({3}/{4})", AstroMath.FormatHms(c[0] / 15, 0), AstroMath.FormatDms(c[1], 0), fovDeg, tried, centres.Count));
                     List<RefStar> cat;
                     try { cat = catalog.Cone(c[0], c[1], searchR, magLim, opt.MaxCatalogStars); }
-                    catch (Exception ex) { res.Message = "Catalog query failed: " + ex.Message; return res; }
+                    catch (Exception ex) { res.Message = Lang.T("Catalog query failed: {0}", ex.Message); return res; }
                     if (cat.Count < 6) continue;
                     var w = TryMatch(imgStars, stars, cat, c[0], c[1], width, height, opt, false) ?? TryMatch(imgStars, stars, cat, c[0], c[1], width, height, opt, true);
                     if (w != null && Plausible(w, fovDeg, width, height))
@@ -132,12 +132,12 @@ namespace Sidralune.Science.Astrometry
                         res.Matches.AddRange(matches);
                         res.Wcs = refined;
                         res.Success = true;
-                        res.Message = "Solved: " + res.Wcs;
+                        res.Message = Lang.T("Solved: {0}", res.Wcs);
                         return res;
                     }
                 }
             }
-            res.Message = "No solution found (" + tried + " fields tried)";
+            res.Message = Lang.Tn("No solution found ({0} field tried)", "No solution found ({0} fields tried)", tried);
             return res;
         }
 
@@ -315,7 +315,7 @@ namespace Sidralune.Science.Astrometry
             var login = Json.ParseObject(Net.PostForm(api + "login", new Dictionary<string, string> { { "request-json", Json.Serialize(new Dictionary<string, object> { { "apikey", apiKey } }) } }));
             string session = Json.GetString(login, "session");
             if (string.IsNullOrEmpty(session)) throw new InvalidOperationException("astrometry.net login failed");
-            status?.Report("Uploading to astrometry.net");
+            status?.Report(Lang.T("Uploading to astrometry.net"));
             var req = Json.Serialize(new Dictionary<string, object> { { "session", session }, { "allow_commercial_use", "n" }, { "allow_modifications", "n" }, { "publicly_visible", "n" } });
             var up = Json.ParseObject(Net.PostMultipart(api + "upload", new Dictionary<string, string> { { "request-json", req } }, "file", Path.GetFileName(imagePath), File.ReadAllBytes(imagePath)));
             string subid = Json.GetString(up, "subid");
@@ -327,7 +327,7 @@ namespace Sidralune.Science.Astrometry
                 var sub = Json.ParseObject(Net.GetString(api + "submissions/" + subid));
                 var jobs = Json.Get(sub, "jobs") as List<object>;
                 if (jobs != null && jobs.Count > 0 && jobs[0] != null) jobId = Convert.ToString(jobs[0], CultureInfo.InvariantCulture);
-                status?.Report("Waiting for astrometry.net job...");
+                status?.Report(Lang.T("Waiting for astrometry.net job..."));
             }
             if (jobId == null) return null;
             for (int i = 0; i < 120; i++)
@@ -351,7 +351,7 @@ namespace Sidralune.Science.Astrometry
                 }
                 if (st == "failure") return null;
                 Thread.Sleep(5000);
-                status?.Report("astrometry.net solving (" + st + ")");
+                status?.Report(Lang.T("astrometry.net solving ({0})", st));
             }
             return null;
         }

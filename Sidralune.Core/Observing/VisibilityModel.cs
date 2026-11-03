@@ -3,6 +3,7 @@ using Sidralune.Core.Coordinates;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
+using Sidralune.Core.Util;
 
 namespace Sidralune.Core.Observing
 {
@@ -50,10 +51,15 @@ namespace Sidralune.Core.Observing
         public Detectability Rating;
         public double LimitingMagnitude; // stellar limit at chosen magnification
         public string Summary =>
-            Rating == Detectability.NotVisible ? "Not visible" :
-            Rating == Detectability.Difficult ? "Difficult (averted vision)" :
-            Rating == Detectability.Detectable ? "Detectable" :
-            Rating == Detectability.Easy ? "Easy" : "Obvious";
+            Rating == Detectability.NotVisible ? Lang.T("Not visible") :
+            Rating == Detectability.Difficult ? Lang.T("Difficult (averted vision)") : Label(Rating);
+
+        /// <summary>A rating in one word, in the interface language.</summary>
+        public static string Label(Detectability d) =>
+            d == Detectability.NotVisible ? Lang.T("Not visible") :
+            d == Detectability.Difficult ? Lang.T("Difficult") :
+            d == Detectability.Detectable ? Lang.T("Detectable") :
+            d == Detectability.Easy ? Lang.T("Easy") : Lang.T("Obvious");
     }
 
     /// <summary>

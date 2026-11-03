@@ -43,7 +43,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Databases | Local catalogue search, Sesame, SIMBAD, VizieR, AAVSO VSX and NASA Exoplanet Archive queries, ADQL console, citizen-science directory |
 | Automation | C# scripting with access to the whole Sidralune API, data-analysis workbench, command palette for every action |
 
-The interface follows current usability research: a navigation rail with one workspace per task, a searchable command palette (Ctrl+K), progressive disclosure through collapsible panels, non-blocking toast notifications, background tasks with progress in the status bar, and a red night-vision palette that protects dark adaptation.
+The interface follows current usability research: a navigation rail with one workspace per task, a searchable command palette (Ctrl+K), progressive disclosure through collapsible panels, non-blocking toast notifications, background tasks with progress in the status bar, and a red night-vision palette that protects dark adaptation. The interface is in English, with a complete Swedish translation; see [Languages](https://github.com/pzyber/Sidralune/wiki/Settings#languages).
 
 ## Requirements and building
 
@@ -96,7 +96,7 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 | Radio | Hydrogen line, calculator, Jupiter, time-domain tools | [Radio astronomy](https://github.com/pzyber/Sidralune/wiki/Radio-astronomy) |
 | Databases | Local catalogues, online databases, citizen science | [Databases and citizen science](https://github.com/pzyber/Sidralune/wiki/Databases-and-citizen-science) |
 | Scripts | C# scripts and data analysis | [Scripting and data analysis](https://github.com/pzyber/Sidralune/wiki/Scripting-and-data-analysis) |
-| Settings | Location, equipment, observer, appearance, data, about | [Settings](https://github.com/pzyber/Sidralune/wiki/Settings) |
+| Settings | Location, equipment, observer, appearance and language, data, about | [Settings](https://github.com/pzyber/Sidralune/wiki/Settings) |
 
 ## Downloading catalogues and ephemerides
 
@@ -175,6 +175,7 @@ Sidralune.exe --screenshot out.png --view sky --time 2026-12-14T22:00:00 --night
 | `--size <W>x<H>` | Window size in pixels (default 1500x950) |
 | `--wait <seconds>` | Time to let the view settle before capturing (default 4) |
 | `--script <file.cs>` | Run a C# script in the Scripts workspace before capturing |
+| `--lang <code>` | Interface language for this run: `en`, `sv`, or `qps` (pseudo-language for checking layouts) |
 
 See [Command-line options](https://github.com/pzyber/Sidralune/wiki/Command-line-options).
 

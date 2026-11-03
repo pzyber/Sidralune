@@ -72,8 +72,8 @@ namespace Sidralune.AppTests
                     combo.SelectedIndex = 1;
                 });
                 CheckTrue("Bright enough to show: objects and the asteroids down to the image's depth", shown().SequenceEqual(new[] { "M 42", "(1) Ceres (8.9)" }), string.Join(", ", shown()));
-                CheckTrue("The object list and the depth follow", text().Contains("Ceres") && !text().Contains("Faintling") && text().Contains(string.Format("about magnitude {0:0.0}", 15.0)), text());
-                CheckTrue("The time taken is split into its steps", text().Contains(string.Format("Elapsed {0:0.0} s (finding stars {1:0.0} s, solving {2:0.0} s, labels {3:0.0} s, image depth {4:0.0} s), 1000 stars used for solving", 22.6, 7.1, 13.5, 0.4, 1.6)), text());
+                CheckTrue("The object list and the depth follow", text().Contains("Ceres") && !text().Contains("Faintling") && text().Contains(string.Format(System.Globalization.CultureInfo.InvariantCulture, "about magnitude {0:0.0}", 15.0)), text());
+                CheckTrue("The time taken is split into its steps", text().Contains(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Elapsed {0:0.0} s (finding stars {1:0.0} s, solving {2:0.0} s, labels {3:0.0} s, image depth {4:0.0} s), 1000 stars used for solving", 22.6, 7.1, 13.5, 0.4, 1.6)), text());
                 CheckTrue("The choice is kept in the settings", OnUi(() => AppState.Settings.MinorBodyLabels) == "Visible");
                 OnUi(() => combo.SelectedIndex = 2);
                 CheckTrue("None: no asteroids or comets, other objects stay", shown().SequenceEqual(new[] { "M 42" }) && !text().Contains("Ceres"));

@@ -15,6 +15,7 @@ using Sidralune.Core.Time;
 using Sidralune.Core.Util;
 using Sidralune.UI;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
@@ -50,23 +51,23 @@ namespace Sidralune.Views
         private readonly JobSlot _fillJob = new JobSlot(), _generateJob = new JobSlot();
         private readonly ListBox _lists = new ListBox { Dock = DockStyle.Fill };
         private readonly DataGridView _grid = Ui.Grid();
-        private readonly PlotControl _plot = new PlotControl { Dock = DockStyle.Fill, XFormat = AxisFormat.Time, Title = "Nightly planner — altitude", YLabel = "Altitude (°)" };
+        private readonly PlotControl _plot = new PlotControl { Dock = DockStyle.Fill, XFormat = AxisFormat.Time, Title = T("Nightly planner — altitude"), YLabel = T("Altitude (°)") };
         private readonly TextBox _add = new TextBox { Width = 220 };
-        private readonly CheckBox _onlyVisible = new CheckBox { Text = "Up tonight only", AutoSize = true };
+        private readonly CheckBox _onlyVisible = new CheckBox { Text = T("Up tonight only"), AutoSize = true };
         private readonly DataGridView _log = Ui.Grid();
         private readonly Label _logTitle = new Label { Dock = DockStyle.Top, Height = 24, Font = Theme.UiFontBold };
 
         public PlannerView()
         {
             Load();
-            var left = new Card("Observing lists") { Dock = DockStyle.Left, Width = 240 };
+            var left = new Card(T("Observing lists")) { Dock = DockStyle.Left, Width = 240 };
             var lb = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 112 };
             Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => a()); b.AutoSizeToText(); lb.Controls.Add(b); };
-            btn("New", Icons.Add, NewList);
-            btn("Rename", Icons.More, RenameList);
-            btn("Delete", Icons.Remove, DeleteList);
-            btn("Import", Icons.Open, ImportCsv);
-            btn("Export", Icons.Save, ExportCsv);
+            btn(T("New"), Icons.Add, NewList);
+            btn(T("Rename"), Icons.More, RenameList);
+            btn(T("Delete"), Icons.Remove, DeleteList);
+            btn(T("Import"), Icons.Open, ImportCsv);
+            btn(T("Export"), Icons.Save, ExportCsv);
             left.Controls.Add(_lists);
             left.Controls.Add(lb);
             _lists.SelectedIndexChanged += (s, e) => { if (_lists.SelectedIndex >= 0) { _data.Active = _lists.SelectedIndex; Fill(); } };
@@ -76,13 +77,13 @@ namespace Sidralune.Views
             bar.Controls.Add(new Label { Text = Icons.Search, Font = Theme.IconFont, AutoSize = true, Margin = new Padding(0, 7, 2, 0) });
             bar.Controls.Add(_add);
             _add.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { AddByName(_add.Text); e.SuppressKeyPress = true; } };
-            var addb = new FlatButton("Add", Icons.Add, (s, e) => AddByName(_add.Text)); addb.AutoSizeToText(); bar.Controls.Add(addb);
-            var gen = new FlatButton("Generate best for tonight…", Icons.Star, (s, e) => Generate()) { Kind = ButtonKind.Primary }; gen.AutoSizeToText(); bar.Controls.Add(gen);
+            var addb = new FlatButton(T("Add"), Icons.Add, (s, e) => AddByName(_add.Text)); addb.AutoSizeToText(); bar.Controls.Add(addb);
+            var gen = new FlatButton(T("Generate best for tonight…"), Icons.Star, (s, e) => Generate()) { Kind = ButtonKind.Primary }; gen.AutoSizeToText(); bar.Controls.Add(gen);
             // generating waits for the one running, which Stop ends
             _generateJob.Guard(gen);
             bar.Controls.Add(_generateJob.StopButton());
-            var rem = new FlatButton("Remove", Icons.Remove, (s, e) => RemoveSelected()); rem.AutoSizeToText(); bar.Controls.Add(rem);
-            var refresh = new FlatButton("Recalculate", Icons.Refresh, (s, e) => Fill()); refresh.AutoSizeToText(); bar.Controls.Add(refresh);
+            var rem = new FlatButton(T("Remove"), Icons.Remove, (s, e) => RemoveSelected()); rem.AutoSizeToText(); bar.Controls.Add(rem);
+            var refresh = new FlatButton(T("Recalculate"), Icons.Refresh, (s, e) => Fill()); refresh.AutoSizeToText(); bar.Controls.Add(refresh);
             bar.Controls.Add(_onlyVisible);
             _onlyVisible.CheckedChanged += (s, e) => Fill();
             var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 330 };
@@ -102,10 +103,10 @@ namespace Sidralune.Views
                 Save();
             };
 
-            var right = new Card("Logbook") { Dock = DockStyle.Right, Width = 330 };
+            var right = new Card(T("Logbook")) { Dock = DockStyle.Right, Width = 330 };
             var logBar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40 };
-            var addLog = new FlatButton("Log observation…", Icons.Add, (s, e) => AddLog()) { Kind = ButtonKind.Primary }; addLog.AutoSizeToText();
-            var expLog = new FlatButton("Export", Icons.Save, (s, e) => ExportLog()); expLog.AutoSizeToText();
+            var addLog = new FlatButton(T("Log observation…"), Icons.Add, (s, e) => AddLog()) { Kind = ButtonKind.Primary }; addLog.AutoSizeToText();
+            var expLog = new FlatButton(T("Export"), Icons.Save, (s, e) => ExportLog()); expLog.AutoSizeToText();
             logBar.Controls.Add(addLog); logBar.Controls.Add(expLog);
             right.Controls.Add(_log);
             right.Controls.Add(_logTitle);
@@ -128,11 +129,12 @@ namespace Sidralune.Views
             foreach (var e in _data.Lists.SelectMany(l => l.Entries)) if (e.SizeArcmin <= 0) e.SizeArcmin = double.NaN;
             if (_data.Lists.Count == 0)
             {
-                var m = new ObservingList { Name = "Messier catalogue" };
+                // the starting lists are named in the language in use; after that their names are the user's
+                var m = new ObservingList { Name = T("Messier catalogue") };
                 foreach (var d in CatalogManager.Instance.DeepSkyList.Where(d => d.Messier != null).OrderBy(d => int.Parse(d.Messier.Substring(1))))
                     m.Entries.Add(FromSky(SelectedObject.From(d)));
                 _data.Lists.Add(m);
-                _data.Lists.Add(new ObservingList { Name = "Tonight" });
+                _data.Lists.Add(new ObservingList { Name = T("Tonight") });
             }
         }
 
@@ -149,10 +151,32 @@ namespace Sidralune.Views
 
         private static ListEntry FromSky(SelectedObject o)
         {
+            // the type is saved in English, and shown in the interface language (TypeText)
             var e = new ListEntry { Name = o.Name, RaDeg = o.RaDeg, DecDeg = o.DecDeg, Mag = o.Mag, SizeArcmin = o.SizeArcmin, Planet = o.Planet.HasValue ? o.Planet.Value.ToString() : null };
-            if (o.Catalog != null) { e.Type = o.Catalog is Star ? "Star" : DeepSkyObject.TypeLabel(o.Catalog.Type); e.Constellation = o.Catalog.Constellation ?? ""; }
+            if (o.Catalog != null) { e.Type = o.Catalog is Star ? "Star" : InEnglish(() => DeepSkyObject.TypeLabel(o.Catalog.Type)); e.Constellation = o.Catalog.Constellation ?? ""; }
             else e.Type = o.Kind == SelectedKind.PlanetMoon ? "Moon of " + o.Planet : o.Kind.ToString();
             return e;
+        }
+
+        /// <summary>A saved (English) type as shown: "Open cluster" → "Öppen stjärnhop", "Moon of Jupiter" → "Måne till Jupiter".</summary>
+        private static string TypeText(string type)
+        {
+            if (string.IsNullOrEmpty(type)) return type;
+            Body b;
+            if (type.StartsWith("Moon of ") && Enum.TryParse(type.Substring(8), out b)) return T("Moon of {0}", BodyNames.Name(b));
+            if (type == "Star") return T("Star");
+            if (type == "Planet") return T("Planet");
+            if (type == "MinorBody") return T("Comet or asteroid");
+            foreach (ObjectType t in Enum.GetValues(typeof(ObjectType)))
+                if (InEnglish(() => DeepSkyObject.TypeLabel(t)) == type) return DeepSkyObject.TypeLabel(t);
+            return type;
+        }
+
+        // a list entry's name as shown: the Sun, Moon and planets in the interface language
+        private static string NameText(ListEntry e)
+        {
+            Body b;
+            return e.Planet != null && Enum.TryParse(e.Planet, out b) && e.Name == e.Planet ? BodyNames.Name(b) : e.Name;
         }
 
         private static SelectedObject ToSelected(ListEntry e)
@@ -178,10 +202,13 @@ namespace Sidralune.Views
         private void AddByName(string q)
         {
             if (string.IsNullOrWhiteSpace(q)) return;
-            Body b;
-            if (Enum.TryParse(q.Trim(), true, out b)) { AddObject(SkyView.PlanetObject(b)); _add.Clear(); return; }
+            // the Sun, Moon or a planet by its English name or the one shown
+            string name = q.Trim();
+            var body = Enum.GetValues(typeof(Body)).Cast<Body>().Where(x => x != Body.Earth && x != Body.EarthMoonBarycenter)
+                .Where(x => string.Equals(x.ToString(), name, StringComparison.OrdinalIgnoreCase) || string.Equals(BodyNames.Name(x), name, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            if (body.Count > 0) { AddObject(SkyView.PlanetObject(body[0])); _add.Clear(); return; }
             var o = CatalogManager.Instance.Find(q) ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
-            if (o == null) { MainForm.Instance.Toast("Not found: " + q, Icons.Warning); return; }
+            if (o == null) { MainForm.Instance.Toast(T("Not found: {0}", q), Icons.Warning); return; }
             AddObject(SelectedObject.From(o));
             _add.Clear();
         }
@@ -194,7 +221,7 @@ namespace Sidralune.Views
 
         private void NewList()
         {
-            var name = Prompt("New observing list", "Name:", "List " + (_data.Lists.Count + 1));
+            var name = Prompt(T("New observing list"), T("Name:"), T("List {0}", _data.Lists.Count + 1));
             if (string.IsNullOrWhiteSpace(name)) return;
             _data.Lists.Add(new ObservingList { Name = name });
             _data.Active = _data.Lists.Count - 1;
@@ -203,7 +230,7 @@ namespace Sidralune.Views
 
         private void RenameList()
         {
-            var name = Prompt("Rename list", "Name:", Active.Name);
+            var name = Prompt(T("Rename list"), T("Name:"), Active.Name);
             if (string.IsNullOrWhiteSpace(name)) return;
             Active.Name = name; Save(); ReloadLists();
         }
@@ -211,7 +238,7 @@ namespace Sidralune.Views
         private void DeleteList()
         {
             if (_data.Lists.Count <= 1) return;
-            if (MessageBox.Show(this, "Delete list '" + Active.Name + "'?", "Delete", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+            if (MessageBox.Show(this, T("Delete list '{0}'?", Active.Name), T("Delete"), MessageBoxButtons.YesNo) != DialogResult.Yes) return;
             _data.Lists.Remove(Active); _data.Active = 0; Save(); ReloadLists();
         }
 
@@ -221,8 +248,8 @@ namespace Sidralune.Views
             {
                 var tb = new TextBox { Text = value, Left = 12, Top = 32, Width = 340 };
                 var l = new Label { Text = label, Left = 12, Top = 10, AutoSize = true };
-                var ok = new FlatButton("OK", null) { Left = 196, Top = 66, Width = 75, Kind = ButtonKind.Primary, DialogResult = DialogResult.OK };
-                var cancel = new FlatButton("Cancel", null) { Left = 277, Top = 66, Width = 75, DialogResult = DialogResult.Cancel };
+                var ok = new FlatButton(T("OK"), null) { Left = 196, Top = 66, Width = 75, Kind = ButtonKind.Primary, DialogResult = DialogResult.OK };
+                var cancel = new FlatButton(T("Cancel"), null) { Left = 277, Top = 66, Width = 75, DialogResult = DialogResult.Cancel };
                 ok.Click += (s, e) => { f.DialogResult = DialogResult.OK; f.Close(); };
                 cancel.Click += (s, e) => { f.DialogResult = DialogResult.Cancel; f.Close(); };
                 f.Controls.AddRange(new Control[] { l, tb, ok, cancel });
@@ -242,7 +269,7 @@ namespace Sidralune.Views
             var tw = AstroEvents.Twilight(site, noon);
             var entries = Active.Entries.ToList();
             var ins = AppState.Instrument; var eye = AppState.Eye;
-            _fillJob.Replace("Planning " + Active.Name, t =>
+            _fillJob.Replace(T("Planning {0}", Active.Name), t =>
             {
                 var rows = new List<object[]>();
                 var ctxNow = new SkyContext(site, now);
@@ -280,10 +307,10 @@ namespace Sidralune.Views
                     }
                     if (_onlyVisible.Checked && maxAlt < 10) continue;
                     double moonSep = AstroMath.Separation(ra, dec, moon.Astrometric.Ra, moon.Astrometric.Dec) * AstroMath.Rad2Deg;
-                    rows.Add(new object[] { e, e.Observed, e.Name, e.Type, e.Constellation, double.IsNaN(e.Mag) ? "" : e.Mag.ToString("0.0"),
+                    rows.Add(new object[] { e, e.Observed, NameText(e), TypeText(e.Type), e.Constellation, double.IsNaN(e.Mag) ? "" : e.Mag.ToString("0.0"),
                         double.IsNaN(e.SizeArcmin) ? "" : AstroMath.FormatAngleAuto(e.SizeArcmin / 60),
-                        rs.AlwaysUp ? "circ." : hm(rs.Rise), hm(rs.Transit), rs.AlwaysUp ? "circ." : hm(rs.Set), bestT.HasValue ? hm(bestT) : "—",
-                        hz.AltDeg.ToString("0") + "°", best > double.MinValue ? rating.ToString() : (so.Planet.HasValue ? "planet" : "—"),
+                        rs.AlwaysUp ? T("circ.") : hm(rs.Rise), hm(rs.Transit), rs.AlwaysUp ? T("circ.") : hm(rs.Set), bestT.HasValue ? hm(bestT) : "—",
+                        hz.AltDeg.ToString("0") + "°", best > double.MinValue ? VisibilityResult.Label(rating) : (so.Planet.HasValue ? T("planet") : "—"),
                         double.IsNaN(bestMag) ? "" : "×" + bestMag.ToString("0"), moonSep.ToString("0") + "°", e.Notes });
                 }
                 MainForm.Instance.Post(() => { if (!t.Cts.IsCancellationRequested) ShowRows(rows, tw, noon); });
@@ -299,7 +326,10 @@ namespace Sidralune.Views
             if (_grid.Columns.Count == 0)
             {
                 _grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Obs", HeaderText = "✓", FillWeight = 12 });
-                foreach (var c in new[] { "Object", "Type", "Con", "Mag", "Size", "Rise", "Transit", "Set", "Best", "Alt now", "Visibility", "Best ×", "Moon", "Notes" }) _grid.Columns.Add(c, c);
+                // columns are found by their English names; the headers are in the interface language
+                var cols = new[] { "Object", T("Object"), "Type", T("Type"), "Con", T("Con"), "Mag", T("Mag"), "Size", T("Size"), "Rise", T("Rise"), "Transit", T("Transit"), "Set", T("Set"),
+                    "Best", T("Best"), "Alt now", T("Alt now"), "Visibility", T("Visibility"), "Best ×", T("Best ×"), "Moon", BodyNames.Name(Body.Moon), "Notes", T("Notes") };
+                for (int i = 0; i < cols.Length; i += 2) _grid.Columns.Add(cols[i], cols[i + 1]);
                 for (int i = 1; i < _grid.Columns.Count - 1; i++) _grid.Columns[i].ReadOnly = true;
                 _grid.Columns["Object"].FillWeight = 140; _grid.Columns["Type"].FillWeight = 90; _grid.Columns["Notes"].FillWeight = 120;
             }
@@ -333,7 +363,7 @@ namespace Sidralune.Views
             band(_twilight.SunSet, _twilight.SunRise, 16); band(_twilight.NauticalDusk, _twilight.NauticalDawn, 16); band(_twilight.AstronomicalDusk, _twilight.AstronomicalDawn, 22);
             var sel = _grid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(8).ToList();
             if (sel.Count == 0) sel = _grid.Rows.Cast<DataGridViewRow>().Select(r => r.Tag as ListEntry).Where(e => e != null).Take(5).ToList();
-            var moonS = _plot.AddSeries("Moon", SeriesStyle.Line, pal => pal.Moon);
+            var moonS = _plot.AddSeries(BodyNames.Name(Body.Moon), SeriesStyle.Line, pal => pal.Moon);
             moonS.DashDot = true;
             for (int i = 0; i <= 96; i++)
             {
@@ -343,7 +373,7 @@ namespace Sidralune.Views
             foreach (var e in sel)
             {
                 var so = ToSelected(e);
-                var s = _plot.AddSeries(e.Name);
+                var s = _plot.AddSeries(NameText(e));
                 for (int i = 0; i <= 96; i++)
                 {
                     var t = _noon.AddMinutes(i * 15);
@@ -352,7 +382,7 @@ namespace Sidralune.Views
                 }
             }
             _plot.FixedYMin = 0; _plot.FixedYMax = 90;
-            _plot.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = "now" });
+            _plot.Markers.Add(new PlotMarker { X = AppState.Now.ToDateTimeUtc().ToOADate(), Label = T("now") });
             _plot.Markers.Add(new PlotMarker { X = 30, Horizontal = true, Label = "30°", ThemeColor = pal => pal.TextFaint });
             _plot.Invalidate();
         }
@@ -360,9 +390,9 @@ namespace Sidralune.Views
         private void ShowLog()
         {
             var e = _grid.SelectedRows.Count > 0 ? _grid.SelectedRows[0].Tag as ListEntry : null;
-            _logTitle.Text = e != null ? e.Name : "Select an object";
+            _logTitle.Text = e != null ? NameText(e) : T("Select an object");
             _log.Rows.Clear();
-            if (_log.Columns.Count == 0) foreach (var c in new[] { "Date", "Rating", "Notes" }) _log.Columns.Add(c, c);
+            if (_log.Columns.Count == 0) { _log.Columns.Add("Date", T("Date")); _log.Columns.Add("Rating", T("Rating")); _log.Columns.Add("Notes", T("Notes")); }
             if (e == null) return;
             foreach (var l in _data.Log.Where(l => l.Object == e.Name).OrderByDescending(l => l.TimeUtc))
                 _log.Rows.Add(l.TimeUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm"), new string('★', l.Rating), l.Instrument + ": " + l.Notes);
@@ -373,10 +403,10 @@ namespace Sidralune.Views
             var e = _grid.SelectedRows.Count > 0 ? _grid.SelectedRows[0].Tag as ListEntry : null;
             if (e == null) return;
             var entry = new LogEntry { TimeUtc = DateTime.UtcNow, Object = e.Name, Site = AppState.Site.Name, Instrument = AppState.Instrument.Name, Eyepiece = AppState.Instrument.EyepieceFocalMm + " mm", Sqm = AppState.Site.SqmZenith, Notes = "" };
-            using (var f = new Form { Text = "Log observation — " + e.Name, Width = 460, Height = 420, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog })
+            using (var f = new Form { Text = T("Log observation — {0}", NameText(e)), Width = 460, Height = 420, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog })
             {
-                var pg = new PropertyGrid { Dock = DockStyle.Fill, SelectedObject = new GridAdapter(entry, "Observation"), HelpVisible = false };
-                var ok = new FlatButton("Save", Icons.Save) { Dock = DockStyle.Bottom, Kind = ButtonKind.Primary, Height = 36 };
+                var pg = new PropertyGrid { Dock = DockStyle.Fill, SelectedObject = new GridAdapter(entry, T("Observation")), HelpVisible = false };
+                var ok = new FlatButton(T("Save"), Icons.Save) { Dock = DockStyle.Bottom, Kind = ButtonKind.Primary, Height = 36 };
                 ok.Click += (s, a) => { f.DialogResult = DialogResult.OK; f.Close(); };
                 f.Controls.Add(pg); f.Controls.Add(ok);
                 Theme.Apply(f);
@@ -411,7 +441,7 @@ namespace Sidralune.Views
                 }
                 _data.Lists.Add(list); _data.Active = _data.Lists.Count - 1;
                 Save(); ReloadLists();
-                MainForm.Instance.Toast(string.Format("Imported {0} objects", list.Entries.Count));
+                MainForm.Instance.Toast(Tn("Imported {0} object", "Imported {0} objects", list.Entries.Count));
             }
         }
 
@@ -426,16 +456,17 @@ namespace Sidralune.Views
         private void Generate()
         {
             if (_generateJob.Refuse()) return;
-            var types = new[] { "All deep-sky", "Galaxies", "Nebulae", "Clusters", "Planetary nebulae", "Double stars" };
-            var choice = Prompt("Generate observing list", "Type (All deep-sky, Galaxies, Nebulae, Clusters, Planetary nebulae):", "All deep-sky");
-            if (choice == null) return;
+            var types = new[] { T("All deep-sky"), T("Galaxies"), T("Nebulae"), T("Clusters"), T("Planetary nebulae") };
+            int kind = Choose(T("Generate observing list"), T("Objects to list:"), types);
+            if (kind < 0) return;
+            var choice = types[kind];
             var site = AppState.Site;
             var now = AppState.Now;
             var local = site.ToLocal(now.ToDateTimeUtc());
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
             var ins = AppState.Instrument; var eye = AppState.Eye;
             ObservingList list = null;
-            _generateJob.Run("Generating list", t =>
+            _generateJob.Run(T("Generating list"), t =>
             {
                 var tw = AstroEvents.Twilight(site, noon);
                 var start = tw.AstronomicalDusk ?? tw.NauticalDusk ?? noon.AddHours(8);
@@ -446,11 +477,10 @@ namespace Sidralune.Views
                 var moons = ctxs.Select(c => c.BodyPlace(Body.Moon)).ToList();
                 Func<DeepSkyObject, bool> filter = d =>
                 {
-                    var c = choice.ToLowerInvariant();
-                    if (c.StartsWith("gal")) return d.Type == ObjectType.Galaxy || d.Type == ObjectType.GalaxyPair || d.Type == ObjectType.GalaxyGroup;
-                    if (c.StartsWith("neb")) return d.Type == ObjectType.EmissionNebula || d.Type == ObjectType.ReflectionNebula || d.Type == ObjectType.SupernovaRemnant || d.Type == ObjectType.ClusterNebula || d.Type == ObjectType.HIIRegion;
-                    if (c.StartsWith("clu")) return d.Type == ObjectType.OpenCluster || d.Type == ObjectType.GlobularCluster;
-                    if (c.StartsWith("plan")) return d.Type == ObjectType.PlanetaryNebula;
+                    if (kind == 1) return d.Type == ObjectType.Galaxy || d.Type == ObjectType.GalaxyPair || d.Type == ObjectType.GalaxyGroup;
+                    if (kind == 2) return d.Type == ObjectType.EmissionNebula || d.Type == ObjectType.ReflectionNebula || d.Type == ObjectType.SupernovaRemnant || d.Type == ObjectType.ClusterNebula || d.Type == ObjectType.HIIRegion;
+                    if (kind == 3) return d.Type == ObjectType.OpenCluster || d.Type == ObjectType.GlobularCluster;
+                    if (kind == 4) return d.Type == ObjectType.PlanetaryNebula;
                     return true;
                 };
                 var scored = new List<Tuple<double, DeepSkyObject>>();
@@ -475,14 +505,35 @@ namespace Sidralune.Views
             {
                 // added once done, so a stopped run adds nothing
                 _data.Lists.Add(list); _data.Active = _data.Lists.Count - 1; Save(); ReloadLists();
-                MainForm.Instance.Toast(list.Entries.Count + " objects selected for tonight");
+                MainForm.Instance.Toast(Tn("{0} object selected for tonight", "{0} objects selected for tonight", list.Entries.Count));
             });
+        }
+
+        /// <summary>A choice from a list in a small dialog: the index chosen, or -1 when cancelled.</summary>
+        public static int Choose(string title, string label, string[] options)
+        {
+            using (var f = new Form { Text = title, Width = 380, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false })
+            {
+                var combo = new ComboBox { Left = 12, Top = 32, Width = 340, DropDownStyle = ComboBoxStyle.DropDownList };
+                combo.Items.AddRange(options);
+                combo.SelectedIndex = 0;
+                var l = new Label { Text = label, Left = 12, Top = 10, AutoSize = true };
+                var ok = new FlatButton(T("OK"), null) { Left = 196, Top = 66, Width = 75, Kind = ButtonKind.Primary, DialogResult = DialogResult.OK };
+                var cancel = new FlatButton(T("Cancel"), null) { Left = 277, Top = 66, Width = 75, DialogResult = DialogResult.Cancel };
+                ok.Click += (s, e) => { f.DialogResult = DialogResult.OK; f.Close(); };
+                cancel.Click += (s, e) => { f.DialogResult = DialogResult.Cancel; f.Close(); };
+                f.Controls.AddRange(new Control[] { l, combo, ok, cancel });
+                f.AcceptButton = ok;
+                Theme.Apply(f);
+                f.HandleCreated += (s, e) => Theme.DarkTitleBar(f);
+                return f.ShowDialog() == DialogResult.OK ? combo.SelectedIndex : -1;
+            }
         }
 
         public IEnumerable<AppCommand> GetCommands()
         {
-            yield return new AppCommand { Title = "Planner: generate tonight's best list", Run = () => { MainForm.Instance.Navigate("planner"); Generate(); } };
-            yield return new AppCommand { Title = "Planner: new observing list", Run = NewList };
+            yield return new AppCommand { Title = T("Planner: generate tonight's best list"), Run = () => { MainForm.Instance.Navigate("planner"); Generate(); } };
+            yield return new AppCommand { Title = T("Planner: new observing list"), Run = NewList };
         }
     }
 }

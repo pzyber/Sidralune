@@ -1,12 +1,36 @@
 using System;
 using Sidralune.Core.Coordinates;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.Util;
 
 namespace Sidralune.Core.Ephemeris
 {
     public enum Body
     {
         Sun = 0, Mercury = 1, Venus = 2, Earth = 3, Mars = 4, Jupiter = 5, Saturn = 6, Uranus = 7, Neptune = 8, Pluto = 9, Moon = 10, EarthMoonBarycenter = 11
+    }
+
+    public static class BodyNames
+    {
+        /// <summary>A body's name in the interface language ("Saturnus" in Swedish); Body.ToString() stays English for files and scripts.</summary>
+        public static string Name(Body b)
+        {
+            switch (b)
+            {
+                case Body.Sun: return Lang.T("Sun");
+                case Body.Mercury: return Lang.T("Mercury");
+                case Body.Venus: return Lang.T("Venus");
+                case Body.Earth: return Lang.T("Earth");
+                case Body.Mars: return Lang.T("Mars");
+                case Body.Jupiter: return Lang.T("Jupiter");
+                case Body.Saturn: return Lang.T("Saturn");
+                case Body.Uranus: return Lang.T("Uranus");
+                case Body.Neptune: return Lang.T("Neptune");
+                case Body.Pluto: return Lang.T("Pluto");
+                case Body.Moon: return Lang.T("Moon");
+                default: return b.ToString();
+            }
+        }
     }
 
     /// <summary>Source of solar-system body positions in the ICRF (equatorial J2000), AU, all relative to one common origin.</summary>
@@ -27,8 +51,8 @@ namespace Sidralune.Core.Ephemeris
     /// </summary>
     public class AnalyticEphemeris : IEphemerisSource
     {
-        public string Name => "Analytic (JPL Keplerian + ELP2000/Meeus)";
-        public string Accuracy => "≈ 10\"–2' (planets), ≈ 10\" (Moon)";
+        public string Name => Lang.T("Analytic (JPL Keplerian + ELP2000/Meeus)");
+        public string Accuracy => Lang.T("≈ 10\"–2' (planets), ≈ 10\" (Moon)");
         public bool Covers(double jd) => jd > 625000 && jd < 2816000;
 
         // a, e, I, L, varpi, Omega and their rates per century (Standish Table 1, 1800-2050)

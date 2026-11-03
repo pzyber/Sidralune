@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Sidralune.Core.Coordinates;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
+using Sidralune.Core.Util;
 
 namespace Sidralune.Core.Ephemeris
 {
@@ -226,7 +227,7 @@ namespace Sidralune.Core.Ephemeris
         public static List<AstroEvent> MoonPhases(double jd1, double jd2)
         {
             var list = new List<AstroEvent>();
-            var names = new[] { "New Moon", "First Quarter", "Full Moon", "Last Quarter" };
+            var names = new[] { Lang.T("New Moon"), Lang.T("First Quarter"), Lang.T("Full Moon"), Lang.T("Last Quarter") };
             var kinds = new[] { EventKind.NewMoon, EventKind.FirstQuarter, EventKind.FullMoon, EventKind.LastQuarter };
             for (int q = 0; q < 4; q++)
             {
@@ -255,7 +256,7 @@ namespace Sidralune.Core.Ephemeris
         {
             var list = new List<AstroEvent>();
             var kinds = new[] { EventKind.MarchEquinox, EventKind.JuneSolstice, EventKind.SeptemberEquinox, EventKind.DecemberSolstice };
-            var names = new[] { "March equinox", "June solstice", "September equinox", "December solstice" };
+            var names = new[] { Lang.T("March equinox"), Lang.T("June solstice"), Lang.T("September equinox"), Lang.T("December solstice") };
             for (int k = 0; k < 4; k++)
             {
                 double target = k * 90.0;
@@ -300,21 +301,21 @@ namespace Sidralune.Core.Ephemeris
                     double r = Roots.Brent(lonDiff, t - step, t, 1e-6);
                     if (!double.IsNaN(r))
                     {
-                        string what = " in conjunction with the Sun";
+                        string what = Lang.T("{0} in conjunction with the Sun", BodyNames.Name(b));
                         if (inferior)
                         {
                             Vec3 e, v;
                             EphemerisManager.EarthHeliocentric(r, out e, out v);
-                            what = (EphemerisManager.Heliocentric(b, r) - e).Length < e.Length ? " at inferior conjunction" : " at superior conjunction";
+                            what = (EphemerisManager.Heliocentric(b, r) - e).Length < e.Length ? Lang.T("{0} at inferior conjunction", BodyNames.Name(b)) : Lang.T("{0} at superior conjunction", BodyNames.Name(b));
                         }
-                        list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Conjunction, Description = b + what });
+                        list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Conjunction, Description = what });
                     }
                 }
                 if (!inferior && Math.Abs(prev) > 170 && Math.Sign(prev) != Math.Sign(cur) && Math.Abs(cur) > 170)
                 {
                     Func<double, double> g = jd => AstroMath.NormalizeDeg180(lonDiff(jd) - 180);
                     double r = Roots.Brent(g, t - step, t, 1e-6);
-                    if (!double.IsNaN(r)) list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Opposition, Description = b + " at opposition" });
+                    if (!double.IsNaN(r)) list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Opposition, Description = Lang.T("{0} at opposition", BodyNames.Name(b)) });
                 }
                 if (inferior && !double.IsNaN(prevPrev))
                 {
@@ -327,7 +328,7 @@ namespace Sidralune.Core.Ephemeris
                         {
                             Time = AstroTime.FromTT(r),
                             Kind = el > 0 ? EventKind.GreatestElongationEast : EventKind.GreatestElongationWest,
-                            Description = string.Format("{0} greatest elongation {1} ({2:0.0}°)", b, el > 0 ? "east" : "west", Math.Abs(el)),
+                            Description = el > 0 ? Lang.T("{0} greatest elongation east ({1:0.0}°)", BodyNames.Name(b), Math.Abs(el)) : Lang.T("{0} greatest elongation west ({1:0.0}°)", BodyNames.Name(b), Math.Abs(el)),
                             Value = Math.Abs(el)
                         });
                     }
@@ -351,12 +352,12 @@ namespace Sidralune.Core.Ephemeris
                 if (p1 < p0 && p1 < p2)
                 {
                     double r = Roots.GoldenMin(dist, t - 2 * step, t, 1e-5);
-                    list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Perigee, Description = string.Format("Moon at perigee ({0:N0} km)", dist(r)), Value = dist(r) });
+                    list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Perigee, Description = Lang.T("Moon at perigee ({0:N0} km)", dist(r)), Value = dist(r) });
                 }
                 if (p1 > p0 && p1 > p2)
                 {
                     double r = Roots.GoldenMin(jd => -dist(jd), t - 2 * step, t, 1e-5);
-                    list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Apogee, Description = string.Format("Moon at apogee ({0:N0} km)", dist(r)), Value = dist(r) });
+                    list.Add(new AstroEvent { Time = AstroTime.FromTT(r), Kind = EventKind.Apogee, Description = Lang.T("Moon at apogee ({0:N0} km)", dist(r)), Value = dist(r) });
                 }
                 p0 = p1; p1 = p2;
             }
@@ -398,13 +399,13 @@ namespace Sidralune.Core.Ephemeris
                     string type;
                     double umag = (umbra + sM - s) / (2 * sM);
                     double pmag = (penumbra + sM - s) / (2 * sM);
-                    if (s + sM < umbra) type = "Total lunar eclipse";
-                    else if (s - sM < umbra) type = "Partial lunar eclipse";
-                    else type = "Penumbral lunar eclipse";
+                    if (s + sM < umbra) type = Lang.T("Total lunar eclipse");
+                    else if (s - sM < umbra) type = Lang.T("Partial lunar eclipse");
+                    else type = Lang.T("Penumbral lunar eclipse");
                     list.Add(new AstroEvent
                     {
                         Time = AstroTime.FromTT(tmin), Kind = EventKind.LunarEclipse, Value = umag > 0 ? umag : pmag,
-                        Description = string.Format("{0} (umbral mag {1:0.000}, penumbral {2:0.000})", type, umag, pmag)
+                        Description = Lang.T("{0} (umbral mag {1:0.000}, penumbral {2:0.000})", type, umag, pmag)
                     });
                 }
             }
@@ -437,9 +438,9 @@ namespace Sidralune.Core.Ephemeris
                 double sM = 0.2725076 * piM;
                 if (s < piM + sS + sM)
                 {
-                    string type = "Partial solar eclipse";
-                    if (s < piM - Math.Abs(sM - sS)) type = sM > sS ? "Total solar eclipse" : "Annular solar eclipse";
-                    list.Add(new AstroEvent { Time = AstroTime.FromTT(tmin), Kind = EventKind.SolarEclipse, Description = type + " (visible somewhere on Earth)", Value = s });
+                    string type = Lang.T("Partial solar eclipse");
+                    if (s < piM - Math.Abs(sM - sS)) type = sM > sS ? Lang.T("Total solar eclipse") : Lang.T("Annular solar eclipse");
+                    list.Add(new AstroEvent { Time = AstroTime.FromTT(tmin), Kind = EventKind.SolarEclipse, Description = Lang.T("{0} (visible somewhere on Earth)", type), Value = s });
                 }
             }
             return list;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.Util;
 using Sidralune.Imaging.Analysis;
 using Sidralune.Imaging.IO;
 using Sidralune.Imaging.Registration;
@@ -111,7 +112,8 @@ namespace Sidralune.Imaging.Stacking
         public AstroImage MasterBias, MasterDark, MasterFlat, MasterDarkFlat;
         public event Action<string> Message;
 
-        private void Msg(string s) { Message?.Invoke(s); Core.Util.Log.Info("Stacking", s); }
+        // shown in the interface language, logged in English
+        private void Msg(Func<string> text) { Message?.Invoke(text()); Core.Util.Log.Info("Stacking", Lang.InEnglish(text)); }
 
         public IEnumerable<StackFrame> Lights => Frames.Where(f => f.Kind == FrameKind.Light && f.Enabled);
 
@@ -140,7 +142,7 @@ namespace Sidralune.Imaging.Stacking
                     fr.Iso = img.Header.GetDouble("ISOSPEED"); fr.Gain = img.Gain; fr.Temperature = img.Temperature;
                     if (kind == null) fr.Kind = GuessKind(p, img);
                 }
-                catch (Exception ex) when (!(ex is OperationCanceledException)) { fr.Status = "Unreadable: " + ex.Message; fr.Enabled = false; }
+                catch (Exception ex) when (!(ex is OperationCanceledException)) { fr.Status = Lang.T("Unreadable: {0}", ex.Message); fr.Enabled = false; }
                 Frames.Add(fr);
             }
         }
@@ -156,24 +158,24 @@ namespace Sidralune.Imaging.Stacking
             Func<string, IProgress<double>> pr = stage => new Progress<double>(f => progress?.Report(new StackProgress(stage, f)));
             if (MasterBias == null && FilesOf(FrameKind.Bias).Count > 0)
             {
-                Msg("Creating master bias from " + FilesOf(FrameKind.Bias).Count + " frames");
-                MasterBias = Calibration.CreateMaster(FilesOf(FrameKind.Bias), FrameKind.Bias, s.BiasCombine, null, null, pr("Master bias"), ct);
+                Msg(() => Lang.T("Creating master bias from {0} frames", FilesOf(FrameKind.Bias).Count));
+                MasterBias = Calibration.CreateMaster(FilesOf(FrameKind.Bias), FrameKind.Bias, s.BiasCombine, null, null, pr(Lang.T("Master bias")), ct);
             }
             if (MasterDark == null && FilesOf(FrameKind.Dark).Count > 0)
             {
-                Msg("Creating master dark from " + FilesOf(FrameKind.Dark).Count + " frames");
-                MasterDark = Calibration.CreateMaster(FilesOf(FrameKind.Dark), FrameKind.Dark, s.DarkCombine, MasterBias, null, pr("Master dark"), ct);
+                Msg(() => Lang.T("Creating master dark from {0} frames", FilesOf(FrameKind.Dark).Count));
+                MasterDark = Calibration.CreateMaster(FilesOf(FrameKind.Dark), FrameKind.Dark, s.DarkCombine, MasterBias, null, pr(Lang.T("Master dark")), ct);
                 if (MasterBias != null) MasterDark.Header.Set("BIASSUB", true);
             }
             if (MasterDarkFlat == null && FilesOf(FrameKind.DarkFlat).Count > 0)
             {
-                Msg("Creating master dark flat");
-                MasterDarkFlat = Calibration.CreateMaster(FilesOf(FrameKind.DarkFlat), FrameKind.DarkFlat, s.DarkCombine, null, null, pr("Master dark flat"), ct);
+                Msg(() => Lang.T("Creating master dark flat"));
+                MasterDarkFlat = Calibration.CreateMaster(FilesOf(FrameKind.DarkFlat), FrameKind.DarkFlat, s.DarkCombine, null, null, pr(Lang.T("Master dark flat")), ct);
             }
             if (MasterFlat == null && FilesOf(FrameKind.Flat).Count > 0)
             {
-                Msg("Creating master flat from " + FilesOf(FrameKind.Flat).Count + " frames");
-                MasterFlat = Calibration.CreateMaster(FilesOf(FrameKind.Flat), FrameKind.Flat, s.FlatCombine, MasterBias, MasterDarkFlat, pr("Master flat"), ct);
+                Msg(() => Lang.T("Creating master flat from {0} frames", FilesOf(FrameKind.Flat).Count));
+                MasterFlat = Calibration.CreateMaster(FilesOf(FrameKind.Flat), FrameKind.Flat, s.FlatCombine, MasterBias, MasterDarkFlat, pr(Lang.T("Master flat")), ct);
             }
             cal.MasterBias = MasterBias;
             cal.MasterDark = MasterDark;
@@ -230,9 +232,9 @@ namespace Sidralune.Imaging.Stacking
                     f.Registered = stars.Count >= 3;
                     f.Status = f.Registered ? "Registered" : "Too few stars";
                 }
-                catch (Exception ex) when (!(ex is OperationCanceledException)) { f.Registered = false; f.Status = "Error: " + ex.Message; }
+                catch (Exception ex) when (!(ex is OperationCanceledException)) { f.Registered = false; f.Status = Lang.T("Error: {0}", ex.Message); }
                 int d = Interlocked.Increment(ref done);
-                progress?.Report(new StackProgress("Registering", (double)d / lights.Count, f.FileName));
+                progress?.Report(new StackProgress(Lang.T("Registering"), (double)d / lights.Count, f.FileName));
             });
             // reference
             StackFrame reference = null;
@@ -242,7 +244,7 @@ namespace Sidralune.Imaging.Stacking
             foreach (var l in lights) l.IsReference = l == reference;
             reference.TransformMatrix = Transform2D.Identity.M;
             reference.Matches = reference.StarCount; reference.RmsError = 0;
-            Msg(string.Format("Reference frame: {0} (score {1:0.0}, {2} stars, FWHM {3:0.00}px)", reference.FileName, reference.Score, reference.StarCount, reference.Fwhm));
+            Msg(() => Lang.T("Reference frame: {0} (score {1:0.0}, {2} stars, FWHM {3:0.00}px)", reference.FileName, reference.Score, reference.StarCount, reference.Fwhm));
             foreach (var l in lights)
             {
                 if (l == reference || !l.Registered) continue;
@@ -252,7 +254,7 @@ namespace Sidralune.Imaging.Stacking
                     l.TransformMatrix = m.Transform.M; l.Matches = m.Matches; l.RmsError = m.RmsError;
                     l.Status = string.Format("Aligned ({0} stars, rms {1:0.00}px)", m.Matches, m.RmsError);
                 }
-                else { l.Registered = false; l.Status = "Alignment failed"; }
+                else { l.Registered = false; l.Status = Lang.T("Alignment failed"); }
             }
         }
 
@@ -277,7 +279,7 @@ namespace Sidralune.Imaging.Stacking
             var use = reg.Take(keep).Where(r => r.Score >= s.MinScoreRatio * reference.Score).ToList();
             use.Remove(reference);
             use.Insert(0, reference); // normalisation uses index 0 as the reference
-            Msg(string.Format("Stacking {0} of {1} registered frames", use.Count, reg.Count));
+            Msg(() => Lang.T("Stacking {0} of {1} registered frames", use.Count, reg.Count));
 
             // geometry
             var refImg = Prepare(reference, cal);
@@ -377,7 +379,7 @@ namespace Sidralune.Imaging.Stacking
                     }
                 }
                 prepared++;
-                progress?.Report(new StackProgress("Calibrating & aligning", (double)prepared / use.Count, f.FileName));
+                progress?.Report(new StackProgress(Lang.T("Calibrating & aligning"), (double)prepared / use.Count, f.FileName));
             }
             // normalise weights
             double wmax = weights.Max();
@@ -391,12 +393,12 @@ namespace Sidralune.Imaging.Stacking
             else
             {
                 AstroImage rej;
-                result.Image = CombineFiles(warpedFiles, entropyFiles, ow, oh, ch, s.LightCombine, weights, progress, ct, "Stacking", out rej);
+                result.Image = CombineFiles(warpedFiles, entropyFiles, ow, oh, ch, s.LightCombine, weights, progress, ct, Lang.T("Stacking"), out rej);
                 result.Rejection = rej;
                 if (cometFiles != null)
                 {
                     AstroImage rej2;
-                    var cometStack = CombineFiles(cometFiles, null, ow, oh, ch, s.LightCombine, weights, progress, ct, "Stacking comet", out rej2);
+                    var cometStack = CombineFiles(cometFiles, null, ow, oh, ch, s.LightCombine, weights, progress, ct, Lang.T("Stacking comet"), out rej2);
                     if (s.Comet == CometMode.CometAligned) result.Image = cometStack;
                     else
                     {
@@ -416,9 +418,10 @@ namespace Sidralune.Imaging.Stacking
             if (scale > 1) h.Set("DRIZZLE", scale);
             h.AddHistory("Stacked by Sidralune");
             result.Duration = DateTime.Now - t0;
-            result.Report = string.Format("{0} frames, total exposure {1:0.0} min, {2:0.0} s elapsed, method {3}{4}",
-                use.Count, result.TotalExposure / 60, result.Duration.TotalSeconds, s.LightCombine.Method, scale > 1 ? ", drizzle ×" + scale : "");
-            Msg(result.Report);
+            Func<string> report = () => Lang.T("{0} frames, total exposure {1:0.0} min, {2:0.0} s elapsed, method {3}{4}",
+                use.Count, result.TotalExposure / 60, result.Duration.TotalSeconds, Lang.Option(s.LightCombine.Method.ToString()), scale > 1 ? Lang.T(", drizzle ×{0}", scale) : "");
+            result.Report = report();
+            Msg(report);
             return result;
         }
 

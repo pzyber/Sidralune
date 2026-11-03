@@ -102,7 +102,7 @@ namespace Sidralune.Devices.Automation
             else { cam.StartX = 0; cam.StartY = 0; cam.NumX = cam.SensorWidth / r.Bin; cam.NumY = cam.SensorHeight / r.Bin; }
             if (r.Gain >= 0 && cam.HasGain) cam.Gain = r.Gain;
             if (r.Offset >= 0 && cam.HasOffset) cam.Offset = r.Offset;
-            Status?.Invoke(string.Format("Exposing {0:0.###}s {1} {2}", r.Seconds, r.FrameType, r.Filter));
+            Status?.Invoke(Lang.T("Exposing {0:0.###}s {1} {2}", r.Seconds, r.FrameType, r.Filter));
             var start = DateTime.UtcNow;
             cam.StartExposure(r.Seconds, r.Light);
             using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
@@ -117,7 +117,7 @@ namespace Sidralune.Devices.Automation
                     await Task.Delay(100, ct);
                 }
             }
-            Status?.Invoke("Downloading");
+            Status?.Invoke(Lang.T("Downloading"));
             var img = await Task.Run(() => cam.GetImage(), ct);
             if (img == null) throw new InvalidOperationException("Camera returned no image");
             Annotate(img, r, start);
@@ -151,7 +151,7 @@ namespace Sidralune.Devices.Automation
             if (idx < 0) throw new ArgumentException("Unknown filter " + name);
             if (fw.Position == idx) return;
             int prevOffset = fw.Position >= 0 && fw.Position < fw.FocusOffsets.Length ? fw.FocusOffsets[fw.Position] : 0;
-            Status?.Invoke("Changing filter to " + name);
+            Status?.Invoke(Lang.T("Changing filter to {0}", name));
             fw.Position = idx;
             var until = DateTime.UtcNow.AddSeconds(60);
             while (fw.Position != idx) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Filter wheel timeout"); await Task.Delay(200, ct); }
@@ -255,7 +255,7 @@ namespace Sidralune.Devices.Automation
             double seconds = Math.Max(0, r.ExposureMs / 1000.0);
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var lastShown = DateTime.MinValue;
-            Status?.Invoke(string.Format("Live view {0}×{1} at {2:0.###} ms", size[0], size[1], r.ExposureMs));
+            Status?.Invoke(Lang.T("Live view {0}×{1} at {2:0.###} ms", size[0], size[1], r.ExposureMs));
             try
             {
                 while (true)
@@ -290,7 +290,7 @@ namespace Sidralune.Devices.Automation
             DateTime first = DateTime.MinValue, last = DateTime.MinValue;
             var lastPreview = DateTime.MinValue;
             SerWriter writer = null;
-            Status?.Invoke(string.Format("Recording {0}×{1} at {2:0.###} ms", w, h, r.ExposureMs));
+            Status?.Invoke(Lang.T("Recording {0}×{1} at {2:0.###} ms", w, h, r.ExposureMs));
             try
             {
                 while (res.Frames < r.MaxFrames && sw.Elapsed.TotalSeconds < r.MaxSeconds)
@@ -409,16 +409,16 @@ namespace Sidralune.Devices.Automation
                     var p = new AutofocusPoint { Position = pos, Hfr = cap.Hfr, Stars = cap.Stars };
                     res.Points.Add(p);
                     if (!double.IsNaN(p.Hfr) && p.Stars >= 3) good.Add(p);
-                    Status?.Invoke(string.Format("Focus {0}: HFR {1:0.00} ({2} stars)", pos, cap.Hfr, cap.Stars));
+                    Status?.Invoke(Lang.T("Focus {0}: HFR {1:0.00} ({2} stars)", pos, cap.Hfr, cap.Stars));
                     PointMeasured?.Invoke(p);
                 }
-                if (good.Count < 5) { res.Message = "Not enough stars for autofocus"; await MoveTo(foc, original, ct); return res; }
+                if (good.Count < 5) { res.Message = Lang.T("Not enough stars for autofocus"); await MoveTo(foc, original, ct); return res; }
                 var minP = good.OrderBy(p => p.Hfr).First();
                 bool atEdge = minP.Position == good.Min(p => p.Position) || minP.Position == good.Max(p => p.Position);
                 if (!atEdge) break;
                 // the minimum is not bracketed: re-centre the whole sweep on the best sample and measure again
                 centre = minP.Position + (minP.Position == good.Min(p => p.Position) ? -1 : 1) * StepSize * (Steps / 2 - 1);
-                Status?.Invoke("Minimum not bracketed, moving the focus sweep to " + centre);
+                Status?.Invoke(Lang.T("Minimum not bracketed, moving the focus sweep to {0}", centre));
             }
             good = good.OrderBy(p => p.Position).ToList();
             double[] fit = FitHyperbola(good.Select(p => (double)p.Position).ToArray(), good.Select(p => p.Hfr).ToArray());
@@ -427,13 +427,13 @@ namespace Sidralune.Devices.Automation
             res.BestHfr = fit[0];
             if (res.BestPosition < good.First().Position - StepSize || res.BestPosition > good.Last().Position + StepSize)
             {
-                res.Message = "Fit minimum outside the measured range; using the best sample";
+                res.Message = Lang.T("Fit minimum outside the measured range; using the best sample");
                 res.BestPosition = good.OrderBy(p => p.Hfr).First().Position;
             }
             await MoveTo(foc, res.BestPosition - BacklashOvershoot, ct);
             await MoveTo(foc, res.BestPosition, ct);
             res.Success = true;
-            res.Message = res.Message ?? string.Format("Best focus {0} (HFR {1:0.00})", res.BestPosition, res.BestHfr);
+            res.Message = res.Message ?? Lang.T("Best focus {0} (HFR {1:0.00})", res.BestPosition, res.BestHfr);
             Status?.Invoke(res.Message);
             return res;
         }
@@ -487,19 +487,19 @@ namespace Sidralune.Devices.Automation
             for (int attempt = 1; attempt <= MaxAttempts; attempt++)
             {
                 ct.ThrowIfCancellationRequested();
-                Status?.Invoke("Centering attempt " + attempt);
+                Status?.Invoke(Lang.T("Centering attempt {0}", attempt));
                 var cap = await Capture.Expose(new ExposureRequest { Seconds = Exposure, Bin = Bin, Save = false, FrameType = "SNAPSHOT" }, ct);
                 var opt = Solve;
                 opt.HintRa = raJ2000Deg; opt.HintDec = decJ2000Deg;
                 var cam = Capture.Devices.Camera;
                 opt.ScaleHint = 206.265 * cam.PixelSizeX * Bin / Capture.Devices.FocalLengthMm;
                 var sr = await Task.Run(() => PlateSolver.Solve(cap.Image, opt, null, ct), ct);
-                if (!sr.Success) { Status?.Invoke("Plate solve failed: " + sr.Message); continue; }
+                if (!sr.Success) { Status?.Invoke(Lang.T("Plate solve failed: {0}", sr.Message)); continue; }
                 last = sr.Wcs;
                 double cra, cdec;
                 sr.Wcs.Centre(out cra, out cdec);
                 double err = AstroMath.Separation(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, raJ2000Deg * AstroMath.Deg2Rad, decJ2000Deg * AstroMath.Deg2Rad) * AstroMath.Rad2Deg * 60;
-                Status?.Invoke(string.Format("Pointing error {0:0.00}'", err));
+                Status?.Invoke(Lang.T("Pointing error {0:0.00}'", err));
                 if (err <= ToleranceArcmin) return last;
                 var solvedNow = toJNow(cra, cdec);
                 if (UseSync && tel.CanSync) { tel.SyncToCoordinates(solvedNow[0], solvedNow[1]); await Slew(tel, target[0], target[1], ct); }
@@ -575,7 +575,7 @@ namespace Sidralune.Devices.Automation
                 var app = ctx2.IcrsToApparent(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad);
                 double ha = ctx2.Last - app.Ra;
                 pts.Add(Vec3.FromSpherical(-ha, app.Dec)); // longitude = -HA (Earth-fixed)
-                Status?.Invoke(string.Format("Point {0}: {1}", k + 1, sr.Wcs));
+                Status?.Invoke(Lang.T("Point {0}: {1}", k + 1, sr.Wcs));
             }
             // normal of the plane through the three points = mount rotation axis
             var n = Vec3.Cross(pts[1] - pts[0], pts[2] - pts[0]).Normalized();
@@ -595,9 +595,9 @@ namespace Sidralune.Devices.Automation
                 AxisRa = AstroMath.NormalizeDeg(-axHa * AstroMath.Rad2Deg), AxisDec = axLat * AstroMath.Rad2Deg
             };
             res.TotalErrorArcmin = Math.Sqrt(res.AltErrorArcmin * res.AltErrorArcmin + res.AzErrorArcmin * res.AzErrorArcmin);
-            res.Advice = string.Format("Move the polar axis {0} by {1:0.0}' and {2} by {3:0.0}'",
-                res.AltErrorArcmin > 0 ? "down" : "up", Math.Abs(res.AltErrorArcmin),
-                res.AzErrorArcmin > 0 ? (site.LatitudeDeg >= 0 ? "west" : "east") : (site.LatitudeDeg >= 0 ? "east" : "west"), Math.Abs(res.AzErrorArcmin));
+            bool west = res.AzErrorArcmin > 0 == site.LatitudeDeg >= 0;
+            res.Advice = Lang.T("Move the polar axis {0} by {1:0.0}' and {2} by {3:0.0}'",
+                res.AltErrorArcmin > 0 ? Lang.T("down") : Lang.T("up"), Math.Abs(res.AltErrorArcmin), west ? Lang.T("west") : Lang.T("east"), Math.Abs(res.AzErrorArcmin));
             return res;
         }
     }

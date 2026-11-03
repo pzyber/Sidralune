@@ -13,6 +13,7 @@ using Sidralune.Core.Observing;
 using Sidralune.Core.Time;
 using Sidralune.Core.Util;
 using Sidralune.Devices;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune
 {
@@ -41,6 +42,8 @@ namespace Sidralune
         public double SkyChartMagLimit = 6.5;
         /// <summary>Asteroid and comet labels on solved images: "All" in the field, those "Visible" (bright enough to show) or "None".</summary>
         public string MinorBodyLabels = "All";
+        /// <summary>The interface language: "" for the Windows display language, "en", a code with a .po file ("sv"), or the pseudo-language.</summary>
+        public string Language = "";
     }
 
     /// <summary>Central application state shared by all views.</summary>
@@ -212,7 +215,7 @@ namespace Sidralune
             Task.Run(() =>
             {
                 try { StopRequest.Run(t.Cts.Token, () => work(t)); } // long loops anywhere end when the job is stopped
-                catch (OperationCanceledException) { t.Status = "Cancelled"; }
+                catch (OperationCanceledException) { t.Status = T("Cancelled"); }
                 catch (Exception ex) { t.Error = ex; Log.Error(name, ex); }
                 finally
                 {
@@ -223,7 +226,7 @@ namespace Sidralune
                         Changed?.Invoke();
                         onFinished?.Invoke();
                         if (t.Cts.IsCancellationRequested) return; // neither the result nor the error of a cancelled job matters now
-                        if (t.Error != null) { if (onError != null) onError(t.Error); else MainForm.Instance?.Toast(name + " failed: " + t.Error.Message, UI.Icons.Warning, UI.Theme.Current.Danger); }
+                        if (t.Error != null) { if (onError != null) onError(t.Error); else MainForm.Instance?.Toast(T("{0} failed: {1}", name, t.Error.Message), UI.Icons.Warning, UI.Theme.Current.Danger); }
                         else onDone?.Invoke();
                     });
                 }
@@ -289,15 +292,15 @@ namespace Sidralune
         /// </summary>
         public UI.FlatButton StopButton(Func<string, bool> stoppable = null)
         {
-            var b = new UI.FlatButton("Stop", UI.Icons.Stop) { Kind = UI.ButtonKind.Danger, Enabled = false };
+            var b = new UI.FlatButton(T("Stop"), UI.Icons.Stop) { Kind = UI.ButtonKind.Danger, Enabled = false };
             b.AutoSizeToText();
             b.Click += (s, e) =>
             {
                 if (_job == null) return;
-                MainForm.Instance?.Toast(_job.Name + " stopped", UI.Icons.Info);
+                MainForm.Instance?.Toast(T("{0} stopped", _job.Name), UI.Icons.Info);
                 Cancel();
             };
-            Changed += () => b.Enabled = _job != null && (stoppable == null || stoppable(_job.Name));
+            Changed += () => { if (!b.IsDisposed) b.Enabled = _job != null && (stoppable == null || stoppable(_job.Name)); };
             return b;
         }
 
@@ -305,7 +308,7 @@ namespace Sidralune
         public bool Refuse()
         {
             if (_job == null) return false;
-            MainForm.Instance?.Toast(_job.Name + " is still running. Wait for it to finish first.", UI.Icons.Info);
+            MainForm.Instance?.Toast(T("{0} is still running. Wait for it to finish first.", _job.Name), UI.Icons.Info);
             return true;
         }
 

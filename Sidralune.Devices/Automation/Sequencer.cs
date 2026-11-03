@@ -64,7 +64,7 @@ namespace Sidralune.Devices.Automation
             {
                 Status = ItemStatus.Failed;
                 Error = ex.Message;
-                ctx.Log(Title + " failed: " + ex.Message);
+                ctx.Log(Lang.InEnglish(() => Title) + " failed: " + ex.Message);
                 if (StopOnError) throw;
             }
         }
@@ -153,7 +153,7 @@ namespace Sidralune.Devices.Automation
     public class TargetContainer : SequenceContainer
     {
         public SequenceTarget Target { get; set; } = new SequenceTarget();
-        public override string Title => "Target: " + Target.Name;
+        public override string Title => Lang.T("Target: {0}", Target.Name);
         public override string Summary => AstroMath.FormatHms(Target.RaDeg / 15, 0) + " " + AstroMath.FormatDms(Target.DecDeg, 0);
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
@@ -174,8 +174,8 @@ namespace Sidralune.Devices.Automation
         public DateTime UntilUtc { get; set; } = DateTime.UtcNow.AddHours(4);
         public double AltitudeDeg { get; set; } = 25;
         public int Completed { get; private set; }
-        public override string Title => "Loop (" + Condition + ")";
-        public override string Summary => Condition == LoopCondition.Count ? Completed + "/" + Iterations : Condition == LoopCondition.UntilAltitudeBelow ? "alt < " + AltitudeDeg + "°" : "";
+        public override string Title => Lang.T("Loop ({0})", Lang.Option(Condition.ToString()));
+        public override string Summary => Condition == LoopCondition.Count ? Completed + "/" + Iterations : Condition == LoopCondition.UntilAltitudeBelow ? Lang.T("alt < {0}°", AltitudeDeg) : "";
 
         private bool Continue(SequenceContext ctx)
         {
@@ -225,7 +225,7 @@ namespace Sidralune.Devices.Automation
 
     public class SlewToTarget : SequenceItem
     {
-        public override string Title => "Slew to target";
+        public override string Title => Lang.T("Slew to target");
         public override string[] RequiredDevices => new[] { "telescope" };
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
@@ -241,7 +241,7 @@ namespace Sidralune.Devices.Automation
         public double ToleranceArcmin { get; set; } = 1.0;
         public double Exposure { get; set; } = 5;
         public int Bin { get; set; } = 2;
-        public override string Title => "Slew, plate solve & center";
+        public override string Title => Lang.T("Slew, plate solve & center");
         public override string[] RequiredDevices => new[] { "telescope", "camera" };
         public override string Summary => "±" + ToleranceArcmin + "'";
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
@@ -256,7 +256,7 @@ namespace Sidralune.Devices.Automation
     public class StartGuiding : SequenceItem
     {
         public bool ForceCalibration { get; set; }
-        public override string Title => "Start guiding";
+        public override string Title => Lang.T("Start guiding");
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             if (ctx.Devices.Guider == null) { ctx.Log("No guider connected - skipping"); return; }
@@ -266,7 +266,7 @@ namespace Sidralune.Devices.Automation
 
     public class StopGuiding : SequenceItem
     {
-        public override string Title => "Stop guiding";
+        public override string Title => Lang.T("Stop guiding");
         protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.Devices.Guider?.StopGuiding(); return Task.FromResult(0); }
     }
 
@@ -284,7 +284,8 @@ namespace Sidralune.Devices.Automation
         public int DitherEvery { get; set; } = 1;
         public double DitherPixels { get; set; } = 5;
         public int Completed { get; private set; }
-        public override string Title => "Expose " + FrameType.ToLowerInvariant() + " frames";
+        public override string Title => FrameType == "DARK" ? Lang.T("Expose dark frames") : FrameType == "BIAS" ? Lang.T("Expose bias frames") : FrameType == "FLAT" ? Lang.T("Expose flat frames")
+            : FrameType == "LIGHT" ? Lang.T("Expose light frames") : Lang.T("Expose {0} frames", FrameType.ToLowerInvariant());
         public override string[] RequiredDevices => new[] { "camera" };
         public override string Summary => string.Format("{0}/{1} × {2}s {3} bin{4}", Completed, Count, Exposure, Filter, Bin);
 
@@ -327,9 +328,9 @@ namespace Sidralune.Devices.Automation
         public string Filter { get; set; } = "";
         public int MaxFrames { get; set; } = 1000;
         public double MaxSeconds { get; set; } = 60;
-        public override string Title => "Record video";
+        public override string Title => Lang.T("Record video");
         public override string[] RequiredDevices => new[] { "camera" };
-        public override string Summary => string.Format("{0} ms {1}{2} · {3} frames / {4} s", ExposureMs, Region, string.IsNullOrEmpty(Filter) ? "" : " " + Filter, MaxFrames, MaxSeconds);
+        public override string Summary => Lang.T("{0} ms {1}{2} · {3} frames / {4} s", ExposureMs, Region, string.IsNullOrEmpty(Filter) ? "" : " " + Filter, MaxFrames, MaxSeconds);
 
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
@@ -405,7 +406,7 @@ namespace Sidralune.Devices.Automation
         public double Exposure { get; set; } = 3;
         public int StepSize { get; set; } = 100;
         public int Steps { get; set; } = 9;
-        public override string Title => "Autofocus";
+        public override string Title => Lang.T("Autofocus");
         public override string[] RequiredDevices => new[] { "camera", "focuser" };
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
@@ -420,7 +421,7 @@ namespace Sidralune.Devices.Automation
     {
         [System.ComponentModel.TypeConverter(typeof(FilterConverter))]
         public string Filter { get; set; } = "L";
-        public override string Title => "Switch filter";
+        public override string Title => Lang.T("Switch filter");
         public override string[] RequiredDevices => new[] { "filter wheel" };
         public override string Summary => Filter;
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct) { await ctx.Capture.SetFilter(Filter, ct); ctx.CurrentFilter = Filter; }
@@ -431,8 +432,8 @@ namespace Sidralune.Devices.Automation
         public double Temperature { get; set; } = -10;
         public double Minutes { get; set; } = 10;
         public bool Warm { get; set; }
-        public override string Title => Warm ? "Warm camera" : "Cool camera";
-        public override string Summary => Warm ? "" : Temperature + " °C over " + Minutes + " min";
+        public override string Title => Warm ? Lang.T("Warm camera") : Lang.T("Cool camera");
+        public override string Summary => Warm ? "" : Lang.T("{0} °C over {1} min", Temperature, Minutes);
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             var cam = ctx.Devices.Camera;
@@ -457,8 +458,8 @@ namespace Sidralune.Devices.Automation
         public double Seconds { get; set; } = 60;
         public DateTime TimeUtc { get; set; } = DateTime.UtcNow;
         public double AltitudeDeg { get; set; } = 30;
-        public override string Title => "Wait";
-        public override string Summary => Kind == WaitKind.Seconds ? Seconds + " s" : Kind == WaitKind.UntilAltitude ? "until target alt > " + AltitudeDeg + "°" : Kind.ToString();
+        public override string Title => Lang.T("Wait");
+        public override string Summary => Kind == WaitKind.Seconds ? Lang.T("{0} s", Seconds) : Kind == WaitKind.UntilAltitude ? Lang.T("until target alt > {0}°", AltitudeDeg) : Lang.Option(Kind.ToString());
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             Func<bool> done;
@@ -479,7 +480,7 @@ namespace Sidralune.Devices.Automation
     public class ParkTelescope : SequenceItem
     {
         public bool Unpark { get; set; }
-        public override string Title => Unpark ? "Unpark telescope" : "Park telescope";
+        public override string Title => Unpark ? Lang.T("Unpark telescope") : Lang.T("Park telescope");
         public override string[] RequiredDevices => new[] { "telescope" };
         protected override Task Execute(SequenceContext ctx, CancellationToken ct) => Task.Run(() => { if (Unpark) ctx.Devices.Telescope.Unpark(); else ctx.Devices.Telescope.Park(); }, ct);
     }
@@ -487,7 +488,7 @@ namespace Sidralune.Devices.Automation
     public class DomeShutter : SequenceItem
     {
         public bool Open { get; set; } = true;
-        public override string Title => Open ? "Open dome" : "Close dome";
+        public override string Title => Open ? Lang.T("Open dome") : Lang.T("Close dome");
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             var d = ctx.Devices.Dome; if (d == null) return;
@@ -506,7 +507,7 @@ namespace Sidralune.Devices.Automation
         public string Command { get; set; } = "";
         public string Arguments { get; set; } = "";
         public int TimeoutSec { get; set; } = 300;
-        public override string Title => "Run external program";
+        public override string Title => Lang.T("Run external program");
         public override string Summary => Path.GetFileName(Command);
         protected override Task Execute(SequenceContext ctx, CancellationToken ct) => Task.Run(() =>
         {
@@ -518,7 +519,7 @@ namespace Sidralune.Devices.Automation
     public class Annotation : SequenceItem
     {
         public string Text { get; set; } = "Note";
-        public override string Title => "Note";
+        public override string Title => Lang.T("Note");
         public override string Summary => Text;
         protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.Log(Text); return Task.FromResult(0); }
     }
@@ -536,7 +537,7 @@ namespace Sidralune.Devices.Automation
     {
         public double PercentIncrease { get; set; } = 15;
         public int SampleSize { get; set; } = 5;
-        public override string Title => "Autofocus when HFR rises " + PercentIncrease + "%";
+        public override string Title => Lang.T("Autofocus when HFR rises {0}%", PercentIncrease);
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
             if (double.IsNaN(ctx.LastAutofocusHfr) || ctx.RecentHfr.Count < SampleSize) return;
@@ -548,7 +549,7 @@ namespace Sidralune.Devices.Automation
     public class AutofocusOnTemperature : SequenceTrigger
     {
         public double DeltaC { get; set; } = 1.5;
-        public override string Title => "Autofocus after " + DeltaC + " °C change";
+        public override string Title => Lang.T("Autofocus after {0} °C change", DeltaC);
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
             var f = ctx.Devices.Focuser;
@@ -560,7 +561,7 @@ namespace Sidralune.Devices.Automation
     public class AutofocusEveryN : SequenceTrigger
     {
         public int Exposures { get; set; } = 30;
-        public override string Title => "Autofocus every " + Exposures + " exposures";
+        public override string Title => Lang.Tn("Autofocus after every exposure", "Autofocus every {0} exposures", Exposures);
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
             if (ctx.ExposuresSinceAutofocus >= Exposures) await new RunAutofocus().Run(ctx, ct);
@@ -570,7 +571,7 @@ namespace Sidralune.Devices.Automation
     public class MeridianFlipTrigger : SequenceTrigger
     {
         public double MinutesAfterMeridian { get; set; } = 5;
-        public override string Title => "Meridian flip " + MinutesAfterMeridian + " min after transit";
+        public override string Title => Lang.T("Meridian flip {0} min after transit", MinutesAfterMeridian);
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
             var tel = ctx.Devices.Telescope;
@@ -586,7 +587,7 @@ namespace Sidralune.Devices.Automation
     {
         /// <summary>How often (seconds) the safety monitor is read again while waiting for safe conditions.</summary>
         public double RecheckSeconds { get; set; } = 30;
-        public override string Title => "Park and close when unsafe";
+        public override string Title => Lang.T("Park and close when unsafe");
         public override async Task Check(SequenceContext ctx, SequenceItem current, CancellationToken ct)
         {
             var s = ctx.Devices.Safety;
@@ -638,9 +639,10 @@ namespace Sidralune.Devices.Automation
         /// <summary>"This sequence needs a camera and a focuser. Connect them …" for the list from MissingDevices.</summary>
         public static string DescribeMissing(List<string> missing)
         {
-            var named = missing.Select(d => "a " + d).ToList();
-            string list = named.Count == 1 ? named[0] : string.Join(", ", named.Take(named.Count - 1)) + " and " + named[named.Count - 1];
-            return "This sequence needs " + list + ". Connect " + (named.Count == 1 ? "it" : "them") + " in Observatory → Equipment";
+            var named = missing.Select(d => d == "camera" ? Lang.T("a camera") : d == "telescope" ? Lang.T("a telescope") : d == "focuser" ? Lang.T("a focuser")
+                : d == "filter wheel" ? Lang.T("a filter wheel") : d).ToList();
+            string list = named.Count == 1 ? named[0] : Lang.T("{0} and {1}", string.Join(", ", named.Take(named.Count - 1)), named[named.Count - 1]);
+            return Lang.Tn("This sequence needs {0}. Connect it in Observatory → Equipment", "This sequence needs {0}. Connect them in Observatory → Equipment", named.Count, list);
         }
 
         public async Task Start(CaptureService capture)
