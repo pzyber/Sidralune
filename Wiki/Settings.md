@@ -152,11 +152,13 @@ The data manager lists the catalogues, orbit files and ephemerides you can downl
 | Button | Action |
 |---|---|
 | **Download selected** | Downloads and installs the ticked datasets, then loads them |
-| **Update installed** | Downloads fresh copies of everything already installed. Do this every week or two for comets and asteroids |
+| **Update installed** | Downloads fresh copies of everything already installed. Do this every week or two for comets and asteroids. Each dataset is replaced only once its new copy is complete, so a failed or stopped update keeps the installed one; the DE440s ephemeris in use is swapped for the new copy straight away |
 | **Stop** | Ends a download. A dataset that was not completely downloaded is not kept |
 | **Remove selected** | Deletes the ticked datasets. Sidralune falls back to its built-in data |
 | **Open data folder** | Opens `%LOCALAPPDATA%\Sidralune\Data` in Explorer |
 | **Reload catalogs** | Reloads every catalogue from disk, for example after copying files in by hand |
+
+When a server cannot be reached or reports an error, the other datasets are still downloaded and loaded, and a message names each dataset that could not be downloaded and why; those keep their installed copy, so try them again later. A server that fails for a moment is asked once more before giving up, and a dataset with a mirror tries the mirror.
 
 The status line shows which ephemeris and catalogues are loaded. See [Data and catalogues](Data-and-catalogues) for details of each dataset.
 

@@ -275,7 +275,7 @@ Every part of the libraries has tests, grouped by area:
 
 | File | Covers |
 |---|---|
-| `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
+| `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels (including replacing the loaded kernel during a data update), data downloads (mirrors, retries, servers that fail), events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
 | `LangTests.cs` | Interface languages: reading and writing `.po` files, plural rules (including Polish with three forms), looking up and filling in texts, the pseudo-language, regional files with only their differences, Nynorsk using Bokmål, language names, option names in words, finding marked texts (T, N, Tc, Tn) in source |
 | `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `CrwTests.cs`, `Cr3Tests.cs` | Image files (including Canon CRW and CR3 through small writers of each), debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
 | `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, image depth, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |

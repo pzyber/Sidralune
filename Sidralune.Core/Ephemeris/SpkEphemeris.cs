@@ -243,10 +243,14 @@ namespace Sidralune.Core.Ephemeris
             vel = v * (86400.0 / AstroMath.AU_km);
         }
 
+        /// <summary>Closes the file. A read still under way finishes first; later reads throw ObjectDisposedException.</summary>
         public void Dispose()
         {
-            _br.Dispose();
-            _fs.Dispose();
+            lock (_lock)
+            {
+                _br.Dispose();
+                _fs.Dispose();
+            }
         }
     }
 }

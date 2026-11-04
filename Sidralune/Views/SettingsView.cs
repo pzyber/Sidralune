@@ -207,18 +207,22 @@ namespace Sidralune.Views
                 long total = list.Sum(d => d.ApproxBytes);
                 if (MessageBox.Show(this, Tn("Download {0} dataset, about {1:0.0} MB, from public archives (JPL, MPC, GitHub, CelesTrak)?", "Download {0} datasets, about {1:0.0} MB, from public archives (JPL, MPC, GitHub, CelesTrak)?", list.Count, list.Count, total / 1048576.0),
                     T("Download data"), MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
+                // a dataset whose server fails does not stop the others: what did arrive is loaded, and the ones that
+                // did not are named afterwards (and kept as they were)
+                var failed = new List<KeyValuePair<Dataset, Exception>>();
                 Tasks.Data.Run(downloading, t =>
                 {
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var d = list[i];
-                        t.Status = T(d.Name);
-                        int idx = i;
-                        DataManager.Install(d, (done, tot) => { if (tot > 0) Tasks.Report(t, (idx + (double)done / tot) / list.Count, T(d.Name)); }, t.Cts.Token);
-                    }
+                    t.Status = T(list[0].Name);
+                    failed = DataManager.InstallAll(list, (idx, done, tot) => { if (tot > 0) Tasks.Report(t, (idx + (double)done / tot) / list.Count, T(list[idx].Name)); }, t.Cts.Token);
+                    foreach (var f in failed) Log.Error(downloading, f.Key.Name + ": " + f.Value.Message);
                     t.Status = T("loading");
                     AppState.LoadData();
-                }, () => { reload(); refreshStatus(); MainForm.Instance.Toast(T("Data installed and loaded")); });
+                }, () =>
+                {
+                    reload(); refreshStatus();
+                    if (failed.Count < list.Count) MainForm.Instance.Toast(T("Data installed and loaded"));
+                    foreach (var f in failed) MainForm.Instance.Toast(T("{0} failed: {1}", T(f.Key.Name), f.Value.Message), Icons.Warning, Theme.Current.Danger);
+                });
             };
             dl.Click += (s, e) => { grid.EndEdit(); download(grid.Rows.Cast<DataGridViewRow>().Where(r => (bool)(r.Cells[0].Value ?? false)).Select(r => (Dataset)r.Tag)); };
             upd.Click += (s, e) => download(DataManager.Datasets.Where(d => d.Installed));
@@ -229,7 +233,6 @@ namespace Sidralune.Views
                 {
                     if (!(bool)(r.Cells[0].Value ?? false)) continue;
                     var d = (Dataset)r.Tag;
-                    if (d.Id == "de440s") EphemerisManager.UnloadSpk(); // the SPK file is held open while loaded
                     try { DataManager.Remove(d); }
                     catch (IOException ex) { MainForm.Instance.Toast(T("Could not remove {0}: {1}", T(d.Name), ex.Message), Icons.Warning, Theme.Current.Warning); }
                 }
