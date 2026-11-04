@@ -53,36 +53,117 @@ namespace Sidralune.Core.Util
 
         public static Dataset Get(string id) => Datasets.Find(d => d.Id == id);
 
-        /// <summary>Download (and gunzip if needed) a dataset. progress receives (bytesDone, bytesTotal).</summary>
+        /// <summary>
+        /// Download (and gunzip if needed) a dataset. progress receives (bytesDone, bytesTotal). The installed copy, if
+        /// any, is replaced only once the new one is complete, so a failed or stopped update keeps it.
+        /// </summary>
         public static void Install(Dataset d, Action<long, long> progress = null, CancellationToken ct = default(CancellationToken))
         {
             Directory.CreateDirectory(d.Folder);
-            string target = d.Prepare != null ? d.LocalPath + ".download" : d.Gzip ? d.LocalPath + ".gz" : d.LocalPath;
-            // the dataset's own address first, then its mirrors when that server cannot be reached or fails
+            // left behind by earlier versions when the installed copy could not be replaced (now never written)
+            try { if (File.Exists(d.LocalPath + ".part")) File.Delete(d.LocalPath + ".part"); } catch (IOException) { }
+            string target = d.LocalPath + ".download", fresh = d.Prepare != null || d.Gzip ? d.LocalPath + ".new" : target;
+            // the dataset's own address first, then its mirrors when that server cannot be reached or fails; a server that
+            // is only in trouble for a moment (an error of its own, a timeout) is asked once more first
             var urls = new[] { d.Url }.Concat(d.Mirrors ?? new string[0]).ToList();
-            for (int k = 0; ; k++)
+            for (int k = 0, attempt = 1; ; )
             {
                 try { Net.Download(urls[k], target, progress, ct); break; }
-                catch (WebException ex) when (k < urls.Count - 1 && !StopRequest.Or(ct).IsCancellationRequested)
+                catch (WebException ex) when (!StopRequest.Or(ct).IsCancellationRequested)
                 {
-                    Log.Warn("Data", d.Name + ": " + new Uri(urls[k]).Host + " failed (" + ex.Message + "), trying " + new Uri(urls[k + 1]).Host);
+                    bool again = attempt == 1 && Transient(ex);
+                    if (!again && k == urls.Count - 1) throw;
+                    Log.Warn("Data", d.Name + ": " + new Uri(urls[k]).Host + " failed (" + ex.Message + "), " + (again ? "trying again" : "trying " + new Uri(urls[k + 1]).Host));
+                    if (again)
+                    {
+                        attempt++;
+                        if (StopRequest.Or(ct).WaitHandle.WaitOne(RetryDelay)) StopRequest.Or(ct).ThrowIfCancellationRequested();
+                    }
+                    else { k++; attempt = 1; }
                 }
             }
-            if (d.Prepare != null)
+            if (fresh != target)
             {
-                try { d.Prepare(target, d.LocalPath); }
+                try
+                {
+                    if (d.Prepare != null) d.Prepare(target, fresh);
+                    else Net.Gunzip(target, fresh);
+                }
+                catch { try { File.Delete(fresh); } catch { } throw; }
                 finally { File.Delete(target); }
             }
-            else if (d.Gzip)
-            {
-                Net.Gunzip(target, d.LocalPath);
-                File.Delete(target);
-            }
+            Replace(fresh, d.LocalPath);
             Log.Info("Data", "Installed " + d.Name);
+        }
+
+        /// <summary>How long to wait before asking a server again after a temporary failure.</summary>
+        public static TimeSpan RetryDelay = TimeSpan.FromSeconds(3);
+
+        /// <summary>A failure that may be gone a moment later: an error of the server's own (5xx) or a timeout.</summary>
+        private static bool Transient(WebException ex)
+        {
+            var http = ex.Response as HttpWebResponse;
+            if (ex.Status == WebExceptionStatus.ProtocolError) return http != null && (int)http.StatusCode >= 500;
+            return ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.ConnectionClosed || ex.Status == WebExceptionStatus.ReceiveFailure
+                || ex.Status == WebExceptionStatus.KeepAliveFailure;
+        }
+
+        /// <summary>
+        /// Installs several datasets in turn. One that fails (its server unreachable or in trouble) does not stop the
+        /// others; the failures are returned with their reasons. Stopping the job stops it all.
+        /// </summary>
+        /// <param name="progress">(index of the dataset, bytes done, bytes in all)</param>
+        public static List<KeyValuePair<Dataset, Exception>> InstallAll(IList<Dataset> sets, Action<int, long, long> progress = null, CancellationToken ct = default(CancellationToken))
+        {
+            var failed = new List<KeyValuePair<Dataset, Exception>>();
+            for (int i = 0; i < sets.Count; i++)
+            {
+                int index = i;
+                var d = sets[i];
+                try { Install(d, progress == null ? (Action<long, long>)null : (done, total) => progress(index, done, total), ct); }
+                catch (Exception ex) when (!(ex is OperationCanceledException) && !StopRequest.Or(ct).IsCancellationRequested)
+                {
+                    failed.Add(new KeyValuePair<Dataset, Exception>(d, ex));
+                }
+            }
+            return failed;
+        }
+
+        /// <summary>
+        /// Puts a new copy of a file in place of the installed one. A file Sidralune holds open (the loaded JPL
+        /// ephemeris) is closed first and opened again afterwards, the new copy or, if it could not be put in place,
+        /// the old one.
+        /// </summary>
+        public static void Replace(string fresh, string path)
+        {
+            bool reopen = Ephemeris.EphemerisManager.Release(path);
+            string old = path + ".old";
+            bool aside = false;
+            try
+            {
+                // the old copy is moved aside, not deleted, until the new one is in place
+                if (File.Exists(old)) File.Delete(old);
+                if (File.Exists(path)) { File.Move(path, old); aside = true; }
+                File.Move(fresh, path);
+                if (aside) try { File.Delete(old); } catch { }
+            }
+            catch
+            {
+                if (aside && !File.Exists(path)) try { File.Move(old, path); } catch { }
+                try { File.Delete(fresh); } catch { }
+                throw;
+            }
+            finally
+            {
+                if (reopen && File.Exists(path))
+                    try { Ephemeris.EphemerisManager.LoadSpk(path); }
+                    catch (Exception ex) { Log.Warn("Data", Path.GetFileName(path) + ": " + ex.Message); }
+            }
         }
 
         public static void Remove(Dataset d)
         {
+            Ephemeris.EphemerisManager.Release(d.LocalPath); // the loaded ephemeris holds its file open
             if (File.Exists(d.LocalPath)) File.Delete(d.LocalPath);
         }
     }

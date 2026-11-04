@@ -30,8 +30,22 @@ namespace Sidralune.Core.Ephemeris
 
         public static void UnloadSpk()
         {
-            if (_spk != null) { _spk.Dispose(); _spk = null; }
+            var old = _spk;
+            _spk = null; // new calculations use the analytic theory from now on
+            if (old != null) old.Dispose();
             if (SourceChanged != null) SourceChanged(null, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Closes the loaded kernel if it is the given file, so that the file can be replaced or deleted (it is held open
+        /// while loaded). Returns true if it was closed.
+        /// </summary>
+        public static bool Release(string path)
+        {
+            var spk = _spk;
+            if (spk == null || !string.Equals(Path.GetFullPath(spk.FilePath), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)) return false;
+            UnloadSpk();
+            return true;
         }
 
         /// <summary>Try to auto-load a DE kernel from the data folder.</summary>
@@ -51,14 +65,20 @@ namespace Sidralune.Core.Ephemeris
 
         private static IEphemerisSource SourceFor(double jdTDB)
         {
-            if (_spk != null && _spk.Covers(jdTDB)) return _spk;
+            var spk = _spk; // once: another thread may release it
+            if (spk != null && spk.Covers(jdTDB)) return spk;
             return Analytic;
         }
+
+        // A kernel can be closed (replaced by a data update, or removed) while a calculation on another thread is using
+        // it. Such a calculation is done again with the source in use now, rather than failing.
 
         /// <summary>Position/velocity of a body; both values refer to the same origin as GetEarth/GetSun for this jd.</summary>
         public static void State(Body b, double jdTDB, out Vec3 pos, out Vec3 vel)
         {
-            SourceFor(jdTDB).State(b, jdTDB, out pos, out vel);
+            var src = SourceFor(jdTDB);
+            try { src.State(b, jdTDB, out pos, out vel); }
+            catch (ObjectDisposedException) when (src != Analytic) { SourceFor(jdTDB).State(b, jdTDB, out pos, out vel); }
         }
 
         public static Vec3 Position(Body b, double jdTDB)
@@ -72,6 +92,13 @@ namespace Sidralune.Core.Ephemeris
         public static Vec3 Heliocentric(Body b, double jdTDB)
         {
             var src = SourceFor(jdTDB);
+            try { return Heliocentric(src, b, jdTDB); }
+            catch (ObjectDisposedException) when (src != Analytic) { return Heliocentric(SourceFor(jdTDB), b, jdTDB); }
+        }
+
+        // both bodies from the same source, so that they share an origin
+        private static Vec3 Heliocentric(IEphemerisSource src, Body b, double jdTDB)
+        {
             Vec3 p, v, s, sv;
             src.State(b, jdTDB, out p, out v);
             src.State(Body.Sun, jdTDB, out s, out sv);
@@ -82,6 +109,12 @@ namespace Sidralune.Core.Ephemeris
         public static void EarthHeliocentric(double jdTDB, out Vec3 pos, out Vec3 vel)
         {
             var src = SourceFor(jdTDB);
+            try { EarthHeliocentric(src, jdTDB, out pos, out vel); }
+            catch (ObjectDisposedException) when (src != Analytic) { EarthHeliocentric(SourceFor(jdTDB), jdTDB, out pos, out vel); }
+        }
+
+        private static void EarthHeliocentric(IEphemerisSource src, double jdTDB, out Vec3 pos, out Vec3 vel)
+        {
             Vec3 p, v, s, sv;
             src.State(Body.Earth, jdTDB, out p, out v);
             src.State(Body.Sun, jdTDB, out s, out sv);
@@ -92,7 +125,7 @@ namespace Sidralune.Core.Ephemeris
         public static Vec3 EarthVelocityForAberration(double jdTDB)
         {
             Vec3 p, v;
-            SourceFor(jdTDB).State(Body.Earth, jdTDB, out p, out v);
+            State(Body.Earth, jdTDB, out p, out v);
             return v;
         }
 

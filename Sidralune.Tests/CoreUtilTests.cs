@@ -150,6 +150,84 @@ namespace Sidralune.Tests
             CheckTrue("The PGC magnitudes are prepared", DataManager.Get("pgc-mag").Prepare != null);
         }
 
+        [TestMethod]
+        public void TestDatasetServerTrouble()
+        {
+            // a local server: /flaky.txt fails once with an error of its own (500) and then works, /broken.txt always
+            // fails with 500, /missing.txt does not exist (404), anything else is there
+            var requests = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            var server = Task.Run(() =>
+            {
+                while (true)
+                {
+                    TcpClient c;
+                    try { c = listener.AcceptTcpClient(); } catch { return; } // stopped
+                    using (c)
+                    using (var s = c.GetStream())
+                    {
+                        var buf = new byte[4096];
+                        string request = Encoding.ASCII.GetString(buf, 0, s.Read(buf, 0, buf.Length));
+                        string file = request.Split(' ')[1].TrimStart('/');
+                        int n = requests.AddOrUpdate(file, 1, (k, v) => v + 1);
+                        string status = file == "broken.txt" || (file == "flaky.txt" && n == 1) ? "500 Internal Server Error" : file == "missing.txt" ? "404 Not Found" : "200 OK";
+                        var body = Encoding.ASCII.GetBytes(status == "200 OK" ? "new " + file : status);
+                        var head = Encoding.ASCII.GetBytes("HTTP/1.1 " + status + "\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                        s.Write(head, 0, head.Length);
+                        s.Write(body, 0, body.Length);
+                    }
+                }
+            });
+            string dir = Path.Combine(Path.GetTempPath(), "sidralune_server_trouble_test");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
+            Func<string, Dataset> set = file => new Dataset { Name = "Test " + file, Url = "http://127.0.0.1:" + port + "/" + file, FileName = file, Folder = dir };
+            var delay = DataManager.RetryDelay;
+            DataManager.RetryDelay = TimeSpan.FromMilliseconds(50);
+            try
+            {
+                // a server error for a moment: asked again, and the file arrives
+                DataManager.Install(set("flaky.txt"));
+                CheckTrue("A server error is retried once and the file arrives", File.Exists(Path.Combine(dir, "flaky.txt")) && File.ReadAllText(Path.Combine(dir, "flaky.txt")) == "new flaky.txt" && requests["flaky.txt"] == 2,
+                    requests.ContainsKey("flaky.txt") ? requests["flaky.txt"] + " requests" : "no request");
+                // a missing file stays missing: not asked again
+                bool missing = false;
+                try { DataManager.Install(set("missing.txt")); } catch (WebException) { missing = true; }
+                CheckTrue("A missing file is reported without asking again", missing && requests["missing.txt"] == 1);
+
+                // updating several: the one whose server keeps failing does not stop the others, and keeps its old copy
+                File.WriteAllText(Path.Combine(dir, "broken.txt"), "old broken.txt");
+                File.WriteAllText(Path.Combine(dir, "second.txt"), "old second.txt");
+                File.WriteAllText(Path.Combine(dir, "second.txt.part"), "left by an earlier version");
+                var failed = DataManager.InstallAll(new[] { set("first.txt"), set("broken.txt"), set("second.txt") });
+                CheckTrue("The datasets after a failing one are still installed", File.ReadAllText(Path.Combine(dir, "first.txt")) == "new first.txt" && File.ReadAllText(Path.Combine(dir, "second.txt")) == "new second.txt");
+                CheckTrue("Only the failing dataset is reported, with the server's answer", failed.Count == 1 && failed[0].Key.FileName == "broken.txt" && failed[0].Value.Message.Contains("500"),
+                    string.Join(" | ", failed.Select(f => f.Key.FileName + ": " + f.Value.Message)));
+                CheckTrue("It was asked twice", requests["broken.txt"] == 2);
+                CheckTrue("Its installed copy is kept", File.ReadAllText(Path.Combine(dir, "broken.txt")) == "old broken.txt");
+                CheckTrue("No partial files are left", Directory.GetFiles(dir).All(f => f.EndsWith(".txt")), string.Join(", ", Directory.GetFiles(dir).Select(Path.GetFileName)));
+
+                // stopping the job stops everything rather than counting as failures
+                using (var cts = new CancellationTokenSource())
+                {
+                    cts.Cancel();
+                    bool stopped = false;
+                    try { DataManager.InstallAll(new[] { set("third.txt") }, null, cts.Token); }
+                    catch (OperationCanceledException) { stopped = true; }
+                    catch (WebException) { stopped = true; }
+                    CheckTrue("Stopping ends the update", stopped && !File.Exists(Path.Combine(dir, "third.txt")));
+                }
+            }
+            finally
+            {
+                DataManager.RetryDelay = delay;
+                listener.Stop();
+                server.Wait(5000);
+            }
+        }
+
         private class JsonHolder { public double Size = double.NaN, Known = 2.5; public float Small = float.NaN; public int Count; }
 
         [TestMethod]
@@ -663,6 +741,81 @@ namespace Sidralune.Tests
             bool rejected = false;
             try { new SpkEphemeris(notSpk).Dispose(); } catch (InvalidDataException) { rejected = true; }
             CheckTrue("Not an SPK file", rejected);
+        }
+
+        [TestMethod]
+        public void TestReplacingTheLoadedEphemeris()
+        {
+            // "Update installed" in Settings → Data downloads DE440s again while it is loaded, and a loaded kernel holds
+            // its file open: the update failed with "being used by another process"
+            double day = 86400, len = 10 * day;
+            Func<double, List<Tuple<int, int, double, double, double[][]>>> kernel = start => new List<Tuple<int, int, double, double, double[][]>>
+            {
+                Tuple.Create(3, 0, start, len, new[] { new[] { 1.4e8, 2e6, 3e3, 5e7, -1e6, 0, 2e7, 4e5, 1e2 }, new[] { 1.4e8, 2e6, 3e3, 5e7, -1e6, 0, 2e7, 4e5, 1e2 } }),
+                Tuple.Create(399, 3, start, len, new[] { new[] { 4000.0, 100, 0, -3000, 0, 50, 1500, 0, 0 }, new[] { 4000.0, 100, 0, -3000, 0, 50, 1500, 0, 0 } })
+            };
+            string dir = Path.Combine(Path.GetTempPath(), "SidraluneTests", "replace");
+            Directory.CreateDirectory(dir);
+            string path = Path.Combine(dir, "de440s.bsp"), fresh = path + ".new";
+            var before = EphemerisManager.Primary as SpkEphemeris;
+            string beforePath = before?.FilePath;
+            double j2000 = 2451545.0;
+            try
+            {
+                WriteSpk(path, false, kernel(-5 * day), 3); // J2000 − 5 days to + 15 days
+                EphemerisManager.LoadSpk(path);
+                bool held = false;
+                try { File.Delete(path); } catch (IOException) { held = true; } catch (UnauthorizedAccessException) { held = true; }
+                CheckTrue("A loaded kernel holds its file open", held);
+
+                // calculations go on in the background meanwhile, as in the app
+                int errors = 0, done = 0;
+                string firstError = null;
+                var stop = new ManualResetEventSlim();
+                var worker = new Thread(() =>
+                {
+                    while (!stop.IsSet)
+                    {
+                        try { Vec3 p, v; EphemerisManager.State(Body.Earth, j2000 + 5, out p, out v); Interlocked.Increment(ref done); }
+                        catch (Exception ex) { Interlocked.Increment(ref errors); if (firstError == null) firstError = ex.GetType().Name + ": " + ex.Message; }
+                    }
+                });
+                worker.Start();
+                bool replaced = true;
+                string replaceError = null;
+                try
+                {
+                    for (int i = 0; i < 20; i++)
+                    {
+                        WriteSpk(fresh, false, kernel(i == 19 ? 95 * day : -5 * day), 3); // the last one J2000 + 95 to + 115 days
+                        DataManager.Replace(fresh, path);
+                    }
+                }
+                catch (Exception ex) { replaced = false; replaceError = ex.Message; }
+                stop.Set();
+                worker.Join();
+                CheckTrue("The loaded kernel's file is replaced", replaced, replaceError);
+                var now = EphemerisManager.Primary as SpkEphemeris;
+                CheckTrue("The new kernel is loaded in its place", now != null && string.Equals(now.FilePath, path, StringComparison.OrdinalIgnoreCase) && now.Covers(j2000 + 100) && !now.Covers(j2000));
+                CheckTrue("Calculations running meanwhile never fail", errors == 0 && done > 0, errors + " errors in " + (done + errors) + " (" + firstError + ")");
+                CheckTrue("Nothing left behind", !File.Exists(fresh) && !File.Exists(path + ".old"));
+
+                // a replacement that fails keeps the installed copy, loaded
+                bool failed = false;
+                try { DataManager.Replace(Path.Combine(dir, "missing.bsp"), path); } catch (IOException) { failed = true; }
+                now = EphemerisManager.Primary as SpkEphemeris;
+                CheckTrue("A failed replacement keeps the installed kernel, loaded", failed && File.Exists(path) && now != null && now.Covers(j2000 + 100));
+
+                // removing it closes it first
+                bool removed = true;
+                try { DataManager.Remove(new Dataset { Folder = dir, FileName = "de440s.bsp" }); } catch (IOException) { removed = false; }
+                CheckTrue("A loaded kernel can be removed", removed && !File.Exists(path) && !EphemerisManager.HasHighPrecision);
+            }
+            finally
+            {
+                EphemerisManager.UnloadSpk();
+                if (beforePath != null) EphemerisManager.LoadSpk(beforePath);
+            }
         }
 
         [TestMethod]
