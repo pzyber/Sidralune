@@ -114,7 +114,7 @@ A task that works on something you could change, or that you start with a button
 
 Night vision mode replaces every colour with deep reds on black, so the screen does not ruin your dark adaptation at the telescope. Switch it with the moon button, **Ctrl+Shift+N**, **Settings → Appearance**, or the `Toggle night vision mode` command. The moon button and the setting always show the same state, and the choice is remembered.
 
-Everything follows the switch straight away, including scroll bars, drop-down lists, selected text, plots, chart overlays and plate-solve labels. Images (camera frames, stacks, plate-solving images) are shown as their brightness in red, at the same brightness as in the dark theme.
+Everything follows the switch straight away, including scroll bars, drop-down lists, selected text, plots, chart overlays and plate-solve labels. Nothing flashes white or grey while you point at, open or scroll a drop-down list, with the mouse wheel or its scroll arrows; to make sure of that, drop-down lists open at once instead of sliding open. Images (camera frames, stacks, plate-solving images) are shown as their brightness in red, at the same brightness as in the dark theme.
 
 For the best result, also turn down your screen's brightness: a red screen at full brightness still affects dark adaptation.
 

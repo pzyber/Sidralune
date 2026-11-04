@@ -188,6 +188,10 @@ namespace Sidralune.UI
         [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr hwnd, out RECT r);
         [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr hwnd, ref POINT p);
         [DllImport("user32.dll")] private static extern bool ValidateRect(IntPtr hwnd, ref RECT r);
+        [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr hwnd);
+        [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
+        [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hwnd, int cmd);
+        [DllImport("user32.dll")] private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, int key, byte alpha, int flags);
 
         /// <summary>The four strips of a frame <paramref name="t"/> pixels wide around a window of size <paramref name="sz"/>.</summary>
         private static Rectangle[] Frame(Size sz, int t) => new[]
@@ -313,13 +317,56 @@ namespace Sidralune.UI
             }
 
             private readonly bool _border;
-            public ScrollPainter(IntPtr hwnd) { _border = true; AssignHandle(hwnd); }
+
+            /// <summary>The drop-down lists whose bars are painted, for SystemColorHook (UI thread only).</summary>
+            public static readonly Dictionary<IntPtr, ScrollPainter> Lists = new Dictionary<IntPtr, ScrollPainter>();
+
+            /// <summary>A combo box's drop-down list: a bordered window with window scroll bars.</summary>
+            public ScrollPainter(IntPtr hwnd)
+            {
+                _border = true;
+                AssignHandle(hwnd);
+                Lists[hwnd] = this;
+                SystemColorHook.PaintsScrollBar = h => Lists.ContainsKey(h);
+                SystemColorHook.RepaintScrollBar = h => { ScrollPainter p; if (Lists.TryGetValue(h, out p)) p.Repaint(); };
+            }
 
             private bool _busy;
 
             protected override void WndProc(ref Message m)
             {
+                if (_border && m.Msg == 0x0082) // WM_NCDESTROY
+                {
+                    Lists.Remove(Handle);
+                    if (_cover != null) { _cover.DestroyHandle(); _cover = null; }
+                }
+                // A list scrolls by moving its scroll bar and then paints its items (WM_ERASEBKGND, WM_PAINT), which takes
+                // long enough for a bar Windows has drawn in the classic colours to show for a frame. SystemColorHook keeps
+                // comctl32 from drawing it; for anything else that does, paint the bar before the items as well as after.
+                if (_border && !_busy && Handle != IntPtr.Zero && (m.Msg == 0x000F || m.Msg == 0x0014))
+                {
+                    _busy = true;
+                    try { Paint(); } finally { _busy = false; }
+                }
+                // Windows shows the list before it has painted anything, and the empty window can be white for a frame.
+                // Keep it off the screen (cloaked) while it is being shown, paint it completely, bar included, and only
+                // then let it reach the screen.
+                bool showing = (m.Msg == 0x0046 || m.Msg == 0x0047) && m.LParam != IntPtr.Zero && (Marshal.ReadInt32(m.LParam, IntPtr.Size * 2 + 16) & 0x0040) != 0;
+                if (_border && showing && m.Msg == 0x0046) Cloak(true); // WM_WINDOWPOSCHANGING, SWP_SHOWWINDOW
+                if (_border && m.Msg == 0x0046 && m.LParam != IntPtr.Zero && (Marshal.ReadInt32(m.LParam, IntPtr.Size * 2 + 16) & 0x0080) != 0) _cover?.Hide(); // SWP_HIDEWINDOW
                 base.WndProc(ref m);
+                // WM_WINDOWPOSCHANGED without SWP_NOZORDER: the list has moved in the z-order, so put the cover back on top
+                if (_border && m.Msg == 0x0047 && m.LParam != IntPtr.Zero && (Marshal.ReadInt32(m.LParam, IntPtr.Size * 2 + 16) & 0x0004) == 0) _cover?.Raise();
+                if (_cloaked && (showing || m.Msg == 0x0047)) // WM_WINDOWPOSCHANGED: shown (or, failing that, anything else)
+                {
+                    try
+                    {
+                        // RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW
+                        if (showing) RedrawWindow(Handle, IntPtr.Zero, IntPtr.Zero, 0x0001 | 0x0004 | 0x0400 | 0x0080 | 0x0100);
+                        Repaint();
+                    }
+                    finally { Cloak(false); }
+                }
                 // GetScrollBarInfo sends SBM_GETSCROLLBARINFO (0x00EB) to scroll bar controls, so never react to our own queries
                 if (_busy || Handle == IntPtr.Zero || m.Msg == 0x00EB || m.Msg == 0x0082) return;
                 _busy = true;
@@ -341,12 +388,144 @@ namespace Sidralune.UI
                 return i;
             }
 
+            private bool _cloaked;
+
+            private void Cloak(bool on)
+            {
+                // the cover first when hiding, last when showing, so the list's own bar is never on the screen alone
+                if (on) _cover?.Cloak(true);
+                _cloaked = CloakWindow(Handle, on) && on;
+                if (!on) _cover?.Cloak(false);
+            }
+
+            /// <summary>DWMWA_CLOAK (Windows 8 and later; elsewhere this fails and windows show as before).</summary>
+            private static bool CloakWindow(IntPtr hwnd, bool on)
+            {
+                int v = on ? 1 : 0;
+                try { return DwmSetWindowAttribute(hwnd, 13, ref v, 4) == 0; } catch { return false; }
+            }
+
+            // ---- the cover over a drop-down list's scroll bar
+            // Windows draws the arrows itself while it tracks a click on them (pressed, then released), in the classic
+            // colours and outside any message the list receives, so painting over them afterwards still let them show
+            // for a frame or more. A window of our own lies over the bar instead: Windows can draw what it likes under
+            // it. It is layered and transparent to the mouse, so clicks, the wheel and dragging reach the list as before.
+
+            private BarCover _cover;
+
+            private void UpdateCover()
+            {
+                var v = Info(OBJID_VSCROLL);
+                var r = Rectangle.FromLTRB(v.rcScrollBar.Left, v.rcScrollBar.Top, v.rcScrollBar.Right, v.rcScrollBar.Bottom);
+                if (!IsWindowVisible(Handle) || (v.rgstate[0] & STATE_INVISIBLE) != 0 || r.Width <= 0 || r.Height <= 0)
+                {
+                    _cover?.Hide();
+                    return;
+                }
+                if (_cover == null) _cover = new BarCover();
+                _cover.Show(r, g => DrawBar(g, v, true, r.Location), _cloaked);
+            }
+
+            private sealed class BarCover : NativeWindow
+            {
+                private Rectangle _bounds;
+                private bool _shown;
+                private Action<Graphics> _draw;
+
+                public BarCover()
+                {
+                    // A drop-down list is a child of the desktop, which cannot own windows, so the cover is a top-level
+                    // window of its own, kept above the list in the topmost band (see Raise).
+                    CreateHandle(new CreateParams
+                    {
+                        Style = unchecked((int)0x80000000) | 0x08000000, // WS_POPUP | WS_DISABLED
+                        // WS_EX_LAYERED | WS_EX_TRANSPARENT (the mouse passes through) | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST
+                        ExStyle = 0x00080000 | 0x00000020 | 0x00000080 | 0x08000000 | 0x00000008
+                    });
+                    SetLayeredWindowAttributes(Handle, 0, 255, 0x02); // LWA_ALPHA, opaque
+                }
+
+                public void Cloak(bool on) { if (Handle != IntPtr.Zero) CloakWindow(Handle, on); }
+
+                /// <param name="holdCloaked">The list is being shown cloaked: stay cloaked until it is uncloaked.</param>
+                public void Show(Rectangle screen, Action<Graphics> draw, bool holdCloaked)
+                {
+                    if (Handle == IntPtr.Zero) return;
+                    _draw = draw;
+                    if (!_shown || screen != _bounds)
+                    {
+                        bool appearing = !_shown;
+                        // a new window shows its empty (white) surface until painted: keep it cloaked till then
+                        if (appearing) Cloak(true);
+                        // HWND_TOPMOST; SWP_NOACTIVATE | SWP_SHOWWINDOW
+                        SetWindowPos(Handle, new IntPtr(-1), screen.X, screen.Y, screen.Width, screen.Height, 0x0010 | 0x0040);
+                        _bounds = screen;
+                        _shown = true;
+                        Draw();
+                        if (appearing && !holdCloaked) Cloak(false);
+                        return;
+                    }
+                    Draw();
+                }
+
+                /// <summary>Puts the cover on top of the topmost band again (the list has just been put there).</summary>
+                public void Raise()
+                {
+                    // HWND_TOPMOST; SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE
+                    if (_shown && Handle != IntPtr.Zero) SetWindowPos(Handle, new IntPtr(-1), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
+                }
+
+                public void Hide()
+                {
+                    if (!_shown || Handle == IntPtr.Zero) return;
+                    ShowWindow(Handle, 0); // SW_HIDE
+                    _shown = false;
+                }
+
+                private void Draw()
+                {
+                    if (_draw == null || _bounds.Width <= 0 || _bounds.Height <= 0) return;
+                    var dc = GetDC(Handle);
+                    if (dc == IntPtr.Zero) return;
+                    try
+                    {
+                        using (var g = Graphics.FromHdc(dc))
+                        using (var buf = BufferedGraphicsManager.Current.Allocate(g, new Rectangle(Point.Empty, _bounds.Size)))
+                        {
+                            _draw(buf.Graphics);
+                            buf.Render(g);
+                        }
+                    }
+                    catch { }
+                    finally { ReleaseDC(Handle, dc); }
+                }
+
+                protected override void WndProc(ref Message m)
+                {
+                    if (m.Msg == 0x0014) { m.Result = (IntPtr)1; return; } // WM_ERASEBKGND: everything is painted in Draw
+                    if (m.Msg == 0x0084) { m.Result = (IntPtr)(-1); return; } // WM_NCHITTEST: HTTRANSPARENT
+                    base.WndProc(ref m);
+                    if (m.Msg == 0x000F) Draw(); // WM_PAINT
+                }
+            }
+
+            /// <summary>Paints the bar again now (the combo box calls this after it has scrolled its list).</summary>
+            public void Repaint()
+            {
+                if (_busy || Handle == IntPtr.Zero) return;
+                _busy = true;
+                try { Paint(); } finally { _busy = false; }
+            }
+
             private void Paint()
             {
                 var dc = GetWindowDC(Handle);
                 if (dc == IntPtr.Zero) return;
                 try { PaintTo(dc, true); } finally { ReleaseDC(Handle, dc); }
+                if (_border) try { UpdateCover(); } catch { }
             }
+
+            private static Rectangle ToWindow(RECT r, Point origin) => Rectangle.FromLTRB(r.Left - origin.X, r.Top - origin.Y, r.Right - origin.X, r.Bottom - origin.Y);
 
             private void PaintTo(IntPtr dc, bool include)
             {
@@ -355,24 +534,40 @@ namespace Sidralune.UI
                 if (!GetWindowRect(Handle, out w)) return;
                 try
                 {
+                    var origin = new Point(w.Left, w.Top);
+                    var none = new SCROLLBARINFO { rgstate = new[] { STATE_INVISIBLE, 0, 0, 0, 0, 0 } };
+                    SCROLLBARINFO v = none, h = none;
+                    if (!_isControl) { v = Info(OBJID_VSCROLL); h = Info(OBJID_HSCROLL); }
+                    else if (_vertical) v = Info(OBJID_CLIENT);
+                    else h = Info(OBJID_CLIENT);
                     using (var g = Graphics.FromHdc(dc))
                     {
-                        var origin = new Point(w.Left, w.Top);
                         if (_border) using (var pen = new Pen(Current.BorderStrong)) g.DrawRectangle(pen, 0, 0, w.Right - w.Left - 1, w.Bottom - w.Top - 1);
-                        if (_isControl) DrawBar(g, Info(OBJID_CLIENT), _vertical, origin);
-                        else
-                        {
-                            var v = Info(OBJID_VSCROLL); var h = Info(OBJID_HSCROLL);
-                            DrawBar(g, v, true, origin);
-                            DrawBar(g, h, false, origin);
-                            // the corner between two visible bars
-                            if ((v.rgstate[0] & STATE_INVISIBLE) == 0 && (h.rgstate[0] & STATE_INVISIBLE) == 0)
-                                using (var b = new SolidBrush(Current.Surface))
-                                    g.FillRectangle(b, v.rcScrollBar.Left - origin.X, h.rcScrollBar.Top - origin.Y, v.rcScrollBar.Right - v.rcScrollBar.Left, h.rcScrollBar.Bottom - h.rcScrollBar.Top);
-                        }
+                        DrawBuffered(g, v, true, origin);
+                        DrawBuffered(g, h, false, origin);
+                        // the corner between two visible bars
+                        if ((v.rgstate[0] & STATE_INVISIBLE) == 0 && (h.rgstate[0] & STATE_INVISIBLE) == 0)
+                            using (var b = new SolidBrush(Current.Surface))
+                                g.FillRectangle(b, v.rcScrollBar.Left - origin.X, h.rcScrollBar.Top - origin.Y, v.rcScrollBar.Right - v.rcScrollBar.Left, h.rcScrollBar.Bottom - h.rcScrollBar.Top);
                     }
                 }
                 catch { }
+            }
+
+            /// <summary>
+            /// Draws a bar off-screen and copies it in one step: drawn straight on the window, its background, arrows and
+            /// thumb would reach the screen one after another, so the thumb would blink every time the bar is repainted.
+            /// </summary>
+            private static void DrawBuffered(Graphics g, SCROLLBARINFO i, bool vertical, Point origin)
+            {
+                if ((i.rgstate[0] & STATE_INVISIBLE) != 0) return;
+                var r = ToWindow(i.rcScrollBar, origin);
+                if (r.Width <= 0 || r.Height <= 0) return;
+                using (var buf = BufferedGraphicsManager.Current.Allocate(g, r))
+                {
+                    DrawBar(buf.Graphics, i, vertical, origin);
+                    buf.Render(g);
+                }
             }
 
             private static void DrawBar(Graphics g, SCROLLBARINFO i, bool vertical, Point origin)
@@ -454,22 +649,43 @@ namespace Sidralune.UI
         [DllImport("user32.dll")] private static extern bool GetComboBoxInfo(IntPtr hwnd, ref COMBOBOXINFO info);
         [StructLayout(LayoutKind.Sequential)]
         private struct COMBOBOXINFO { public int cbSize; public RECT rcItem, rcButton; public int stateButton; public IntPtr hwndCombo, hwndItem, hwndList; }
-        private static readonly HashSet<IntPtr> HookedLists = new HashSet<IntPtr>();
+        [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
+
+        /// <summary>Runs an action after each message a control has handled.</summary>
+        private sealed class MessageTap : NativeWindow
+        {
+            private readonly Action _after;
+            public MessageTap(Control c, Action after)
+            {
+                _after = after;
+                if (c.IsHandleCreated) AssignHandle(c.Handle);
+                c.HandleCreated += (s, e) => AssignHandle(c.Handle);
+                c.HandleDestroyed += (s, e) => ReleaseHandle();
+            }
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                try { _after(); } catch { }
+            }
+        }
 
         /// <summary>The drop-down list of a combo box is a separate window with its own scroll bar.</summary>
         private static void HookComboList(ComboBox cb)
         {
+            ScrollPainter list = null;
             cb.DropDown += (s, e) =>
             {
                 try
                 {
                     var info = new COMBOBOXINFO { cbSize = Marshal.SizeOf(typeof(COMBOBOXINFO)) };
-                    if (!GetComboBoxInfo(cb.Handle, ref info) || info.hwndList == IntPtr.Zero || !HookedLists.Add(info.hwndList)) return;
+                    if (!GetComboBoxInfo(cb.Handle, ref info) || info.hwndList == IntPtr.Zero || (list != null && list.Handle == info.hwndList)) return;
                     SetWindowTheme(info.hwndList, "", "");
-                    new ScrollPainter(info.hwndList);
+                    list = new ScrollPainter(info.hwndList);
                 }
                 catch { }
             };
+            // while the list is open the combo box handles the mouse wheel and the arrow keys, and scrolls the list itself
+            new MessageTap(cb, () => { if (list != null && list.Handle != IntPtr.Zero && IsWindowVisible(list.Handle)) list.Repaint(); });
         }
 
         /// <summary>Repaint a control including its non-client area (after a theme change).</summary>
@@ -867,7 +1083,11 @@ namespace Sidralune.UI
                         if (e.Index >= 0) TextRenderer.DrawText(e.Graphics, cb.GetItemText(cb.Items[e.Index]), cb.Font, e.Bounds, cb.Enabled ? pal.Text : pal.TextFaint, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
                     };
                 }
-                try { if (cb.IsHandleCreated) SetWindowTheme(cb.Handle, "DarkMode_CFD", null); else cb.HandleCreated += (s, e) => SetWindowTheme(cb.Handle, "DarkMode_CFD", null); } catch { }
+                // The classic style (its frame and button are covered by HookComboBox, its items are owner-drawn): the
+                // themed styles animate a hot state when the pointer enters or leaves and a pressed state when the list
+                // opens, and each of those frames reached the screen in grey or white before it could be painted over.
+                if (first)
+                    try { if (cb.IsHandleCreated) SetWindowTheme(cb.Handle, "", ""); cb.HandleCreated += (s, e) => SetWindowTheme(cb.Handle, "", ""); } catch { }
             }
             else if (c is ListBox || c is CheckedListBox)
             {
