@@ -55,7 +55,7 @@ namespace Sidralune.Tests
                 wcs.Centre(out cra, out cdec);
                 double err = AstroMath.Separation(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, raTarget * AstroMath.Deg2Rad, decTarget * AstroMath.Deg2Rad) * AstroMath.Rad2Deg * 60;
                 CheckTrue("Centred within 1′ after correcting a 19′ pointing error", err <= 1, err.ToString("0.00") + "′ after " + steps.Count(s => s.StartsWith("Centering attempt")) + " attempt(s)");
-                CheckTrue("The first frame measured the pointing error", steps.Any(s => s.StartsWith("Pointing error") && double.Parse(s.Substring(15).TrimEnd('\'')) > 10), string.Join(" | ", steps));
+                CheckTrue("The first frame measured the pointing error", steps.Any(s => s.StartsWith("Pointing error") && double.Parse(s.Substring(15).TrimEnd('\''), System.Globalization.CultureInfo.InvariantCulture) > 10), string.Join(" | ", steps));
                 CheckTrue("The mount was synced to the solution", Math.Abs(tel.PointingErrorRa) < 0.05 && Math.Abs(tel.PointingErrorDec) < 0.05, tel.PointingErrorRa.ToString("0.000") + ", " + tel.PointingErrorDec.ToString("0.000"));
                 Check("Solved pixel scale at bin 2 (″/px)", wcs.PixelScale, 206.265 * 3.76 * 2 / dm.FocalLengthMm, 0.02);
 

@@ -9,7 +9,7 @@ using Sidralune.Core.Util;
 
 namespace Sidralune
 {
-    internal static class Program
+    public static class Program
     {
         [STAThread]
         private static void Main(string[] args)
@@ -22,6 +22,7 @@ namespace Sidralune
             Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
             AppState.Load();
+            Lang.Use(ArgValue(args, "--lang") ?? AppState.Settings.Language);
             var form = new MainForm();
             string shot = ArgValue(args, "--screenshot");
             if (shot != null)
@@ -67,9 +68,65 @@ namespace Sidralune
                 return;
             }
             // load catalogs and ephemerides in the background so the window appears immediately
-            Tasks.Data.Run("Loading catalogs", t => AppState.LoadData(), () => MainForm.Instance?.Toast("Catalogs and ephemerides loaded"));
+            Tasks.Data.Run(Lang.T("Loading catalogs"), t => AppState.LoadData(), () => MainForm.Instance?.Toast(Lang.T("Catalogs and ephemerides loaded")));
             form.Shown += (s, e) => form.Start();
             Application.Run(form);
+            if (RestartRequested) StartAgain(args);
+        }
+
+        /// <summary>Set by Restart: when the window has closed (and saved the settings), the program starts again.</summary>
+        public static bool RestartRequested { get; private set; }
+
+        /// <summary>Closes the window and starts Sidralune again, for example to show a newly chosen language.</summary>
+        public static void Restart()
+        {
+            RestartRequested = true;
+            MainForm.Instance.Close();
+        }
+
+        // started directly rather than through the shell: from a network drive the shell's security check can cancel the start
+        private static void StartAgain(string[] args)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Application.ExecutablePath, RestartArguments(args))
+                {
+                    UseShellExecute = false, WorkingDirectory = Environment.CurrentDirectory
+                });
+            }
+            catch (Exception ex) { Log.Error("Restart", ex.ToString()); }
+        }
+
+        /// <summary>
+        /// The command line for starting again: the same options, quoted where needed, without --lang so that the
+        /// language chosen in Settings is used.
+        /// </summary>
+        public static string RestartArguments(string[] args)
+        {
+            var kept = new System.Collections.Generic.List<string>();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--lang") { i++; continue; }
+                kept.Add(args[i]);
+            }
+            return string.Join(" ", kept.Select(Quote));
+        }
+
+        // a command-line argument as Windows reads it back: quoted when it has spaces or quotes, with quotes and the
+        // backslashes before them escaped
+        private static string Quote(string a)
+        {
+            if (a.Length > 0 && a.IndexOfAny(new[] { ' ', '\t', '"' }) < 0) return a;
+            var sb = new System.Text.StringBuilder("\"");
+            int slashes = 0;
+            foreach (var ch in a)
+            {
+                if (ch == '\\') { slashes++; continue; }
+                if (ch == '"') sb.Append('\\', slashes * 2 + 1).Append('"');
+                else sb.Append('\\', slashes).Append(ch);
+                slashes = 0;
+            }
+            return sb.Append('\\', slashes * 2).Append('"').ToString();
         }
 
         private static string ArgValue(string[] args, string key)
@@ -87,7 +144,7 @@ namespace Sidralune
                 File.WriteAllText(Path.Combine(AppPaths.Logs, "crash-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".txt"), ex.ToString());
             }
             catch { }
-            try { MainForm.Instance?.Toast("Unexpected error: " + ex.Message + " (details in the log)", Sidralune.UI.Icons.Warning, Sidralune.UI.Theme.Current.Danger); } catch { }
+            try { MainForm.Instance?.Toast(Lang.T("Unexpected error: {0} (details in the log)", ex.Message),Sidralune.UI.Icons.Warning, Sidralune.UI.Theme.Current.Danger); } catch { }
         }
     }
 }

@@ -13,6 +13,7 @@ using Sidralune.Core.Mathematics;
 using Sidralune.Core.MinorBodies;
 using Sidralune.Core.Time;
 using Sidralune.Devices;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.UI
 {
@@ -657,7 +658,7 @@ namespace Sidralune.UI
                 {
                     using (var br = new SolidBrush(_p.Planet)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
                     if (b == Body.Saturn && r > 3) using (var pen = new Pen(_p.Planet, 1.2f)) g.DrawEllipse(pen, pt.X - r * 2.2f, pt.Y - r * 0.7f, r * 4.4f, r * 1.4f);
-                    TextRenderer.DrawText(g, b.ToString(), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
+                    TextRenderer.DrawText(g, BodyNames.Name(b), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)(pt.Y - 8)), _p.Planet);
                     _hits.Add(new Hit { P = pt, R = Math.Max(8, r + 2), O = new SelectedObject { Kind = SelectedKind.Planet, Name = b.ToString(), Planet = b, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude, SizeArcmin = pl.DiameterArcsec / 60 }, Priority = 0 });
                 }
                 DrawMoons(g, pt, r, moons, moonPts);
@@ -672,7 +673,7 @@ namespace Sidralune.UI
                 {
                     using (var glow = new SolidBrush(Theme.WithAlpha(_p.Sun, 60))) g.FillEllipse(glow, pt.X - r * 2, pt.Y - r * 2, r * 4, r * 4);
                     using (var br = new SolidBrush(_p.Sun)) g.FillEllipse(br, pt.X - r, pt.Y - r, 2 * r, 2 * r);
-                    TextRenderer.DrawText(g, "Sun", Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)pt.Y - 8), _p.Sun);
+                    TextRenderer.DrawText(g, BodyNames.Name(Body.Sun), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)pt.Y - 8), _p.Sun);
                     _hits.Add(new Hit { P = pt, R = r + 3, O = new SelectedObject { Kind = SelectedKind.Planet, Name = "Sun", Planet = Body.Sun, RaDeg = sunPlace.Astrometric.RaHours * 15, DecDeg = sunPlace.Astrometric.DecDeg, Mag = -26.7 } });
                 }
             }
@@ -688,7 +689,7 @@ namespace Sidralune.UI
                     double limbPa = PlanetPhysics.BrightLimbAngle(moon.Apparent, sunPlace.Apparent) * AstroMath.Rad2Deg;
                     double north = NorthAngle(moon.Astrometric.Ra, moon.Astrometric.Dec, pt);
                     DrawMoonPhase(g, pt, r, k, north + (FlipX ^ FlipY ? limbPa : -limbPa));
-                    TextRenderer.DrawText(g, "Moon", Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)pt.Y - 8), _p.Moon);
+                    TextRenderer.DrawText(g, BodyNames.Name(Body.Moon), Theme.UiFontBold, new Point((int)(pt.X + r + 3), (int)pt.Y - 8), _p.Moon);
                     _hits.Add(new Hit { P = pt, R = r + 3, O = new SelectedObject { Kind = SelectedKind.Planet, Name = "Moon", Planet = Body.Moon, RaDeg = moon.Astrometric.RaHours * 15, DecDeg = moon.Astrometric.DecDeg } });
                 }
             }
@@ -876,7 +877,7 @@ namespace Sidralune.UI
                     g.DrawLine(pen, pt.X - 20, pt.Y, pt.X - 8, pt.Y); g.DrawLine(pen, pt.X + 8, pt.Y, pt.X + 20, pt.Y);
                     g.DrawLine(pen, pt.X, pt.Y - 20, pt.X, pt.Y - 8); g.DrawLine(pen, pt.X, pt.Y + 8, pt.X, pt.Y + 20);
                 }
-                TextRenderer.DrawText(g, "Telescope", Theme.SmallFont, new Point((int)pt.X + 14, (int)pt.Y + 12), _p.Success);
+                TextRenderer.DrawText(g, T("Telescope"), Theme.SmallFont, new Point((int)pt.X + 14, (int)pt.Y + 12), _p.Success);
             }
             catch { }
         }
@@ -959,7 +960,7 @@ namespace Sidralune.UI
             }
             if (Layers.Cardinals)
             {
-                string[] names = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+                string[] names = { Tc("compass", "N"), Tc("compass", "NE"), Tc("compass", "E"), Tc("compass", "SE"), Tc("compass", "S"), Tc("compass", "SW"), Tc("compass", "W"), Tc("compass", "NW") };
                 for (int i = 0; i < 8; i++)
                 {
                     PointF pt;
@@ -976,7 +977,7 @@ namespace Sidralune.UI
         private void DrawInfo(Graphics g, int w, int h)
         {
             var local = Site.ToLocal(Time.ToDateTimeUtc());
-            string t = string.Format("{0:yyyy-MM-dd HH:mm:ss} local · {1}   FOV {2}   mag ≤ {3:0.0}{4}", local, Site.Name, AstroMath.FormatAngleAuto(FovDeg), EffectiveMagLimit, AppState.IsLive || FixedTime.HasValue ? "" : "   (simulated time)");
+            string t = T("{0:yyyy-MM-dd HH:mm:ss} local · {1}   FOV {2}   mag ≤ {3:0.0}", local, Site.Name, AstroMath.FormatAngleAuto(FovDeg), EffectiveMagLimit) + (AppState.IsLive || FixedTime.HasValue ? "" : "   " + T("(simulated time)"));
             if (!string.IsNullOrEmpty(Caption)) t = Caption + "   " + t;
             var sz = TextRenderer.MeasureText(t, Theme.SmallFont);
             using (var b = new SolidBrush(Theme.WithAlpha(_print ? Color.White : _p.Surface, 190))) g.FillRectangle(b, 6, h - sz.Height - 10, sz.Width + 10, sz.Height + 6);
@@ -992,8 +993,8 @@ namespace Sidralune.UI
                 double ea = na + (FlipX ^ FlipY ? Math.PI / 2 : -Math.PI / 2);
                 e = new PointF(c.X + (float)(Math.Sin(ea) * 18), c.Y - (float)(Math.Cos(ea) * 18));
                 using (var pen = new Pen(_print ? Color.Black : _p.TextDim, 1.4f)) { g.DrawLine(pen, c, n); g.DrawLine(pen, c, e); }
-                TextRenderer.DrawText(g, "N", Theme.SmallFont, Point.Round(new PointF(n.X - 4, n.Y - 14)), _print ? Color.Black : _p.Text);
-                TextRenderer.DrawText(g, "E", Theme.SmallFont, Point.Round(new PointF(e.X - 12, e.Y - 6)), _print ? Color.Black : _p.Text);
+                TextRenderer.DrawText(g, Tc("compass", "N"), Theme.SmallFont, Point.Round(new PointF(n.X - 4, n.Y - 14)), _print ? Color.Black : _p.Text);
+                TextRenderer.DrawText(g, Tc("compass", "E"), Theme.SmallFont, Point.Round(new PointF(e.X - 12, e.Y - 6)), _print ? Color.Black : _p.Text);
             }
         }
 

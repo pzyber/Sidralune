@@ -15,6 +15,7 @@ using Sidralune.Core.Time;
 using Sidralune.Science.SolarSystem;
 using Sidralune.UI;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
@@ -22,26 +23,26 @@ namespace Sidralune.Views
     public class TonightView : UserControl, IActivatable
     {
         private readonly FlowLayoutPanel _flow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(10), WrapContents = true };
-        private readonly Card _night = new Card("Tonight");
+        private readonly Card _night = new Card(T("Tonight"));
         // time and site changes come quickly: the newest calculation wins, and a full one is not lost to a partial one
         private readonly JobSlot _job = new JobSlot();
         private bool _runningFull;
         private readonly NightTimeline _timeline = new NightTimeline { Dock = DockStyle.Top, Height = 76 };
         private readonly Label _nightText = new Label { Dock = DockStyle.Fill, Font = Theme.UiFont };
-        private readonly Card _moon = new Card("Moon");
+        private readonly Card _moon = new Card(T("Moon"));
         private readonly MoonGlyph _moonGlyph = new MoonGlyph { Width = 96, Height = 96, Dock = DockStyle.Left };
         private readonly Label _moonText = new Label { Dock = DockStyle.Fill, Padding = new Padding(12, 0, 0, 0) };
-        private readonly Card _planets = new Card("Planets");
+        private readonly Card _planets = new Card(T("Planets"));
         private readonly DataGridView _planetGrid = Ui.Grid();
-        private readonly Card _targets = new Card("Best deep-sky targets tonight");
+        private readonly Card _targets = new Card(T("Best deep-sky targets tonight"));
         private readonly DataGridView _targetGrid = Ui.Grid();
-        private readonly Card _events = new Card("Coming up");
+        private readonly Card _events = new Card(T("Coming up"));
         private readonly DataGridView _eventGrid = Ui.Grid();
-        private readonly Card _jupiter = new Card("Jupiter's moons");
+        private readonly Card _jupiter = new Card(T("Jupiter's moons"));
         private readonly JupiterMoonsGlyph _jupGlyph = new JupiterMoonsGlyph { Dock = DockStyle.Fill };
-        private readonly Card _minor = new Card("Comets & asteroids");
+        private readonly Card _minor = new Card(T("Comets & asteroids"));
         private readonly DataGridView _minorGrid = Ui.Grid();
-        private readonly Card _data = new Card("Getting started");
+        private readonly Card _data = new Card(T("Getting started"));
         private DateTime _lastRefresh = DateTime.MinValue;
 
         public TonightView()
@@ -59,7 +60,7 @@ namespace Sidralune.Views
             _flow.Resize += (s, e) => LayoutCards();
             foreach (var g in new[] { _planetGrid, _targetGrid, _minorGrid })
                 g.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && ((DataGridView)s).Rows[e.RowIndex].Tag is SelectedObject) MainForm.Instance.ShowObject((SelectedObject)((DataGridView)s).Rows[e.RowIndex].Tag); };
-            _targets.Subtitle = "double-click to show in the sky chart";
+            _targets.Subtitle = T("double-click to show in the sky chart");
             AppState.SiteChanged += (s, e) => Refresh(true);
             AppState.TimeChanged += (s, e) => Refresh(false);
             CatalogManager.Instance.CatalogsChanged += (s, e) => { if (IsHandleCreated) BeginInvoke(new Action(() => Refresh(true))); };
@@ -89,15 +90,15 @@ namespace Sidralune.Views
         private void BuildDataCard()
         {
             var f = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false };
-            f.Controls.Add(Ui.Hint("Sidralune works offline with a small built-in catalog. For full star fields (120,000 stars), all NGC/IC objects, constellation figures, comets and milliarcsecond planet positions, download the recommended data in Settings → Data."));
-            var b1 = new FlatButton("Open data manager", Icons.Download, (s, e) => MainForm.Instance.Navigate("settings")) { Kind = ButtonKind.Primary };
+            f.Controls.Add(Ui.Hint(T("Sidralune works offline with a small built-in catalog. For full star fields (120,000 stars), all NGC/IC objects, constellation figures, comets and milliarcsecond planet positions, download the recommended data in Settings → Data.")));
+            var b1 = new FlatButton(T("Open data manager"), Icons.Download, (s, e) => MainForm.Instance.Navigate("settings")) { Kind = ButtonKind.Primary };
             b1.AutoSizeToText();
-            var b2 = new FlatButton("Set observing site", Icons.Location, (s, e) => MainForm.Instance.Navigate("settings"));
+            var b2 = new FlatButton(T("Set observing site"), Icons.Location, (s, e) => MainForm.Instance.Navigate("settings"));
             b2.AutoSizeToText();
-            var b3 = new FlatButton("Try the simulated observatory", Icons.Observatory, (s, e) => { Tasks.Run("Connect simulators", t => Devices.DeviceManager.Instance.ConnectSimulators(), () => { MainForm.Instance.Toast("Simulated observatory connected"); MainForm.Instance.Navigate("observatory"); }); });
+            var b3 = new FlatButton(T("Try the simulated observatory"), Icons.Observatory, (s, e) => { Tasks.Run(T("Connect simulators"), t => Devices.DeviceManager.Instance.ConnectSimulators(), () => { MainForm.Instance.Toast(T("Simulated observatory connected")); MainForm.Instance.Navigate("observatory"); }); });
             b3.AutoSizeToText();
             f.Controls.Add(b1); f.Controls.Add(b2); f.Controls.Add(b3);
-            f.Controls.Add(Ui.Hint("Tip: press Ctrl+K anywhere to search objects and commands. Ctrl+Shift+N toggles red night-vision mode."));
+            f.Controls.Add(Ui.Hint(T("Tip: press Ctrl+K anywhere to search objects and commands. Ctrl+Shift+N toggles red night-vision mode.")));
             _data.Controls.Add(f);
         }
 
@@ -123,11 +124,11 @@ namespace Sidralune.Views
             var now = AppState.Now;
             var local = site.ToLocal(now.ToDateTimeUtc());
             var noon = AstroTime.FromDateTime(site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12)));
-            _night.Title = "Tonight at " + site.Name;
-            _night.Subtitle = noon.AddDays(0.5).ToDateTimeUtc().ToString("ddd d MMM yyyy");
+            _night.Title = T("Tonight at {0}", site.Name);
+            _night.Subtitle = noon.AddDays(0.5).ToDateTimeUtc().ToString("ddd d MMM yyyy", DateNames);
             if (_job.Busy && _runningFull) full = true;
             _runningFull = full;
-            _job.Replace("Computing tonight's sky", t =>
+            _job.Replace(T("Computing tonight's sky"), t =>
             {
                 var d = new NightData { Noon = noon, JdTT = now.JdTT };
                 d.Tw = AstroEvents.Twilight(site, noon);
@@ -136,7 +137,7 @@ namespace Sidralune.Views
                 d.MoonAge = AstroEvents.MoonAgeDays(now.JdTT);
                 d.MoonRs = AstroEvents.BodyRiseSet(Body.Moon, site, noon);
                 double e = AstroEvents.MoonSunElongation(now.JdTT);
-                d.Phase = e < 10 || e > 350 ? "New Moon" : e < 80 ? "Waxing crescent" : e < 100 ? "First quarter" : e < 170 ? "Waxing gibbous" : e < 190 ? "Full Moon" : e < 260 ? "Waning gibbous" : e < 280 ? "Last quarter" : "Waning crescent";
+                d.Phase = e < 10 || e > 350 ? T("New Moon") : e < 80 ? T("Waxing crescent") : e < 100 ? T("First Quarter") : e < 170 ? T("Waxing gibbous") : e < 190 ? T("Full Moon") : e < 260 ? T("Waning gibbous") : e < 280 ? T("Last Quarter") : T("Waning crescent");
                 Func<AstroTime?, string> hm = x => x.HasValue ? site.ToLocal(x.Value.ToDateTimeUtc()).ToString("HH:mm") : "—";
                 foreach (var b in new[] { Body.Mercury, Body.Venus, Body.Mars, Body.Jupiter, Body.Saturn, Body.Uranus, Body.Neptune })
                 {
@@ -145,7 +146,7 @@ namespace Sidralune.Views
                     var rs = AstroEvents.BodyRiseSet(b, site, noon);
                     var con = CatalogManager.Instance.ConstellationAt(pl.Astrometric.Ra, pl.Astrometric.Dec);
                     var so = new SelectedObject { Kind = SelectedKind.Planet, Planet = b, Name = b.ToString(), RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude };
-                    d.Planets.Add(new object[] { so, b.ToString(), hm(rs.Rise), hm(rs.Transit), hm(rs.Set), pl.Magnitude.ToString("0.0"), pl.DiameterArcsec.ToString("0.0") + "\"", con != null ? con.Abbr : "", pl.Horizontal.AltDeg.ToString("0") + "°" });
+                    d.Planets.Add(new object[] { so, BodyNames.Name(b), hm(rs.Rise), hm(rs.Transit), hm(rs.Set), pl.Magnitude.ToString("0.0"), pl.DiameterArcsec.ToString("0.0") + "\"", con != null ? con.Abbr : "", pl.Horizontal.AltDeg.ToString("0") + "°" });
                 }
                 Tasks.Report(t, 0.3);
                 // best targets: sample the dark hours, take each object's best detection margin with the current instrument
@@ -181,7 +182,7 @@ namespace Sidralune.Views
                     {
                         var o = s.Item2;
                         d.Targets.Add(new object[] { SelectedObject.From(o), o.DisplayName, DeepSkyObject.TypeLabel(o.Type), o.Constellation, double.IsNaN(o.Mag) ? "" : o.Mag.ToString("0.0"),
-                            double.IsNaN(o.MajorAxis) ? "" : AstroMath.FormatAngleAuto(o.MajorAxis / 60), hm(s.Item3), s.Item4.ToString("0") + "°", s.Item5.ToString(), s.Item1.ToString("+0.0") });
+                            double.IsNaN(o.MajorAxis) ? "" : AstroMath.FormatAngleAuto(o.MajorAxis / 60), hm(s.Item3), s.Item4.ToString("0") + "°", VisibilityResult.Label(s.Item5), s.Item1.ToString("+0.0") });
                     }
                 }
                 Tasks.Report(t, 0.7);
@@ -199,10 +200,10 @@ namespace Sidralune.Views
                         foreach (var yr in new[] { year, year + 1 })
                         {
                             var pk = ms.PeakIn(yr);
-                            if (pk.JdTT >= j1 && pk.JdTT <= j1 + 90) ev.Add(new AstroEvent { Time = pk, Kind = EventKind.MeteorShowerPeak, Description = string.Format("{0} meteor shower peak (ZHR {1})", ms.Name, ms.Zhr) });
+                            if (pk.JdTT >= j1 && pk.JdTT <= j1 + 90) ev.Add(new AstroEvent { Time = pk, Kind = EventKind.MeteorShowerPeak, Description = T("{0} meteor shower peak (ZHR {1})", ms.DisplayName, ms.Zhr) });
                         }
                     foreach (var x in ev.OrderBy(x => x.Time.JdUtc).Take(30))
-                        d.Events.Add(new object[] { null, site.ToLocal(x.Time.ToDateTimeUtc()).ToString("ddd dd MMM HH:mm"), x.Description });
+                        d.Events.Add(new object[] { null, site.ToLocal(x.Time.ToDateTimeUtc()).ToString("ddd dd MMM HH:mm", DateNames), x.Description });
                 }
                 Tasks.Report(t, 0.85);
                 foreach (var mb in MinorBodyStore.Instance.All)
@@ -214,7 +215,7 @@ namespace Sidralune.Views
                         if (double.IsNaN(pl.Magnitude) || pl.Magnitude > 12) continue;
                         var so = new SelectedObject { Kind = SelectedKind.MinorBody, Minor = mb, Name = mb.DisplayName, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude };
                         var con = CatalogManager.Instance.ConstellationAt(pl.Astrometric.Ra, pl.Astrometric.Dec);
-                        d.Minor.Add(new object[] { so, mb.DisplayName, pl.Magnitude.ToString("0.0"), con != null ? con.Abbr : "", pl.Elongation * AstroMath.Rad2Deg > 0 ? (pl.Elongation * AstroMath.Rad2Deg).ToString("0") + "°" : "", pl.Horizontal.AltDeg.ToString("0") + "°", pl.Distance.ToString("0.00") + " AU" });
+                        d.Minor.Add(new object[] { so, mb.DisplayName, pl.Magnitude.ToString("0.0"), con != null ? con.Abbr : "", pl.Elongation * AstroMath.Rad2Deg > 0 ? (pl.Elongation * AstroMath.Rad2Deg).ToString("0") + "°" : "", pl.Horizontal.AltDeg.ToString("0") + "°", T("{0:0.00} AU", pl.Distance) });
                     }
                     catch { }
                 }
@@ -230,21 +231,22 @@ namespace Sidralune.Views
             Func<AstroTime?, string> hm = x => x.HasValue ? site.ToLocal(x.Value.ToDateTimeUtc()).ToString("HH:mm") : "—";
             var tw = d.Tw;
             _timeline.Set(tw, d.Noon, site);
-            _nightText.Text = string.Format(
-                "Sunset {0}   ·   civil {1}   ·   nautical {2}   ·   astronomical {3}\r\n" +
-                "Astronomical dawn {4}   ·   sunrise {5}\r\n\r\n" +
-                "Astronomical darkness: {6}   ·   moonlight-free: {7}",
-                hm(tw.SunSet), hm(tw.CivilDusk), hm(tw.NauticalDusk), hm(tw.AstronomicalDusk), hm(tw.AstronomicalDawn), hm(tw.SunRise),
-                tw.DarkHours > 0 ? string.Format("{0:0.0} h", tw.DarkHours) : "none (twilight all night)", MoonFreeText(d));
+            _nightText.Text =
+                T("Sunset {0}   ·   civil {1}   ·   nautical {2}   ·   astronomical {3}", hm(tw.SunSet), hm(tw.CivilDusk), hm(tw.NauticalDusk), hm(tw.AstronomicalDusk)) + "\r\n" +
+                T("Astronomical dawn {0}   ·   sunrise {1}", hm(tw.AstronomicalDawn), hm(tw.SunRise)) + "\r\n\r\n" +
+                T("Astronomical darkness: {0}   ·   moonlight-free: {1}", tw.DarkHours > 0 ? T("{0:0.0} h", tw.DarkHours) : T("none (twilight all night)"), MoonFreeText(d));
             _moonGlyph.Set(d.Moon.IlluminatedFraction, AstroEvents.MoonSunElongation(d.JdTT) < 180);
-            _moonText.Text = string.Format("{0}\r\n{1:0}% illuminated · {2:0.0} days old\r\nRise {3} · set {4}\r\nDistance {5:N0} km\r\nAltitude now {6:+0;-0}°",
-                d.Phase, d.Moon.IlluminatedFraction * 100, d.MoonAge, hm(d.MoonRs.Rise), hm(d.MoonRs.Set), d.Moon.Distance * AstroMath.AU_km, d.Moon.Horizontal.AltDeg);
-            Fill(_planetGrid, new[] { "Planet", "Rise", "Transit", "Set", "Mag", "Size", "Con", "Alt" }, d.Planets);
-            Fill(_targetGrid, new[] { "Object", "Type", "Con", "Mag", "Size", "Best", "Alt", "Visibility", "Margin" }, d.Targets);
-            if (full) Fill(_eventGrid, new[] { "When", "Event" }, d.Events);
+            _moonText.Text = d.Phase + "\r\n" +
+                T("{0:0}% illuminated · {1:0.0} days old", d.Moon.IlluminatedFraction * 100, d.MoonAge) + "\r\n" +
+                T("Rise {0} · set {1}", hm(d.MoonRs.Rise), hm(d.MoonRs.Set)) + "\r\n" +
+                T("Distance {0:N0} km", d.Moon.Distance * AstroMath.AU_km) + "\r\n" +
+                T("Altitude now {0:+0;-0}°", d.Moon.Horizontal.AltDeg);
+            Fill(_planetGrid, new[] { T("Planet"), T("Rise"), T("Transit"), T("Set"), T("Mag"), T("Size"), T("Con"), T("Alt") }, d.Planets);
+            Fill(_targetGrid, new[] { T("Object"), T("Type"), T("Con"), T("Mag"), T("Size"), T("Best"), T("Alt"), T("Visibility"), T("Margin") }, d.Targets);
+            if (full) Fill(_eventGrid, new[] { T("When"), T("Event") }, d.Events);
             if (_eventGrid.Columns.Count > 1) { _eventGrid.Columns[0].FillWeight = 35; }
-            Fill(_minorGrid, new[] { "Object", "Mag", "Con", "Elong.", "Alt", "Δ" }, d.Minor);
-            if (d.Targets.Count == 0) _targets.Subtitle = "no dark sky tonight, or no objects above 20°";
+            Fill(_minorGrid, new[] { T("Object"), T("Mag"), T("Con"), T("Elong."), T("Alt"), "Δ" }, d.Minor);
+            if (d.Targets.Count == 0) _targets.Subtitle = T("no dark sky tonight, or no objects above 20°");
             _jupGlyph.Set(GalileanMoons.Positions(d.JdTT));
             Theme.Apply(this);
         }
@@ -255,7 +257,7 @@ namespace Sidralune.Views
             double a = d.Tw.AstronomicalDusk.Value.JdUtc, b = d.Tw.AstronomicalDawn.Value.JdUtc, dark = 0;
             for (double t = a; t < b; t += 1.0 / 96)
                 if (AstroEvents.BodyAltitude(Body.Moon, AppState.Site, new AstroTime(t)) < -0.5) dark += 0.25;
-            return string.Format("{0:0.0} h", dark);
+            return T("{0:0.0} h", dark);
         }
 
         private static void Fill(DataGridView g, string[] cols, List<object[]> rows)
@@ -362,8 +364,8 @@ namespace Sidralune.Views
             float cx = Width / 2f, cy = Height / 2f - 8;
             float scale = (Width / 2f - 20) / 28f;
             using (var b = new SolidBrush(p.Planet)) g.FillEllipse(b, cx - scale, cy - scale * 0.935f, 2 * scale, 2 * scale * 0.935f);
-            TextRenderer.DrawText(g, "E", Theme.SmallFont, new Point(4, (int)cy - 6), p.TextDim);
-            TextRenderer.DrawText(g, "W", Theme.SmallFont, new Point(Width - 16, (int)cy - 6), p.TextDim);
+            TextRenderer.DrawText(g, Tc("compass", "E"), Theme.SmallFont, new Point(4, (int)cy - 6), p.TextDim);
+            TextRenderer.DrawText(g, Tc("compass", "W"), Theme.SmallFont, new Point(Width - 16, (int)cy - 6), p.TextDim);
             // names alternately under and over the dots, moved aside where two would overlap
             var shown = _m.Select((m, i) => new { m, i }).Where(o => !o.m.Occulted).ToList();
             var dots = shown.Select(o => new PointF(cx + (float)o.m.X * scale, cy - (float)o.m.Y * scale)).ToList();
@@ -373,7 +375,7 @@ namespace Sidralune.Views
                 using (var b = new SolidBrush(shown[k].m.Transit ? p.TextDim : p.Text)) g.FillEllipse(b, dots[k].X - 3, dots[k].Y - 3, 6, 6);
                 TextRenderer.DrawText(g, shown[k].m.Name, Theme.SmallFont, at[k], p.TextDim);
             }
-            string ev = string.Join(", ", _m.Where(m => m.Transit || m.Occulted).Select(m => m.Name + (m.Transit ? " in transit" : " hidden")));
+            string ev = string.Join(", ", _m.Where(m => m.Transit || m.Occulted).Select(m => m.Transit ? T("{0} in transit", m.Name) : T("{0} hidden", m.Name)));
             if (ev.Length > 0) TextRenderer.DrawText(g, ev, Theme.SmallFont, new Point(6, Height - 18), p.Warning);
         }
     }

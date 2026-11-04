@@ -13,6 +13,7 @@ The project lives at <https://github.com/pzyber/Sidralune>.
 - [Suggesting a feature](#suggesting-a-feature)
 - [Asking a question](#asking-a-question)
 - [Improving the documentation](#improving-the-documentation)
+- [Translating Sidralune](#translating-sidralune)
 - [Contributing code](#contributing-code)
   - [Setting up](#setting-up)
   - [Repository layout](#repository-layout)
@@ -84,6 +85,20 @@ The user manual is the `Wiki` folder, written in GitHub-flavoured Markdown and p
 - Link between pages by page name, without `.md`: `[Sky chart](Sky-chart)` or `[Printing](Sky-chart#printing-finder-charts)`. Add new pages to `_Sidebar.md` and `Home.md`.
 - Update the page when you change the behaviour it describes, in the same pull request.
 
+## Translating Sidralune
+
+The interface is written in English and translated with gettext `.po` files in `Sidralune/Languages`, one per language and named after its code: `sv.po` for Swedish, `nb.po` for Norwegian Bokmål, `pt-BR.po` for Brazilian Portuguese. `Sidralune.pot` is the template that lists every text to translate. Any text without a translation is shown in English, so a language can be added a little at a time.
+
+To start a new language:
+
+1. Copy `Sidralune.pot` to `<code>.po`, or open the template in [Poedit](https://poedit.net) (free) and choose **Create new translation**.
+2. Set `Language:` in the header to the code, and `Plural-Forms:` to your language's rule (Poedit fills it in). Swedish, Norwegian, Danish, German and English use `nplurals=2; plural=(n != 1);`.
+3. Translate the `msgstr` lines. Keep placeholders such as `{0}` and `{1:0.0}` exactly as they are; you may move them within the sentence. Keep `\n` line breaks and keyboard keys (`Ctrl+K`, `N/E/S/W`) as they are.
+4. Leave out what should not be translated: constellation and star names, catalogue designations (`M 31`, `NGC 7000`) and units.
+5. To try it, copy the file to `Languages` next to `Sidralune.exe` (the build does this for you), then choose the language in **Settings → Appearance → Language** and restart. `Sidralune.exe --lang <code>` starts in a language without changing the setting.
+
+When you update a translation after the template has changed, Poedit's **Update from POT file** adds the new texts and marks the changed ones as fuzzy; fuzzy entries are not used until you have checked them. Keep the row labels short: in Settings they have a fixed width, and the application tests check that the Swedish ones fit.
+
 ## Contributing code
 
 > [!NOTE]  
@@ -127,6 +142,7 @@ Always build and run the library tests before building the application, build th
 | `Sidralune/Views` | One `UserControl` per workspace (`SkyView`, `PlannerView`, `StackingView`, …) |
 | `Sidralune/UI` | Theme and palettes, custom controls, `ImageViewer`, `PlotControl`, `SkyChart`, `StarChart` (the all-sky star chart page, drawn in millimetres for screen, printer and 300 dpi images), and the hooks that theme native Windows parts (`ScrollOverlays` for scroll bars, `SystemColorHook` for text selection) |
 | `Sidralune/Scripting` | C# script host and example scripts |
+| `Sidralune/Languages` | Interface translations: `Sidralune.pot` (the template) and one `.po` file per language, copied next to the program when it is built |
 | `Sidralune.Core/Math` | Vectors, statistics, FFT, linear algebra, optimisation (Levenberg-Marquardt, Nelder-Mead, MCMC) |
 | `Sidralune.Core/Time` | Time scales, Julian dates, leap seconds, ΔT |
 | `Sidralune.Core/Coordinates` | Precession, nutation, coordinate transforms, refraction |
@@ -135,7 +151,7 @@ Always build and run the library tests before building the application, build th
 | `Sidralune.Core/MinorBodies` | MPC formats, orbit propagation, N-body integrator |
 | `Sidralune.Core/Satellites` | TLE parsing and SGP4 |
 | `Sidralune.Core/Observing` | Visibility model, exposure calculator |
-| `Sidralune.Core/Util` | CSV, JSON, HTTP, paths, logging, dataset manager |
+| `Sidralune.Core/Util` | CSV, JSON, HTTP, paths, logging, dataset manager, interface languages (`Lang`: `T()` and the `.po` reader) |
 | `Sidralune.Imaging` | Image model, file formats (`IO`), analysis, processing, registration, stacking, planetary tools |
 | `Sidralune.Science` | Astrometry, photometry, spectroscopy, solar system, radio, online databases |
 | `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, PHD2, capture, sequencer |
@@ -153,7 +169,7 @@ The library and test projects (`Sidralune.Core`, `Sidralune.Imaging`, `Sidralune
 - Long work runs through `Tasks.Run(name, work, onDone, onError)`. The work runs on a background thread, shows progress in the status bar and can be cancelled; `onDone` and `onError` run on the UI thread, and neither runs for a cancelled task. Use `Tasks.Report(task, fraction, status)` for progress and `task.Cts.Token` for cancellation. Use `MainForm.Instance.Post(action)` to update controls from other threads.
 - Start a view's long work through a `JobSlot` (in `AppState.cs`) rather than `Tasks.Run` directly. `slot.Run(...)` allows one job at a time: hand the slot the controls that start the job or change its input with `slot.Guard(...)`, and they are disabled while it runs; entry points that are not buttons (dropped files, images sent from other workspaces, keyboard shortcuts) call `slot.Refuse()` first. `slot.Replace(...)` is for recalculations and look-ups: it cancels the running job, so only the newest result is shown. Build results in local variables and apply them in `onDone`, never by writing view fields from the background thread. Opening an image is long work too (`ImageFile.Load` of a large raw or FITS file, debayering): show the file dialog on the UI thread, then load in the slot's job; read any settings from controls before the job starts. A job that uses an options object shown in a property grid gets a copy of it (`Clone()`), so the grid can stay editable while the job works; the result is shown with the options it was made with. Catalogue loading, downloads and reloads share the app-wide `Tasks.Data` slot.
 - Notifications use `MainForm.Instance.Toast(text, icon, colour)`. Avoid message boxes except for confirmations.
-- Device properties such as `DeviceManager.Instance.Guider` are `null` when nothing of that kind is connected. Check before you call into a device, and before you start a background task that will: in `ObservatoryView` use `Need(device, "guider")` inside button helpers that show exceptions as toasts, or `Have(device, "camera")` in plain click handlers. Both give the user the same "No … connected" message.
+- Device properties such as `DeviceManager.Instance.Guider` are `null` when nothing of that kind is connected. Check before you call into a device, and before you start a background task that will: in `ObservatoryView` use `Need(device, NoGuider)` inside button helpers that show exceptions as toasts, or `Have(device, NoCamera)` in plain click handlers. Both give the user the same "No … connected" message, written as a whole sentence for each kind of device so it translates well.
 - A new sequencer instruction that cannot run without a device overrides `RequiredDevices` (`"camera"`, `"telescope"`, `"focuser"`, `"filter wheel"`), so **Run sequence** refuses to start without it. Instructions that can do without (guiding, cooling, dome) skip themselves instead.
 - The camera takes one exposure at a time. In `ObservatoryView`, anything new that exposes must check `CanUseCamera()`, start through `RunCameraJob(name, work)` (or the sequence or manual-capture paths), and add its button to `_cameraButtons`, so it is disabled while another job uses the camera and **Stop** can end it. Frames reach the Imaging viewer through `CaptureService.ImageCaptured` and, for video, `VideoFrame` and `VideoRecorded`, so anything that captures through `CaptureService` (a sequencer instruction included) is shown there without extra code.
 - `AppState` holds the active site, equipment, simulated time and the selected object. Listen to its events (`TimeChanged`, `SiteChanged`, `ObjectSelected`) rather than polling.
@@ -200,6 +216,19 @@ If you believe a dependency is truly necessary, open an issue to discuss it befo
 - When you fill a `DataGridView` whose `SelectionChanged` handler reads `Row.Tag`, create each row with its `Tag` set before adding it: adding the first row selects it immediately, before a `Tag` assigned afterwards exists.
 - Long operations must not freeze the window. Run them through `Tasks.Run`.
 - Write interface text in plain language, in sentence case, and explain units.
+- Mark interface text for translation with the functions of `Lang` (add `using static Sidralune.Core.Util.Lang;`):
+  - `T("Save site")` for plain text, and `T("Active site: {0}", name)` for text with values. Write the whole sentence as one format rather than joining pieces (`"Could not open " + name`), because word order differs between languages.
+  - `Tn("{0} dataset", "{0} datasets", n)` when a count decides the form.
+  - `Tc("file", "Open")` when the same English word needs different translations.
+  - `Lang.N("JPL DE440s planetary ephemeris")` marks text that is kept in English as data (a dataset's name, which is also logged) without translating it; show it with `T(dataset.Name)`.
+  - The text must be a literal string (or literals joined with `+`) so the template can be built from the source; `T(name)` of a variable is not found.
+  - Do not translate what other programs read: log messages, file contents, reports, FITS keywords, settings values and the keys of views and commands. Code that compares a shown text, such as a job's name for a Stop button or a button's text for `Ui.InsertAfter`, must compare it with the same `T(...)` text. Read a choice from a drop-down list by its index, not by its (translated) text.
+  - Text that is saved as data and shown as well, like the type of a planner entry, is saved in English and translated when shown. `Lang.InEnglish(() => DeepSkyObject.TypeLabel(t))` gives the English of a shared label.
+  - Show the Sun, Moon and planets with `BodyNames.Name(body)`, object types with `DeepSkyObject.TypeLabel`, visibility with `VisibilityResult.Label` and meteor showers with `DisplayName`; `Body.ToString()` and `SelectedObject.Name` stay English, because they are also used as data.
+  - Dates written with words (`ddd`, `MMM`) take `Lang.DateNames` as their format provider, so day and month names follow the language while numbers stay invariant. `T("…", date)` does this already.
+  - Option names and choices in property grids come from the member names: `GridAdapter` shows `Lang.Option(name)`, the words of the name translated with the context "option" (`HotPixelRemoval` is "Hot Pixel Removal"), and Yes/No for `bool` members. They are not literals, so `TranslationTests` adds them to the template from the classes in its `OptionTypes` list; add a new option class there when a view shows it in a grid. A member with its own `[TypeConverter]`, like the frame type, keeps its drop-down.
+  - Messages from the engines that the interface shows (progress, results, errors of a step) are marked with `Lang.T` as well. When such a message is also logged, log it in English: pass the text as a function and log `Lang.InEnglish(text)`, as `StackingEngine.Msg` does.
+- After adding or changing marked text, run `TranslationTests.TestTranslationFiles`. When the template is out of date it fails and writes a fresh one to `%TEMP%\SidraluneAppTests\Sidralune.pot`: copy it to `Sidralune/Languages`, then add the Swedish translations to `sv.po` (or ask in the pull request for help with them).
 
 ## Testing your changes
 
@@ -242,6 +271,7 @@ Every part of the libraries has tests, grouped by area:
 | File | Covers |
 |---|---|
 | `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
+| `LangTests.cs` | Interface languages: reading and writing `.po` files, plural rules, looking up and filling in texts, the pseudo-language, finding marked texts in source |
 | `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `CrwTests.cs`, `Cr3Tests.cs` | Image files (including Canon CRW and CR3 through small writers of each), debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
 | `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, image depth, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
 | `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture, video recording and live view, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
@@ -262,6 +292,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `ListEditingTests.cs` | Lists you add to can be emptied again: Derotation images, Photometry frames and stars, added minor bodies |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, planetary live view handing over to recording, messages for missing devices, sequence editing |
+| `TranslationTests.cs` | The template and every `.po` file against the texts marked in the source and the option names of the property grids (Swedish complete, placeholders kept), option names and choices marked in the pseudo-language and read back from what is shown, Yes/No, sequencer instructions and missing devices in Swedish, Settings in Swedish with labels that fit, choosing a language, the command line for restarting in a new language, Swedish planet names, object types, events, datasets and loaded catalogues (kept in English as data), and the pseudo-language finding unmarked text in Settings, Tonight (with the night worked out), Sky (with an object selected, and the star chart's headings), Planner (with its table filled, its types saved in English), and every tab of all the other workspaces |
 
 Rules for tests:
 
@@ -282,7 +313,10 @@ For visual changes, run Sidralune and look at the affected workspace in both the
 ```
 Sidralune\bin\Debug\Sidralune.exe --screenshot shot.png --view planner --night
 Sidralune\bin\Debug\Sidralune.exe --screenshot shot.png --view observatory --sim
+Sidralune\bin\Debug\Sidralune.exe --screenshot shot.png --view settings --lang qps
 ```
+
+`--lang qps` shows the pseudo-language: every translated text is accented, bracketed and a third longer, so text left in plain English has not been marked for translation, and anything cut off would not fit a longer translation either.
 
 `--script file.cs` runs a C# script before the screenshot is taken. A script can call into views (through `MainForm.Instance`) to put them in a particular state. See [Command-line options](https://github.com/pzyber/Sidralune/wiki/Command-line-options).
 

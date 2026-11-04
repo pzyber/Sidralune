@@ -8,6 +8,7 @@ using Sidralune.Imaging;
 using Sidralune.Imaging.IO;
 using Sidralune.Imaging.Stacking;
 using Sidralune.UI;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
@@ -19,7 +20,7 @@ namespace Sidralune.Views
         // again between jobs (saving a file list, marking a comet, choosing the reference)
         private StackingSettings _settings;
         private readonly DataGridView _grid = Ui.Grid();
-        private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Add light frames (and optional darks, flats, dark flats and bias), then Register and Stack" };
+        private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Add light frames (and optional darks, flats, dark flats and bias), then Register and Stack") };
         private readonly PropertyGrid _props = new PropertyGrid { Dock = DockStyle.Fill, HelpVisible = true, PropertySort = PropertySort.Categorized };
         private readonly Label _summary = new Label { Dock = DockStyle.Bottom, Height = 40, Tag = "dim" };
         private StackResult _result;
@@ -38,32 +39,35 @@ namespace Sidralune.Views
             var left = new Panel { Dock = DockStyle.Left, Width = 240, Padding = new Padding(0, 0, 8, 0), AutoScroll = true };
             var actions = new FlowLayoutPanel { Dock = DockStyle.Top, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true };
             Action<string, string, Action, ButtonKind> act = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Width = 225, Kind = k, Margin = new Padding(0, 0, 0, 4) }; actions.Controls.Add(b); };
-            actions.Controls.Add(Header("Frames"));
-            act("Light frames…", Icons.Open, () => AddFiles(FrameKind.Light), ButtonKind.Normal);
-            act("Dark frames…", Icons.Open, () => AddFiles(FrameKind.Dark), ButtonKind.Normal);
-            act("Flat frames…", Icons.Open, () => AddFiles(FrameKind.Flat), ButtonKind.Normal);
-            act("Dark flat frames…", Icons.Open, () => AddFiles(FrameKind.DarkFlat), ButtonKind.Normal);
-            act("Bias / offset frames…", Icons.Open, () => AddFiles(FrameKind.Bias), ButtonKind.Normal);
-            act("Master frames (FITS)…", Icons.Open, LoadMasters, ButtonKind.Subtle);
-            actions.Controls.Add(Header("List"));
-            act("Check all", Icons.Check, () => SetChecked(true), ButtonKind.Subtle);
-            act("Uncheck all", Icons.Remove, () => SetChecked(false), ButtonKind.Subtle);
-            act("Remove selected", Icons.Remove, RemoveSelected, ButtonKind.Subtle);
-            act("Clear list", Icons.Close, () => { _engine.Frames.Clear(); RefreshGrid(); }, ButtonKind.Subtle);
-            act("Save file list…", Icons.Save, SaveList, ButtonKind.Subtle);
-            act("Open file list…", Icons.Open, LoadList, ButtonKind.Subtle);
-            actions.Controls.Add(Header("Process"));
-            act("Register checked frames", Icons.Target, Register, ButtonKind.Normal);
-            act("Mark comet in selected frame", Icons.Comet, () => { _markComet = true; MainForm.Instance.Toast("Click the comet nucleus in the preview"); }, ButtonKind.Subtle);
-            act("Use selected as reference", Icons.Star, UseAsReference, ButtonKind.Subtle);
-            act("Stack checked frames", Icons.Stack, Stack, ButtonKind.Primary);
-            act("Save stacked image…", Icons.Save, SaveResult, ButtonKind.Normal);
-            act("Open in Process", Icons.Process, () => { if (_result != null) { MainForm.Instance.Navigate("processing"); MainForm.Instance.GetView<ProcessingView>("processing")?.OpenImage(CurrentResult(), "Stacked image"); } }, ButtonKind.Subtle);
+            actions.Controls.Add(Header(T("Frames")));
+            act(T("Light frames…"), Icons.Open, () => AddFiles(FrameKind.Light), ButtonKind.Normal);
+            act(T("Dark frames…"), Icons.Open, () => AddFiles(FrameKind.Dark), ButtonKind.Normal);
+            act(T("Flat frames…"), Icons.Open, () => AddFiles(FrameKind.Flat), ButtonKind.Normal);
+            act(T("Dark flat frames…"), Icons.Open, () => AddFiles(FrameKind.DarkFlat), ButtonKind.Normal);
+            act(T("Bias / offset frames…"), Icons.Open, () => AddFiles(FrameKind.Bias), ButtonKind.Normal);
+            act(T("Master frames (FITS)…"), Icons.Open, LoadMasters, ButtonKind.Subtle);
+            actions.Controls.Add(Header(T("List")));
+            act(T("Check all"), Icons.Check, () => SetChecked(true), ButtonKind.Subtle);
+            act(T("Uncheck all"), Icons.Remove, () => SetChecked(false), ButtonKind.Subtle);
+            act(T("Remove selected"), Icons.Remove, RemoveSelected, ButtonKind.Subtle);
+            act(T("Clear list"), Icons.Close, () => { _engine.Frames.Clear(); RefreshGrid(); }, ButtonKind.Subtle);
+            act(T("Save file list…"), Icons.Save, SaveList, ButtonKind.Subtle);
+            act(T("Open file list…"), Icons.Open, LoadList, ButtonKind.Subtle);
+            actions.Controls.Add(Header(T("Process")));
+            act(T("Register checked frames"), Icons.Target, Register, ButtonKind.Normal);
+            act(T("Mark comet in selected frame"), Icons.Comet, () => { _markComet = true; MainForm.Instance.Toast(T("Click the comet nucleus in the preview")); }, ButtonKind.Subtle);
+            act(T("Use selected as reference"), Icons.Star, UseAsReference, ButtonKind.Subtle);
+            act(T("Stack checked frames"), Icons.Stack, Stack, ButtonKind.Primary);
+            act(T("Save stacked image…"), Icons.Save, SaveResult, ButtonKind.Normal);
+            act(T("Open in Process"), Icons.Process, () => { if (_result != null) { MainForm.Instance.Navigate("processing"); MainForm.Instance.GetView<ProcessingView>("processing")?.OpenImage(CurrentResult(), T("Stacked image")); } }, ButtonKind.Subtle);
             left.Controls.Add(actions);
 
             _grid.ReadOnly = false;
             _grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "On", HeaderText = "", FillWeight = 10 });
-            foreach (var c in new[] { "Type", "File", "Exposure", "ISO/Gain", "Temp", "Filter", "Score", "Stars", "FWHM", "Ecc.", "Background", "Status" }) _grid.Columns.Add(c, c);
+            // columns are found by their English names; the headers are in the interface language
+            var cols = new[] { "Type", T("Type"), "File", T("File"), "Exposure", T("Exposure"), "ISO/Gain", T("ISO/Gain"), "Temp", T("Temp"), "Filter", T("Filter"), "Score", T("Score"),
+                "Stars", T("Stars"), "FWHM", "FWHM", "Ecc.", T("Ecc."), "Background", T("Background"), "Status", T("Status") };
+            for (int i = 0; i < cols.Length; i += 2) _grid.Columns.Add(cols[i], cols[i + 1]);
             for (int i = 1; i < _grid.Columns.Count; i++) _grid.Columns[i].ReadOnly = true;
             _grid.Columns["File"].FillWeight = 180; _grid.Columns["Status"].FillWeight = 140; _grid.Columns["Type"].FillWeight = 55;
             _grid.CellValueChanged += (s, e) => { if (e.RowIndex >= 0 && e.ColumnIndex == 0) ((StackFrame)_grid.Rows[e.RowIndex].Tag).Enabled = (bool)(_grid.Rows[e.RowIndex].Cells[0].Value ?? false); };
@@ -80,7 +84,7 @@ namespace Sidralune.Views
                 _markComet = false;
                 _settings.Comet = CometMode.StarsAndComet;
                 _props.Refresh();
-                MainForm.Instance.Toast(string.Format("Comet marked at ({0:0.0}, {1:0.0}) in {2}. Mark it in at least two frames.", x, y, fr.FileName));
+                MainForm.Instance.Toast(T("Comet marked at ({0:0.0}, {1:0.0}) in {2}. Mark it in at least two frames.", x, y, fr.FileName));
             };
             _viewer.PaintOverlay += (g, map) =>
             {
@@ -92,21 +96,21 @@ namespace Sidralune.Views
                 if (fr.CometXY != null) { var p = map(fr.CometXY[0], fr.CometXY[1]); using (var pen = new Pen(Theme.Current.Comet, 2)) { g.DrawEllipse(pen, p.X - 10, p.Y - 10, 20, 20); } }
             };
 
-            var settingsCard = new Card("Stacking settings") { Dock = DockStyle.Fill };
+            var settingsCard = new Card(T("Stacking settings")) { Dock = DockStyle.Fill };
             _settings = _engine.Settings;
-            _props.SelectedObject = new GridAdapter(_settings, "Stacking");
+            _props.SelectedObject = new GridAdapter(_settings, T("Stacking"));
             settingsCard.Controls.Add(_props);
-            var post = new Card("Stacked image adjustments") { Dock = DockStyle.Bottom, Height = 170 };
+            var post = new Card(T("Stacked image adjustments")) { Dock = DockStyle.Bottom, Height = 170 };
             var pg = new FormGrid(90);
-            pg.Row("Black point", _black); pg.Row("Midtones", _mid); pg.Row("Saturation", _sat);
+            pg.Row(T("Black point"), _black); pg.Row(T("Midtones"), _mid); pg.Row(T("Saturation"), _sat);
             foreach (var tb in new[] { _black, _mid, _sat }) tb.ValueChanged += (s, e) => ApplyPost();
             post.Controls.Add(pg);
             // Stop, after Stack checked frames, ends registering or stacking; the other actions wait for the job
-            var stop = _job.StopButton(n => n == "Registering" || n == "Stacking");
+            var stop = _job.StopButton(n => n == T("Registering") || n == T("Stacking"));
             stop.Width = 225; stop.Margin = new Padding(0, 0, 0, 4);
             _job.Guard(actions.Controls.Cast<Control>().Concat(new Control[] { post }).ToArray());
             actions.Controls.Add(stop);
-            actions.Controls.SetChildIndex(stop, actions.Controls.IndexOf(actions.Controls.OfType<FlatButton>().First(b => b.Text == "Stack checked frames")) + 1);
+            actions.Controls.SetChildIndex(stop, actions.Controls.IndexOf(actions.Controls.OfType<FlatButton>().First(b => b.Text == T("Stack checked frames"))) + 1);
             _job.Changed += () =>
             {
                 if (!_job.Busy) _engine.Settings = _settings;
@@ -133,26 +137,26 @@ namespace Sidralune.Views
 
         private void AddFiles(FrameKind kind)
         {
-            using (var d = new OpenFileDialog { Multiselect = true, Filter = ImageFile.OpenFilter, Title = "Add " + kind + " frames" })
+            using (var d = new OpenFileDialog { Multiselect = true, Filter = ImageFile.OpenFilter, Title = T("Add frames: {0}", KindText(kind)) })
                 if (d.ShowDialog() == DialogResult.OK) AddPaths(d.FileNames, kind);
         }
 
         private void AddPaths(IEnumerable<string> paths, FrameKind? kind)
         {
             var list = paths.Where(ImageFile.IsSupported).ToList();
-            _job.Run("Reading " + list.Count + " file headers", t => _engine.AddFiles(list, kind), RefreshGrid);
+            _job.Run(Tn("Reading {0} file header", "Reading {0} file headers", list.Count), t => _engine.AddFiles(list, kind), RefreshGrid);
         }
 
         private void LoadMasters()
         {
             if (_job.Refuse()) return;
-            using (var d = new OpenFileDialog { Multiselect = true, Filter = ImageFile.OpenFilter, Title = "Master bias / dark / flat (named accordingly)" })
+            using (var d = new OpenFileDialog { Multiselect = true, Filter = ImageFile.OpenFilter, Title = T("Master bias / dark / flat (named accordingly)") })
             {
                 if (d.ShowDialog() != DialogResult.OK) return;
                 var files = d.FileNames;
                 var loaded = new List<Tuple<string, FrameKind, AstroImage>>();
                 // loaded in the background; they become the masters when all are in
-                _job.Run("Loading " + files.Length + " master frame(s)", t =>
+                _job.Run(Tn("Loading {0} master frame", "Loading {0} master frames", files.Length), t =>
                 {
                     foreach (var f in files)
                     {
@@ -167,7 +171,7 @@ namespace Sidralune.Views
                         else if (m.Item2 == FrameKind.Dark) _engine.MasterDark = m.Item3;
                         else if (m.Item2 == FrameKind.Flat) _engine.MasterFlat = m.Item3;
                         else if (m.Item2 == FrameKind.DarkFlat) _engine.MasterDarkFlat = m.Item3;
-                        MainForm.Instance.Toast("Loaded master " + m.Item2 + ": " + Path.GetFileName(m.Item1));
+                        MainForm.Instance.Toast(T("Loaded master {0}: {1}", KindText(m.Item2), Path.GetFileName(m.Item1)));
                     }
                 });
             }
@@ -202,7 +206,7 @@ namespace Sidralune.Views
                 foreach (var f in _engine.Frames.OrderBy(f => f.Kind).ThenBy(f => f.Path))
                 {
                     var row = new DataGridViewRow { Tag = f };
-                    row.CreateCells(_grid, f.Enabled, f.Kind + (f.IsReference ? " ★" : ""), f.FileName, f.Exposure > 0 ? f.Exposure.ToString("0.###") + " s" : "",
+                    row.CreateCells(_grid, f.Enabled, KindText(f.Kind) + (f.IsReference ? " ★" : ""), f.FileName, f.Exposure > 0 ? f.Exposure.ToString("0.###") + " s" : "",
                         !double.IsNaN(f.Iso) ? "ISO " + f.Iso : !double.IsNaN(f.Gain) ? f.Gain.ToString("0") : "", double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0"),
                         f.Filter ?? "", f.Registered ? f.Score.ToString("0.0") : "", f.Registered ? f.StarCount.ToString() : "", double.IsNaN(f.Fwhm) ? "" : f.Fwhm.ToString("0.00"),
                         double.IsNaN(f.Eccentricity) ? "" : f.Eccentricity.ToString("0.00"), double.IsNaN(f.Background) ? "" : (f.Background * 65535).ToString("0"), f.Status);
@@ -212,10 +216,24 @@ namespace Sidralune.Views
             finally { _filling = false; _grid.ResumeLayout(); }
             Preview();
             var lights = _engine.Frames.Where(f => f.Kind == FrameKind.Light).ToList();
-            _summary.Text = string.Format("{0} lights ({1} checked, {2:0.0} min) · {3} darks · {4} flats · {5} dark flats · {6} bias{7}",
+            _summary.Text = T("{0} lights ({1} checked, {2:0.0} min) · {3} darks · {4} flats · {5} dark flats · {6} bias",
                 lights.Count, lights.Count(f => f.Enabled), lights.Where(f => f.Enabled).Sum(f => f.Exposure) / 60, _engine.Frames.Count(f => f.Kind == FrameKind.Dark),
-                _engine.Frames.Count(f => f.Kind == FrameKind.Flat), _engine.Frames.Count(f => f.Kind == FrameKind.DarkFlat), _engine.Frames.Count(f => f.Kind == FrameKind.Bias),
-                _result != null ? "\r\nResult: " + _result.Report : "");
+                _engine.Frames.Count(f => f.Kind == FrameKind.Flat), _engine.Frames.Count(f => f.Kind == FrameKind.DarkFlat), _engine.Frames.Count(f => f.Kind == FrameKind.Bias)) +
+                (_result != null ? "\r\n" + T("Result: {0}", _result.Report) : "");
+        }
+
+        // a kind of frame, as shown in the list
+        private static string KindText(FrameKind k)
+        {
+            switch (k)
+            {
+                case FrameKind.Light: return T("Light");
+                case FrameKind.Dark: return T("Dark");
+                case FrameKind.Flat: return T("Flat");
+                case FrameKind.DarkFlat: return T("Dark flat");
+                case FrameKind.Bias: return T("Bias");
+                default: return k.ToString();
+            }
         }
 
         private AstroImage _preview;
@@ -229,7 +247,7 @@ namespace Sidralune.Views
             if (fr == null || fr == _previewFrame) return; // refreshing the list keeps the frame already shown
             _previewFrame = fr;
             AstroImage img = null;
-            _previewJob.Replace("Loading preview", t =>
+            _previewJob.Replace(T("Loading preview"), t =>
             {
                 img = ImageFile.Load(fr.Path);
                 if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.SuperPixel);
@@ -238,24 +256,24 @@ namespace Sidralune.Views
 
         private void Register()
         {
-            if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
+            if (!_engine.Lights.Any()) { MainForm.Instance.Toast(T("No checked light frames"), Icons.Warning); return; }
             if (_job.Refuse()) return; // the settings below must not change under a running job
             _engine.Settings = _settings.Clone(); // the run's own copy; the grid stays editable
-            _job.Run("Registering", t =>
+            _job.Run(T("Registering"), t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
                 _cal = _engine.BuildCalibration(prog, t.Cts.Token);
                 _engine.Register(_cal, prog, t.Cts.Token);
-            }, () => { RefreshGrid(); MainForm.Instance.Toast("Registration complete"); });
+            }, () => { RefreshGrid(); MainForm.Instance.Toast(T("Registration complete")); });
         }
 
         private void Stack()
         {
-            if (!_engine.Lights.Any()) { MainForm.Instance.Toast("No checked light frames", Icons.Warning); return; }
+            if (!_engine.Lights.Any()) { MainForm.Instance.Toast(T("No checked light frames"), Icons.Warning); return; }
             StackResult result = null;
             if (_job.Refuse()) return; // the settings below must not change under a running job
             _engine.Settings = _settings.Clone(); // the run's own copy; the grid stays editable
-            _job.Run("Stacking", t =>
+            _job.Run(T("Stacking"), t =>
             {
                 var prog = new Progress<StackProgress>(p => Tasks.Report(t, p.Fraction, p.Stage + (p.Detail != null ? " " + p.Detail : "")));
                 var start = DateTime.Now;
@@ -272,7 +290,7 @@ namespace Sidralune.Views
                 _black.Value = 0; _mid.Value = 50; _sat.Value = 100;
                 _viewer.SetImage(_result.Image);
                 RefreshGrid();
-                MainForm.Instance.Toast("Stacking complete: " + _result.Report, Icons.Check, Theme.Current.Success);
+                MainForm.Instance.Toast(T("Stacking complete: {0}", _result.Report), Icons.Check, Theme.Current.Success);
             });
         }
 
@@ -300,7 +318,7 @@ namespace Sidralune.Views
         private void SaveResult()
         {
             var img = CurrentResult();
-            if (img == null) { MainForm.Instance.Toast("Nothing stacked yet", Icons.Warning); return; }
+            if (img == null) { MainForm.Instance.Toast(T("Nothing stacked yet"), Icons.Warning); return; }
             using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "Autosave.fits" })
             {
                 if (d.ShowDialog() != DialogResult.OK) return;
@@ -312,27 +330,27 @@ namespace Sidralune.Views
                     tf = (c, v) => (float)t[Math.Min(c, t.Length - 1)].Apply(v);
                 }
                 ImageFile.Save(d.FileName, img, fmt, tf);
-                MainForm.Instance.Toast("Saved " + Path.GetFileName(d.FileName));
+                MainForm.Instance.Toast(T("Saved {0}", Path.GetFileName(d.FileName)));
             }
         }
 
         private void SaveList()
         {
-            using (var d = new SaveFileDialog { Filter = "Sidralune stacking list|*.sdstack", FileName = "filelist.sdstack" })
+            using (var d = new SaveFileDialog { Filter = T("Sidralune stacking list") + "|*.sdstack", FileName = "filelist.sdstack" })
                 if (d.ShowDialog() == DialogResult.OK) _engine.SaveProject(d.FileName);
         }
 
         private void LoadList()
         {
-            using (var d = new OpenFileDialog { Filter = "Sidralune stacking list|*.sdstack" })
-                if (d.ShowDialog() == DialogResult.OK) { _engine.LoadProject(d.FileName); _settings = _engine.Settings; _props.SelectedObject = new GridAdapter(_settings, "Stacking"); RefreshGrid(); }
+            using (var d = new OpenFileDialog { Filter = T("Sidralune stacking list") + "|*.sdstack" })
+                if (d.ShowDialog() == DialogResult.OK) { _engine.LoadProject(d.FileName); _settings = _engine.Settings; _props.SelectedObject = new GridAdapter(_settings, T("Stacking")); RefreshGrid(); }
         }
 
         public IEnumerable<AppCommand> GetCommands()
         {
-            yield return new AppCommand { Title = "Deep sky: add light frames", Icon = Icons.Open, Run = () => { MainForm.Instance.Navigate("stacking"); AddFiles(FrameKind.Light); } };
-            yield return new AppCommand { Title = "Deep sky: register", Run = Register };
-            yield return new AppCommand { Title = "Deep sky: stack", Icon = Icons.Stack, Run = Stack };
+            yield return new AppCommand { Title = T("Deep sky: add light frames"), Icon = Icons.Open, Run = () => { MainForm.Instance.Navigate("stacking"); AddFiles(FrameKind.Light); } };
+            yield return new AppCommand { Title = T("Deep sky: register"), Run = Register };
+            yield return new AppCommand { Title = T("Deep sky: stack"), Icon = Icons.Stack, Run = Stack };
         }
     }
 }

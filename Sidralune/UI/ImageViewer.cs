@@ -32,7 +32,7 @@ namespace Sidralune.UI
         public bool ShowWcsGrid;
         public bool Invert;
         public bool FalseColor;
-        public string EmptyText = "Open an image (Ctrl+O) or drop files here";
+        public string EmptyText = Sidralune.Core.Util.Lang.T("Open an image (Ctrl+O) or drop files here");
         /// <summary>Overlay painter in image coordinates: (graphics, imageToScreen).</summary>
         public event Action<Graphics, Func<double, double, PointF>> PaintOverlay;
         public event Action<double, double, MouseEventArgs> ImageClick;
@@ -316,7 +316,7 @@ namespace Sidralune.UI
                 }
                 else g.DrawImage(_bitmap, dest);
             }
-            else TextRenderer.DrawText(g, "Rendering…", Theme.UiFont, ClientRectangle, p.TextDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            else TextRenderer.DrawText(g, Sidralune.Core.Util.Lang.T("Rendering…"), Theme.UiFont, ClientRectangle, p.TextDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             g.SmoothingMode = SmoothingMode.AntiAlias;
             if (ShowWcsGrid && Wcs != null) DrawWcsGrid(g, p);
             PaintOverlay?.Invoke(g, ImageToScreen);

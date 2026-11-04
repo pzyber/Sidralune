@@ -119,6 +119,10 @@
     <None Include="App.config" />
     <None Include="app.manifest" />
     <Content Include="Resources\Sidralune.ico" />
+    <None Include="Languages\Sidralune.pot" />
+    <Content Include="Languages\*.po">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sidralune.Core\Sidralune.Core.csproj">

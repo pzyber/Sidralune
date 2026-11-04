@@ -191,7 +191,7 @@ namespace Sidralune.Tests
             var w = new Wait { Kind = WaitKind.Seconds, Seconds = 0.3 };
             sw.Restart();
             Run(w, ctx);
-            CheckTrue("Wait seconds", sw.Elapsed.TotalSeconds >= 0.3 && sw.Elapsed.TotalSeconds < 2 && w.Summary == (0.3).ToString() + " s");
+            CheckTrue("Wait seconds", sw.Elapsed.TotalSeconds >= 0.3 && sw.Elapsed.TotalSeconds < 2 && w.Summary == "0.3 s");
             sw.Restart();
             Run(new Wait { Kind = WaitKind.UntilTime, TimeUtc = DateTime.UtcNow.AddSeconds(-5) }, ctx);
             Run(new Wait { Kind = WaitKind.UntilSafe }, ctx);

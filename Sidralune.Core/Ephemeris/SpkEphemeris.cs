@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.Util;
 
 namespace Sidralune.Core.Ephemeris
 {
@@ -29,7 +30,7 @@ namespace Sidralune.Core.Ephemeris
         public string FilePath { get; }
 
         public string Name => "JPL SPK: " + Path.GetFileName(FilePath);
-        public string Accuracy => "milliarcsecond (JPL DE)";
+        public string Accuracy => Lang.T("milliarcsecond (JPL DE)");
 
         public SpkEphemeris(string path)
         {

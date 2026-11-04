@@ -20,6 +20,7 @@ using Sidralune.Science.Astrometry;
 using Sidralune.Science.Databases;
 using Sidralune.Science.SolarSystem;
 using Sidralune.UI;
+using static Sidralune.Core.Util.Lang;
 using AstroEvents = Sidralune.Core.Ephemeris.Events;
 
 namespace Sidralune.Views
@@ -39,13 +40,13 @@ namespace Sidralune.Views
         public SolarSystemView()
         {
             Controls.Add(_tabs);
-            _tabs.AddPage("Ephemeris", BuildEphemeris());
-            _tabs.AddPage("Minor bodies", BuildMinor());
-            _tabs.AddPage("Planets & moons", BuildPlanets());
-            _tabs.AddPage("Occultations", BuildOccultations());
-            _tabs.AddPage("Meteors", BuildMeteors());
-            _tabs.AddPage("Satellites", BuildSatellites());
-            _tabs.AddPage("MPC astrometry", BuildMpc());
+            _tabs.AddPage(T("Ephemeris"), BuildEphemeris());
+            _tabs.AddPage(T("Minor bodies"), BuildMinor());
+            _tabs.AddPage(T("Planets & moons"), BuildPlanets());
+            _tabs.AddPage(T("Occultations"), BuildOccultations());
+            _tabs.AddPage(T("Meteors"), BuildMeteors());
+            _tabs.AddPage(T("Satellites"), BuildSatellites());
+            _tabs.AddPage(T("MPC astrometry"), BuildMpc());
         }
 
         private static string F(double v, string fmt) => double.IsNaN(v) ? "" : v.ToString(fmt, CultureInfo.InvariantCulture);
@@ -81,22 +82,25 @@ namespace Sidralune.Views
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             _ephBody = Ui.Combo(BodyChoices());
+            // the Sun, Moon and planets by their names in the interface language; the items stay Body values
+            _ephBody.FormattingEnabled = true;
+            _ephBody.Format += (s, e) => { if (e.ListItem is Body) e.Value = Core.Ephemeris.BodyNames.Name((Body)e.ListItem); };
             _ephBody.Width = 260;
             _ephBody.DropDownStyle = ComboBoxStyle.DropDown;
             _ephBody.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             _ephBody.AutoCompleteSource = AutoCompleteSource.ListItems;
             var start = new TimeField { Width = 150, Value = AppState.Now.ToDateTimeUtc() };
-            var step = Ui.Combo("10 min", "1 hour", "6 hours", "1 day", "7 days");
+            var step = Ui.Combo("10 min", T("1 hour"), T("6 hours"), T("1 day"), T("7 days"));
             step.SelectedIndex = 3; step.Width = 90;
             var count = Ui.Num(30, 1, 2000);
-            var go = new FlatButton("Compute", Icons.Play, (s, e) => ComputeEphemeris(start.Value, step.SelectedIndex, (int)count.Value)) { Kind = ButtonKind.Primary };
+            var go = new FlatButton(T("Compute"), Icons.Play, (s, e) => ComputeEphemeris(start.Value, step.SelectedIndex, (int)count.Value)) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
             _ephemJob.Guard(go);
-            var csv = new FlatButton("CSV…", Icons.Save, (s, e) => GridToCsv(_ephGrid, "ephemeris.csv")) { Kind = ButtonKind.Subtle };
+            var csv = new FlatButton(T("CSV…"), Icons.Save, (s, e) => GridToCsv(_ephGrid, "ephemeris.csv")) { Kind = ButtonKind.Subtle };
             csv.AutoSizeToText();
-            var horizons = new FlatButton("Compare with JPL Horizons", Icons.Download, (s, e) => CompareHorizons(start.Value)) { Kind = ButtonKind.Subtle };
+            var horizons = new FlatButton(T("Compare with JPL Horizons"), Icons.Download, (s, e) => CompareHorizons(start.Value)) { Kind = ButtonKind.Subtle };
             horizons.AutoSizeToText();
-            var chart = new FlatButton("Show in sky", Icons.Sky, (s, e) =>
+            var chart = new FlatButton(T("Show in sky"), Icons.Sky, (s, e) =>
             {
                 var o = _ephBody.SelectedItem;
                 if (o == null) return;
@@ -104,9 +108,9 @@ namespace Sidralune.Views
                 MainForm.Instance.Navigate("sky");
             }) { Kind = ButtonKind.Subtle };
             chart.AutoSizeToText();
-            var bar = Ui.Toolbar(_ephBody, new Label { Text = "from (UTC)", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, start, step, count, go, _ephemJob.StopButton(), csv, horizons, chart);
+            var bar = Ui.Toolbar(_ephBody, new Label { Text = T("from (UTC)"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, start, step, count, go, _ephemJob.StopButton(), csv, horizons, chart);
             _ephGrid = Ui.Grid();
-            foreach (var c in new[] { "Local time", "RA (J2000)", "Dec (J2000)", "Alt", "Az", "Δ (AU)", "r (AU)", "Elong.", "Phase", "Mag", "Size\"", "Const." }) _ephGrid.Columns.Add(c, c);
+            foreach (var c in new[] { T("Local time"), T("RA (J2000)"), T("Dec (J2000)"), T("Alt"), T("Az"), T("Δ (AU)"), T("r (AU)"), T("Elong."), T("Phase"), T("Mag"), T("Size\""), T("Const.") }) _ephGrid.Columns.Add(c, c);
             panel.Controls.Add(_ephGrid);
             panel.Controls.Add(bar);
             return panel;
@@ -114,23 +118,24 @@ namespace Sidralune.Views
 
         private object CurrentEphBody()
         {
-            if (_ephBody.SelectedItem != null && _ephBody.Text == _ephBody.SelectedItem.ToString()) return _ephBody.SelectedItem;
+            if (_ephBody.SelectedItem != null && _ephBody.Text == _ephBody.GetItemText(_ephBody.SelectedItem)) return _ephBody.SelectedItem;
             var mb = MinorBodyStore.Instance.Find(_ephBody.Text);
             if (mb != null) return mb;
-            Body b;
-            if (Enum.TryParse(_ephBody.Text, true, out b)) return b;
+            // a body typed by its English name or the one shown
+            foreach (Body x in Enum.GetValues(typeof(Body)))
+                if (string.Equals(x.ToString(), _ephBody.Text.Trim(), StringComparison.OrdinalIgnoreCase) || string.Equals(Core.Ephemeris.BodyNames.Name(x), _ephBody.Text.Trim(), StringComparison.CurrentCultureIgnoreCase)) return x;
             return null;
         }
 
         private void ComputeEphemeris(DateTime startUtc, int stepIdx, int n)
         {
             var o = CurrentEphBody();
-            if (o == null) { MainForm.Instance.Toast("Unknown object (load MPC data in Settings → Data, or add elements in Minor bodies)", Icons.Info); return; }
+            if (o == null) { MainForm.Instance.Toast(T("Unknown object (load MPC data in Settings → Data, or add elements in Minor bodies)"), Icons.Info); return; }
             double step = new[] { 10.0 / 1440, 1.0 / 24, 0.25, 1, 7 }[stepIdx];
             var rows = new List<object[]>();
             var site = AppState.Site;
             double t0 = AstroTime.FromDateTime(startUtc).JdUtc;
-            _ephemJob.Run("Ephemeris", t =>
+            _ephemJob.Run(T("Ephemeris"), t =>
             {
                 for (int i = 0; i < n; i++)
                 {
@@ -158,15 +163,15 @@ namespace Sidralune.Views
             string cmd = o is Body ? HorizonsId((Body)o) : ((MinorBody)o).IsComet ? ((MinorBody)o).Designation + ";" : (((MinorBody)o).Number > 0 ? ((MinorBody)o).Number + ";" : ((MinorBody)o).Designation + ";");
             string start = startUtc.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), stop = startUtc.AddMinutes(1).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
             List<string> lines = null;
-            _onlineJob.Run("JPL Horizons", t => lines = OnlineServices.HorizonsEphemeris(cmd, start, stop, "1m", "500@399", "1"), () =>
+            _onlineJob.Run(T("JPL Horizons"), t => lines = OnlineServices.HorizonsEphemeris(cmd, start, stop, "1m", "500@399", "1"), () =>
             {
-                if (lines == null || lines.Count == 0) { MainForm.Instance.Toast("Horizons returned no data", Icons.Warning); return; }
+                if (lines == null || lines.Count == 0) { MainForm.Instance.Toast(T("Horizons returned no data"), Icons.Warning); return; }
                 var ctx = new SkyContext(new Observer { LatitudeDeg = 0, LongitudeDeg = 0, ElevationM = -6378137 }, AstroTime.FromDateTime(startUtc));
                 var p = PlaceOf(o, new SkyContext(AppState.Site, AstroTime.FromDateTime(startUtc)));
-                ProcessingView.ShowText("Horizons comparison", "JPL Horizons (geocentric, astrometric J2000):\r\n" + lines[0] + "\r\n\r\nSidralune (topocentric for the active site, astrometric J2000):\r\n"
+                ProcessingView.ShowText(T("Horizons comparison"), "JPL Horizons (geocentric, astrometric J2000):\r\n" + lines[0] + "\r\n\r\nSidralune (topocentric for the active site, astrometric J2000):\r\n"
                     + AstroMath.FormatHms(p.Astrometric.RaHours, 2, true) + "  " + AstroMath.FormatDms(p.Astrometric.DecDeg, 1, true, true)
                     + "\r\n\r\nDifferences up to the parallax (≈8.8″/Δ) are expected for nearby bodies.");
-            }, ex => MainForm.Instance.Toast("Horizons: " + ex.Message, Icons.Warning));
+            }, ex => MainForm.Instance.Toast(T("Horizons: {0}", ex.Message), Icons.Warning));
         }
 
         private static string HorizonsId(Body b)
@@ -200,37 +205,37 @@ namespace Sidralune.Views
         private Control BuildMinor()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var kind = Ui.Combo("Comets", "Asteroids", "Near-Earth objects", "All");
+            var kind = Ui.Combo(T("Comets"), T("Asteroids"), T("Near-Earth objects"), T("All"));
             var mag = Ui.Num(14, 3, 25, 1, 0.5m);
             var find = new TextBox { Width = 160 };
-            var go = new FlatButton("List", Icons.Search, (s, e) => ListMinor(kind.SelectedIndex, (double)mag.Value, find.Text)) { Kind = ButtonKind.Primary };
+            var go = new FlatButton(T("List"), Icons.Search, (s, e) => ListMinor(kind.SelectedIndex, (double)mag.Value, find.Text)) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
             _positionsJob.Guard(go);
-            var add = new FlatButton("Add elements…", Icons.Add, (s, e) => AddElements());
+            var add = new FlatButton(T("Add elements…"), Icons.Add, (s, e) => AddElements());
             add.AutoSizeToText();
-            var sbdb = new FlatButton("Fetch from JPL SBDB", Icons.Download, (s, e) =>
+            var sbdb = new FlatButton(T("Fetch from JPL SBDB"), Icons.Download, (s, e) =>
             {
-                var des = PlannerView.Prompt("JPL Small-Body Database", "Designation or name (e.g. 433, 2024 YR4, 12P)", find.Text);
+                var des = PlannerView.Prompt(T("JPL Small-Body Database"), T("Designation or name (e.g. 433, 2024 YR4, 12P)"), find.Text);
                 if (string.IsNullOrWhiteSpace(des)) return;
                 MinorBody mb = null;
-                _onlineJob.Run("SBDB lookup", t => mb = OnlineServices.SbdbElements(des), () =>
+                _onlineJob.Run(T("SBDB lookup"), t => mb = OnlineServices.SbdbElements(des), () =>
                 {
-                    if (mb == null) { MainForm.Instance.Toast("Not found", Icons.Warning); return; }
+                    if (mb == null) { MainForm.Instance.Toast(T("Not found"), Icons.Warning); return; }
                     AddBody(mb);
-                    MainForm.Instance.Toast("Added " + mb.DisplayName + " (also shown in the sky chart)");
+                    MainForm.Instance.Toast(T("Added {0} (also shown in the sky chart)", mb.DisplayName));
                     ListMinor(3, 99, mb.DisplayName);
                 });
             });
             sbdb.AutoSizeToText();
-            var nea = new FlatButton("Close approaches (60 d)", Icons.Warning, (s, e) => CloseApproaches()) { Kind = ButtonKind.Subtle };
+            var nea = new FlatButton(T("Close approaches (60 d)"), Icons.Warning, (s, e) => CloseApproaches()) { Kind = ButtonKind.Subtle };
             nea.AutoSizeToText();
             // bodies added with Add elements… or from JPL SBDB last for the session; this takes them away again
-            var remove = new FlatButton("Remove added", Icons.Remove, (s, e) => RemoveAdded()) { Kind = ButtonKind.Subtle };
+            var remove = new FlatButton(T("Remove added"), Icons.Remove, (s, e) => RemoveAdded()) { Kind = ButtonKind.Subtle };
             remove.AutoSizeToText();
-            var bar = Ui.Toolbar(kind, new Label { Text = "brighter than", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, new Label { Text = "name", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, find, go,
-                _positionsJob.StopButton(n => n == "Minor body positions"), Ui.Separator(), add, sbdb, remove, nea);
+            var bar = Ui.Toolbar(kind, new Label { Text = T("brighter than"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, new Label { Text = T("name"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, find, go,
+                _positionsJob.StopButton(n => n == T("Minor body positions")), Ui.Separator(), add, sbdb, remove, nea);
             _mbGrid = Ui.Grid();
-            foreach (var c in new[] { "Object", "Type", "Mag now", "RA", "Dec", "Δ (AU)", "r (AU)", "Elong.", "Alt now", "q / a (AU)", "e", "i (°)" }) _mbGrid.Columns.Add(c, c);
+            foreach (var c in new[] { T("Object"), T("Type"), T("Mag now"), T("RA"), T("Dec"), T("Δ (AU)"), T("r (AU)"), T("Elong."), T("Alt now"), T("q / a (AU)"), T("e"), T("i (°)") }) _mbGrid.Columns.Add(c, c);
             _mbGrid.SelectionChanged += (s, e) =>
             {
                 _orbits.Highlight = _mbGrid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as MinorBody).Where(m => m != null).ToList();
@@ -248,7 +253,7 @@ namespace Sidralune.Views
             panel.Controls.Add(_mbGrid);
             panel.Controls.Add(_orbits);
             panel.Controls.Add(bar);
-            panel.Controls.Add(new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim", Text = "Double-click to show in the sky chart. Comets and asteroids from MPC files (Settings → Data) are drawn on charts and in the planetarium." });
+            panel.Controls.Add(new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim", Text = T("Double-click to show in the sky chart. Comets and asteroids from MPC files (Settings → Data) are drawn on charts and in the planetarium.") });
             return panel;
         }
 
@@ -260,7 +265,7 @@ namespace Sidralune.Views
             var list = src.ToList();
             var ctx = new SkyContext(AppState.Site, AppState.Now);
             var rows = new List<Tuple<MinorBody, BodyPlace>>();
-            _positionsJob.Run("Minor body positions", t =>
+            _positionsJob.Run(T("Minor body positions"), t =>
             {
                 int i = 0;
                 foreach (var m in list)
@@ -281,42 +286,42 @@ namespace Sidralune.Views
                 foreach (var r in rows.OrderBy(r => double.IsNaN(r.Item2.Magnitude) ? 99 : r.Item2.Magnitude).Take(2000))
                 {
                     var m = r.Item1; var p = r.Item2; var el = m.Elements;
-                    int k = _mbGrid.Rows.Add(m.DisplayName, m.IsComet ? "Comet" : (m.OrbitType ?? "Asteroid"), F(p.Magnitude, "0.0"), AstroMath.FormatHms(p.Astrometric.RaHours, 0, true), AstroMath.FormatDms(p.Astrometric.DecDeg, 0, true, true),
+                    int k = _mbGrid.Rows.Add(m.DisplayName, m.IsComet ? T("Comet") : (m.OrbitType ?? T("Asteroid")), F(p.Magnitude, "0.0"), AstroMath.FormatHms(p.Astrometric.RaHours, 0, true), AstroMath.FormatDms(p.Astrometric.DecDeg, 0, true, true),
                         F(p.Distance, "0.000"), F(p.HelioDistance, "0.000"), F(p.Elongation * AstroMath.Rad2Deg, "0"), F(p.Horizontal.AltDeg, "0"),
                         el == null ? "" : F(m.IsComet ? el.PerihelionDistance : el.SemiMajorAxis, "0.000"), el == null ? "" : F(el.Eccentricity, "0.0000"), el == null ? "" : F(el.Inclination * AstroMath.Rad2Deg, "0.00"));
                     _mbGrid.Rows[k].Tag = m;
                 }
                 _orbits.Bodies = rows.Select(r => r.Item1).Take(300).ToList();
                 _orbits.Invalidate();
-                MainForm.Instance.Toast(rows.Count + " objects" + (rows.Count > 2000 ? " (first 2000 shown)" : ""));
+                MainForm.Instance.Toast(Tn("{0} object", "{0} objects", rows.Count) + (rows.Count > 2000 ? " " + T("(first 2000 shown)") : ""));
             });
         }
 
         private void RemoveAdded()
         {
             var picked = _mbGrid.SelectedCells.Cast<DataGridViewCell>().Select(c => c.OwningRow).Distinct().Select(r => r.Tag as MinorBody).Where(m => m != null).ToList();
-            if (picked.Count == 0) { MainForm.Instance.Toast("Select the objects to remove in the list", Icons.Info); return; }
+            if (picked.Count == 0) { MainForm.Instance.Toast(T("Select the objects to remove in the list"), Icons.Info); return; }
             var added = picked.Where(MinorBodyStore.Instance.IsAdded).ToList();
-            if (added.Count == 0) { MainForm.Instance.Toast("Only objects you added (Add elements…, JPL SBDB) can be removed; the others come from the downloaded catalogues", Icons.Info); return; }
+            if (added.Count == 0) { MainForm.Instance.Toast(T("Only objects you added (Add elements…, JPL SBDB) can be removed; the others come from the downloaded catalogues"), Icons.Info); return; }
             foreach (var m in added)
             {
                 MinorBodyStore.Instance.Remove(m);
                 _ephBody.Items.Remove(m);
                 foreach (var r in _mbGrid.Rows.Cast<DataGridViewRow>().Where(r => r.Tag == m).ToList()) _mbGrid.Rows.Remove(r);
             }
-            MainForm.Instance.Toast("Removed " + string.Join(", ", added.Select(m => m.DisplayName)) + (added.Count < picked.Count ? " (catalogue objects stay)" : ""));
+            MainForm.Instance.Toast(T("Removed {0}", string.Join(", ", added.Select(m => m.DisplayName))) + (added.Count < picked.Count ? " " + T("(catalogue objects stay)") : ""));
         }
 
         private void AddElements()
         {
-            var text = PlannerView.Prompt("Add orbital elements", "Paste one MPCORB line (asteroid) or CometEls line (comet)", "");
+            var text = PlannerView.Prompt(T("Add orbital elements"), T("Paste one MPCORB line (asteroid) or CometEls line (comet)"), "");
             if (string.IsNullOrWhiteSpace(text)) return;
             MinorBody mb = null;
             try { mb = MpcFormats.ParseMpcOrb(text); } catch { }
             if (mb == null) try { mb = MpcFormats.ParseCometEls(text); } catch { }
-            if (mb == null) { MainForm.Instance.Toast("Could not parse the elements (MPC 1-line formats expected)", Icons.Warning); return; }
+            if (mb == null) { MainForm.Instance.Toast(T("Could not parse the elements (MPC 1-line formats expected)"), Icons.Warning); return; }
             AddBody(mb);
-            MainForm.Instance.Toast("Added " + mb.DisplayName);
+            MainForm.Instance.Toast(T("Added {0}", mb.DisplayName));
         }
 
         /// <summary>Adds a body by hand; one added again with the same designation replaces the earlier one in the list too.</summary>
@@ -330,13 +335,13 @@ namespace Sidralune.Views
         private void CloseApproaches()
         {
             DataTable tab = null;
-            _onlineJob.Run("JPL close approaches", t => tab = OnlineServices.CloseApproaches(0.05), () =>
+            _onlineJob.Run(T("JPL close approaches"), t => tab = OnlineServices.CloseApproaches(0.05), () =>
             {
                 if (tab == null) return;
-                var sb = new System.Text.StringBuilder("Close approaches to Earth within 0.05 AU in the next 60 days (JPL CNEOS):\r\n\r\n");
+                var sb = new System.Text.StringBuilder(T("Close approaches to Earth within 0.05 AU in the next 60 days (JPL CNEOS):") + "\r\n\r\n");
                 sb.AppendLine(string.Join("  ", tab.Columns));
                 foreach (var r in tab.Rows) sb.AppendLine(string.Join("  ", r));
-                ProcessingView.ShowText("Close approaches", sb.ToString());
+                ProcessingView.ShowText(T("Close approaches"), sb.ToString());
             }, ex => MainForm.Instance.Toast("CNEOS: " + ex.Message, Icons.Warning));
         }
 
@@ -414,7 +419,7 @@ namespace Sidralune.Views
                     }
                     catch { }
                 }
-                TextRenderer.DrawText(g, string.Format("Ecliptic view, {0:0.#} AU radius · wheel to zoom · {1}", _scaleAu, AppState.Now), Theme.SmallFont, new Point(6, Height - 18), p.TextDim);
+                TextRenderer.DrawText(g, T("Ecliptic view, {0:0.#} AU radius · wheel to zoom · {1}", _scaleAu, AppState.Now), Theme.SmallFont, new Point(6, Height - 18), p.TextDim);
             }
         }
 
@@ -426,58 +431,58 @@ namespace Sidralune.Views
             var info = new TextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             var moons = new MoonDiagram { Dock = DockStyle.Top, Height = 150 };
             var phen = new TextBox { Dock = DockStyle.Right, Width = 420, Multiline = true, ReadOnly = true, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
-            var refresh = new FlatButton("Refresh for current time", Icons.Refresh, null) { Kind = ButtonKind.Primary };
+            var refresh = new FlatButton(T("Refresh for current time"), Icons.Refresh, null) { Kind = ButtonKind.Primary };
             refresh.AutoSizeToText();
             Action upd = () =>
             {
                 var now = AppState.Now;
                 var ctx = new SkyContext(AppState.Site, now);
                 var sb = new System.Text.StringBuilder();
-                sb.AppendLine(string.Format("{0} at {1}\r\n", now, AppState.Site.Name));
-                sb.AppendLine("Body        Mag    Diam\"   Illum  Elong   Alt    Rise   Transit  Set");
+                sb.AppendLine(T("{0} at {1}\r\n", now, AppState.Site.Name));
+                sb.AppendLine(string.Format("{0,-10}{1,6}{2,8}{3,8}{4,7}{5,7}{6,8}{7,8}{8,8}", T("Body"), T("Mag"), T("Diam\""), T("Illum"), T("Elong"), T("Alt"), T("Rise"), T("Transit"), T("Set")));
                 foreach (Body b in new[] { Body.Sun, Body.Moon, Body.Mercury, Body.Venus, Body.Mars, Body.Jupiter, Body.Saturn, Body.Uranus, Body.Neptune })
                 {
                     var p = ctx.BodyPlace(b);
                     if (b != Body.Moon && b != Body.Sun) PlanetPhysics.Fill(b, p, ctx.JdTT);
                     var rs = AstroEvents.BodyRiseSet(b, AppState.Site, new AstroTime(now.JdUtc - 0.5));
                     Func<AstroTime?, string> hm = t => t.HasValue ? AppState.Site.ToLocal(t.Value.ToDateTimeUtc()).ToString("HH:mm", CultureInfo.InvariantCulture) : "  -  ";
-                    sb.AppendLine(string.Format("{0,-10}{1,6}{2,8}{3,8}{4,7}{5,7}{6,8}{7,8}{8,8}", b, F(p.Magnitude, "0.0"), F(b == Body.Sun || b == Body.Moon ? PlanetPhysics.AngularDiameterArcsec(b, p.Distance) : p.DiameterArcsec, "0.0"),
+                    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0,-10}{1,6}{2,8}{3,8}{4,7}{5,7}{6,8}{7,8}{8,8}", Core.Ephemeris.BodyNames.Name(b), F(p.Magnitude, "0.0"), F(b == Body.Sun || b == Body.Moon ? PlanetPhysics.AngularDiameterArcsec(b, p.Distance) : p.DiameterArcsec, "0.0"),
                         b == Body.Sun ? "" : F(p.IlluminatedFraction * 100, "0") + "%", b == Body.Sun ? "" : F(p.Elongation * AstroMath.Rad2Deg, "0"), F(p.Horizontal.AltDeg, "0"), hm(rs.Rise), hm(rs.Transit), hm(rs.Set)));
                 }
                 double P, B0, L0; int rot;
                 PlanetPhysics.SunOrientation(ctx.JdTT, out P, out B0, out L0, out rot);
-                sb.AppendLine(string.Format("\r\nSun: P = {0:0.00}°, B0 = {1:0.00}°, L0 = {2:0.00}°, Carrington rotation {3}", P, B0, L0, rot));
+                sb.AppendLine(T("\r\nSun: P = {0:0.00}°, B0 = {1:0.00}°, L0 = {2:0.00}°, Carrington rotation {3}", P, B0, L0, rot));
                 double ll, lb, lpa;
                 PlanetPhysics.MoonLibration(ctx.JdTT, out ll, out lb, out lpa);
-                sb.AppendLine(string.Format("Moon: libration l = {0:+0.00;-0.00}°, b = {1:+0.00;-0.00}°, axis PA {2:0.0}°, colongitude {3:0.0}°", ll, lb, lpa, PlanetPhysics.MoonColongitude(ctx.JdTT)));
+                sb.AppendLine(T("Moon: libration l = {0:+0.00;-0.00}°, b = {1:+0.00;-0.00}°, axis PA {2:0.0}°, colongitude {3:0.0}°", ll, lb, lpa, PlanetPhysics.MoonColongitude(ctx.JdTT)));
                 var jp = ctx.BodyPlace(Body.Jupiter);
                 var toJ = EphemerisManager.Position(Body.Jupiter, ctx.JdTT - jp.LightTimeDays) - EphemerisManager.Position(Body.Earth, ctx.JdTT);
                 double s1, s2, s3;
                 PlanetPhysics.JupiterCentralMeridians(ctx.JdTT, toJ, jp.LightTimeDays, out s1, out s2, out s3);
-                sb.AppendLine(string.Format("Jupiter: CM System I {0:0.0}°, II {1:0.0}°, III {2:0.0}°  (GRS transits when System II ≈ GRS longitude, see JUPOS)", s1, s2, s3));
+                sb.AppendLine(T("Jupiter: CM System I {0:0.0}°, II {1:0.0}°, III {2:0.0}°  (GRS transits when System II ≈ GRS longitude, see JUPOS)", s1, s2, s3));
                 var sp = ctx.BodyPlace(Body.Saturn);
                 double rb, rp, ru; PlanetPhysics.SaturnRings(ctx.JdTT, sp, out rb, out rp, out ru);
-                sb.AppendLine(string.Format("Saturn: ring tilt B = {0:+0.00;-0.00}°, P = {1:0.00}°", rb, rp));
+                sb.AppendLine(T("Saturn: ring tilt B = {0:+0.00;-0.00}°, P = {1:0.00}°", rb, rp));
                 foreach (Body b in new[] { Body.Mars, Body.Jupiter, Body.Saturn, Body.Venus })
                 {
                     var p = ctx.BodyPlace(b);
                     var to = EphemerisManager.Position(b, ctx.JdTT - p.LightTimeDays) - EphemerisManager.Position(Body.Earth, ctx.JdTT);
                     double cm, slat, pa; PlanetPhysics.Orientation(b, ctx.JdTT, to, p.LightTimeDays, out cm, out slat, out pa);
-                    sb.AppendLine(string.Format("{0}: central meridian {1:0.0}°, sub-Earth latitude {2:+0.0;-0.0}°, pole PA {3:0.0}°", b, cm, slat, pa));
+                    sb.AppendLine(T("{0}: central meridian {1:0.0}°, sub-Earth latitude {2:+0.0;-0.0}°, pole PA {3:0.0}°", b, cm, slat, pa));
                 }
                 info.Text = sb.ToString();
                 moons.Moons = GalileanMoons.Positions(ctx.JdTT);
                 moons.Invalidate();
             };
             refresh.Click += (s, e) => upd();
-            var phenBtn = new FlatButton("Galilean moon events (7 days)", Icons.Calendar, (s, e) =>
+            var phenBtn = new FlatButton(T("Galilean moon events (7 days)"), Icons.Calendar, (s, e) =>
             {
                 List<AstroEvent> ev = null;
                 double jd = AppState.Now.JdTT;
-                _galileanJob.Run("Galilean moon phenomena", t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
+                _galileanJob.Run(T("Galilean moon phenomena"), t => ev = GalileanMoons.Phenomena(jd, jd + 7), () =>
                 {
                     var site = AppState.Site;
-                    phen.Text = "Transits and occultations (local time); ✓ = Jupiter above 10° in a dark sky\r\n\r\n" + string.Join("\r\n", ev.Select(x =>
+                    phen.Text = T("Transits and occultations (local time); ✓ = Jupiter above 10° in a dark sky") + "\r\n\r\n" + string.Join("\r\n", ev.Select(x =>
                     {
                         bool vis = AstroEvents.BodyAltitude(Body.Jupiter, site, x.Time) > 10 && AstroEvents.SunAltitudeFast(site, x.Time) < -6;
                         return (vis ? "✓ " : "  ") + Local(x.Time) + "  " + x.Description;
@@ -507,7 +512,7 @@ namespace Sidralune.Views
                 using (var b = new SolidBrush(p.IsNight ? p.Planet : Color.FromArgb(220, 200, 170))) g.FillEllipse(b, cx - r, cy - r * 0.93f, 2 * r, 2 * r * 0.93f);
                 TextRenderer.DrawText(g, "E", Theme.SmallFont, new Point(4, (int)cy - 8), p.TextDim);
                 TextRenderer.DrawText(g, "W", Theme.SmallFont, new Point(Width - 16, (int)cy - 8), p.TextDim);
-                TextRenderer.DrawText(g, "Jupiter's Galilean moons (as seen in binoculars: north up, west right)", Theme.SmallFont, new Point(4, 4), p.TextDim);
+                TextRenderer.DrawText(g, T("Jupiter's Galilean moons (as seen in binoculars: north up, west right)"), Theme.SmallFont, new Point(4, 4), p.TextDim);
                 if (Moons == null) return;
                 var cols = p.IsNight ? new[] { p.Series[0], p.Series[2], p.Series[4], p.Series[1] } : new[] { Color.Gold, Color.LightSkyBlue, Color.Silver, Color.SandyBrown };
                 // names alternately under and over the dots, moved aside where two would overlap
@@ -532,41 +537,41 @@ namespace Sidralune.Views
             var days = Ui.Num(30, 1, 365);
             var mag = Ui.Num(12, 5, 16, 1, 0.5m);
             var grid = Ui.Grid();
-            foreach (var c in new[] { "Event", "Time (UTC)", "Star mag", "Δmag", "Duration (s)", "Shadow (km)", "Your offset (km)" }) grid.Columns.Add(c, c);
-            var ast = new FlatButton("Asteroid occultations", Icons.Comet, (s, e) =>
+            foreach (var c in new[] { T("Event"), T("Time (UTC)"), T("Star mag"), T("Δmag"), T("Duration (s)"), T("Shadow (km)"), T("Your offset (km)") }) grid.Columns.Add(c, c);
+            var ast = new FlatButton(T("Asteroid occultations"), Icons.Comet, (s, e) =>
             {
                 var mb = MinorBodyStore.Instance.Find(obj.Text);
-                if (mb == null) { MainForm.Instance.Toast("Unknown minor body", Icons.Info); return; }
+                if (mb == null) { MainForm.Instance.Toast(T("Unknown minor body"), Icons.Info); return; }
                 List<OccultationEvent> ev = null;
                 var st = AppState.Now; var en = new AstroTime(st.JdUtc + (double)days.Value);
                 double ml = (double)mag.Value;
-                _occJob.Run("Occultation search", t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml, ct: t.Cts.Token), () =>
+                _occJob.Run(T("Occultation search"), t => ev = OccultationPredictor.Search(mb, st, en, new VizierProvider(), ml, ct: t.Cts.Token), () =>
                 {
                     grid.Rows.Clear();
-                    foreach (var x in ev) grid.Rows.Add(x.Body.DisplayName + " → " + (x.Star.Id ?? "star"), x.Time.ToString(), F(x.StarMag, "0.0"), F(x.MagDrop, "0.0"), F(x.DurationSec, "0.0"), F(x.ShadowWidthKm, "0"), F(x.ObserverOffsetKm, "0"));
-                    MainForm.Instance.Toast(ev.Count + " candidate events (Gaia DR3 stars)");
-                }, ex => MainForm.Instance.Toast("Search failed: " + ex.Message, Icons.Warning));
+                    foreach (var x in ev) grid.Rows.Add(x.Body.DisplayName + " → " + (x.Star.Id ?? T("star")), x.Time.ToString(), F(x.StarMag, "0.0"), F(x.MagDrop, "0.0"), F(x.DurationSec, "0.0"), F(x.ShadowWidthKm, "0"), F(x.ObserverOffsetKm, "0"));
+                    MainForm.Instance.Toast(Tn("{0} candidate event (Gaia DR3 stars)", "{0} candidate events (Gaia DR3 stars)", ev.Count));
+                }, ex => MainForm.Instance.Toast(T("Search failed: {0}", ex.Message), Icons.Warning));
             }) { Kind = ButtonKind.Primary };
             ast.AutoSizeToText();
-            var lunar = new FlatButton("Lunar occultations", Icons.Moon, (s, e) =>
+            var lunar = new FlatButton(T("Lunar occultations"), Icons.Moon, (s, e) =>
             {
                 List<LunarOccultation> ev = null;
                 var st = AppState.Now; double d = (double)days.Value, ml = Math.Min(9, (double)mag.Value);
-                _occJob.Run("Lunar occultations", t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml, t.Cts.Token), () =>
+                _occJob.Run(T("Lunar occultations"), t => ev = LunarOccultations.Predict(AppState.Site, st, d, new LocalCatalogProvider(), ml, t.Cts.Token), () =>
                 {
                     grid.Rows.Clear();
                     foreach (var x in ev)
-                        grid.Rows.Add("Moon → " + x.Star + (x.Graze ? " (graze)" : ""), x.Disappearance.ToString() + " D PA " + F(x.DisappearancePA, "0") + "°", F(x.StarMag, "0.0"), "",
-                            F((x.Reappearance - x.Disappearance) * 86400, "0"), string.Format("Moon {0:0}% lit, alt {1:0}°, Sun {2:0}°", x.MoonIlluminated * 100, x.MoonAltitude, x.SunAltitude), "R " + x.Reappearance);
-                    MainForm.Instance.Toast(ev.Count + " lunar occultations visible from the active site");
+                        grid.Rows.Add(Core.Ephemeris.BodyNames.Name(Body.Moon) + " → " + x.Star + (x.Graze ? " " + T("(graze)") : ""), x.Disappearance.ToString() + " D PA " + F(x.DisappearancePA, "0") + "°", F(x.StarMag, "0.0"), "",
+                            F((x.Reappearance - x.Disappearance) * 86400, "0"), T("Moon {0:0}% lit, alt {1:0}°, Sun {2:0}°", x.MoonIlluminated * 100, x.MoonAltitude, x.SunAltitude), "R " + x.Reappearance);
+                    MainForm.Instance.Toast(Tn("{0} lunar occultation visible from the active site", "{0} lunar occultations visible from the active site", ev.Count));
                 });
             });
             lunar.AutoSizeToText();
             _occJob.Guard(ast, lunar);
             panel.Controls.Add(grid);
-            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 34, Tag = "dim", Text = "Asteroid predictions use the loaded orbit and Gaia DR3 (online), so timing uncertainty depends on the orbit (compare with IOTA/Occult or occult.it before travelling). Report timings to IOTA/EAON." });
-            panel.Controls.Add(Ui.Toolbar(new Label { Text = "Body", AutoSize = true, Margin = new Padding(0, 6, 2, 0) }, obj, new Label { Text = "Days", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days,
-                new Label { Text = "Star mag ≤", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, ast, lunar, _occJob.StopButton()));
+            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 34, Tag = "dim", Text = T("Asteroid predictions use the loaded orbit and Gaia DR3 (online), so timing uncertainty depends on the orbit (compare with IOTA/Occult or occult.it before travelling). Report timings to IOTA/EAON.") });
+            panel.Controls.Add(Ui.Toolbar(new Label { Text = T("Body"), AutoSize = true, Margin = new Padding(0, 6, 2, 0) }, obj, new Label { Text = T("Days"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days,
+                new Label { Text = T("Star mag ≤"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, mag, ast, lunar, _occJob.StopButton()));
             return panel;
         }
 
@@ -575,7 +580,7 @@ namespace Sidralune.Views
         private Control BuildMeteors()
         {
             var grid = Ui.Grid();
-            foreach (var c in new[] { "Shower", "Code", "Peak (local)", "ZHR", "Speed (km/s)", "Radiant", "Moon at peak", "Best hourly rate here" }) grid.Columns.Add(c, c);
+            foreach (var c in new[] { T("Shower"), T("Code"), T("Peak (local)"), T("ZHR"), T("Speed (km/s)"), T("Radiant"), T("Moon at peak"), T("Best hourly rate here") }) grid.Columns.Add(c, c);
             Action upd = () =>
             {
                 grid.Rows.Clear();
@@ -598,12 +603,12 @@ namespace Sidralune.Views
                     }
                     var moon = new SkyContext(site, peak).BodyPlace(Body.Moon);
                     grid.Rows.Add(sh.Name, sh.Code, Local(peak), F(sh.Zhr, "0"), F(sh.VelocityKms, "0"), AstroMath.FormatHms(sh.RadiantRa / 15, 0, true) + " " + F(sh.RadiantDec, "+0;-0") + "°",
-                        F(moon.IlluminatedFraction * 100, "0") + "%", F(best, "0") + string.Format(" (LM {0:0.0})", nelm));
+                        F(moon.IlluminatedFraction * 100, "0") + "%", F(best, "0") + T(" (LM {0:0.0})", nelm));
                 }
             };
             var panel = new Panel { Dock = DockStyle.Fill };
             panel.Controls.Add(grid);
-            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 24, Tag = "dim", Text = "Rates use the IMO formula with the radiant altitude and your site's limiting magnitude (from SQM in Settings). Peak times from solar longitude." });
+            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 24, Tag = "dim", Text = T("Rates use the IMO formula with the radiant altitude and your site's limiting magnitude (from SQM in Settings). Peak times from solar longitude.") });
             panel.VisibleChanged += (s, e) => { if (panel.Visible) upd(); };
             return panel;
         }
@@ -616,21 +621,21 @@ namespace Sidralune.Views
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             var grid = Ui.Grid();
-            foreach (var c in new[] { "Satellite", "Rise (local)", "Rise az", "Max (local)", "Max alt", "Set (local)", "Set az", "Mag", "Visible" }) grid.Columns.Add(c, c);
+            foreach (var c in new[] { T("Satellite"), T("Rise (local)"), T("Rise az"), T("Max (local)"), T("Max alt"), T("Set (local)"), T("Set az"), T("Mag"), T("Visible") }) grid.Columns.Add(c, c);
             var days = Ui.Num(3, 1, 14);
             var minAlt = Ui.Num(20, 0, 80);
-            var visOnly = new CheckBox { Text = "Visible passes only", Checked = true, AutoSize = true, Margin = new Padding(6, 8, 6, 0) };
+            var visOnly = new CheckBox { Text = T("Visible passes only"), Checked = true, AutoSize = true, Margin = new Padding(6, 8, 6, 0) };
             var status = new Label { AutoSize = true, Tag = "dim", Margin = new Padding(8, 8, 0, 0) };
-            var load = new FlatButton("Load TLEs", Icons.Download, (s, e) => LoadTles(status)) { Kind = ButtonKind.Normal };
+            var load = new FlatButton(T("Load TLEs"), Icons.Download, (s, e) => LoadTles(status)) { Kind = ButtonKind.Normal };
             load.AutoSizeToText();
-            var go = new FlatButton("Predict passes", Icons.Play, (s, e) =>
+            var go = new FlatButton(T("Predict passes"), Icons.Play, (s, e) =>
             {
                 if (_sats.Count == 0) LoadTles(status);
                 if (_sats.Count == 0) return;
                 var rows = new List<Tuple<string, SatellitePass>>();
                 var site = AppState.Site; var now = AppState.Now; double d = (double)days.Value, ma = (double)minAlt.Value; bool vo = visOnly.Checked;
                 var sats = _sats.ToList();
-                _passJob.Run("Satellite passes", t =>
+                _passJob.Run(T("Satellite passes"), t =>
                 {
                     int i = 0;
                     foreach (var sat in sats)
@@ -645,15 +650,15 @@ namespace Sidralune.Views
                     foreach (var r in rows.OrderBy(r => r.Item2.Rise.JdUtc).Take(3000))
                     {
                         var p = r.Item2;
-                        grid.Rows.Add(r.Item1, Local(p.Rise), F(p.RiseAzDeg, "0") + "°", Local(p.Culmination), F(p.MaxAltDeg, "0") + "°", Local(p.Set), F(p.SetAzDeg, "0") + "°", F(p.BrightestMag, "0.0"), p.Visible ? "yes" : "");
+                        grid.Rows.Add(r.Item1, Local(p.Rise), F(p.RiseAzDeg, "0") + "°", Local(p.Culmination), F(p.MaxAltDeg, "0") + "°", Local(p.Set), F(p.SetAzDeg, "0") + "°", F(p.BrightestMag, "0.0"), p.Visible ? T("yes") : "");
                     }
-                    MainForm.Instance.Toast(rows.Count + " passes");
+                    MainForm.Instance.Toast(Tn("{0} pass", "{0} passes", rows.Count));
                 });
             }) { Kind = ButtonKind.Primary };
             go.AutoSizeToText();
             _passJob.Guard(go);
             panel.Controls.Add(grid);
-            panel.Controls.Add(Ui.Toolbar(load, new Label { Text = "Days", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days, new Label { Text = "Min alt", AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, minAlt, visOnly, go, _passJob.StopButton(), status));
+            panel.Controls.Add(Ui.Toolbar(load, new Label { Text = T("Days"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, days, new Label { Text = T("Min alt"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, minAlt, visOnly, go, _passJob.StopButton(), status));
             return panel;
         }
 
@@ -679,12 +684,12 @@ namespace Sidralune.Views
                     }
                 }
             }
-            status.Text = _sats.Count == 0 ? "No TLE files installed: Settings → Data → CelesTrak sets" : _sats.Count + " satellites loaded";
+            status.Text = _sats.Count == 0 ? T("No TLE files installed: Settings → Data → CelesTrak sets") : Tn("{0} satellite loaded", "{0} satellites loaded", _sats.Count);
         }
 
         // ================================================================== MPC astrometry
 
-        private readonly ImageViewer _mpcViewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = "Open a plate-solved image (or solve it in Astrometry), then click on the moving object to measure it" };
+        private readonly ImageViewer _mpcViewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Open a plate-solved image (or solve it in Astrometry), then click on the moving object to measure it") };
         private readonly List<AstrometricObservation> _obs = new List<AstrometricObservation>();
         private readonly List<PointF> _obsPix = new List<PointF>();
         private AstroImage _mpcImg;
@@ -693,14 +698,14 @@ namespace Sidralune.Views
         private Control BuildMpc()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var side = new Card("Astrometry report") { Dock = DockStyle.Right, Width = 380, AutoScroll = true };
+            var side = new Card(T("Astrometry report")) { Dock = DockStyle.Right, Width = 380, AutoScroll = true };
             var g = new FormGrid(120);
-            var des = g.Row("Designation", new TextBox { Text = "" });
-            var station = g.Row("Station code", new TextBox { Text = AppState.Settings.MpcStationCode });
-            var observer = g.Row("Observer", new TextBox { Text = Environment.UserName });
+            var des = g.Row(T("Designation"), new TextBox { Text = "" });
+            var station = g.Row(T("Station code"), new TextBox { Text = AppState.Settings.MpcStationCode });
+            var observer = g.Row(T("Observer"), new TextBox { Text = Environment.UserName });
             var list = new TextBox { Multiline = true, ReadOnly = true, Height = 200, Font = Theme.MonoFont, ScrollBars = ScrollBars.Both, WordWrap = false };
             Action refresh = () => list.Text = string.Join("\r\n", _obs.Select(MpcReporting.Obs80));
-            var open = new FlatButton("Open image…", Icons.Open, (s, e) =>
+            var open = new FlatButton(T("Open image…"), Icons.Open, (s, e) =>
             {
                 if (_mpcJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
@@ -708,21 +713,21 @@ namespace Sidralune.Views
                     if (d.ShowDialog() != DialogResult.OK) return;
                     string path = d.FileName;
                     AstroImage loaded = null;
-                    _mpcJob.Run("Opening " + Path.GetFileName(path), t => loaded = ImageFile.Load(path), () =>
+                    _mpcJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () =>
                     {
                         _mpcImg = loaded;
                         _mpcViewer.SetImage(_mpcImg);
-                        if (_mpcViewer.Wcs == null) MainForm.Instance.Toast("No WCS in this image: plate solve it in Astrometry and save with WCS", Icons.Info);
+                        if (_mpcViewer.Wcs == null) MainForm.Instance.Toast(T("No WCS in this image: plate solve it in Astrometry and save with WCS"), Icons.Info);
                     });
                 }
             }) { Width = 340 };
             _mpcJob.Guard(open);
             g.Full(open);
-            var undo = new FlatButton("Remove last measurement", Icons.Undo, (s, e) => { if (_obs.Count > 0) { _obs.RemoveAt(_obs.Count - 1); _obsPix.RemoveAt(_obsPix.Count - 1); refresh(); _mpcViewer.Invalidate(); } }) { Width = 340, Kind = ButtonKind.Subtle };
+            var undo = new FlatButton(T("Remove last measurement"), Icons.Undo, (s, e) => { if (_obs.Count > 0) { _obs.RemoveAt(_obs.Count - 1); _obsPix.RemoveAt(_obsPix.Count - 1); refresh(); _mpcViewer.Invalidate(); } }) { Width = 340, Kind = ButtonKind.Subtle };
             g.Full(undo);
             g.Full(list);
-            var obs80 = new FlatButton("Copy MPC1992 (80-column)", Icons.List, (s, e) => { if (_obs.Count > 0) Clipboard.SetText(list.Text); }) { Width = 340 };
-            var ades = new FlatButton("Save ADES PSV…", Icons.Save, (s, e) =>
+            var obs80 = new FlatButton(T("Copy MPC1992 (80-column)"), Icons.List, (s, e) => { if (_obs.Count > 0) Clipboard.SetText(list.Text); }) { Width = 340 };
+            var ades = new FlatButton(T("Save ADES PSV…"), Icons.Save, (s, e) =>
             {
                 if (_obs.Count == 0) return;
                 var rig = AppState.ImagingRig;
@@ -731,15 +736,15 @@ namespace Sidralune.Views
                     if (d.ShowDialog() == DialogResult.OK) File.WriteAllText(d.FileName, text);
             }) { Width = 340, Kind = ButtonKind.Primary };
             g.Full(obs80); g.Full(ades);
-            g.Full(Ui.Hint("Clicks are refined to the nearest centroid (PSF fit). Times are mid-exposure from DATE-OBS + EXPTIME/2. Errors use the plate-solution RMS. Check the designation format (packed or provisional) before submitting to obs@minorplanetcenter.net or the MPC submission API."));
+            g.Full(Ui.Hint(T("Clicks are refined to the nearest centroid (PSF fit). Times are mid-exposure from DATE-OBS + EXPTIME/2. Errors use the plate-solution RMS. Check the designation format (packed or provisional) before submitting to obs@minorplanetcenter.net or the MPC submission API.")));
             side.Controls.Add(g);
             _mpcViewer.ImageClick += (x, y, e) =>
             {
                 if (_mpcImg == null || e.Button != MouseButtons.Left) return;
                 var w = _mpcViewer.Wcs;
-                if (w == null) { MainForm.Instance.Toast("Image has no WCS", Icons.Info); return; }
+                if (w == null) { MainForm.Instance.Toast(T("Image has no WCS"), Icons.Info); return; }
                 var start = _mpcImg.DateObs;
-                if (start == null) { MainForm.Instance.Toast("Image has no DATE-OBS", Icons.Info); return; }
+                if (start == null) { MainForm.Instance.Toast(T("Image has no DATE-OBS"), Icons.Info); return; }
                 // refine to the nearest detected source within 8 px
                 var lum = _mpcImg.Luminance();
                 var stars = StarDetector.Detect(lum, _mpcImg.Width, _mpcImg.Height, new StarDetectionOptions { MaxStars = 3000 });
@@ -769,11 +774,11 @@ namespace Sidralune.Views
 
         public IEnumerable<AppCommand> GetCommands()
         {
-            string[] names = { "ephemeris", "minor bodies & orbits", "planets & Galilean moons", "occultations", "meteor showers", "satellite passes", "MPC astrometry report" };
+            string[] names = { T("ephemeris"), T("minor bodies & orbits"), T("planets & Galilean moons"), T("occultations"), T("meteor showers"), T("satellite passes"), T("MPC astrometry report") };
             for (int i = 0; i < names.Length; i++)
             {
                 int k = i;
-                yield return new AppCommand { Title = "Solar system: " + names[i], Icon = i == 0 ? Icons.Comet : null, Run = () => { MainForm.Instance.Navigate("solarsystem"); _tabs.Select(k); } };
+                yield return new AppCommand { Title = T("Solar system: {0}", names[i]), Icon = i == 0 ? Icons.Comet : null, Run = () => { MainForm.Instance.Navigate("solarsystem"); _tabs.Select(k); } };
             }
         }
     }

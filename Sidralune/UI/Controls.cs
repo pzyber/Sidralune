@@ -7,6 +7,7 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using Sidralune.Core.Util;
 
 namespace Sidralune.UI
 {
@@ -601,7 +602,7 @@ namespace Sidralune.UI
         /// <summary>A Display drop-down: Auto linked, Auto unlinked or None; changed is called with the choice.</summary>
         public static ComboBox StretchCombo(DisplayStretch value, Action<DisplayStretch> changed)
         {
-            var c = Combo("Auto linked", "Auto unlinked", "None");
+            var c = Combo(Lang.T("Auto linked"), Lang.T("Auto unlinked"), Lang.Tc("stretch", "None"));
             c.SelectedIndex = Math.Max(0, Array.IndexOf(StretchChoices, value));
             c.SelectedIndexChanged += (s, e) => changed(StretchChoices[c.SelectedIndex]);
             return c;
@@ -671,22 +672,42 @@ namespace Sidralune.UI
                 || (u.IsClass && u.Namespace != null && u.Namespace.StartsWith("Sidralune") && !typeof(System.Collections.IEnumerable).IsAssignableFrom(u));
         }
 
-        public static string Words(string name)
+        public static string Words(string name) => Lang.Words(name);
+
+        /// <summary>An option name or value as shown: its words, translated with the context "option".</summary>
+        public static string Text(string name) => Lang.Option(name);
+
+        /// <summary>
+        /// Every text an option class shows in a property grid, nested option objects included: the member names and the
+        /// values of enum members. These are not literals in the source, so the translation template takes them from here.
+        /// </summary>
+        public static IEnumerable<string> Texts(Type type)
         {
-            var sb = new System.Text.StringBuilder();
-            for (int i = 0; i < name.Length; i++)
+            var seen = new HashSet<Type>();
+            var texts = new List<string>();
+            Action<Type> walk = null;
+            walk = t =>
             {
-                if (i > 0 && char.IsUpper(name[i]) && !char.IsUpper(name[i - 1])) sb.Append(' ');
-                sb.Append(name[i]);
-            }
-            return sb.ToString();
+                if (!seen.Add(t)) return;
+                var members = t.GetFields(BindingFlags.Public | BindingFlags.Instance).Select(f => Tuple.Create(f.Name, f.FieldType))
+                    .Concat(t.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0).Select(p => Tuple.Create(p.Name, p.PropertyType)));
+                foreach (var m in members.Where(m => Editable(m.Item2)))
+                {
+                    texts.Add(Words(m.Item1));
+                    var u = Nullable.GetUnderlyingType(m.Item2) ?? m.Item2;
+                    if (u.IsEnum) texts.AddRange(Enum.GetNames(u).Select(Words));
+                    else if (u.IsClass && u != typeof(string)) walk(u);
+                }
+            };
+            walk(type);
+            return texts.Distinct();
         }
 
         private class MemberDescriptor : PropertyDescriptor
         {
             private readonly Type _type; private readonly Func<object> _get; private readonly Action<object> _set; private readonly string _cat;
             public MemberDescriptor(string name, Type type, Func<object> get, Action<object> set, string cat, Attribute[] attributes) : base(name, attributes) { _type = type; _get = get; _set = set; _cat = cat; }
-            public override string DisplayName => Words(Name);
+            public override string DisplayName => Text(Name);
             public override string Category => _cat;
             public override Type ComponentType => typeof(GridAdapter);
             public override bool IsReadOnly => false;
@@ -695,13 +716,63 @@ namespace Sidralune.UI
             public override object GetValue(object c)
             {
                 var v = _get();
-                if (v != null && _type.IsClass && _type != typeof(string) && _type.Namespace != null && _type.Namespace.StartsWith("Sidralune")) return new GridAdapter(v, Words(Name));
+                if (v != null && _type.IsClass && _type != typeof(string) && _type.Namespace != null && _type.Namespace.StartsWith("Sidralune")) return new GridAdapter(v, Text(Name));
                 return v;
             }
             public override void SetValue(object c, object v) { if (v is GridAdapter) return; _set(v); OnValueChanged(c, EventArgs.Empty); }
             public override void ResetValue(object c) { }
             public override bool ShouldSerializeValue(object c) => false;
-            public override TypeConverter Converter => _type.IsClass && _type != typeof(string) && _type.Namespace != null && _type.Namespace.StartsWith("Sidralune") ? new ExpandableObjectConverter() : base.Converter;
+            public override TypeConverter Converter
+            {
+                get
+                {
+                    if (_type.IsClass && _type != typeof(string) && _type.Namespace != null && _type.Namespace.StartsWith("Sidralune")) return new ExpandableObjectConverter();
+                    // a member's own converter (a drop-down of frame types, filters…) is kept; plain enums and yes/no are translated
+                    if (Attributes[typeof(TypeConverterAttribute)] != null && !Attributes[typeof(TypeConverterAttribute)].Equals(TypeConverterAttribute.Default)) return base.Converter;
+                    if (_type.IsEnum) return new OptionEnumConverter(_type);
+                    if (_type == typeof(bool)) return new OptionBoolConverter();
+                    return base.Converter;
+                }
+            }
+        }
+
+        // enum values shown in the interface language, read back from that or from English
+        private class OptionEnumConverter : EnumConverter
+        {
+            public OptionEnumConverter(Type t) : base(t) { }
+
+            public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+            {
+                if (destinationType == typeof(string) && value != null && value.GetType() == EnumType && Enum.IsDefined(EnumType, value)) return Text(value.ToString());
+                return base.ConvertTo(context, culture, value, destinationType);
+            }
+
+            public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+            {
+                var s = value as string;
+                if (s != null)
+                    foreach (var name in Enum.GetNames(EnumType))
+                        if (string.Equals(Text(name), s.Trim(), StringComparison.CurrentCultureIgnoreCase) || string.Equals(Words(name), s.Trim(), StringComparison.OrdinalIgnoreCase)) return Enum.Parse(EnumType, name);
+                return base.ConvertFrom(context, culture, value);
+            }
+        }
+
+        // True and False shown in the interface language
+        private class OptionBoolConverter : BooleanConverter
+        {
+            public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+            {
+                if (destinationType == typeof(string) && value is bool) return (bool)value ? Lang.Tc("option", "True") : Lang.Tc("option", "False");
+                return base.ConvertTo(context, culture, value, destinationType);
+            }
+
+            public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+            {
+                var s = (value as string ?? "").Trim();
+                if (string.Equals(s, Lang.Tc("option", "True"), StringComparison.CurrentCultureIgnoreCase)) return true;
+                if (string.Equals(s, Lang.Tc("option", "False"), StringComparison.CurrentCultureIgnoreCase)) return false;
+                return base.ConvertFrom(context, culture, value);
+            }
         }
 
         public AttributeCollection GetAttributes() => AttributeCollection.Empty;

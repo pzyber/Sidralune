@@ -9,6 +9,7 @@ using Sidralune.Core.Mathematics;
 using Sidralune.Core.Util;
 using Sidralune.Scripting;
 using Sidralune.UI;
+using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
@@ -21,7 +22,7 @@ namespace Sidralune.Views
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         private readonly RichTextBox _editor = new RichTextBox { Dock = DockStyle.Fill, Font = new Font("Consolas", 10.5f), AcceptsTab = true, WordWrap = false, BorderStyle = BorderStyle.None, DetectUrls = false };
         private readonly TextBox _console = new TextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, Font = Theme.MonoFont, ScrollBars = ScrollBars.Both, WordWrap = false };
-        private readonly PlotControl _plot = new PlotControl { Dock = DockStyle.Fill, Title = "Script plot" };
+        private readonly PlotControl _plot = new PlotControl { Dock = DockStyle.Fill, Title = T("Script plot") };
         private readonly DataGridView _grid = Ui.Grid();
         private ScriptHost _running;
         private FlatButton _runBtn;
@@ -32,8 +33,8 @@ namespace Sidralune.Views
         public ScriptingView()
         {
             Controls.Add(_tabs);
-            _tabs.AddPage("C# scripts", BuildScripts());
-            _tabs.AddPage("Data analysis", BuildData());
+            _tabs.AddPage(T("C# scripts"), BuildScripts());
+            _tabs.AddPage(T("Data analysis"), BuildData());
         }
 
         // ================================================================== scripts
@@ -44,18 +45,18 @@ namespace Sidralune.Views
             var examples = Ui.Combo(ScriptExamples.All.Select(e => (object)e[0]).ToArray());
             examples.Width = 280;
             examples.SelectedIndexChanged += (s, e) => { _editor.Text = ScriptExamples.All[examples.SelectedIndex][1]; _path = null; };
-            _runBtn = new FlatButton("Run (F5)", Icons.Play, (s, e) => RunOrStop()) { Kind = ButtonKind.Primary };
+            _runBtn = new FlatButton(T("Run (F5)"), Icons.Play, (s, e) => RunOrStop()) { Kind = ButtonKind.Primary };
             _runBtn.AutoSizeToText();
-            var open = new FlatButton("Open…", Icons.Open, (s, e) =>
+            var open = new FlatButton(T("Open…"), Icons.Open, (s, e) =>
             {
                 Directory.CreateDirectory(ScriptFolder);
-                using (var d = new OpenFileDialog { Filter = "Sidralune scripts|*.cs;*.csx|All files|*.*", InitialDirectory = ScriptFolder })
+                using (var d = new OpenFileDialog { Filter = T("Sidralune scripts") + "|*.cs;*.csx|" + T("All files") + "|*.*", InitialDirectory = ScriptFolder })
                     if (d.ShowDialog() == DialogResult.OK) { _editor.Text = File.ReadAllText(d.FileName); _path = d.FileName; }
             }) { Kind = ButtonKind.Subtle };
             open.AutoSizeToText();
-            var save = new FlatButton("Save…", Icons.Save, (s, e) => SaveScript(false)) { Kind = ButtonKind.Subtle };
+            var save = new FlatButton(T("Save…"), Icons.Save, (s, e) => SaveScript(false)) { Kind = ButtonKind.Subtle };
             save.AutoSizeToText();
-            var api = new FlatButton("API help", Icons.Info, (s, e) => ProcessingView.ShowText("Script API", ApiHelp())) { Kind = ButtonKind.Subtle };
+            var api = new FlatButton(T("API help"), Icons.Info, (s, e) => ProcessingView.ShowText(T("Script API"), ApiHelp())) { Kind = ButtonKind.Subtle };
             api.AutoSizeToText();
             var bar = Ui.Toolbar(examples, _runBtn, open, save, api);
 
@@ -64,9 +65,9 @@ namespace Sidralune.Views
             editorHost.Controls.Add(_editor);
             split.Panel1.Controls.Add(editorHost);
             var right = new TabbedPanel { Dock = DockStyle.Fill };
-            right.AddPage("Output", _console);
-            right.AddPage("Plot", _plot);
-            right.AddPage("Table", _grid);
+            right.AddPage(T("Output"), _console);
+            right.AddPage(T("Plot"), _plot);
+            right.AddPage(T("Table"), _grid);
             split.Panel2.Controls.Add(right);
             bool placed = false;
             split.SizeChanged += (s, e) => { if (!placed && split.Width > 600) { placed = true; split.SplitterDistance = split.Width * 55 / 100; } };
@@ -80,7 +81,7 @@ namespace Sidralune.Views
             _rightTabs = right;
             panel.Controls.Add(split);
             panel.Controls.Add(bar);
-            panel.Controls.Add(new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim", Text = "The editor holds the body of Run(); add helper methods after a line //@members. Everything in Sidralune (catalogues, ephemerides, imaging, devices) is available. F5 runs, Ctrl+S saves." });
+            panel.Controls.Add(new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim", Text = T("The editor holds the body of Run(); add helper methods after a line //@members. Everything in Sidralune (catalogues, ephemerides, imaging, devices) is available. F5 runs, Ctrl+S saves.") });
             return panel;
         }
 
@@ -91,14 +92,14 @@ namespace Sidralune.Views
             Directory.CreateDirectory(ScriptFolder);
             if (!quick || _path == null)
             {
-                using (var d = new SaveFileDialog { Filter = "Sidralune script|*.cs", InitialDirectory = ScriptFolder, FileName = _path != null ? Path.GetFileName(_path) : "script.cs" })
+                using (var d = new SaveFileDialog { Filter = T("Sidralune script") + "|*.cs", InitialDirectory = ScriptFolder, FileName = _path != null ? Path.GetFileName(_path) : "script.cs" })
                 {
                     if (d.ShowDialog() != DialogResult.OK) return;
                     _path = d.FileName;
                 }
             }
             File.WriteAllText(_path, _editor.Text);
-            MainForm.Instance.Toast("Saved " + Path.GetFileName(_path));
+            MainForm.Instance.Toast(T("Saved {0}", Path.GetFileName(_path)));
         }
 
         /// <summary>Load code into the editor and run it (used by the --script command-line option).</summary>
@@ -116,7 +117,7 @@ namespace Sidralune.Views
             List<CompileError> errors;
             var sw = System.Diagnostics.Stopwatch.StartNew();
             var type = ScriptHost.Compile(_editor.Text, out errors);
-            foreach (var e in errors) _console.AppendText((e.Warning ? "warning " : "error ") + e + Environment.NewLine);
+            foreach (var e in errors) _console.AppendText((e.Warning ? T("warning") : T("error")) + " " + e + Environment.NewLine);
             if (type == null)
             {
                 _rightTabs.Select(0);
@@ -126,30 +127,30 @@ namespace Sidralune.Views
                     int idx = _editor.GetFirstCharIndexFromLine(first.Line - 1);
                     if (idx >= 0) { _editor.Select(idx, _editor.Lines[first.Line - 1].Length); _editor.Focus(); }
                 }
-                MainForm.Instance.Toast("Compilation failed", Icons.Warning, Theme.Current.Warning);
+                MainForm.Instance.Toast(T("Compilation failed"), Icons.Warning, Theme.Current.Warning);
                 return;
             }
-            _console.AppendText(string.Format("Compiled in {0} ms, running…{1}", sw.ElapsedMilliseconds, Environment.NewLine));
+            _console.AppendText(T("Compiled in {0} ms, running…{1}", sw.ElapsedMilliseconds, Environment.NewLine));
             var host = new ScriptHost { Plot = _plot, Grid = _grid };
             host.Output = s => MainForm.Instance.Post(() => _console.AppendText(s.Replace("\n", Environment.NewLine).Replace("\r\r", "\r")));
             host.Ui = a => MainForm.Instance.Post(a);
             _running = host;
-            _runBtn.Kind = ButtonKind.Danger; _runBtn.Text = "Stop"; _runBtn.Icon = Icons.Stop; _runBtn.AutoSizeToText();
-            var bt = Tasks.Run("Script", t =>
+            _runBtn.Kind = ButtonKind.Danger; _runBtn.Text = T("Stop"); _runBtn.Icon = Icons.Stop; _runBtn.AutoSizeToText();
+            var bt = Tasks.Run(T("Script"), t =>
             {
                 host.Cts = t.Cts;
                 host.Progress = (p, s) => Tasks.Report(t, p, s);
                 sw.Restart();
                 host.Execute(type);
-            }, () => Finished(string.Format("Finished in {0:0.00} s", sw.Elapsed.TotalSeconds)),
-               ex => Finished(ex is OperationCanceledException ? "Cancelled" : "Exception: " + ex.GetType().Name + ": " + ex.Message + Environment.NewLine + ex.StackTrace));
+            }, () => Finished(T("Finished in {0:0.00} s", sw.Elapsed.TotalSeconds)),
+               ex => Finished(ex is OperationCanceledException ? T("Cancelled") : T("Exception: {0}: {1}", ex.GetType().Name, ex.Message) + Environment.NewLine + ex.StackTrace));
         }
 
         private void Finished(string msg)
         {
             _console.AppendText(msg + Environment.NewLine);
             _running = null;
-            _runBtn.Kind = ButtonKind.Primary; _runBtn.Text = "Run (F5)"; _runBtn.Icon = Icons.Play; _runBtn.AutoSizeToText();
+            _runBtn.Kind = ButtonKind.Primary; _runBtn.Text = T("Run (F5)"); _runBtn.Icon = Icons.Play; _runBtn.AutoSizeToText();
             if (_grid.Rows.Count > 0 && _console.Lines.Length < 4) _rightTabs.Select(2);
             else if (_plot.Series.Count > 0 && _console.Lines.Length < 4) _rightTabs.Select(1);
         }
@@ -157,7 +158,7 @@ namespace Sidralune.Views
         private static string ApiHelp()
         {
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("Script members (call them directly):\r\n");
+            sb.AppendLine(T("Script members (call them directly):") + "\r\n");
             foreach (var m in typeof(ScriptBase).GetMembers(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly)
                 .Where(m => !(m is System.Reflection.MethodInfo && ((System.Reflection.MethodInfo)m).IsSpecialName) && m.Name != "Run").OrderBy(m => m.Name))
             {
@@ -197,26 +198,26 @@ namespace Sidralune.Views
         private Control BuildData()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var side = new Card("Columns & fits") { Dock = DockStyle.Left, Width = 320, AutoScroll = true };
+            var side = new Card(T("Columns & fits")) { Dock = DockStyle.Left, Width = 320, AutoScroll = true };
             var g = new FormGrid(100);
-            var open = new FlatButton("Open CSV / table…", Icons.Open, (s, e) => OpenData()) { Kind = ButtonKind.Primary, Width = 280 };
+            var open = new FlatButton(T("Open CSV / table…"), Icons.Open, (s, e) => OpenData()) { Kind = ButtonKind.Primary, Width = 280 };
             g.Full(open);
-            var paste = new FlatButton("Paste from clipboard", Icons.List, (s, e) => { if (Clipboard.ContainsText()) LoadData(Clipboard.GetText(), "clipboard"); }) { Width = 280 };
+            var paste = new FlatButton(T("Paste from clipboard"), Icons.List, (s, e) => { if (Clipboard.ContainsText()) LoadData(Clipboard.GetText(), "clipboard"); }) { Width = 280 };
             g.Full(paste);
             _xCol = g.Row("X", Ui.Combo());
             _yCol = g.Row("Y", Ui.Combo());
-            _eCol = g.Row("Y error", Ui.Combo());
-            _fit = g.Row("Fit", Ui.Combo("None", "Polynomial", "Linear (weighted)", "Power law y = a·x^b", "Exponential y = a·e^(bx)"));
-            _fitDeg = g.Row("Degree", Ui.Num(2, 1, 10));
-            var invert = g.Row("Invert Y", new CheckBox());
-            var logx = g.Row("log₁₀ X", new CheckBox());
-            var logy = g.Row("log₁₀ Y", new CheckBox());
-            var plotBtn = new FlatButton("Plot", Icons.Chart, (s, e) => PlotData(invert.Checked, logx.Checked, logy.Checked)) { Kind = ButtonKind.Primary, Width = 280 };
+            _eCol = g.Row(T("Y error"), Ui.Combo());
+            _fit = g.Row(T("Fit"), Ui.Combo(Tc("fit", "None"), T("Polynomial"), T("Linear (weighted)"), T("Power law y = a·x^b"), T("Exponential y = a·e^(bx)")));
+            _fitDeg = g.Row(T("Degree"), Ui.Num(2, 1, 10));
+            var invert = g.Row(T("Invert Y"), new CheckBox());
+            var logx = g.Row(T("log₁₀ X"), new CheckBox());
+            var logy = g.Row(T("log₁₀ Y"), new CheckBox());
+            var plotBtn = new FlatButton(T("Plot"), Icons.Chart, (s, e) => PlotData(invert.Checked, logx.Checked, logy.Checked)) { Kind = ButtonKind.Primary, Width = 280 };
             g.Full(plotBtn);
             _dataOut = new TextBox { Multiline = true, ReadOnly = true, Height = 220, Font = Theme.MonoFont, ScrollBars = ScrollBars.Vertical };
             g.Full(_dataOut);
             side.Controls.Add(g);
-            _dataPlot = new PlotControl { Dock = DockStyle.Fill, Title = "Data" };
+            _dataPlot = new PlotControl { Dock = DockStyle.Fill, Title = T("Data") };
             _dataGrid = Ui.Grid();
             _dataGrid.Dock = DockStyle.Bottom; _dataGrid.Height = 220;
             panel.Controls.Add(_dataPlot);
@@ -227,7 +228,7 @@ namespace Sidralune.Views
 
         private void OpenData()
         {
-            using (var d = new OpenFileDialog { Filter = "Tables|*.csv;*.txt;*.dat;*.tsv;*.tbl|All files|*.*" })
+            using (var d = new OpenFileDialog { Filter = T("Tables") + "|*.csv;*.txt;*.dat;*.tsv;*.tbl|" + T("All files") + "|*.*" })
                 if (d.ShowDialog() == DialogResult.OK) LoadData(File.ReadAllText(d.FileName), Path.GetFileName(d.FileName));
         }
 
@@ -243,12 +244,12 @@ namespace Sidralune.Views
             m.Columns = header ? first.ToList() : Enumerable.Range(1, first.Length).Select(i => "col" + i).ToList();
             foreach (var l in lines.Skip(header ? 1 : 0)) if (!l.StartsWith("#")) m.Rows.Add(split(l));
             _data = m;
-            foreach (var c in new[] { _xCol, _yCol, _eCol }) { c.Items.Clear(); if (c == _eCol) c.Items.Add("(none)"); c.Items.AddRange(m.Columns.Cast<object>().ToArray()); }
+            foreach (var c in new[] { _xCol, _yCol, _eCol }) { c.Items.Clear(); if (c == _eCol) c.Items.Add(T("(none)")); c.Items.AddRange(m.Columns.Cast<object>().ToArray()); }
             _xCol.SelectedIndex = 0; _yCol.SelectedIndex = Math.Min(1, m.Columns.Count - 1); _eCol.SelectedIndex = 0;
             _dataGrid.Columns.Clear(); _dataGrid.Rows.Clear();
             foreach (var c in m.Columns) _dataGrid.Columns.Add(c, c);
             foreach (var r in m.Rows.Take(5000)) _dataGrid.Rows.Add(r.Cast<object>().ToArray());
-            _dataOut.Text = string.Format("{0}: {1} rows × {2} columns", name, m.Rows.Count, m.Columns.Count);
+            _dataOut.Text = T("{0}: {1} rows × {2} columns", name, m.Rows.Count, m.Columns.Count);
             PlotData(false, false, false);
         }
 
@@ -269,17 +270,17 @@ namespace Sidralune.Views
             _dataPlot.InvertY = invert;
             _dataPlot.XLabel = (logx ? "log " : "") + _data.Columns[xc];
             _dataPlot.YLabel = (logy ? "log " : "") + _data.Columns[yc];
-            _dataPlot.Title = _dataPlot.YLabel + " vs " + _dataPlot.XLabel;
-            var s = _dataPlot.AddSeries("data", SeriesStyle.Scatter);
+            _dataPlot.Title = T("{0} vs {1}", _dataPlot.YLabel, _dataPlot.XLabel);
+            var s = _dataPlot.AddSeries(T("data"), SeriesStyle.Scatter);
             for (int i = 0; i < x.Count; i++) s.Add(x[i], y[i], e[i]);
             var sb = new System.Text.StringBuilder();
             if (x.Count > 1)
             {
-                sb.AppendLine(string.Format("N = {0}", x.Count));
-                sb.AppendLine(string.Format("Y mean {0:G6}, σ {1:G4}, median {2:G6}", Stats.Mean(y), Stats.StdDev(y), Stats.Median(y)));
-                sb.AppendLine(string.Format("Y range {0:G6} … {1:G6}", y.Min(), y.Max()));
+                sb.AppendLine(T("N = {0}", x.Count));
+                sb.AppendLine(T("Y mean {0:G6}, σ {1:G4}, median {2:G6}", Stats.Mean(y), Stats.StdDev(y), Stats.Median(y)));
+                sb.AppendLine(T("Y range {0:G6} … {1:G6}", y.Min(), y.Max()));
                 double a, b, r2;
-                if (Stats.LinearFit(x, y, out a, out b, out r2)) sb.AppendLine(string.Format("Pearson r = {0:0.0000}", Math.Sign(b) * Math.Sqrt(Math.Max(0, r2))));
+                if (Stats.LinearFit(x, y, out a, out b, out r2)) sb.AppendLine(T("Pearson r = {0:0.0000}", Math.Sign(b) * Math.Sqrt(Math.Max(0, r2))));
             }
             int fit = _fit.SelectedIndex;
             if (fit > 0 && x.Count > 2)
@@ -313,8 +314,8 @@ namespace Sidralune.Views
                 if (model != null)
                 {
                     var res = x.Select((v, i) => y[i] - model(v)).ToList();
-                    sb.AppendLine(string.Format("Residual rms {0:G4}", Math.Sqrt(res.Sum(r => r * r) / res.Count)));
-                    var fs = _dataPlot.AddSeries("fit", SeriesStyle.Line, pal => pal.Warning);
+                    sb.AppendLine(T("Residual rms {0:G4}", Math.Sqrt(res.Sum(r => r * r) / res.Count)));
+                    var fs = _dataPlot.AddSeries(T("fit"), SeriesStyle.Line, pal => pal.Warning);
                     double x0 = x.Min(), x1 = x.Max();
                     for (int i = 0; i <= 300; i++) { double v = x0 + (x1 - x0) * i / 300; fs.Add(v, model(v)); }
                 }
@@ -325,8 +326,8 @@ namespace Sidralune.Views
 
         public IEnumerable<AppCommand> GetCommands()
         {
-            yield return new AppCommand { Title = "Scripts: run C# script", Icon = Icons.Code, Run = () => { MainForm.Instance.Navigate("scripting"); _tabs.Select(0); } };
-            yield return new AppCommand { Title = "Scripts: data analysis (CSV)", Run = () => { MainForm.Instance.Navigate("scripting"); _tabs.Select(1); } };
+            yield return new AppCommand { Title = T("Scripts: run C# script"), Icon = Icons.Code, Run = () => { MainForm.Instance.Navigate("scripting"); _tabs.Select(0); } };
+            yield return new AppCommand { Title = T("Scripts: data analysis (CSV)"), Run = () => { MainForm.Instance.Navigate("scripting"); _tabs.Select(1); } };
         }
     }
 }
