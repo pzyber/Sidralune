@@ -541,8 +541,11 @@ namespace Sidralune.UI
     /// <summary>Layout helper building label + editor rows.</summary>
     public class FormGrid : TableLayoutPanel
     {
+        private readonly int _labelWidth;
+
         public FormGrid(int labelWidth = 120)
         {
+            _labelWidth = labelWidth;
             ColumnCount = 2;
             ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, labelWidth));
             ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -562,6 +565,22 @@ namespace Sidralune.UI
             Controls.Add(l, 0, r);
             Controls.Add(editor, 1, r);
             return editor;
+        }
+
+        /// <summary>The widest the label column grows for long labels (in other languages), from the width it was given.</summary>
+        public int MaxLabelWidth => _labelWidth * 3 / 2 + 40;
+
+        // the label column widens for a label that would not fit on its line, up to MaxLabelWidth, so translations
+        // longer than the English are not cut off
+        protected override void OnLayout(LayoutEventArgs e)
+        {
+            int need = _labelWidth;
+            foreach (Control c in Controls)
+                if (c is Label && GetColumn(c) == 0 && GetColumnSpan(c) == 1)
+                    need = Math.Max(need, TextRenderer.MeasureText(c.Text, c.Font).Width + c.Margin.Horizontal + 2);
+            need = Math.Min(need, MaxLabelWidth);
+            if (ColumnStyles.Count > 0 && (int)ColumnStyles[0].Width != need) ColumnStyles[0].Width = need;
+            base.OnLayout(e);
         }
 
         public void Full(Control c)

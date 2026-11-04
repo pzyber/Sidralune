@@ -99,9 +99,16 @@ namespace Sidralune.AppTests
                 var wrong = po.Entries.Where(e => e.Strings.Any(s => s.Length > 0 && !Lang.Placeholders(s).SequenceEqual(Lang.Placeholders(e.Plural ?? e.Id)) && !Lang.Placeholders(s).SequenceEqual(Lang.Placeholders(e.Id)))).Select(e => e.Id).ToList();
                 CheckTrue(name + ": the same {n} placeholders as the English", wrong.Count == 0, string.Join(" | ", wrong.Take(20)));
                 CheckTrue(name + ": the plural rule is given", po.Header.ContainsKey("Plural-Forms"));
+                // every counted text has as many forms as the rule asks for (three for Polish, four for Slovene)
+                var forms = System.Text.RegularExpressions.Regex.Match(po.Header.ContainsKey("Plural-Forms") ? po.Header["Plural-Forms"] : "", "nplurals\\s*=\\s*(\\d+)");
+                int nplurals = forms.Success ? int.Parse(forms.Groups[1].Value) : 2;
+                var short_ = po.Entries.Where(e => e.Plural != null && e.Strings.Count(s => s.Length > 0) != nplurals).Select(e => e.Id).ToList();
+                CheckTrue(name + ": " + nplurals + " plural forms for each counted text", short_.Count == 0, string.Join(" | ", short_.Take(10)));
                 var untranslated = texts.Where(t => { var e = po.Entries.FirstOrDefault(x => x.Key == t.Key); return e == null || e.Fuzzy || e.Strings.Length == 0 || e.Strings.Any(s => s.Length == 0); }).Select(t => t.Id).ToList();
                 Info(string.Format("{0}: {1} of {2} texts translated", name, texts.Count - untranslated.Count, texts.Count));
-                if (name == "sv.po") CheckTrue("Swedish is complete", untranslated.Count == 0, string.Join(" | ", untranslated.Take(20)));
+                // a regional file (pt-BR.po) has only the texts that differ from its language's file, which must be there
+                if (name.Contains("-")) CheckTrue(name + ": its language's own file is there", File.Exists(Path.Combine(SourceLanguages, name.Split('-')[0] + ".po")));
+                else CheckTrue(name + " is complete", untranslated.Count == 0, string.Join(" | ", untranslated.Take(20)));
             }
         }
 
@@ -182,6 +189,51 @@ namespace Sidralune.AppTests
                 });
                 CheckTrue("Settings in Swedish: tabs, rows and buttons", new[] { "Plats", "Utrustning", "Utseende", "Spara plats", "Språk" }.All(result.Item1.Contains), string.Join(" | ", result.Item1.Take(30)));
                 CheckTrue("Swedish row labels and workspace names fit; choosing a language offers a restart", result.Item2.Count == 0, string.Join(" | ", result.Item2));
+            }
+            finally
+            {
+                OnUi(() => { Lang.Folder = saved; Lang.Use("en"); });
+            }
+        }
+
+        [TestMethod]
+        public void TestEveryLanguageFits()
+        {
+            string saved = Lang.Folder;
+            try
+            {
+                var codes = OnUi(() => { Lang.Folder = LanguagesFolder; return Lang.Available().Select(l => l.Key).Where(c => c != "en").ToList(); });
+                CheckTrue("The languages are installed", codes.Count >= 28, string.Join(", ", codes));
+                foreach (var code in codes)
+                {
+                    var tight = OnUi(() =>
+                    {
+                        Lang.Use(code);
+                        var found = new List<string>();
+                        // the workspace names under the icons of the navigation rail
+                        var rail = Field<NavRail>(App, "_rail");
+                        found.AddRange(rail.Items.Select(i => Lang.T(i.Title)).Where(t => TextRenderer.MeasureText(t, Theme.SmallFont).Width > rail.Width - 4).Select(t => "rail: " + t));
+                        // row labels in every tab of every workspace, which widen only so far
+                        foreach (var view in new Control[] { new SettingsView(), new TonightView(), new SkyView(), new PlannerView(), new ObservatoryView(), new StackingView(), new ProcessingView(),
+                            new PlanetaryView(), new AstrometryView(), new PhotometryView(), new SpectroscopyView(), new SolarSystemView(), new RadioView(), new DatabaseView(), new ScriptingView() })
+                            using (view)
+                            {
+                                view.Size = new Size(1500, 900);
+                                Theme.Apply(view);
+                                view.CreateControl();
+                                var tabs = Find<SegmentedTabs>(view);
+                                for (int i = 0; i < (tabs != null ? tabs.Tabs.Count : 1); i++)
+                                {
+                                    if (tabs != null) tabs.SelectedIndex = i;
+                                    foreach (var g in All(view).OfType<FormGrid>()) g.PerformLayout();
+                                    found.AddRange(All(view).OfType<Label>().Where(l => { var g = l.Parent as FormGrid; return g != null && g.Visible && g.GetColumn(l) == 0 && g.GetColumnSpan(l) == 1; })
+                                        .Where(l => l.Width > 0 && TextRenderer.MeasureText(l.Text, l.Font).Width > l.Width).Select(l => view.GetType().Name + ": " + l.Text));
+                                }
+                            }
+                        return found.Distinct().ToList();
+                    });
+                    CheckTrue(code + ": workspace names and row labels fit", tight.Count == 0, string.Join(" | ", tight.Take(30)));
+                }
             }
             finally
             {

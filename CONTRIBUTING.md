@@ -92,12 +92,16 @@ The interface is written in English and translated with gettext `.po` files in `
 To start a new language:
 
 1. Copy `Sidralune.pot` to `<code>.po`, or open the template in [Poedit](https://poedit.net) (free) and choose **Create new translation**.
-2. Set `Language:` in the header to the code, and `Plural-Forms:` to your language's rule (Poedit fills it in). Swedish, Norwegian, Danish, German and English use `nplurals=2; plural=(n != 1);`.
+2. Set `Language:` in the header to the code, and `Plural-Forms:` to your language's rule (Poedit fills it in). Most languages here use `nplurals=2; plural=(n != 1);`; French uses `plural=(n > 1)` and Icelandic `plural=(n%10!=1 || n%100==11)`. Many languages have more than two forms: Polish, Czech, Slovak, Croatian, Serbian, Latvian, Lithuanian and Romanian use three (for example Polish `nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);`, giving *1 gwiazda, 2 gwiazdy, 5 gwiazd*), and Slovene uses four. Give every counted text exactly as many `msgstr[n]` lines as `nplurals` says.
 3. Translate the `msgstr` lines. Keep placeholders such as `{0}` and `{1:0.0}` exactly as they are; you may move them within the sentence. Keep `\n` line breaks and keyboard keys (`Ctrl+K`, `N/E/S/W`) as they are.
 4. Leave out what should not be translated: constellation and star names, catalogue designations (`M 31`, `NGC 7000`) and units.
 5. To try it, copy the file to `Languages` next to `Sidralune.exe` (the build does this for you), then choose the language in **Settings → Appearance → Language** and restart. `Sidralune.exe --lang <code>` starts in a language without changing the setting.
 
-When you update a translation after the template has changed, Poedit's **Update from POT file** adds the new texts and marks the changed ones as fuzzy; fuzzy entries are not used until you have checked them. Keep the row labels short: in Settings they have a fixed width, and the application tests check that the Swedish ones fit.
+A regional variant needs only the texts that differ: a `pt-BR.po` with the Brazilian word choices would take everything else from `pt.po`. Name the file `<language>-<region>.po`; the language's own file must be there too. A language that Windows does not know, such as Latin, gets its name from `OwnNames` in `Lang.cs`.
+
+When you update a translation after the template has changed, Poedit's **Update from POT file** adds the new texts and marks the changed ones as fuzzy; fuzzy entries are not used until you have checked them. Every full language file must translate every text, and the application tests check that each language's workspace names fit under the icons of the navigation rail (80 pixels in the rail's font, about 12 characters; abbreviate with a full stop if needed, such as `Glob. nebo`) and that its row labels fit (the label column widens up to a limit for longer languages). Keep both short.
+
+The translations other than Swedish were written in one go and have not yet been reviewed by native speakers; corrections are very welcome.
 
 ## Contributing code
 
@@ -271,7 +275,7 @@ Every part of the libraries has tests, grouped by area:
 | File | Covers |
 |---|---|
 | `CoreTests.cs`, `CoreUtilTests.cs`, `HorizonsTests.cs`, `MinorBodyTests.cs`, `CatalogTests.cs` | Time, coordinates, ephemerides and SPK kernels, events, JSON and CSV, statistics and numerical methods, observing tools, satellites, catalogues |
-| `LangTests.cs` | Interface languages: reading and writing `.po` files, plural rules, looking up and filling in texts, the pseudo-language, finding marked texts in source |
+| `LangTests.cs` | Interface languages: reading and writing `.po` files, plural rules (including Polish with three forms), looking up and filling in texts, the pseudo-language, regional files with only their differences, Nynorsk using Bokmål, language names, option names in words, finding marked texts (T, N, Tc, Tn) in source |
 | `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `CrwTests.cs`, `Cr3Tests.cs` | Image files (including Canon CRW and CR3 through small writers of each), debayering, processing, geometry, star detection and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
 | `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, image depth, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, catalogue providers |
 | `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture, video recording and live view, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
@@ -292,7 +296,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `ListEditingTests.cs` | Lists you add to can be emptied again: Derotation images, Photometry frames and stars, added minor bodies |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
 | `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, planetary live view handing over to recording, messages for missing devices, sequence editing |
-| `TranslationTests.cs` | The template and every `.po` file against the texts marked in the source and the option names of the property grids (Swedish complete, placeholders kept), option names and choices marked in the pseudo-language and read back from what is shown, Yes/No, sequencer instructions and missing devices in Swedish, Settings in Swedish with labels that fit, choosing a language, the command line for restarting in a new language, Swedish planet names, object types, events, datasets and loaded catalogues (kept in English as data), and the pseudo-language finding unmarked text in Settings, Tonight (with the night worked out), Sky (with an object selected, and the star chart's headings), Planner (with its table filled, its types saved in English), and every tab of all the other workspaces |
+| `TranslationTests.cs` | The template and every `.po` file against the texts marked in the source and the option names of the property grids (every full language complete, placeholders kept, as many plural forms as each language's rule asks for, regional files backed by their language), workspace names and row labels fitting in every language, option names and choices marked in the pseudo-language and read back from what is shown, Yes/No, sequencer instructions and missing devices in Swedish, Settings in Swedish with labels that fit, choosing a language, the command line for restarting in a new language, Swedish planet names, object types, events, datasets and loaded catalogues (kept in English as data), and the pseudo-language finding unmarked text in Settings, Tonight (with the night worked out), Sky (with an object selected, and the star chart's headings), Planner (with its table filled, its types saved in English), and every tab of all the other workspaces |
 
 Rules for tests:
 

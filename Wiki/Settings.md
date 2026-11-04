@@ -98,7 +98,28 @@ A list of keyboard shortcuts is shown on this tab; see also [Keyboard shortcuts]
 
 ### Languages
 
-Sidralune is written in English and translated into **Swedish** so far. The whole interface is translated:
+Sidralune is written in English and translated into:
+
+| Language | Code | Language | Code |
+|---|---|---|---|
+| Albanian (Shqip) | `sq` | Italian (Italiano) | `it` |
+| Bulgarian (Български) | `bg` | Latin (Latina) | `la` |
+| Croatian (Hrvatski) | `hr` | Latvian (Latviešu) | `lv` |
+| Czech (Čeština) | `cs` | Lithuanian (Lietuvių) | `lt` |
+| Danish (Dansk) | `da` | Macedonian (Македонски) | `mk` |
+| Dutch (Nederlands) | `nl` | Norwegian Bokmål (Norsk bokmål) | `nb` |
+| Estonian (Eesti) | `et` | Polish (Polski) | `pl` |
+| Faroese (Føroyskt) | `fo` | Portuguese (Português, European) | `pt` |
+| Finnish (Suomi) | `fi` | Romanian (Română) | `ro` |
+| French (Français) | `fr` | Serbian (Srpski, Latin script) | `sr` |
+| German (Deutsch) | `de` | Slovak (Slovenčina) | `sk` |
+| Greek (Ελληνικά) | `el` | Slovene (Slovenščina) | `sl` |
+| Hungarian (Magyar) | `hu` | Spanish (Español) | `es` |
+| Icelandic (Íslenska) | `is` | Swedish (Svenska) | `sv` |
+
+Norwegian Nynorsk uses Bokmål, and Brazilian Portuguese uses European Portuguese. Serbian is written in the Latin script. Windows has no settings of its own for Latin, so the few places that show day or month names show them in English. Swedish was written first and checked most closely; the others are new, so corrections from native speakers are very welcome (see [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#translating-sidralune)).
+
+The whole interface is translated:
 
 - the main window, the command palette and Settings, including the downloadable datasets in Settings → Data and the loaded catalogues in the status bar,
 - **Tonight** and **Sky**, including the object information, the layers menu and the printed star chart and finder chart,

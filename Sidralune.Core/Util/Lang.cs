@@ -18,7 +18,8 @@ namespace Sidralune.Core.Util
         /// <summary>The pseudo-language: every text accented, bracketed and made longer, to find untranslated text and tight layouts.</summary>
         public const string PseudoCode = "qps";
 
-        private static PoCatalog _catalog;
+        // the catalogues of the language in use, most specific first: Brazilian (pt-BR) and then Portuguese (pt)
+        private static List<PoCatalog> _catalogs = new List<PoCatalog>();
 
         /// <summary>The folder with the .po files, next to the program.</summary>
         public static string Folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Languages");
@@ -28,22 +29,24 @@ namespace Sidralune.Core.Util
 
         /// <summary>
         /// Uses a language: a code such as "sv" or "nb-NO", "" for the Windows display language, PseudoCode, or "en".
-        /// A language without a .po file falls back to English. Returns the code in use.
+        /// A regional file such as pt-BR.po needs only the texts that differ: the others come from the language's own
+        /// file (pt.po). A language without a .po file falls back to English. Returns the code in use.
         /// </summary>
         public static string Use(string code)
         {
-            _catalog = null;
+            var catalogs = new List<PoCatalog>();
             Code = "en";
             if (string.IsNullOrEmpty(code)) code = SystemLanguage();
-            var file = code == PseudoCode ? null : Resolve(code);
             if (code == PseudoCode) Code = PseudoCode;
-            else if (file != null)
-                try
-                {
-                    _catalog = PoCatalog.Load(file);
-                    Code = Path.GetFileNameWithoutExtension(file);
-                }
-                catch (Exception ex) { Log.Warn("Language", "Could not read " + file + ": " + ex.Message); }
+            else
+                foreach (var file in Resolve(code))
+                    try
+                    {
+                        catalogs.Add(PoCatalog.Load(file));
+                        if (catalogs.Count == 1) Code = Path.GetFileNameWithoutExtension(file);
+                    }
+                    catch (Exception ex) { Log.Warn("Language", "Could not read " + file + ": " + ex.Message); }
+            _catalogs = catalogs;
             DateNames = NamesOf(Code);
             return Code;
         }
@@ -81,33 +84,42 @@ namespace Sidralune.Core.Util
         /// <summary>The Windows display language, as a code ("sv-SE"); Norwegian "no" counts as Bokmål.</summary>
         public static string SystemLanguage() => CultureInfo.CurrentUICulture.Name;
 
-        // the .po file for a code: the exact one (pt-BR) or the language alone (pt); English needs none
-        private static string Resolve(string code)
+        // the .po files for a code, most specific first: the exact one (pt-BR), then the language alone (pt); Norwegian
+        // (no) and Nynorsk (nn) use Bokmål (nb); English needs none
+        private static List<string> Resolve(string code)
         {
             var names = new List<string> { code };
             var neutral = code.Split('-')[0].ToLowerInvariant();
-            if (neutral == "no") neutral = "nb";
+            if (neutral == "en") return new List<string>();
             names.Add(neutral);
-            if (neutral == "en") return null;
-            return names.Select(n => Path.Combine(Folder, n + ".po")).FirstOrDefault(File.Exists);
+            if (neutral == "no" || neutral == "nn") names.Add("nb");
+            return names.Distinct(StringComparer.OrdinalIgnoreCase).Select(n => Path.Combine(Folder, n + ".po")).Where(File.Exists).ToList();
         }
 
-        /// <summary>The languages with a .po file, as (code, name in that language), English first.</summary>
+        /// <summary>The languages with a .po file, as (code, name in that language), English first and then by name.</summary>
         public static List<KeyValuePair<string, string>> Available()
         {
-            var list = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("en", "English") };
+            var list = new List<KeyValuePair<string, string>>();
             if (Directory.Exists(Folder))
-                foreach (var f in Directory.GetFiles(Folder, "*.po").OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
+                foreach (var f in Directory.GetFiles(Folder, "*.po"))
                 {
                     var code = Path.GetFileNameWithoutExtension(f);
                     list.Add(new KeyValuePair<string, string>(code, NativeName(code)));
                 }
-            return list;
+            return new[] { new KeyValuePair<string, string>("en", "English") }.Concat(list.OrderBy(l => l.Value, StringComparer.InvariantCultureIgnoreCase)).ToList();
         }
+
+        // names Windows does not give (it has no Latin)
+        private static readonly Dictionary<string, string> OwnNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "la", "Latina" }
+        };
 
         /// <summary>A language's name in that language, capitalised ("Svenska", "Norsk bokmål").</summary>
         public static string NativeName(string code)
         {
+            string own;
+            if (OwnNames.TryGetValue(code, out own)) return own;
             try
             {
                 var name = new CultureInfo(code).NativeName;
@@ -163,9 +175,11 @@ namespace Sidralune.Core.Util
             if (id == null) return null;
             if (_english) return counted && n != 1 ? plural : id;
             if (Code == PseudoCode) return Pseudo(counted && n != 1 ? plural : id);
-            var c = _catalog;
-            var found = c?.Find(context, id, counted ? n : (long?)null);
-            if (found != null) return found;
+            foreach (var c in _catalogs)
+            {
+                var found = c.Find(context, id, counted ? n : (long?)null);
+                if (found != null) return found;
+            }
             return counted && n != 1 ? plural : id;
         }
 
