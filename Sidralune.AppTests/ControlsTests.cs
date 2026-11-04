@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
@@ -199,7 +200,37 @@ namespace Sidralune.AppTests
         [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr hwnd, IntPtr dc);
         [DllImport("gdi32.dll")] private static extern bool BitBlt(IntPtr dest, int x, int y, int w, int h, IntPtr src, int sx, int sy, int rop);
         [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr w, IntPtr l);
+        [DllImport("user32.dll")] private static extern bool EnumWindows(EnumProc proc, IntPtr l);
+        [DllImport("user32.dll")] private static extern IntPtr GetWindow(IntPtr hwnd, int cmd);
+        [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hwnd, int index);
+        [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(Point p);
+        private delegate bool EnumProc(IntPtr hwnd, IntPtr l);
         [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [DllImport("user32.dll")] private static extern int GetWindowThreadProcessId(IntPtr h, out int pid);
+
+        /// <summary>The visible windows of this process, other than the list, that lie exactly over a part of the screen (the cover over the list's scroll bar).</summary>
+        private static List<IntPtr> WindowsOver(RECT part, IntPtr list)
+        {
+            var found = new List<IntPtr>();
+            int me = System.Diagnostics.Process.GetCurrentProcess().Id;
+            EnumWindows((h, l) =>
+            {
+                int pid; GetWindowThreadProcessId(h, out pid);
+                RECT r;
+                if (pid == me && h != list && IsWindowVisible(h) && GetWindowRect(h, out r) && r.Left == part.Left && r.Top == part.Top && r.Right == part.Right && r.Bottom == part.Bottom) found.Add(h);
+                return true;
+            }, IntPtr.Zero);
+            return found;
+        }
+
+        /// <summary>True when a window lies above another in the z-order.</summary>
+        private static bool Above(IntPtr upper, IntPtr lower)
+        {
+            for (IntPtr h = GetWindow(upper, 2); h != IntPtr.Zero; h = GetWindow(h, 2)) // GW_HWNDNEXT: the windows below
+                if (h == lower) return true;
+            return false;
+        }
         [StructLayout(LayoutKind.Sequential)] private struct COMBOBOXINFO { public int cbSize; public RECT rcItem, rcButton; public int stateButton; public IntPtr hwndCombo, hwndItem, hwndList; }
         [StructLayout(LayoutKind.Sequential)]
         private struct SCROLLBARINFO
@@ -215,22 +246,24 @@ namespace Sidralune.AppTests
             return i;
         }
 
-        /// <summary>Pixels of the list's scroll bar, as the window holds them now, that are not in the red night palette.</summary>
-        private static int OffPaletteInBar(IntPtr list)
+        /// <summary>Pixels of the list's scroll bar, as the list's window holds them now, that are not in the red night palette.</summary>
+        private static int OffPaletteInBar(IntPtr list) => OffPalette(list, Bar(list).rcScrollBar);
+
+        /// <summary>Pixels of a part of a window (in screen coordinates), as the window holds them now, that are not in the red night palette.</summary>
+        private static int OffPalette(IntPtr hwnd, RECT part)
         {
-            var bar = Bar(list);
             RECT w;
-            GetWindowRect(list, out w);
-            int width = bar.rcScrollBar.Right - bar.rcScrollBar.Left, height = bar.rcScrollBar.Bottom - bar.rcScrollBar.Top;
+            GetWindowRect(hwnd, out w);
+            int width = part.Right - part.Left, height = part.Bottom - part.Top;
             if (width <= 0 || height <= 0) return -1;
             using (var bmp = new Bitmap(width, height))
             {
                 using (var g = Graphics.FromImage(bmp))
                 {
                     var dest = g.GetHdc();
-                    var src = GetWindowDC(list);
-                    try { BitBlt(dest, 0, 0, width, height, src, bar.rcScrollBar.Left - w.Left, bar.rcScrollBar.Top - w.Top, 0x00CC0020); }
-                    finally { ReleaseDC(list, src); g.ReleaseHdc(dest); }
+                    var src = GetWindowDC(hwnd);
+                    try { BitBlt(dest, 0, 0, width, height, src, part.Left - w.Left, part.Top - w.Top, 0x00CC0020); }
+                    finally { ReleaseDC(hwnd, src); g.ReleaseHdc(dest); }
                 }
                 int n = 0;
                 for (int y = 0; y < height; y++)
@@ -272,6 +305,29 @@ namespace Sidralune.AppTests
                 var atOpen = OnUi(() => OffPaletteInBar(list));
                 CheckTrue("The bar is in the palette when the list opens", atOpen == 0, atOpen + " pixels off the palette");
 
+                // Windows draws the arrows itself while it tracks a click on them, so a window of the theme's own covers
+                // the bar: exactly over it, above the list, shown, in the palette, and transparent to the mouse so clicks
+                // reach the list
+                var barAt = OnUi(() => Bar(list).rcScrollBar);
+                var covers = OnUi(() => WindowsOver(barAt, list));
+                CheckTrue("A cover lies exactly over the list's scroll bar", covers.Count == 1, covers.Count + " windows");
+                if (covers.Count == 1)
+                {
+                    var cover = covers[0];
+                    var coverAt = barAt;
+                    CheckTrue("It is above the list", OnUi(() => Above(cover, list)));
+                    CheckTrue("It is shown (not cloaked)", OnUi(() => { int cloaked; return DwmGetWindowAttribute(cover, 14, out cloaked, 4) != 0 || cloaked == 0; }));
+                    var coverOff = OnUi(() => OffPalette(cover, coverAt));
+                    CheckTrue("It is drawn in the palette", coverOff == 0, coverOff + " pixels off the palette");
+                    CheckTrue("It is layered and transparent to the mouse", OnUi(() => (GetWindowLong(cover, -20) & 0x00080020) == 0x00080020)); // GWL_EXSTYLE: WS_EX_LAYERED | WS_EX_TRANSPARENT
+                    var under = OnUi(() => WindowFromPoint(new Point((barAt.Left + barAt.Right) / 2, (barAt.Top + barAt.Bottom) / 2)));
+                    CheckTrue("The mouse over the bar reaches the list", under == list, under + " instead of " + list);
+                    // a scroll moves the thumb on the cover too
+                    OnUi(() => SendMessage(list, 0x0115, new IntPtr(3), IntPtr.Zero)); // WM_VSCROLL, SB_PAGEDOWN
+                    var coverOffScrolled = OnUi(() => OffPalette(cover, coverAt));
+                    CheckTrue("It stays in the palette when the list scrolls", coverOffScrolled == 0, coverOffScrolled + " pixels off the palette");
+                }
+
                 int top = OnUi(() => Bar(list).xyThumbTop);
                 OnUi(() => SendMessage(cb.Handle, 0x020A, new IntPtr(-120 * 3 << 16), IntPtr.Zero)); // WM_MOUSEWHEEL, three notches down
                 CheckTrue("The wheel scrolls the list and moves the thumb", WaitFor(() => Bar(list).xyThumbTop > top));
@@ -294,6 +350,9 @@ namespace Sidralune.AppTests
                 });
                 CheckTrue("Moving the bar draws it in the palette at once", off == 0, off + " pixels off the palette");
                 CheckTrue("The bar has moved", OnUi(() => Bar(list).xyThumbTop) > top);
+
+                OnUi(() => cb.DroppedDown = false);
+                CheckTrue("The cover goes when the list closes", WaitFor(() => !IsWindowVisible(list) && WindowsOver(barAt, list).Count == 0));
             }
             finally
             {
