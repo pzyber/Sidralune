@@ -2,6 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sidralune.Devices.Automation;
@@ -185,6 +187,123 @@ namespace Sidralune.AppTests
             CheckTrue("A member's own converter is used", props["Region"].Converter is VideoRegionConverter);
             CheckTrue("Category", props["Mode"].Category == "Test");
             CheckTrue("Words", GridAdapter.Words("MaxFrames") == "Max Frames" && GridAdapter.Words("FWHM") == "FWHM" && GridAdapter.Words("Bin") == "Bin");
+        }
+
+        [DllImport("uxtheme.dll")] private static extern IntPtr GetWindowTheme(IntPtr hwnd);
+        [DllImport("user32.dll")] private static extern bool GetComboBoxInfo(IntPtr hwnd, ref COMBOBOXINFO info);
+        [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
+        [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
+        [DllImport("user32.dll")] private static extern bool GetScrollBarInfo(IntPtr hwnd, int idObject, ref SCROLLBARINFO info);
+        [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
+        [DllImport("user32.dll")] private static extern IntPtr GetWindowDC(IntPtr hwnd);
+        [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr hwnd, IntPtr dc);
+        [DllImport("gdi32.dll")] private static extern bool BitBlt(IntPtr dest, int x, int y, int w, int h, IntPtr src, int sx, int sy, int rop);
+        [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr w, IntPtr l);
+        [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
+        [StructLayout(LayoutKind.Sequential)] private struct COMBOBOXINFO { public int cbSize; public RECT rcItem, rcButton; public int stateButton; public IntPtr hwndCombo, hwndItem, hwndList; }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SCROLLBARINFO
+        {
+            public int cbSize; public RECT rcScrollBar; public int dxyLineButton, xyThumbTop, xyThumbBottom, reserved;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)] public int[] rgstate;
+        }
+
+        private static SCROLLBARINFO Bar(IntPtr list)
+        {
+            var i = new SCROLLBARINFO { cbSize = Marshal.SizeOf(typeof(SCROLLBARINFO)), rgstate = new int[6] };
+            GetScrollBarInfo(list, unchecked((int)0xFFFFFFFB), ref i); // OBJID_VSCROLL
+            return i;
+        }
+
+        /// <summary>Pixels of the list's scroll bar, as the window holds them now, that are not in the red night palette.</summary>
+        private static int OffPaletteInBar(IntPtr list)
+        {
+            var bar = Bar(list);
+            RECT w;
+            GetWindowRect(list, out w);
+            int width = bar.rcScrollBar.Right - bar.rcScrollBar.Left, height = bar.rcScrollBar.Bottom - bar.rcScrollBar.Top;
+            if (width <= 0 || height <= 0) return -1;
+            using (var bmp = new Bitmap(width, height))
+            {
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    var dest = g.GetHdc();
+                    var src = GetWindowDC(list);
+                    try { BitBlt(dest, 0, 0, width, height, src, bar.rcScrollBar.Left - w.Left, bar.rcScrollBar.Top - w.Top, 0x00CC0020); }
+                    finally { ReleaseDC(list, src); g.ReleaseHdc(dest); }
+                }
+                int n = 0;
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < width; x++) { var c = bmp.GetPixel(x, y); if (c.G > 40 || c.B > 40) n++; }
+                return n;
+            }
+        }
+
+        [TestMethod]
+        public void TestComboBoxDropDownInNightMode()
+        {
+            Form form = null;
+            ComboBox cb = null;
+            try
+            {
+                OnUi(() =>
+                {
+                    App.SetNightMode(true);
+                    // on the screen for a moment: off it, the list's window holds no pixels to read back
+                    form = new Form { StartPosition = FormStartPosition.Manual, Location = new Point(40, 40), Size = new Size(420, 200), ShowInTaskbar = false };
+                    cb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 10), Width = 360, MaxDropDownItems = 8, IntegralHeight = false };
+                    for (int i = 0; i < 40; i++) cb.Items.Add("Language " + i);
+                    cb.SelectedIndex = 0;
+                    form.Controls.Add(cb);
+                    Theme.Apply(form);
+                    form.Show(App);
+                    cb.DropDownHeight = 8 * cb.ItemHeight + 2;
+                });
+                // the themed styles animate hot and pressed states, which reached the screen in grey or white for a frame
+                CheckTrue("The closed box uses the classic style", OnUi(() => GetWindowTheme(cb.Handle) == IntPtr.Zero));
+
+                OnUi(() => cb.DroppedDown = true);
+                var list = OnUi(() => { var info = new COMBOBOXINFO { cbSize = Marshal.SizeOf(typeof(COMBOBOXINFO)) }; GetComboBoxInfo(cb.Handle, ref info); return info.hwndList; });
+                // the list is kept off the screen (cloaked) until it has been painted, and must then be shown
+                CheckTrue("The list opens and is shown", WaitFor(() => { int cloaked; return IsWindowVisible(list) && (DwmGetWindowAttribute(list, 14, out cloaked, 4) != 0 || cloaked == 0); }));
+                var hook = typeof(Theme).Assembly.GetType("Sidralune.UI.SystemColorHook");
+                var paints = (Func<IntPtr, bool>)hook.GetField("PaintsScrollBar", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+                CheckTrue("The theme paints the list's scroll bar", paints != null && OnUi(() => paints(list)));
+                var atOpen = OnUi(() => OffPaletteInBar(list));
+                CheckTrue("The bar is in the palette when the list opens", atOpen == 0, atOpen + " pixels off the palette");
+
+                int top = OnUi(() => Bar(list).xyThumbTop);
+                OnUi(() => SendMessage(cb.Handle, 0x020A, new IntPtr(-120 * 3 << 16), IntPtr.Zero)); // WM_MOUSEWHEEL, three notches down
+                CheckTrue("The wheel scrolls the list and moves the thumb", WaitFor(() => Bar(list).xyThumbTop > top));
+                CheckTrue("The bar is in the palette after scrolling", OnUi(() => OffPaletteInBar(list)) == 0);
+
+                // The list moves its bar with SetScrollPos, which Windows would draw in the system colours straight away
+                // (shown for a frame while the list paints its items). Redirected, the bar is in the palette at once,
+                // before any other message could repaint it.
+                var native = OnUi(() =>
+                {
+                    hook.GetMethod("RealSetScrollPos", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { list, 1, 20, 1 });
+                    return OffPaletteInBar(list);
+                });
+                CheckTrue("Windows on its own draws the bar in the system colours (so the next check means something)", native > 0, native.ToString());
+                var setPos = hook.GetMethod("HookedSetScrollPos", BindingFlags.NonPublic | BindingFlags.Static);
+                var off = OnUi(() =>
+                {
+                    setPos.Invoke(null, new object[] { list, 1, 30, 1 }); // SB_VERT, redraw
+                    return OffPaletteInBar(list);
+                });
+                CheckTrue("Moving the bar draws it in the palette at once", off == 0, off + " pixels off the palette");
+                CheckTrue("The bar has moved", OnUi(() => Bar(list).xyThumbTop) > top);
+            }
+            finally
+            {
+                OnUi(() =>
+                {
+                    if (cb != null && cb.IsHandleCreated) cb.DroppedDown = false;
+                    form?.Dispose();
+                    App.SetNightMode(false);
+                });
+            }
         }
     }
 }

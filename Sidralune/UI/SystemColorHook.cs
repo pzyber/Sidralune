@@ -13,6 +13,13 @@ namespace Sidralune.UI
     /// active palette; every other colour is passed through unchanged.
     /// Rich edit asks on every paint, so it follows the palette. comctl32 reads the highlight colours once when it
     /// loads (before this can run), so plain text boxes and combo-box edits still use the system colours.
+    /// <para>
+    /// The same way, comctl32's AnimateWindow is redirected for combo-box drop-down lists: Windows slides the list open
+    /// from a copy of it that starts out white, so the list flashed white on dark palettes. The lists are shown at once
+    /// instead, as when combo-box animation is turned off in Windows. comctl32's SetScrollInfo, SetScrollPos and
+    /// SetScrollRange are redirected for the windows whose scroll bars the theme paints itself (those lists), so Windows
+    /// moves the bar without first drawing it in the system colours.
+    /// </para>
     /// </summary>
     internal static class SystemColorHook
     {
@@ -28,9 +35,64 @@ namespace Sidralune.UI
         [DllImport("user32.dll", EntryPoint = "GetSysColor")] private static extern int RealGetSysColor(int index);
         [DllImport("user32.dll", EntryPoint = "GetSysColorBrush")] private static extern IntPtr RealGetSysColorBrush(int index);
 
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate int AnimateWindowFn(IntPtr hwnd, int time, int flags);
+        [DllImport("user32.dll", EntryPoint = "AnimateWindow")] private static extern int RealAnimateWindow(IntPtr hwnd, int time, int flags);
+        [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder name, int max);
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate int SetScrollInfoFn(IntPtr hwnd, int bar, IntPtr info, int redraw);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate int SetScrollPosFn(IntPtr hwnd, int bar, int pos, int redraw);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate int SetScrollRangeFn(IntPtr hwnd, int bar, int min, int max, int redraw);
+        [DllImport("user32.dll", EntryPoint = "SetScrollInfo")] private static extern int RealSetScrollInfo(IntPtr hwnd, int bar, IntPtr info, int redraw);
+        [DllImport("user32.dll", EntryPoint = "SetScrollPos")] private static extern int RealSetScrollPos(IntPtr hwnd, int bar, int pos, int redraw);
+        [DllImport("user32.dll", EntryPoint = "SetScrollRange")] private static extern int RealSetScrollRange(IntPtr hwnd, int bar, int min, int max, int redraw);
+
+        /// <summary>Set by the theme: true for a window whose scroll bar the theme paints itself.</summary>
+        internal static Func<IntPtr, bool> PaintsScrollBar;
+
+        /// <summary>Set by the theme: paints that window's scroll bar.</summary>
+        internal static Action<IntPtr> RepaintScrollBar;
+
         // the delegates must stay referenced for as long as native code may call them
         private static readonly GetSysColorFn ColorHook = HookedGetSysColor;
         private static readonly GetSysColorBrushFn BrushHook = HookedGetSysColorBrush;
+        private static readonly AnimateWindowFn AnimateHook = HookedAnimateWindow;
+        private static readonly SetScrollInfoFn ScrollInfoHook = HookedSetScrollInfo;
+        private static readonly SetScrollPosFn ScrollPosHook = HookedSetScrollPos;
+        private static readonly SetScrollRangeFn ScrollRangeHook = HookedSetScrollRange;
+
+        // A list scrolls by moving its scroll bar, which Windows draws at once, before the list paints its items; on a
+        // dark palette the system-coloured bar showed for a frame. For the bars the theme paints, move without drawing.
+        private static bool Painted(IntPtr hwnd)
+        {
+            try { var f = PaintsScrollBar; return f != null && RepaintScrollBar != null && f(hwnd); } catch { return false; }
+        }
+
+        private static void Repaint(IntPtr hwnd) { try { RepaintScrollBar(hwnd); } catch { } }
+
+        private static int HookedSetScrollInfo(IntPtr hwnd, int bar, IntPtr info, int redraw)
+        {
+            if (redraw == 0 || !Painted(hwnd)) return RealSetScrollInfo(hwnd, bar, info, redraw);
+            int r = RealSetScrollInfo(hwnd, bar, info, 0);
+            Repaint(hwnd);
+            return r;
+        }
+
+        private static int HookedSetScrollPos(IntPtr hwnd, int bar, int pos, int redraw)
+        {
+            if (redraw == 0 || !Painted(hwnd)) return RealSetScrollPos(hwnd, bar, pos, redraw);
+            int r = RealSetScrollPos(hwnd, bar, pos, 0);
+            Repaint(hwnd);
+            return r;
+        }
+
+        private static int HookedSetScrollRange(IntPtr hwnd, int bar, int min, int max, int redraw)
+        {
+            if (redraw == 0 || !Painted(hwnd)) return RealSetScrollRange(hwnd, bar, min, max, redraw);
+            int r = RealSetScrollRange(hwnd, bar, min, max, 0);
+            Repaint(hwnd);
+            return r;
+        }
         private static readonly HashSet<long> Patched = new HashSet<long>();
         private static readonly string[] Modules = { "comctl32.dll", "gdi32full.dll", "msftedit.dll", "riched20.dll" };
         private static readonly object Gate = new object();
@@ -86,7 +148,29 @@ namespace Sidralune.UI
             }
         }
 
-        /// <summary>Walk the PE import tables of a loaded module and redirect GetSysColor/GetSysColorBrush.</summary>
+        /// <summary>True for the drop-down list window of a combo box.</summary>
+        internal static bool IsComboList(IntPtr hwnd)
+        {
+            var name = new System.Text.StringBuilder(32);
+            return hwnd != IntPtr.Zero && GetClassName(hwnd, name, name.Capacity) > 0 && name.ToString() == "ComboLBox";
+        }
+
+        private static int HookedAnimateWindow(IntPtr hwnd, int time, int flags)
+        {
+            try
+            {
+                if (!IsComboList(hwnd)) return RealAnimateWindow(hwnd, time, flags);
+                const int AW_HIDE = 0x10000, AW_ACTIVATE = 0x20000;
+                // SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER, plus SWP_HIDEWINDOW or SWP_SHOWWINDOW (and SWP_NOACTIVATE)
+                uint swp = 0x0001 | 0x0002 | 0x0004;
+                if ((flags & AW_HIDE) != 0) swp |= 0x0080;
+                else swp |= 0x0040 | ((flags & AW_ACTIVATE) != 0 ? 0u : 0x0010u);
+                return SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, swp) ? 1 : 0;
+            }
+            catch { return RealAnimateWindow(hwnd, time, flags); }
+        }
+
+        /// <summary>Walk the PE import tables of a loaded module and redirect GetSysColor/GetSysColorBrush/AnimateWindow.</summary>
         private static void PatchImports(IntPtr module)
         {
             long b = module.ToInt64();
@@ -124,6 +208,10 @@ namespace Sidralune.UI
                     IntPtr replacement;
                     if (fn == "GetSysColor") replacement = colorFn;
                     else if (fn == "GetSysColorBrush") replacement = brushFn;
+                    else if (fn == "AnimateWindow") replacement = Marshal.GetFunctionPointerForDelegate(AnimateHook);
+                    else if (fn == "SetScrollInfo") replacement = Marshal.GetFunctionPointerForDelegate(ScrollInfoHook);
+                    else if (fn == "SetScrollPos") replacement = Marshal.GetFunctionPointerForDelegate(ScrollPosHook);
+                    else if (fn == "SetScrollRange") replacement = Marshal.GetFunctionPointerForDelegate(ScrollRangeHook);
                     else continue;
                     var slot = new IntPtr(b + firstThunk + (long)i * ptr);
                     uint old;
