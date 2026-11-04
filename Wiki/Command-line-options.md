@@ -28,7 +28,7 @@ Sidralune.exe --screenshot <file.png> [--view <key>] [--time <ISO 8601>] [--sim]
 | `--size <W>x<H>` | Window size in pixels | `1500x950` |
 | `--wait <seconds>` | How long to let the view load and settle before capturing | `4` |
 | `--script <file.cs>` | Runs a C# script in the Scripts workspace before capturing (see below) | |
-| `--lang <code>` | The interface language for this run: `en`, `sv`, or `qps` for the pseudo-language that shows untranslated text and tight layouts. It is not saved. Also works without `--screenshot` | The language in **Settings → Appearance** |
+| `--lang <code>` | The interface language for this run: `en`, a language code such as `sv`, `de`, `fr` or `pl` (see [Languages](Settings#languages)), or `qps` for the pseudo-language that shows untranslated text and tight layouts. It is not saved. Also works without `--screenshot` | The language in **Settings → Appearance** |
 
 In screenshot mode the window is created off-screen and not shown in the taskbar, catalogues are loaded synchronously, and your normal settings (sites, equipment) are used. The window is rendered and saved after the wait time, then Sidralune exits.
 

@@ -114,6 +114,21 @@ namespace Sidralune.Tests
                 var available = Lang.Available();
                 CheckTrue("Languages on offer, English first, by their own names", available.Select(l => l.Key).SequenceEqual(new[] { "en", "nb", "sv" }) && available[2].Value == "Svenska",
                     string.Join(", ", available.Select(l => l.Key + "=" + l.Value)));
+                CheckTrue("Nynorsk uses Bokmål", Lang.Use("nn-NO") == "nb" && Lang.T("Tonight") == "I kveld");
+                File.WriteAllText(Path.Combine(folder, "pt.po"), "msgid \"Tonight\"\nmsgstr \"Esta noite\"\n\nmsgid \"Sky\"\nmsgstr \"Céu\"\n", new UTF8Encoding(false));
+                File.WriteAllText(Path.Combine(folder, "pt-BR.po"), "msgid \"Tonight\"\nmsgstr \"Hoje à noite\"\n", new UTF8Encoding(false));
+                CheckTrue("A regional file with only its differences, the rest from the language", Lang.Use("pt-BR") == "pt-BR" && Lang.T("Tonight") == "Hoje à noite" && Lang.T("Sky") == "Céu" && Lang.T("Planner") == "Planner");
+                CheckTrue("The language alone without the regional file", Lang.Use("pt-PT") == "pt" && Lang.T("Tonight") == "Esta noite");
+                var names = Lang.Available();
+                CheckTrue("Languages sorted by their own names; Latin, which Windows lacks, named too", names.Select(l => l.Key).SequenceEqual(new[] { "en", "nb", "pt", "pt-BR", "sv" }) && Lang.NativeName("la") == "Latina",
+                    string.Join(", ", names.Select(l => l.Key + "=" + l.Value)));
+                // three plural forms: one, a few (2–4, 22–24 …) and many, as Polish counts
+                File.WriteAllText(Path.Combine(folder, "pl.po"), "msgid \"\"\nmsgstr \"\"\n\"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\\n\"\n\n" +
+                    "msgid \"{0} star\"\nmsgid_plural \"{0} stars\"\nmsgstr[0] \"{0} gwiazda\"\nmsgstr[1] \"{0} gwiazdy\"\nmsgstr[2] \"{0} gwiazd\"\n", new UTF8Encoding(false));
+                Lang.Use("pl");
+                var forms = new[] { 1, 2, 5, 12, 22, 25 }.Select(n => Lang.Tn("{0} star", "{0} stars", n)).ToArray();
+                CheckTrue("Three plural forms", forms.SequenceEqual(new[] { "1 gwiazda", "2 gwiazdy", "5 gwiazd", "12 gwiazd", "22 gwiazdy", "25 gwiazd" }), string.Join(", ", forms));
+                File.Delete(Path.Combine(folder, "pl.po"));
                 CheckTrue("The pseudo-language", Lang.Use(Lang.PseudoCode) == Lang.PseudoCode && Lang.T("Tonight").StartsWith("[") && Lang.T("Tonight").EndsWith("]") && Lang.T("Tonight").Length > "Tonight".Length + 3);
                 var p = Lang.T("{0} of {1:0.0} stars", 3, 2.5);
                 CheckTrue("Pseudo-language keeps placeholders", p.Contains("3") && p.Contains("2.5") && !p.Contains("stars"), p);
