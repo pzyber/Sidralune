@@ -236,12 +236,13 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) { ApplyFunction(img, f); return; }
             var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
+            var w = img.EffectiveProfile.LuminanceWeights; // luminance as the image's colour profile defines it
             Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < img.Width; x++)
                 {
                     int i = y * img.Width + x;
-                    double L = 0.2126 * r[i] + 0.7152 * g[i] + 0.0722 * b[i];
+                    double L = w[0] * r[i] + w[1] * g[i] + w[2] * b[i];
                     if (L <= 1e-9) continue;
                     double k = f(L) / L;
                     r[i] = (float)(r[i] * k); g[i] = (float)(g[i] * k); b[i] = (float)(b[i] * k);

@@ -843,7 +843,7 @@ msgstr "Ursidele"
 msgid "Cancelled"
 msgstr "Anulat"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} a eșuat: {1}"
 
@@ -1107,6 +1107,146 @@ msgstr "Cataloagele și efemeridele au fost încărcate"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Eroare neașteptată: {0} (detalii în jurnal)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(liniar)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "compatibil {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Gri, curbă sRGB"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Gri, gamma {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Gri, liniar"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Fără profil ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Alt fișier…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "Profiluri ICC"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Toate fișierele"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} nu este un profil RGB"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "{0} nu a putut fi citit: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Convertește în profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Atribuie profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Imaginea acum"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Intenție de randare"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Perceptual"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Colorimetric relativ"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Saturație"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Colorimetric absolut"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Conversia schimbă valorile pixelilor astfel încât culorile să arate la fel în noul profil."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Atribuirea schimbă felul în care sunt înțelese valorile pixelilor, nu valorile însele, deci culorile se schimbă."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Anulează"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Convertește"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Atribuie"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Culorile nu au putut fi convertite: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Această imagine are profilul de culoare „{0}”, diferit de profilul de lucru „{1}”."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Această imagine nu are profil de culoare. Fără profil, se consideră că este în profilul de lucru „{0}”."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Păstrează profilul ei"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Convertește în profilul de lucru"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Renunță la profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Las-o fără profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Atribuie profilul de lucru"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Profil de culoare"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Fă așa de acum înainte (Setări → Culoare)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Auto, legat"
@@ -1137,6 +1277,14 @@ msgstr "Deschideți o imagine (Ctrl+O) sau trageți fișiere aici"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Se desenează…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Probă: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Avertisment de gamă"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3158,10 +3306,6 @@ msgstr "flux relativ"
 msgid "selection"
 msgstr "selecție"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Toate fișierele"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Nu s-a putut citi o serie temporală din acel fișier"
@@ -3869,10 +4013,6 @@ msgid "OK"
 msgstr "OK"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Anulează"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Se planifică {0}"
 
@@ -4019,6 +4159,18 @@ msgid "False colour"
 msgstr "Culori false"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Culori de probă"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Afișează imaginea așa cum va arăta în profilul de probă ales în Setări → Culoare (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Marchează culorile pe care monitorul nu le poate afișa sau, în timpul probei, pe cele din afara profilului de probă (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "Grilă WCS"
 
@@ -4061,6 +4213,14 @@ msgstr "Rezolvare"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Rezolvată: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Convertește în {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Atribuie {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4244,10 +4404,6 @@ msgstr "Elimină tenta verde (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Saturație"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Aplică saturația"
@@ -4273,6 +4429,14 @@ msgid "Align channels"
 msgstr "Aliniază canalele"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Atribuie profil…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Convertește în profil…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Culoare"
 
@@ -5354,6 +5518,86 @@ msgstr "Vârsta și experiența ajustează predicțiile de vizibilitate (pupila 
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Salvat"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Gestionarea culorilor"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Afișează imaginile prin profilul de culoare al monitorului"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Profil de lucru"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Monitor"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows gestionează culorile acestui ecran (HDR sau gestionare automată a culorilor), deci imaginile sunt trimise ca sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (din Windows)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "Niciun profil setat în Windows (considerat sRGB)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Imagine cu alt profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Întreabă"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Imagine fără profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Salvare"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Încorporează profilul imaginii în fișierele salvate"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "PNG și JPEG pe 8 biți"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Păstrează profilul imaginii"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Convertește în sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Profil de probă"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Intenția de randare a probei"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Alege…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Culoarea avertismentului de gamă"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Imaginile sunt afișate prin profilul monitorului, pe care îl oferă Windows. Fișierele fără profil (FITS, cadre brute, stive) sunt considerate în profilul de lucru. Fișierele pe 8 biți într-un profil larg, cum ar fi ProPhoto RGB, arată șterse în programele fără gestionarea culorilor și pot avea benzi; convertiți-le în sRGB pentru web. Vederea nocturnă arată doar luminozitatea, așa că gestionarea culorilor nu se aplică acolo."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

@@ -327,15 +327,17 @@ namespace Sidralune.Imaging.Stacking
             var entropyFiles = s.LightCombine.Method == CombineMethod.EntropyWeightedAverage ? new string[use.Count] : null;
             int prepared = 0;
             var drizzle = scale > 1 ? new DrizzleAccumulator(ow, oh, ch, s.DrizzlePixFrac) : null;
+            bool sameProfile = true; // the stack keeps the frames' colour profile only when they all share it
             for (int i = 0; i < use.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
                 var f = use[i];
                 var img = f == reference ? refImg : Prepare(f, cal);
+                if (img.Profile == null ? refImg.Profile != null : !img.Profile.SameAs(refImg.Profile)) sameProfile = false;
                 if (s.SaveCalibrated && !string.IsNullOrEmpty(s.CalibratedFolder))
                 {
                     Directory.CreateDirectory(s.CalibratedFolder);
-                    FitsIO.Write(System.IO.Path.Combine(s.CalibratedFolder, System.IO.Path.GetFileNameWithoutExtension(f.Path) + "_cal.fits"), img, -32);
+                    FitsIO.Write(System.IO.Path.Combine(s.CalibratedFolder, System.IO.Path.GetFileNameWithoutExtension(f.Path) + "_cal.fits"), img, -32, ColorManagement.ColorSettings.EmbedProfiles ? img.Profile : null);
                 }
                 loc[i] = new double[ch]; scl[i] = new double[ch];
                 for (int c = 0; c < ch; c++)
@@ -411,6 +413,8 @@ namespace Sidralune.Imaging.Stacking
             if (!s.KeepTempFiles) try { Directory.Delete(temp, true); } catch { }
             if (s.PerChannelBackgroundCalibration && result.Image.Channels == 3) BackgroundCalibrate(result.Image);
             var h = result.Image.Header = refImg.Header.Clone();
+            if (sameProfile && result.Image.Channels == refImg.Channels) result.Image.Profile = refImg.Profile;
+            else if (!sameProfile) Core.Util.Log.Warn("Stacking", "The light frames have different colour profiles; the stack has none (it is taken to be in the working profile)");
             h.Set("NCOMBINE", use.Count, "Number of stacked frames");
             h.Set("EXPTIME", result.TotalExposure, "Total integration [s]");
             h.Set("STACKMTH", s.LightCombine.Method.ToString());

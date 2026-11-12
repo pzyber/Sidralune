@@ -162,17 +162,21 @@ namespace Sidralune.Imaging
             return p;
         }
 
-        /// <summary>Saturation boost with optional protection of the background (only above bg + k σ).</summary>
+        /// <summary>
+        /// Saturation boost with optional protection of the background (only above bg + k σ). Colours move away from
+        /// their luminance, weighted as the image's colour profile defines it, so brightness stays as it was.
+        /// </summary>
         public static void Saturation(AstroImage img, double amount, double backgroundProtect = 0.0)
         {
             if (img.Channels < 3) return;
             var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
+            var w = img.EffectiveProfile.LuminanceWeights;
             Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < img.Width; x++)
                 {
                     int i = y * img.Width + x;
-                    double L = (r[i] + g[i] + b[i]) / 3;
+                    double L = w[0] * r[i] + w[1] * g[i] + w[2] * b[i];
                     double k = amount;
                     if (backgroundProtect > 0) k = 1 + (amount - 1) * AstroMath.Clamp((L - backgroundProtect) / Math.Max(1e-6, backgroundProtect), 0, 1);
                     r[i] = (float)(L + (r[i] - L) * k); g[i] = (float)(L + (g[i] - L) * k); b[i] = (float)(L + (b[i] - L) * k);
@@ -203,9 +207,10 @@ namespace Sidralune.Imaging
             var o = rgb.Clone();
             var L = lum.Data[0];
             var r = o.Data[0]; var g = o.Data[1]; var b = o.Data[2];
+            var w = o.EffectiveProfile.LuminanceWeights; // luminance as the colour image's profile defines it
             Parallel.For(0, o.PixelCount, Core.Util.StopRequest.Options, i =>
             {
-                double Y = 0.2126 * r[i] + 0.7152 * g[i] + 0.0722 * b[i];
+                double Y = w[0] * r[i] + w[1] * g[i] + w[2] * b[i];
                 double Lt = L[i] * lumWeight + Y * (1 - lumWeight);
                 double k = Y > 1e-6 ? Lt / Y : 1;
                 double nr = r[i] * k, ng = g[i] * k, nb = b[i] * k;

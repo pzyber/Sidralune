@@ -50,6 +50,13 @@ namespace Sidralune.Views
             var fc = new FlatButton { Text = T("False colour"), Toggle = true }; fc.AutoSizeToText();
             fc.CheckedChanged += (s, e) => { _viewer.FalseColor = fc.Checked; _viewer.Rebuild(); };
             bar.Controls.Add(fc);
+            var proof = new FlatButton { Text = T("Proof colours"), Toggle = true, ToolTipText = T("Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)") }; proof.AutoSizeToText();
+            proof.CheckedChanged += (s, e) => _viewer.Proof = proof.Checked;
+            bar.Controls.Add(proof);
+            var gamut = new FlatButton { Text = T("Gamut warning"), Toggle = true, ToolTipText = T("Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)") }; gamut.AutoSizeToText();
+            gamut.CheckedChanged += (s, e) => _viewer.GamutWarning = gamut.Checked;
+            bar.Controls.Add(gamut);
+            _viewer.ProofingChanged += () => { proof.Checked = _viewer.Proof; gamut.Checked = _viewer.GamutWarning; };
             var grid = new FlatButton { Text = T("WCS grid"), Toggle = true }; grid.AutoSizeToText();
             grid.CheckedChanged += (s, e) => { _viewer.ShowWcsGrid = grid.Checked; _viewer.Invalidate(); };
             bar.Controls.Add(grid);
@@ -93,6 +100,7 @@ namespace Sidralune.Views
             if (img == null) return;
             _job.Cancel();
             if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.EdgeDirected);
+            ColorUi.Opened(img);
             _img = img.Clone();
             _name = name;
             _undo.Clear(); _redo.Clear();
@@ -216,6 +224,29 @@ namespace Sidralune.Views
                 _viewer.SetImage(_img, false);
                 UpdateHistogram();
             });
+        }
+
+        /// <summary>Assign a colour profile to the image (the values stay) or convert it to one (the colours stay).</summary>
+        public void ProfileStep(bool convert)
+        {
+            if (_img == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
+            Imaging.ColorManagement.IccProfile p;
+            Imaging.ColorManagement.RenderingIntent intent;
+            if (!ColorUi.ChooseProfile(FindForm(), _img, convert, out p, out intent)) return;
+            ApplyProfileStep(convert, p, intent);
+        }
+
+        /// <summary>The assign/convert step itself (also for scripts and tests).</summary>
+        public void ApplyProfileStep(bool convert, Imaging.ColorManagement.IccProfile p, Imaging.ColorManagement.RenderingIntent intent)
+        {
+            string name = ColorUi.Name(p);
+            if (convert)
+                Apply(T("Convert to {0}", name), img =>
+                {
+                    Imaging.ColorManagement.ColorTransform.Create(img.EffectiveProfile, p, intent).Apply(img);
+                    img.Profile = p;
+                });
+            else Apply(T("Assign {0}", name), img => img.Profile = p);
         }
 
         private void Replace(string label, Func<AstroImage, AstroImage> op)
@@ -345,6 +376,8 @@ namespace Sidralune.Views
             var hue = col.Row(T("Hue shift (°)"), Ui.Num(0, -180, 180));
             col.Full(new FlatButton(T("Apply hue shift"), Icons.Check, (s, e) => { double a = (double)hue.Value; Apply(T("Hue"), img => ColorOps.HueSaturationLightness(img, a, 1, 1)); }));
             col.Full(new FlatButton(T("Align RGB channels"), Icons.Check, (s, e) => ApplyStoppable(T("Align channels"), (img, ct) => ColorOps.AlignChannels(img, ct))));
+            col.Full(new FlatButton(T("Assign profile…"), Icons.Check, (s, e) => ProfileStep(false)));
+            col.Full(new FlatButton(T("Convert to profile…"), Icons.Check, (s, e) => ProfileStep(true)));
             list.Add(new Collapsible(T("Colour"), col, false));
 
             // deconvolution

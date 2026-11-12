@@ -843,7 +843,7 @@ msgstr "Ursidi"
 msgid "Cancelled"
 msgstr "Otkazano"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} nije uspjelo: {1}"
 
@@ -1107,6 +1107,146 @@ msgstr "Katalozi i efemeride učitani"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Neočekivana pogreška: {0} (pojedinosti u zapisniku)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(linearno)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "kompatibilno s {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Siva, krivulja sRGB"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Siva, gama {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Siva, linearna"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Bez profila ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Druga datoteka…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "ICC profili"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Sve datoteke"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} nije RGB profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "Nije bilo moguće pročitati {0}: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Pretvori u profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Dodijeli profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Slika sada"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Namjena prikaza"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Perceptivno"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Relativno kolorimetrijski"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Zasićenje"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Apsolutno kolorimetrijski"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Pretvaranje mijenja vrijednosti piksela tako da boje u novom profilu izgledaju jednako."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Dodjeljivanje mijenja kako se vrijednosti piksela tumače, a ne same vrijednosti, pa se boje mijenjaju."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Odustani"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Pretvori"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Dodijeli"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Boje se nisu mogle pretvoriti: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Ova slika ima profil boja „{0}”, koji se razlikuje od radnog profila „{1}”."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Ova slika nema profil boja. Bez profila smatra se da je u radnom profilu „{0}”."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Zadrži njezin profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Pretvori u radni profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Odbaci profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Ostavi bez profila"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Dodijeli radni profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Profil boja"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Ubuduće postupi ovako (Postavke → Boja)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Auto, povezano"
@@ -1137,6 +1277,14 @@ msgstr "Otvorite snimku (Ctrl+O) ili ovdje ispustite datoteke"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Iscrtavanje…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Proba: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Upozorenje o gamutu"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3158,10 +3306,6 @@ msgstr "relativni tok"
 msgid "selection"
 msgstr "odabir"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Sve datoteke"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Iz te datoteke nije moguće pročitati vremenski niz"
@@ -3869,10 +4013,6 @@ msgid "OK"
 msgstr "U redu"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Odustani"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Planiranje {0}"
 
@@ -4019,6 +4159,18 @@ msgid "False colour"
 msgstr "Lažne boje"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Probne boje"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Prikaži sliku kako će izgledati u profilu probe odabranom u Postavke → Boja (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Označi boje koje monitor ne može prikazati, ili tijekom probe boje izvan profila probe (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "Mreža WCS"
 
@@ -4061,6 +4213,14 @@ msgstr "Riješi"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Riješeno: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Pretvori u {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Dodijeli {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4244,10 +4404,6 @@ msgstr "Ukloni zelenu nijansu (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Zasićenje"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Primijeni zasićenje"
@@ -4273,6 +4429,14 @@ msgid "Align channels"
 msgstr "Poravnaj kanale"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Dodijeli profil…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Pretvori u profil…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Boja"
 
@@ -5354,6 +5518,86 @@ msgstr "Dob i iskustvo fino podešavaju predviđanja vidljivosti (zjenica prilag
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Spremljeno"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Upravljanje bojama"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Prikazuj slike kroz profil boja monitora"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Radni profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Monitor"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows upravlja bojama ovog zaslona (HDR ili automatsko upravljanje bojama), pa se slike šalju kao sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (iz sustava Windows)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "U sustavu Windows nije postavljen profil (smatra se sRGB-om)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Slika s drugim profilom"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Pitaj"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Slika bez profila"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Spremanje"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Ugradi profil slike u spremljene datoteke"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8-bitni PNG i JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Zadrži profil slike"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Pretvori u sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Profil probe"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Namjena prikaza probe"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Odaberi…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Boja upozorenja o gamutu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Slike se prikazuju kroz profil monitora, koji daje Windows. Datoteke bez profila (FITS, sirove snimke, složene snimke) smatraju se datotekama u radnom profilu. 8-bitne datoteke u širokom profilu poput ProPhoto RGB izgledaju blijedo u programima bez upravljanja bojama i mogu pokazivati pruge; za web ih pretvorite u sRGB. Noćni vid prikazuje samo svjetlinu, pa se ondje upravljanje bojama ne primjenjuje."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

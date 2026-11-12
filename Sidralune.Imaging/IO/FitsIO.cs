@@ -102,13 +102,48 @@ namespace Sidralune.Imaging.IO
                     if (idx > 0)
                         foreach (var c in primary.Cards)
                             if (!h.Has(c.Key) && c.Key != "SIMPLE" && c.Key != "EXTEND" && c.Key != "NAXIS" && !c.Key.StartsWith("NAXIS")) h.Cards.Add(c);
-                    return ReadData(fs, h, bitpix, dims);
+                    long dataStart = fs.CanSeek ? fs.Position : -1;
+                    var img = ReadData(fs, h, bitpix, dims);
+                    if (dataStart >= 0) ReadProfile(fs, dataStart + (bytes + Block - 1) / Block * Block, img);
+                    return img;
                 }
                 long skip = (bytes + Block - 1) / Block * Block;
                 fs.Seek(skip, SeekOrigin.Current);
                 idx++;
             }
             throw new InvalidDataException("No image HDU found");
+        }
+
+        /// <summary>
+        /// An ICC profile stored the way PixInsight and Siril do: an 8-bit IMAGE extension whose EXTNAME starts with
+        /// "ICCProfile", after the image.
+        /// </summary>
+        private static void ReadProfile(Stream fs, long from, AstroImage img)
+        {
+            try
+            {
+                fs.Position = from;
+                while (fs.Position + Block <= fs.Length)
+                {
+                    var h = ReadHeader(fs);
+                    int bitpix = h.GetInt("BITPIX"), naxis = h.GetInt("NAXIS");
+                    long n = naxis > 0 ? 1 : 0;
+                    for (int i = 0; i < naxis; i++) n *= h.GetInt("NAXIS" + (i + 1));
+                    long bytes = Math.Abs(bitpix) / 8 * (n + h.GetInt("PCOUNT")) * Math.Max(1, h.GetInt("GCOUNT", 1));
+                    if ((h.GetString("EXTNAME") ?? "").StartsWith("ICCProfile", StringComparison.Ordinal) && bitpix == 8 && n > 0 && n < 64 << 20)
+                    {
+                        var b = new byte[n];
+                        int read = 0;
+                        while (read < n) { int r = fs.Read(b, read, (int)n - read); if (r <= 0) return; read += r; }
+                        var p = ColorManagement.IccProfile.TryCreate(b);
+                        if (p != null && p.IsGray == (img.Channels == 1) && (p.IsGray || p.IsRgb)) img.Profile = p;
+                        return;
+                    }
+                    fs.Seek((bytes + Block - 1) / Block * Block, SeekOrigin.Current);
+                }
+            }
+            catch (EndOfStreamException) { }
+            catch (IOException) { }
         }
 
         private static AstroImage ReadData(Stream fs, FitsHeader h, int bitpix, int[] dims)
@@ -205,15 +240,16 @@ namespace Sidralune.Imaging.IO
             return img;
         }
 
-        /// <summary>Write FITS. bitpix: 16 (unsigned via BZERO=32768), 32 (int), -32 (float, default).</summary>
-        public static void Write(string path, AstroImage img, int bitpix = -32)
+        /// <summary>Write FITS. bitpix: 16 (unsigned via BZERO=32768), 32 (int), -32 (float, default). An ICC profile, if given, goes into an extension after the image.</summary>
+        public static void Write(string path, AstroImage img, int bitpix = -32, ColorManagement.IccProfile profile = null)
         {
             using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
-                Write(fs, img, bitpix);
+                Write(fs, img, bitpix, profile);
         }
 
-        public static void Write(Stream fs, AstroImage img, int bitpix = -32)
+        public static void Write(Stream fs, AstroImage img, int bitpix = -32, ColorManagement.IccProfile profile = null)
         {
+            if (profile != null && profile.IsGray != (img.Channels == 1)) profile = null;
             var h = new FitsHeader();
             h.Set("SIMPLE", true, "conforms to FITS standard");
             h.Set("BITPIX", bitpix, "array data type");
@@ -221,6 +257,7 @@ namespace Sidralune.Imaging.IO
             h.Set("NAXIS1", img.Width);
             h.Set("NAXIS2", img.Height);
             if (img.Channels > 1) h.Set("NAXIS3", img.Channels);
+            if (profile != null) h.Set("EXTEND", true, "an ICC profile extension follows");
             if (bitpix == 16) { h.Set("BZERO", 32768.0); h.Set("BSCALE", 1.0); }
             if (bitpix == 32) { h.Set("BZERO", 2147483648.0); h.Set("BSCALE", 1.0); }
             h.Set("ROWORDER", "BOTTOM-UP");
@@ -279,6 +316,20 @@ namespace Sidralune.Imaging.IO
             }
             long pad = (Block - total % Block) % Block;
             fs.Write(new byte[pad], 0, (int)pad);
+            if (profile == null) return;
+            // as PixInsight and Siril store it
+            var eh = new FitsHeader();
+            eh.Set("XTENSION", "IMAGE", "image extension");
+            eh.Set("BITPIX", 8);
+            eh.Set("NAXIS", 1);
+            eh.Set("NAXIS1", profile.Bytes.Length);
+            eh.Set("PCOUNT", 0);
+            eh.Set("GCOUNT", 1);
+            eh.Set("EXTNAME", "ICCProfile", "ICC colour profile of the image");
+            WriteHeader(fs, eh);
+            fs.Write(profile.Bytes, 0, profile.Bytes.Length);
+            long ipad = (Block - profile.Bytes.Length % Block) % Block;
+            fs.Write(new byte[ipad], 0, (int)ipad);
         }
 
         public static void WriteHeader(Stream fs, FitsHeader h)

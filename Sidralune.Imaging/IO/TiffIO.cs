@@ -123,6 +123,13 @@ namespace Sidralune.Imaging.IO
             var img = Decode(r, best, ifds);
             img.SourcePath = path;
             ApplyExif(ifds, img);
+            // the embedded ICC profile (tag 34675); a raw CFA image is in camera colours whatever the file says
+            byte[] icc;
+            if (best.Get(262) != 32803 && best.Bytes.TryGetValue(34675, out icc))
+            {
+                var p = ColorManagement.IccProfile.TryCreate(icc);
+                if (p != null && p.IsGray == (img.Channels == 1) && (p.IsGray || p.IsRgb)) img.Profile = p;
+            }
             return img;
         }
 
@@ -485,25 +492,28 @@ namespace Sidralune.Imaging.IO
             }
         }
 
-        /// <summary>Write an uncompressed TIFF (16-bit integer or 32-bit IEEE float).</summary>
-        public static void Write(string path, AstroImage img, bool float32 = false)
+        /// <summary>Write an uncompressed TIFF (16-bit integer or 32-bit IEEE float), with an ICC profile if given.</summary>
+        public static void Write(string path, AstroImage img, bool float32 = false, ColorManagement.IccProfile profile = null)
         {
             int w = img.Width, h = img.Height, ch = img.Channels >= 3 ? 3 : 1;
             int bps = float32 ? 32 : 16, bytes = bps / 8;
             long dataLen = (long)w * h * ch * bytes;
+            if (profile != null && profile.IsGray != (ch == 1)) profile = null;
+            var icc = profile?.Bytes;
             using (var fs = File.Create(path))
             using (var bw = new BinaryWriter(fs))
             {
                 bw.Write((byte)'I'); bw.Write((byte)'I'); bw.Write((ushort)42);
                 bw.Write((uint)8);
                 var tags = new List<Tuple<ushort, ushort, uint, uint>>();
-                int ntags = 12;
+                int ntags = icc != null ? 13 : 12;
                 long ifdSize = 2 + ntags * 12 + 4;
                 long extra = 8 + ifdSize; // after header + IFD
                 long bpsOff = extra; extra += ch > 1 ? ch * 2 : 0;
                 long sfOff = extra; extra += ch > 1 ? ch * 2 : 0;
                 long xresOff = extra; extra += 8;
                 long yresOff = extra; extra += 8;
+                long iccOff = extra; extra += icc != null ? (icc.Length + 1) / 2 * 2 : 0;
                 long dataOff = extra;
                 Action<ushort, ushort, uint, uint> T = (tag, type, count, value) => tags.Add(Tuple.Create(tag, type, count, value));
                 T(256, 4, 1, (uint)w);
@@ -518,6 +528,7 @@ namespace Sidralune.Imaging.IO
                 T(282, 5, 1, (uint)xresOff);
                 T(283, 5, 1, (uint)yresOff);
                 T(339, 3, (uint)ch, ch > 1 ? (uint)sfOff : (float32 ? 3u : 1u));
+                if (icc != null) T(34675, 7, (uint)icc.Length, (uint)iccOff); // ICC profile (UNDEFINED bytes)
                 bw.Write((ushort)tags.Count);
                 foreach (var t in tags)
                 {
@@ -528,6 +539,7 @@ namespace Sidralune.Imaging.IO
                 bw.Write((uint)0);
                 if (ch > 1) { for (int i = 0; i < ch; i++) bw.Write((ushort)bps); for (int i = 0; i < ch; i++) bw.Write((ushort)(float32 ? 3 : 1)); }
                 bw.Write((uint)72); bw.Write((uint)1); bw.Write((uint)72); bw.Write((uint)1);
+                if (icc != null) { bw.Write(icc); if ((icc.Length & 1) == 1) bw.Write((byte)0); }
                 var row = new byte[w * ch * bytes];
                 for (int y = 0; y < h; y++)
                 {

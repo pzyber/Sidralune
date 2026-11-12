@@ -835,7 +835,7 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr ""
 
@@ -1099,6 +1099,146 @@ msgstr ""
 msgid "Unexpected error: {0} (details in the log)"
 msgstr ""
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr ""
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr ""
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr ""
@@ -1128,6 +1268,14 @@ msgstr ""
 
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
+msgstr ""
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr ""
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
 msgstr ""
 
 #: Sidralune/UI/PlotControl.cs
@@ -3141,10 +3289,6 @@ msgstr ""
 msgid "selection"
 msgstr ""
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr ""
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr ""
@@ -3850,10 +3994,6 @@ msgid "OK"
 msgstr ""
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr ""
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr ""
 
@@ -3998,6 +4138,18 @@ msgid "False colour"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr ""
 
@@ -4039,6 +4191,14 @@ msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
@@ -4221,10 +4381,6 @@ msgstr ""
 msgid "SCNR"
 msgstr ""
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr ""
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr ""
@@ -4250,6 +4406,14 @@ msgid "Align channels"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr ""
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr ""
 
@@ -5328,6 +5492,86 @@ msgstr ""
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr ""
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
 msgstr ""
 
 #: Sidralune/Views/SettingsView.cs

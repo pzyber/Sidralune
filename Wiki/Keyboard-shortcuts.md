@@ -54,6 +54,8 @@ In Process, Deep sky, Planetary, Astrometry, Spectra, the Observatory and MPC as
 | 0 | Fit to window |
 | 1 | Actual pixels (100%) |
 | Arrow keys | Pan |
+| Ctrl+Shift+O | Proof colours on or off (see [Colour management](Colour-management#soft-proofing-and-the-gamut-warning)) |
+| Ctrl+Shift+Y | Gamut warning on or off |
 
 | Mouse | Action |
 |---|---|

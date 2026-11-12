@@ -225,6 +225,7 @@ namespace Sidralune.Views
         private void SetImage(AstroImage img, TextBox ra, TextBox dec, NumericUpDown scale)
         {
             img = Debayered(img);
+            ColorUi.Opened(img);
             _img = img; _solve = null; _annotations.Clear(); _depthInfo = null; _steps = new TimeSpan[4];
             _viewer.SetImage(img);
             double r, d, sc;

@@ -715,6 +715,7 @@ namespace Sidralune.Views
                     AstroImage loaded = null;
                     _mpcJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () =>
                     {
+                        ColorUi.Opened(loaded);
                         _mpcImg = loaded;
                         _mpcViewer.SetImage(_mpcImg);
                         if (_mpcViewer.Wcs == null) MainForm.Instance.Toast(T("No WCS in this image: plate solve it in Astrometry and save with WCS"), Icons.Info);

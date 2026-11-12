@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Imaging.ColorManagement;
 using Sidralune.Imaging.IO;
 using Sidralune.Science.Astrometry;
 
@@ -74,6 +76,60 @@ namespace Sidralune.UI
             Rebuild();
         }
 
+        /// <summary>The monitor (device name) the current bitmap was converted for.</summary>
+        private string _renderedFor;
+
+        /// <summary>Show the image as proofed in the proofing profile (Settings → Colour). Ctrl+Shift+O.</summary>
+        public bool Proof { get { return _proof; } set { if (_proof != value) { _proof = value; ProofingChanged?.Invoke(); Rebuild(); } } }
+        private bool _proof;
+
+        /// <summary>Mark pixels the monitor (or, when proofing, the proofing profile) cannot show. Ctrl+Shift+Y.</summary>
+        public bool GamutWarning { get { return _gamut; } set { if (_gamut != value) { _gamut = value; ProofingChanged?.Invoke(); Rebuild(); } } }
+        private bool _gamut;
+
+        /// <summary>Proof or GamutWarning was switched (also from the keyboard).</summary>
+        public event Action ProofingChanged;
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            ColorSettings.Changed += OnColorSettingsChanged;
+            HookForm();
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            ColorSettings.Changed -= OnColorSettingsChanged;
+            base.OnHandleDestroyed(e);
+        }
+
+        protected override void OnParentChanged(EventArgs e) { base.OnParentChanged(e); HookForm(); }
+
+        private Form _hookedForm;
+        private void HookForm()
+        {
+            var f = FindForm();
+            if (f == _hookedForm) return;
+            if (_hookedForm != null) _hookedForm.Move -= OnFormMoved;
+            _hookedForm = f;
+            if (f != null) f.Move += OnFormMoved;
+        }
+
+        // moved onto another monitor: convert for that monitor's profile
+        private void OnFormMoved(object s, EventArgs e)
+        {
+            if (_image == null || _renderedFor == null || !IsHandleCreated) return;
+            string device;
+            try { device = MonitorColor.Override != null ? "override" : Screen.FromControl(this).DeviceName; } catch { return; }
+            if (device != _renderedFor) Rebuild();
+        }
+
+        private void OnColorSettingsChanged()
+        {
+            if (!IsHandleCreated || IsDisposed) return;
+            try { BeginInvoke(new Action(() => { if (_image != null) Rebuild(); })); } catch (InvalidOperationException) { }
+        }
+
         /// <summary>Recompute display bitmap (async for big images).</summary>
         public void Rebuild()
         {
@@ -83,6 +139,16 @@ namespace Sidralune.UI
             var stretch = _stretch;
             var custom = CustomStretch;
             bool inv = Invert, fc = FalseColor, night = Theme.Current.IsNight;
+            // colour management: from the image's profile to the monitor's (not for false colour, nor in night vision mode)
+            bool managed = ColorSettings.Enabled && !night && !(fc && img.Channels == 1);
+            var monitor = managed ? MonitorColor.For(this) : null;
+            var render = managed ? new ManagedRender
+            {
+                Source = img.EffectiveProfile, Target = monitor.Profile, Intent = ColorSettings.Intent,
+                Proofing = _proof ? ColorSettings.ProofingProfile : null, ProofingIntent = ColorSettings.ProofingIntent,
+                Gamut = _gamut, WarningColor = ColorSettings.GamutWarningColor
+            } : null;
+            string device = monitor?.Device;
             Task.Run(() =>
             {
                 HistogramTransform[] t = null;
@@ -103,7 +169,13 @@ namespace Sidralune.UI
                     if (inv) r = 1 - r;
                     return r;
                 };
-                Bitmap bmp = fc && img.Channels == 1 ? FalseColorBitmap(img, tf) : BitmapIO.ToBitmap(img, tf);
+                Bitmap bmp = null;
+                if (render != null)
+                {
+                    try { bmp = render.Draw(img, tf); }
+                    catch (Exception ex) { LogOnce("Colour management is off for this image: " + ex.Message); }
+                }
+                if (bmp == null) bmp = fc && img.Channels == 1 ? FalseColorBitmap(img, tf) : BitmapIO.ToBitmap(img, tf);
                 if (night) NightTint(bmp);
                 if (IsDisposed) { bmp.Dispose(); return; }
                 try
@@ -115,11 +187,108 @@ namespace Sidralune.UI
                         _bitmap = bmp;
                         _stf = t;
                         _bitmapNight = night;
+                        _renderedFor = device;
                         Invalidate();
                     }));
                 }
                 catch { bmp.Dispose(); }
             });
+        }
+
+        private static string _lastLogged;
+        private static void LogOnce(string message)
+        {
+            if (message == _lastLogged) return;
+            _lastLogged = message;
+            Sidralune.Core.Util.Log.Warn("Colour", message);
+        }
+
+        /// <summary>
+        /// Draws an image converted from its profile to the monitor's (optionally through a proofing profile, and marking
+        /// colours out of gamut), with Windows' colour system. The stretched values go in at 16 bits per channel.
+        /// </summary>
+        private sealed class ManagedRender
+        {
+            public IccProfile Source, Target, Proofing;
+            public RenderingIntent Intent, ProofingIntent;
+            public bool Gamut;
+            public int WarningColor;
+
+            public unsafe Bitmap Draw(AstroImage img, Func<int, float, float> tf)
+            {
+                int w = img.Width, h = img.Height;
+                bool mono = img.Channels < 3;
+                // a grey image goes in as linear light (whatever its curve) and is converted as neutral linear sRGB
+                var src = mono ? IccProfiles.ById("srgb-linear") : Source;
+                var grayCurve = mono && Source.IsGray && Source.Curves != null ? Source.Curves[0] : ToneCurve.Linear;
+                // Proofing goes in two real steps, into the proofing profile's own values (where what it cannot show is
+                // lost) and from those to the monitor; one chained transform does not confine colours to the middle
+                // profile. The second step is colorimetric, so the proof is shown as it is.
+                var midFormat = Proofing != null ? WcsTransform.FormatFor(Proofing) : WcsTransform.Format.Rgb16;
+                var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+                var data = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                try
+                {
+                    // strips converted in parallel, each worker with its own transform
+                    int workers = Math.Max(1, Math.Min(Environment.ProcessorCount, h / 64 + 1));
+                    int rowsEach = (h + workers - 1) / workers;
+                    var warn = System.Drawing.Color.FromArgb(WarningColor);
+                    Parallel.For(0, workers, k =>
+                    {
+                        int y0 = k * rowsEach, y1 = Math.Min(h, y0 + rowsEach);
+                        if (y0 >= y1) return;
+                        using (var t = Proofing == null ? new WcsTransform(new[] { src, Target }, new[] { Intent, Intent }, false)
+                                                         : new WcsTransform(new[] { src, Proofing }, new[] { ProofingIntent, ProofingIntent }, false))
+                        using (var t2 = Proofing != null ? new WcsTransform(new[] { Proofing, Target }, new[] { RenderingIntent.RelativeColorimetric, RenderingIntent.RelativeColorimetric }, false) : null)
+                        using (var g = Gamut ? new WcsTransform(Proofing != null ? new[] { src, Proofing } : new[] { src, Target }, new[] { ProofingIntent, ProofingIntent }, true) : null)
+                        {
+                            const int strip = 32;
+                            var buf = new ushort[w * strip * 3];
+                            for (int y = y0; y < y1; y += strip)
+                            {
+                                int rows = Math.Min(strip, y1 - y);
+                                for (int r = 0; r < rows; r++)
+                                {
+                                    int o = (y + r) * w, b = r * w * 3;
+                                    for (int x = 0; x < w; x++, b += 3)
+                                    {
+                                        int i = o + x;
+                                        if (mono)
+                                        {
+                                            ushort v = ColorTransform.U16((float)grayCurve.ToLinear(tf(0, img.Data[0][i])));
+                                            buf[b] = buf[b + 1] = buf[b + 2] = v;
+                                        }
+                                        else
+                                        {
+                                            // Windows' 16-bit layout: blue, green, red
+                                            buf[b] = ColorTransform.U16(tf(2, img.Data[2][i]));
+                                            buf[b + 1] = ColorTransform.U16(tf(1, img.Data[1][i]));
+                                            buf[b + 2] = ColorTransform.U16(tf(0, img.Data[0][i]));
+                                        }
+                                    }
+                                }
+                                var part = rows == strip ? buf : buf.Take(w * rows * 3).ToArray();
+                                var dst = (IntPtr)((byte*)data.Scan0 + (long)y * data.Stride);
+                                if (t2 == null) t.TranslateToBitmap(part, w, rows, dst, data.Stride);
+                                else t2.TranslateToBitmap(t.Translate(part, WcsTransform.Format.Rgb16, w, rows, midFormat), midFormat, w, rows, dst, data.Stride);
+                                if (g != null)
+                                {
+                                    var outside = g.CheckGamut(part, w, rows);
+                                    for (int r = 0; r < rows; r++)
+                                    {
+                                        byte* row = (byte*)dst + (long)r * data.Stride;
+                                        for (int x = 0; x < w; x++)
+                                            if (outside[r * w + x]) { row[x * 4] = warn.B; row[x * 4 + 1] = warn.G; row[x * 4 + 2] = warn.R; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                catch { bmp.UnlockBits(data); bmp.Dispose(); throw; }
+                bmp.UnlockBits(data);
+                return bmp;
+            }
         }
 
         /// <summary>Night vision: show brightness in red only, so images do not spoil dark adaptation.</summary>
@@ -244,6 +413,8 @@ namespace Sidralune.UI
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
+            if (e.Control && e.Shift && e.KeyCode == Keys.O) { Proof = !Proof; e.Handled = true; base.OnKeyDown(e); return; }
+            if (e.Control && e.Shift && e.KeyCode == Keys.Y) { GamutWarning = !GamutWarning; e.Handled = true; base.OnKeyDown(e); return; }
             switch (e.KeyCode)
             {
                 case Keys.Oemplus: case Keys.Add: SetZoom(_zoom * 1.25); break;
@@ -279,6 +450,7 @@ namespace Sidralune.UI
                 sb.AppendFormat("   α {0}  δ {1}", AstroMath.FormatHms(ra / 15, 1), AstroMath.FormatDms(dec, 0));
             }
             if (ExtraReadout != null) sb.Append("   " + ExtraReadout(x, y));
+            if (_image.IsColor) sb.Append("   " + ColorUi.ImageProfileText(_image));
             sb.AppendFormat("   zoom {0:0.##}×", _zoom);
             return sb.ToString();
         }
@@ -320,6 +492,17 @@ namespace Sidralune.UI
             g.SmoothingMode = SmoothingMode.AntiAlias;
             if (ShowWcsGrid && Wcs != null) DrawWcsGrid(g, p);
             PaintOverlay?.Invoke(g, ImageToScreen);
+            // proofing and the gamut warning say so, so neither is left on unnoticed
+            if ((_proof || _gamut) && ColorSettings.Enabled && !p.IsNight)
+            {
+                var parts = new List<string>();
+                if (_proof) parts.Add(Sidralune.Core.Util.Lang.T("Proof: {0}", ColorUi.Name(ColorSettings.ProofingProfile)));
+                if (_gamut) parts.Add(Sidralune.Core.Util.Lang.T("Gamut warning"));
+                string text = string.Join("   ·   ", parts);
+                var size = TextRenderer.MeasureText(text, Theme.SmallFont);
+                using (var b = new SolidBrush(Theme.WithAlpha(p.Surface, 210))) g.FillRectangle(b, 6, 6, size.Width + 12, size.Height + 6);
+                TextRenderer.DrawText(g, text, Theme.SmallFont, new Point(12, 9), p.Text);
+            }
             if (Focused && ShowFocusCues) using (var pen = new Pen(p.Focus)) g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
         }
 

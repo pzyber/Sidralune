@@ -13,6 +13,7 @@ using Sidralune.Core.Observing;
 using Sidralune.Core.Time;
 using Sidralune.Core.Util;
 using Sidralune.Devices;
+using Sidralune.Imaging.ColorManagement;
 using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune
@@ -44,6 +45,19 @@ namespace Sidralune
         public string MinorBodyLabels = "All";
         /// <summary>The interface language: "" for the Windows display language, "en", a code with a .po file ("sv"), or the pseudo-language.</summary>
         public string Language = "";
+
+        // colour management (Settings → Colour); profiles are a built-in id ("prophoto") or a file path
+        public bool ColorManagement = true;
+        public string WorkingProfile = "prophoto";
+        public string RenderingIntent = "Perceptual";
+        public string OnProfileMismatch = "Keep";
+        public string OnMissingProfile = "LeaveUntagged";
+        public bool EmbedProfiles = true;
+        public bool Export8BitAsSrgb = false;
+        public string ProofingProfile = "srgb";
+        public string ProofingIntent = "RelativeColorimetric";
+        /// <summary>The colour marking out-of-gamut pixels, as #RRGGBB.</summary>
+        public string GamutWarningColor = "#808080";
     }
 
     /// <summary>Central application state shared by all views.</summary>
@@ -134,6 +148,31 @@ namespace Sidralune
                 Settings.Sites = new List<Observer> { new Observer { Name = "Home", LatitudeDeg = 52.0, LongitudeDeg = Math.Round(off * 15, 1), ElevationM = 20, SqmZenith = 20.8, Bortle = 5 } };
             }
             DeviceManager.Instance.Site = Site;
+            ApplyColorSettings();
+        }
+
+        /// <summary>Hands the colour settings to the imaging code (and tells the image views to redraw).</summary>
+        public static void ApplyColorSettings()
+        {
+            var s = Settings;
+            ColorSettings.Enabled = s.ColorManagement;
+            ColorSettings.WorkingProfile = IccProfiles.FromSetting(s.WorkingProfile);
+            ColorSettings.Intent = ParseEnum(s.RenderingIntent, Imaging.ColorManagement.RenderingIntent.Perceptual);
+            ColorSettings.OnMismatch = ParseEnum(s.OnProfileMismatch, ProfileMismatchPolicy.Keep);
+            ColorSettings.OnMissing = ParseEnum(s.OnMissingProfile, ProfileMissingPolicy.LeaveUntagged);
+            ColorSettings.EmbedProfiles = s.EmbedProfiles;
+            ColorSettings.Export8BitAsSrgb = s.Export8BitAsSrgb;
+            ColorSettings.ProofingProfile = IccProfiles.ProofingFromSetting(s.ProofingProfile);
+            ColorSettings.ProofingIntent = ParseEnum(s.ProofingIntent, Imaging.ColorManagement.RenderingIntent.RelativeColorimetric);
+            try { ColorSettings.GamutWarningColor = System.Drawing.ColorTranslator.FromHtml(s.GamutWarningColor ?? "#808080").ToArgb(); }
+            catch { ColorSettings.GamutWarningColor = unchecked((int)0xFF808080); }
+            ColorSettings.RaiseChanged();
+        }
+
+        private static T ParseEnum<T>(string s, T fallback) where T : struct
+        {
+            T v;
+            return Enum.TryParse(s ?? "", out v) ? v : fallback;
         }
 
         public static void Save()
