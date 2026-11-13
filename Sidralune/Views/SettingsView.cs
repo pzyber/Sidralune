@@ -302,7 +302,25 @@ namespace Sidralune.Views
                 monitor.Text = m.WindowsManaged ? T("Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB")
                     : m.Path != null ? T("{0} (from Windows)", m.Profile.Description) : T("No profile set in Windows (taken to be sRGB)");
             };
-            card.VisibleChanged += (o, e) => { if (card.Visible) { MonitorColor.Refresh(); showMonitor(); } };
+            // read again when the tab is shown, and when the window is moved onto another monitor
+            string shownFor = null;
+            Action follow = () =>
+            {
+                string device;
+                try { device = Screen.FromControl(card).DeviceName; } catch { return; }
+                if (device == shownFor) return;
+                shownFor = device;
+                showMonitor();
+            };
+            card.VisibleChanged += (o, e) => { if (card.Visible) { MonitorColor.Refresh(); shownFor = null; follow(); } };
+            EventHandler moved = (o, e) => { if (card.Visible) follow(); };
+            card.HandleCreated += (o, e) =>
+            {
+                var form = card.FindForm();
+                if (form == null) return;
+                form.Move += moved;
+                card.Disposed += (o2, e2) => form.Move -= moved;
+            };
             g.Row(T("Rendering intent"), ColorUi.IntentCombo(intentOf(s.RenderingIntent), v => { s.RenderingIntent = v.ToString(); save(); }));
 
             var mismatch = g.Row(T("Image with another profile"), Ui.Combo(T("Keep its profile"), T("Convert to the working profile"), T("Discard the profile"), T("Ask")));
