@@ -144,6 +144,60 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestLargeImageRendersAtScreenSize()
+        {
+            var keep = MonitorColor.Override;
+            var v = Viewer();
+            try
+            {
+                MonitorColor.Override = IccProfiles.Srgb;
+                var big = new AstroImage(4000, 3000, 3);
+                for (int c = 0; c < 3; c++) for (int i = 0; i < big.PixelCount; i += 7) big.Data[c][i] = 0.5f;
+                var old = OnUi(() => Field<Bitmap>(v.Item2, "_bitmap"));
+                OnUi(() => v.Item2.SetImage(big, true));
+                WaitFor(() => Field<Bitmap>(v.Item2, "_bitmap") != null && Field<Bitmap>(v.Item2, "_bitmap") != old, 20000);
+                var shown = OnUi(() => new { Scale = v.Item2.RenderedScale, Width = Field<Bitmap>(v.Item2, "_bitmap").Width, Zoom = v.Item2.Zoom });
+                // a 4000-pixel image in a 200-pixel window: fitted at about 1/20, drawn at 1/16
+                CheckTrue("Shown whole, a large image is drawn reduced, but not smaller than on screen", shown.Scale >= 8 && shown.Width == (4000 + shown.Scale - 1) / shown.Scale && shown.Width >= 4000 * shown.Zoom,
+                    "1/" + shown.Scale + ", " + shown.Width + " px wide at zoom " + shown.Zoom.ToString("0.000"));
+                OnUi(() => v.Item2.SetZoom(1));
+                CheckTrue("At 100 % it is drawn at full size again", WaitFor(() => v.Item2.RenderedScale == 1 && Field<Bitmap>(v.Item2, "_bitmap").Width == 4000, 20000));
+            }
+            finally
+            {
+                OnUi(() => v.Item1.Dispose());
+                MonitorColor.Override = keep;
+            }
+        }
+
+        [TestMethod]
+        public void TestDisplayOfOpenedImages()
+        {
+            // finished pictures (8-bit, or with a colour profile) are shown as they are; linear data is stretched
+            var photo = new AstroImage(2, 2, 3) { OriginalBitDepth = 8 };
+            var tagged = new AstroImage(2, 2, 3) { OriginalBitDepth = 16, Profile = IccProfiles.ById("adobergb") };
+            var linear = new AstroImage(2, 2, 3) { OriginalBitDepth = -32 };
+            CheckTrue("An 8-bit image or one with a profile opens unstretched", ProcessingView.DisplayFor(photo, DisplayStretch.AutoLinked) == DisplayStretch.None && ProcessingView.DisplayFor(tagged, DisplayStretch.AutoUnlinked) == DisplayStretch.None);
+            CheckTrue("Linear data keeps the chosen stretch, but never opens unstretched", ProcessingView.DisplayFor(linear, DisplayStretch.AutoUnlinked) == DisplayStretch.AutoUnlinked && ProcessingView.DisplayFor(linear, DisplayStretch.None) == DisplayStretch.AutoLinked);
+
+            var view = View<ProcessingView>("processing");
+            var keepPolicy = OnUi(() => AppState.Settings.OnProfileMismatch);
+            try
+            {
+                // Convert on opening changes Process's copy, not the image that was sent
+                OnUi(() => { AppState.Settings.OnProfileMismatch = "ConvertToWorking"; AppState.ApplyColorSettings(); });
+                var sent = Rgb(IccProfiles.Srgb, new[] { 1f, 0f, 0f });
+                OnUi(() => view.OpenImage(sent, "sent"));
+                CheckTrue("Opening leaves the sender's image as it was", sent.Profile == IccProfiles.Srgb && sent.Data[0][0] == 1f && OnUi(() => Field<AstroImage>(view, "_img").Profile) == IccProfiles.ProPhoto);
+                var shown = OnUi(() => new { Viewer = Field<ImageViewer>(view, "_viewer").Stretch, Combo = Field<ComboBox>(view, "_stretchCombo").Text });
+                CheckTrue("A tagged image opens with Display set to None", shown.Viewer == DisplayStretch.None && shown.Combo == "None", shown.Viewer + " / " + shown.Combo);
+                OnUi(() => view.OpenImage(new AstroImage(4, 4, 3) { OriginalBitDepth = -32 }, "linear"));
+                CheckTrue("…and linear data after it opens stretched again", OnUi(() => Field<ImageViewer>(view, "_viewer").Stretch) == DisplayStretch.AutoLinked);
+            }
+            finally { OnUi(() => { AppState.Settings.OnProfileMismatch = keepPolicy; AppState.ApplyColorSettings(); }); }
+        }
+
+        [TestMethod]
         public void TestAssignAndConvertInProcess()
         {
             var view = View<ProcessingView>("processing");

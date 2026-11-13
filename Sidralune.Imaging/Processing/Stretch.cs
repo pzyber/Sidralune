@@ -77,7 +77,9 @@ namespace Sidralune.Imaging
         public static HistogramTransform[] AutoStretch(AstroImage img, bool linked = true, double target = 0.25, double clip = -2.8)
         {
             var stats = new ChannelStats[img.Channels];
-            for (int c = 0; c < img.Channels; c++) stats[c] = ImageStatistics.Compute(img.Data[c], img.Width, 0);
+            // only the median and MAD are needed: the quick statistics, not the full ones (the noise estimate alone
+            // takes seconds on a large image)
+            for (int c = 0; c < img.Channels; c++) stats[c] = ImageStatistics.Robust(img.Data[c]);
             if (linked && img.Channels > 1)
             {
                 var avg = new ChannelStats { Median = 0, Mad = 0 };

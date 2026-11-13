@@ -50,6 +50,71 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestTiffLzw()
+        {
+            // an LZW-compressed TIFF as Windows writes it: gradients, noise and long runs, large enough for the code
+            // table to fill and be cleared many times and for a code to refer to the entry being made (KwKwK)
+            int w = 1500, h = 900;
+            var rnd = new Random(7);
+            string p = Path.Combine(TempDir(), "lzw.tif");
+            using (var bmp = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format24bppRgb))
+            {
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        int r = x * 255 / w, g = y < h / 3 ? 128 : y < 2 * h / 3 ? rnd.Next(256) : (x / 7) % 2 * 255, b = (x + y) % 256;
+                        bmp.SetPixel(x, y, System.Drawing.Color.FromArgb(r, g, b));
+                    }
+                var enc = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders().First(e => e.FormatID == System.Drawing.Imaging.ImageFormat.Tiff.Guid);
+                var prm = new System.Drawing.Imaging.EncoderParameters(1);
+                prm.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Compression, (long)System.Drawing.Imaging.EncoderValue.CompressionLZW);
+                bmp.Save(p, enc, prm);
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var img = TiffIO.Read(p);
+                Info("1500 × 900 LZW TIFF read in " + sw.ElapsedMilliseconds + " ms");
+                int bad = 0;
+                for (int y = 0; y < h && bad < 5; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        var c = bmp.GetPixel(x, y);
+                        int i = y * w + x;
+                        if (Math.Abs(img.Data[0][i] * 255 - c.R) > 0.01 || Math.Abs(img.Data[1][i] * 255 - c.G) > 0.01 || Math.Abs(img.Data[2][i] * 255 - c.B) > 0.01) { if (++bad >= 5) break; }
+                    }
+                CheckTrue("An LZW TIFF decodes to exactly the pixels written", img.Width == w && img.Height == h && img.Channels == 3 && bad == 0, bad + " pixels differ");
+            }
+            // 32-bit float, read without allocating per sample
+            var f = new AstroImage(3, 2, 1);
+            f.Data[0][0] = -0.25f; f.Data[0][1] = 1.5f; f.Data[0][5] = 0.123456f;
+            string fp = Path.Combine(TempDir(), "float.tif");
+            TiffIO.Write(fp, f, true);
+            var fb = TiffIO.Read(fp);
+            CheckTrue("32-bit float TIFF values, also outside 0–1", fb.Data[0][0] == -0.25f && fb.Data[0][1] == 1.5f && fb.Data[0][5] == 0.123456f);
+        }
+
+        [TestMethod]
+        public void TestQuickStatistics()
+        {
+            // the quick statistics (for the display stretch and background levels) agree with the full ones
+            var img = Synthetic.Render(800, 600, Synthetic.RandomStars(300, 800, 600, 3), Transform2D.Identity, 3, 0.1, 0.01, 2);
+            var full = ImageStatistics.Compute(img.Data[0], img.Width, 0);
+            var quick = ImageStatistics.Robust(img.Data[0]);
+            CheckTrue("Quick median, MAD and background equal the full statistics", quick.Median == full.Median && quick.Mad == full.Mad && quick.Background == full.Background && quick.BackgroundSigma == full.BackgroundSigma,
+                quick.Median + " " + full.Median + " / " + quick.Background + " " + full.Background);
+            // and a large plane takes a fraction of the time
+            var big = new float[7488 * 5688];
+            var rnd = new Random(3);
+            for (int i = 0; i < big.Length; i += 13) big[i] = (float)rnd.NextDouble();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            ImageStatistics.Robust(big);
+            long q = sw.ElapsedMilliseconds;
+            sw.Restart();
+            ImageStatistics.Compute(big, 7488, 0);
+            long f = sw.ElapsedMilliseconds;
+            Info(string.Format("42.6-megapixel plane: quick statistics {0} ms, full {1} ms", q, f));
+            CheckTrue("The quick statistics are much faster on a large image", q * 3 < f, q + " vs " + f + " ms");
+        }
+
+        [TestMethod]
         public void TestSerRoundtrip()
         {
             string p = Path.Combine(TempDir(), "rt.ser");

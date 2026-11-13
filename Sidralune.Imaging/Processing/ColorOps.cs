@@ -25,7 +25,7 @@ namespace Sidralune.Imaging
                     for (int y = rect[1]; y < rect[1] + rect[3]; y++) for (int x = rect[0]; x < rect[0] + rect[2]; x++) vals.Add(d[y * img.Width + x]);
                     bg[c] = Stats.Median(vals);
                 }
-                else bg[c] = ImageStatistics.Compute(d, img.Width, 0).Background;
+                else bg[c] = ImageStatistics.Robust(d).Background;
             }
             double t = bg.Average();
             for (int c = 0; c < 3; c++) { float o = (float)(t - bg[c]); var d = img.Data[c]; for (int i = 0; i < d.Length; i++) d[i] += o; }
@@ -38,7 +38,7 @@ namespace Sidralune.Imaging
             var k = new[] { kr, kg, kb };
             for (int c = 0; c < 3; c++)
             {
-                double bg = aroundBackground ? ImageStatistics.Compute(img.Data[c], img.Width, 0).Background : 0;
+                double bg = aroundBackground ? ImageStatistics.Robust(img.Data[c]).Background : 0;
                 var d = img.Data[c];
                 float fk = (float)k[c], fb = (float)bg;
                 for (int i = 0; i < d.Length; i++) d[i] = fb + (d[i] - fb) * fk;

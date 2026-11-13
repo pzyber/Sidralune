@@ -62,6 +62,13 @@ namespace Sidralune.UI
             set { _stretch = value; Rebuild(); }
         }
 
+        /// <summary>Shows an image with another display stretch, rendering once.</summary>
+        public void SetImage(AstroImage img, bool fit, DisplayStretch stretch)
+        {
+            _stretch = stretch;
+            SetImage(img, fit);
+        }
+
         public void SetImage(AstroImage img, bool fit = true)
         {
             bool sizeChanged = _image == null || img == null || img.Width != _image.Width || img.Height != _image.Height;
@@ -131,11 +138,72 @@ namespace Sidralune.UI
         }
 
         /// <summary>Recompute display bitmap (async for big images).</summary>
+        // The display bitmap is rendered at 1/scale of the image's size, scale a power of two chosen from the zoom so the
+        // bitmap is never smaller than what is on screen: a large image shown whole is not rendered at full size.
+        private int _renderedScale = 1, _requestedScale = 1;
+        private System.Windows.Forms.Timer _scaleTimer;
+
+        /// <summary>The reduction the current zoom calls for (1 at 100 % and closer).</summary>
+        public int DisplayScale
+        {
+            get
+            {
+                int s = 1;
+                while (s < 64 && s * 2 * _zoom <= 1.0) s *= 2;
+                return s;
+            }
+        }
+
+        /// <summary>The reduction the shown bitmap was rendered at.</summary>
+        public int RenderedScale => _renderedScale;
+
+        // after zooming, render again once the zoom has settled when it now calls for another reduction
+        private void ScaleMayHaveChanged()
+        {
+            // compared with the last render asked for, which may still be running
+            if (_image == null || DisplayScale == _requestedScale) return;
+            if (_scaleTimer == null)
+            {
+                _scaleTimer = new System.Windows.Forms.Timer { Interval = 200 };
+                _scaleTimer.Tick += (s, e) => { _scaleTimer.Stop(); if (_image != null && DisplayScale != _requestedScale) Rebuild(); };
+            }
+            _scaleTimer.Stop();
+            _scaleTimer.Start();
+        }
+
+        /// <summary>An image reduced by a whole factor, each pixel the average of a block (NaN left out).</summary>
+        private static AstroImage Reduce(AstroImage img, int f)
+        {
+            int w = (img.Width + f - 1) / f, h = (img.Height + f - 1) / f, W = img.Width, H = img.Height;
+            var o = new AstroImage(w, h, img.Channels) { Profile = img.Profile };
+            for (int c = 0; c < img.Channels; c++)
+            {
+                var src = img.Data[c]; var dst = o.Data[c];
+                Parallel.For(0, h, y =>
+                {
+                    int y0 = y * f, y1 = Math.Min(H, y0 + f);
+                    for (int x = 0; x < w; x++)
+                    {
+                        int x0 = x * f, x1 = Math.Min(W, x0 + f);
+                        double sum = 0; int n = 0;
+                        for (int yy = y0; yy < y1; yy++)
+                        {
+                            int row = yy * W;
+                            for (int xx = x0; xx < x1; xx++) { float v = src[row + xx]; if (!float.IsNaN(v)) { sum += v; n++; } }
+                        }
+                        dst[y * w + x] = n > 0 ? (float)(sum / n) : float.NaN;
+                    }
+                });
+            }
+            return o;
+        }
+
         public void Rebuild()
         {
             var img = _image;
             if (img == null) { _bitmap?.Dispose(); _bitmap = null; Invalidate(); return; }
             int version = ++_renderVersion;
+            int scale = _requestedScale = DisplayScale;
             var stretch = _stretch;
             var custom = CustomStretch;
             bool inv = Invert, fc = FalseColor, night = Theme.Current.IsNight;
@@ -169,13 +237,16 @@ namespace Sidralune.UI
                     if (inv) r = 1 - r;
                     return r;
                 };
+                // the stretch comes from the whole image; the pixels drawn from a reduced copy when zoomed out
+                if (version != _renderVersion) return; // a newer render has started
+                var shown = scale > 1 ? Reduce(img, scale) : img;
                 Bitmap bmp = null;
                 if (render != null)
                 {
-                    try { bmp = render.Draw(img, tf); }
+                    try { bmp = render.Draw(shown, tf); }
                     catch (Exception ex) { LogOnce("Colour management is off for this image: " + ex.Message); }
                 }
-                if (bmp == null) bmp = fc && img.Channels == 1 ? FalseColorBitmap(img, tf) : BitmapIO.ToBitmap(img, tf);
+                if (bmp == null) bmp = fc && shown.Channels == 1 ? FalseColorBitmap(shown, tf) : BitmapIO.ToBitmap(shown, tf);
                 if (night) NightTint(bmp);
                 if (IsDisposed) { bmp.Dispose(); return; }
                 try
@@ -188,6 +259,7 @@ namespace Sidralune.UI
                         _stf = t;
                         _bitmapNight = night;
                         _renderedFor = device;
+                        _renderedScale = scale;
                         Invalidate();
                     }));
                 }
@@ -340,6 +412,7 @@ namespace Sidralune.UI
             _zoom = Math.Min((double)Width / _image.Width, (double)Height / _image.Height) * 0.98;
             _offset = new PointF((float)(_image.Width / 2.0 - Width / 2.0 / _zoom), (float)(_image.Height / 2.0 - Height / 2.0 / _zoom));
             Invalidate();
+            ScaleMayHaveChanged();
         }
 
         public void SetZoom(double z, Point? anchor = null)
@@ -350,6 +423,7 @@ namespace Sidralune.UI
             _zoom = AstroMath.Clamp(z, 0.02, 64);
             _offset = new PointF((float)(ix - a.X / _zoom), (float)(iy - a.Y / _zoom));
             Invalidate();
+            ScaleMayHaveChanged();
         }
 
         public void CenterOn(double x, double y)
@@ -538,6 +612,6 @@ namespace Sidralune.UI
             }
         }
 
-        protected override void Dispose(bool disposing) { if (disposing) _bitmap?.Dispose(); base.Dispose(disposing); }
+        protected override void Dispose(bool disposing) { if (disposing) { _bitmap?.Dispose(); _scaleTimer?.Dispose(); } base.Dispose(disposing); }
     }
 }

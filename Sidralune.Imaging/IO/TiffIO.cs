@@ -171,7 +171,8 @@ namespace Sidralune.Imaging.IO
             int bytesPerSample = Math.Max(1, sampleBits / 8);
             int planes = planar == 2 ? spp : 1;
             int perPixel = planar == 2 ? 1 : spp;
-            for (int t = 0; t < offsets.Length; t++)
+            // strips and tiles cover separate pixels, so they are decoded in parallel
+            System.Threading.Tasks.Parallel.For(0, offsets.Length, Core.Util.StopRequest.Options, t =>
             {
                 int plane = planar == 2 ? t / (tilesAcross * tilesDown) : 0;
                 int tIdx = planar == 2 ? t % (tilesAcross * tilesDown) : t;
@@ -222,7 +223,7 @@ namespace Sidralune.Imaging.IO
                         }
                     }
                 }
-            }
+            });
             if (photometric == 32803)
             {
                 var pat = ifd.GetArr(33422);
@@ -240,7 +241,7 @@ namespace Sidralune.Imaging.IO
             return img;
         }
 
-        private static double ReadSample(byte[] b, long p, int bps, int fmt, bool big)
+        private static unsafe double ReadSample(byte[] b, long p, int bps, int fmt, bool big)
         {
             switch (bps)
             {
@@ -252,16 +253,15 @@ namespace Sidralune.Imaging.IO
                     }
                 case 32:
                     {
-                        var t = new byte[4];
-                        for (int k = 0; k < 4; k++) t[k] = big ? b[p + 3 - k] : b[p + k];
-                        if (fmt == 3) return BitConverter.ToSingle(t, 0);
-                        return fmt == 2 ? (double)BitConverter.ToInt32(t, 0) : (double)BitConverter.ToUInt32(t, 0);
+                        int v = big ? (b[p] << 24) | (b[p + 1] << 16) | (b[p + 2] << 8) | b[p + 3] : b[p] | (b[p + 1] << 8) | (b[p + 2] << 16) | (b[p + 3] << 24);
+                        if (fmt == 3) return *(float*)&v;
+                        return fmt == 2 ? (double)v : (double)(uint)v;
                     }
                 case 64:
                     {
-                        var t = new byte[8];
-                        for (int k = 0; k < 8; k++) t[k] = big ? b[p + 7 - k] : b[p + k];
-                        return BitConverter.ToDouble(t, 0);
+                        long v = 0;
+                        for (int k = 0; k < 8; k++) v |= (long)b[p + (big ? 7 - k : k)] << (8 * k);
+                        return *(double*)&v;
                     }
                 default: return b[p];
             }
@@ -324,48 +324,59 @@ namespace Sidralune.Imaging.IO
             return o;
         }
 
+        /// <summary>
+        /// TIFF LZW (MSB-first codes, "early change"). Each dictionary entry is a prefix code plus one byte, and strings
+        /// are written by walking back along the prefixes, so decoding allocates nothing per code.
+        /// </summary>
         private static byte[] LzwDecode(byte[] d, int off, int cnt, int expected)
         {
             var output = new byte[expected];
-            int op = 0;
-            var dict = new byte[4096][];
-            for (int i = 0; i < 256; i++) dict[i] = new[] { (byte)i };
-            int next = 258, codeLen = 9;
+            var prefix = new short[4096]; var suffix = new byte[4096]; var first = new byte[4096]; var length = new int[4096];
+            for (int i = 0; i < 256; i++) { prefix[i] = -1; suffix[i] = (byte)i; first[i] = (byte)i; length[i] = 1; }
+            int next = 258, codeLen = 9, op = 0, prev = -1;
             long bitPos = (long)off * 8, end = (long)(off + cnt) * 8;
-            byte[] prev = null;
+            int last = d.Length - 1;
             while (bitPos + codeLen <= end && op < expected)
             {
-                int code = 0;
-                for (int k = 0; k < codeLen; k++)
-                {
-                    long bi = bitPos + k;
-                    code = (code << 1) | ((d[bi >> 3] >> (7 - (int)(bi & 7))) & 1);
-                }
+                int bi = (int)(bitPos >> 3), shift = (int)(bitPos & 7);
+                int bits = (d[bi] << 16) | ((bi + 1 <= last ? d[bi + 1] : 0) << 8) | (bi + 2 <= last ? d[bi + 2] : 0);
+                int code = (bits >> (24 - shift - codeLen)) & ((1 << codeLen) - 1);
                 bitPos += codeLen;
                 if (code == 257) break;
-                if (code == 256)
+                if (code == 256) { next = 258; codeLen = 9; prev = -1; continue; }
+                int start = op, firstByte;
+                if (code < next && (code < 256 || code >= 258))
                 {
-                    next = 258; codeLen = 9; prev = null;
-                    continue;
+                    op = WriteString(output, op, code, prefix, suffix, length);
+                    firstByte = first[code];
                 }
-                byte[] entry;
-                if (code < next && dict[code] != null) entry = dict[code];
-                else if (prev != null) { entry = new byte[prev.Length + 1]; Array.Copy(prev, entry, prev.Length); entry[prev.Length] = prev[0]; }
+                else if (code == next && prev >= 0)
+                {
+                    // the string of the previous code followed by its own first byte
+                    op = WriteString(output, op, prev, prefix, suffix, length);
+                    if (op < expected) output[op] = first[prev];
+                    op++;
+                    firstByte = first[prev];
+                }
                 else break;
-                int n = Math.Min(entry.Length, expected - op);
-                Array.Copy(entry, 0, output, op, n);
-                op += n;
-                if (prev != null && next < 4096)
+                if (prev >= 0 && next < 4096)
                 {
-                    var ne = new byte[prev.Length + 1];
-                    Array.Copy(prev, ne, prev.Length);
-                    ne[prev.Length] = entry[0];
-                    dict[next++] = ne;
+                    prefix[next] = (short)prev; suffix[next] = (byte)firstByte; first[next] = first[prev]; length[next] = length[prev] + 1;
+                    next++;
                 }
-                prev = entry;
+                prev = code;
                 if (next + 1 >= (1 << codeLen) && codeLen < 12) codeLen++;
             }
             return output;
+        }
+
+        /// <summary>Writes a code's string at op (as far as the output reaches) and returns the position after it.</summary>
+        private static int WriteString(byte[] o, int op, int code, short[] prefix, byte[] suffix, int[] length)
+        {
+            int len = length[code];
+            for (int pos = op + len - 1, c = code; c >= 0; pos--, c = prefix[c])
+                if (pos < o.Length) o[pos] = suffix[c];
+            return op + len;
         }
 
         private static void UndoHorizontalPredictor(byte[] b, int w, int h, int spp, int bytes, bool big)

@@ -627,7 +627,7 @@ namespace Sidralune.Imaging.Stacking
         public static void BackgroundCalibrate(AstroImage img)
         {
             var bg = new double[img.Channels];
-            for (int c = 0; c < img.Channels; c++) bg[c] = ImageStatistics.Compute(img.Data[c], img.Width, 0).Background;
+            for (int c = 0; c < img.Channels; c++) bg[c] = ImageStatistics.Robust(img.Data[c]).Background;
             double target = bg.Average();
             for (int c = 0; c < img.Channels; c++)
             {

@@ -50,6 +50,31 @@ namespace Sidralune.Imaging.Analysis
             s.Mean = sum / Math.Max(1, count);
             s.StdDev = Math.Sqrt(Math.Max(0, sum2 / Math.Max(1, count) - s.Mean * s.Mean));
             s.Saturated = sat;
+            RobustPart(d, s);
+            s.Noise = MrsNoise(d, width, d.Length / width);
+            if (histBins > 0)
+            {
+                double lo = Math.Min(0, s.Min), hi = Math.Max(1, s.Max);
+                s.Histogram = Stats.Histogram(d, histBins, lo, hi);
+            }
+            return s;
+        }
+
+        /// <summary>
+        /// Only the robust statistics, from a sample of at most about half a million values: median, MAD and the
+        /// sigma-clipped background and its sigma. Much faster than Compute on large images (no full passes, no noise
+        /// estimate), and gives the same values for these as Compute does.
+        /// </summary>
+        public static ChannelStats Robust(float[] d)
+        {
+            var s = new ChannelStats();
+            RobustPart(d, s);
+            return s;
+        }
+
+        private static void RobustPart(float[] d, ChannelStats s)
+        {
+            int n = d.Length;
             int step = Math.Max(1, n / 500000);
             int m = (n + step - 1) / step;
             var sample = new float[m];
@@ -71,13 +96,6 @@ namespace Sidralune.Imaging.Analysis
             }
             s.Background = bg;
             s.BackgroundSigma = sig;
-            s.Noise = MrsNoise(d, width, d.Length / width);
-            if (histBins > 0)
-            {
-                double lo = Math.Min(0, s.Min), hi = Math.Max(1, s.Max);
-                s.Histogram = Stats.Histogram(d, histBins, lo, hi);
-            }
-            return s;
         }
 
         /// <summary>

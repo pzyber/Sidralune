@@ -40,7 +40,7 @@ namespace Sidralune.Views
             var undo = btn(null, Icons.Undo, T("Undo (Ctrl+Z)"), Undo);
             var redo = btn(null, Icons.Redo, T("Redo (Ctrl+Y)"), Redo);
             bar.Controls.Add(Ui.Separator());
-            var stretch = Ui.StretchCombo(DisplayStretch.AutoLinked, v => _viewer.Stretch = v);
+            var stretch = _stretchCombo = Ui.StretchCombo(DisplayStretch.AutoLinked, v => { if (!_settingStretch) _viewer.Stretch = v; });
             stretch.Width = 130;
             bar.Controls.Add(new Label { Text = T("Display"), AutoSize = true, Margin = new Padding(4, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(stretch);
@@ -100,14 +100,33 @@ namespace Sidralune.Views
             if (img == null) return;
             _job.Cancel();
             if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.EdgeDirected);
-            ColorUi.Opened(img);
-            _img = img.Clone();
+            _img = img.Clone(); // the sender keeps its own image as it was
+            ColorUi.Opened(_img);
             _name = name;
             _undo.Clear(); _redo.Clear();
             _samples = null;
             Push(T("Open {0}", name), false);
-            _viewer.SetImage(_img);
+            var display = DisplayFor(_img, _viewer.Stretch);
+            _settingStretch = true;
+            _stretchCombo.SelectedIndex = Math.Max(0, Array.IndexOf(Ui.StretchChoices, display));
+            _settingStretch = false;
+            _viewer.SetImage(_img, true, display);
             UpdateHistogram();
+        }
+
+        private ComboBox _stretchCombo;
+        private bool _settingStretch;
+
+        /// <summary>
+        /// The display stretch for a newly opened image: a finished picture (8-bit, or with a colour profile from the
+        /// program that made it) is shown as it is; other images keep the current choice, but not "None", so linear data
+        /// does not open nearly black.
+        /// </summary>
+        public static DisplayStretch DisplayFor(AstroImage img, DisplayStretch current)
+        {
+            bool finished = img.Profile != null || img.OriginalBitDepth == 8;
+            if (finished) return DisplayStretch.None;
+            return current == DisplayStretch.None ? DisplayStretch.AutoLinked : current;
         }
 
         private void Open()
@@ -343,7 +362,7 @@ namespace Sidralune.Views
                 Apply(T("GHS"), img => StretchOps.ApplyToLuminance(img, f));
             }));
             var asinh = st.Row(T("Arcsinh factor"), Ui.Num(50, 1, 1000));
-            st.Full(new FlatButton(T("Apply arcsinh stretch (colour preserving)"), Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Compute(_img.Luminance(), _img.Width, 0).Background - 0.002 : 0; double k = (double)asinh.Value; Apply(T("Arcsinh"), img => StretchOps.ArcsinhStretch(img, k, Math.Max(0, bg))); }));
+            st.Full(new FlatButton(T("Apply arcsinh stretch (colour preserving)"), Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Robust(_img.Luminance()).Background - 0.002 : 0; double k = (double)asinh.Value; Apply(T("Arcsinh"), img => StretchOps.ArcsinhStretch(img, k, Math.Max(0, bg))); }));
             var lb = st.Row(T("Levels black"), Ui.Num(0, 0, 1, 3, 0.005m));
             var lg = st.Row(T("Levels gamma"), Ui.Num(1, 0.1m, 5, 2, 0.05m));
             var lw = st.Row(T("Levels white"), Ui.Num(1, 0, 2, 3, 0.01m));
