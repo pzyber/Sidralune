@@ -9,6 +9,7 @@ using Sidralune.Core;
 using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Util;
+using Sidralune.Imaging.ColorManagement;
 using Sidralune.UI;
 using static Sidralune.Core.Util.Lang;
 
@@ -26,6 +27,7 @@ namespace Sidralune.Views
             _tabs.AddPage(T("Data"), BuildData());
             _tabs.AddPage(T("Observer & accounts"), BuildObserver());
             _tabs.AddPage(T("Appearance"), BuildAppearance());
+            _tabs.AddPage(T("Colour"), BuildColour());
             _tabs.AddPage(T("About"), BuildAbout());
         }
 
@@ -276,6 +278,90 @@ namespace Sidralune.Views
             return card;
         }
 
+        private static int EnumIndex<TEnum>(string value, TEnum fallback) where TEnum : struct
+        {
+            TEnum v;
+            return Convert.ToInt32(Enum.TryParse(value ?? "", out v) ? v : fallback);
+        }
+
+        private Control BuildColour()
+        {
+            var card = new Card(T("Colour management")) { Dock = DockStyle.Fill, AutoScroll = true };
+            var g = new FormGrid(240);
+            var s = AppState.Settings;
+            Action save = () => { AppState.Save(); AppState.ApplyColorSettings(); };
+            Func<string, RenderingIntent> intentOf = v => { RenderingIntent i; return Enum.TryParse(v ?? "", out i) ? i : RenderingIntent.RelativeColorimetric; };
+
+            var on = g.Row(T("Colour management"), new CheckBox { Checked = s.ColorManagement, Text = T("Show images through the monitor's colour profile") });
+            on.CheckedChanged += (o, e) => { s.ColorManagement = on.Checked; save(); };
+            g.Row(T("Working profile"), ColorUi.ProfileCombo(s.WorkingProfile, ProfileKind.Rgb, v => { s.WorkingProfile = v; save(); }));
+            var monitor = g.Row(T("Monitor"), new Label { AutoSize = true, MaximumSize = new Size(560, 0), Margin = new Padding(0, 6, 0, 6) });
+            Action showMonitor = () =>
+            {
+                var m = MonitorColor.For(card);
+                monitor.Text = m.WindowsManaged ? T("Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB")
+                    : m.Path != null ? T("{0} (from Windows)", m.Profile.Description) : T("No profile set in Windows (taken to be sRGB)");
+            };
+            // read again when the tab is shown, and when the window is moved onto another monitor
+            string shownFor = null;
+            Action follow = () =>
+            {
+                string device;
+                try { device = Screen.FromControl(card).DeviceName; } catch { return; }
+                if (device == shownFor) return;
+                shownFor = device;
+                showMonitor();
+            };
+            card.VisibleChanged += (o, e) => { if (card.Visible) { MonitorColor.Refresh(); shownFor = null; follow(); } };
+            EventHandler moved = (o, e) => { if (card.Visible) follow(); };
+            card.HandleCreated += (o, e) =>
+            {
+                var form = card.FindForm();
+                if (form == null) return;
+                form.Move += moved;
+                card.Disposed += (o2, e2) => form.Move -= moved;
+            };
+            g.Row(T("Rendering intent"), ColorUi.IntentCombo(intentOf(s.RenderingIntent), v => { s.RenderingIntent = v.ToString(); save(); }));
+
+            var mismatch = g.Row(T("Image with another profile"), Ui.Combo(T("Keep its profile"), T("Convert to the working profile"), T("Discard the profile"), T("Ask")));
+            mismatch.SelectedIndex = EnumIndex(s.OnProfileMismatch, ProfileMismatchPolicy.Keep);
+            mismatch.SelectedIndexChanged += (o, e) => { s.OnProfileMismatch = ((ProfileMismatchPolicy)mismatch.SelectedIndex).ToString(); save(); };
+            var missing = g.Row(T("Image without a profile"), Ui.Combo(T("Leave it untagged"), T("Assign the working profile"), T("Ask")));
+            missing.SelectedIndex = EnumIndex(s.OnMissingProfile, ProfileMissingPolicy.LeaveUntagged);
+            missing.SelectedIndexChanged += (o, e) => { s.OnMissingProfile = ((ProfileMissingPolicy)missing.SelectedIndex).ToString(); save(); };
+            var embed = g.Row(T("Saving"), new CheckBox { Checked = s.EmbedProfiles, Text = T("Embed the image's profile in saved files") });
+            embed.CheckedChanged += (o, e) => { s.EmbedProfiles = embed.Checked; save(); };
+            var export8 = g.Row(T("8-bit PNG and JPEG"), Ui.Combo(T("Keep the image's profile"), T("Convert to sRGB")));
+            export8.SelectedIndex = s.Export8BitAsSrgb ? 1 : 0;
+            export8.SelectedIndexChanged += (o, e) => { s.Export8BitAsSrgb = export8.SelectedIndex == 1; save(); };
+
+            g.Row(T("Proofing profile"), ColorUi.ProfileCombo(s.ProofingProfile, ProfileKind.Proofing, v => { s.ProofingProfile = v; save(); }));
+            g.Row(T("Proofing intent"), ColorUi.IntentCombo(intentOf(s.ProofingIntent), v => { s.ProofingIntent = v.ToString(); save(); }));
+            var warnRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0) };
+            var swatch = new Panel { Width = 40, Height = 22, Margin = new Padding(0, 6, 8, 0), Tag = "keepcolor" };
+            Func<Color> warning = () => { try { return ColorTranslator.FromHtml(s.GamutWarningColor); } catch { return Color.Gray; } };
+            swatch.Paint += (o, e) =>
+            {
+                var c = warning();
+                // in night vision mode only its brightness, in red, as images are shown
+                if (Theme.Current.IsNight) { int l = (c.R * 77 + c.G * 150 + c.B * 29) >> 8; c = Color.FromArgb(l, l * 6 / 100, l * 4 / 100); }
+                using (var b = new SolidBrush(c)) e.Graphics.FillRectangle(b, swatch.ClientRectangle);
+                using (var pen = new Pen(Theme.Current.Border)) e.Graphics.DrawRectangle(pen, 0, 0, swatch.Width - 1, swatch.Height - 1);
+            };
+            Action showSwatch = () => swatch.Invalidate();
+            var pick = new FlatButton(T("Choose…"), null, (o, e) =>
+            {
+                using (var d = new ColorDialog { Color = warning(), FullOpen = true })
+                    if (d.ShowDialog(FindForm()) == DialogResult.OK) { s.GamutWarningColor = ColorTranslator.ToHtml(Color.FromArgb(d.Color.R, d.Color.G, d.Color.B)); showSwatch(); save(); }
+            });
+            pick.AutoSizeToText();
+            warnRow.Controls.Add(swatch); warnRow.Controls.Add(pick);
+            g.Row(T("Gamut warning colour"), warnRow);
+            g.Full(Ui.Hint(T("Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there.")));
+            card.Controls.Add(g);
+            return card;
+        }
+
         private Control BuildAppearance()
         {
             var card = new Card(T("Appearance")) { Dock = DockStyle.Fill };
@@ -316,7 +402,7 @@ namespace Sidralune.Views
         {
             var card = new Card("Sidralune") { Dock = DockStyle.Fill };
             var t = new Label { Dock = DockStyle.Fill, UseMnemonic = false, Text =
-                T("Sidralune {0} — an integrated astronomy suite for planning, observing, imaging and science.", "0.5.1") + "\r\n\r\n" +
+                T("Sidralune {0} — an integrated astronomy suite for planning, observing, imaging and science.", "0.6.0") + "\r\n\r\n" +
                 "Copyright © Jimmy Nordström\r\n\r\n" +
                 T("Algorithms: IAU 2006 precession and nutation, JPL DE440 (SPK) or Standish/ELP2000 analytic ephemerides, SGP4 (Vallado 2006),\n" +
                 "Krisciunas & Schaefer sky brightness, Schaefer visual thresholds, triangle-invariant star matching with RANSAC, TAN-SIP WCS,\n" +

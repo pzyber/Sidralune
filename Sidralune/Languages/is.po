@@ -835,7 +835,7 @@ msgstr "Úrsítar"
 msgid "Cancelled"
 msgstr "Hætt við"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} mistókst: {1}"
 
@@ -1099,6 +1099,146 @@ msgstr "Skrár og stjörnualmanök hlaðin"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Óvænt villa: {0} (nánar í atvikaskrá)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(línulegt)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "samhæft við {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Grátt, sRGB-ferill"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Grátt, gamma {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Grátt, línulegt"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Án litasniðs ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Önnur skrá…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "ICC-litasnið"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Allar skrár"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} er ekki RGB-litasnið"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "Ekki tókst að lesa {0}: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Umbreyta í litasnið"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Úthluta litasniði"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Myndin núna"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Litasnið"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Birtingaraðferð"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Skynjunarbundið"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Afstæð litmæling"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Litmettun"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Algild litmæling"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Umbreyting breytir dílagildunum svo litirnir líti eins út í nýja litasniðinu."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Úthlutun breytir því hvernig dílagildin eru skilin, ekki gildunum sjálfum, svo litirnir breytast."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Hætta við"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Umbreyta"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Úthluta"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Ekki tókst að umbreyta litunum: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Þessi mynd hefur litasniðið „{0}“, sem er frábrugðið vinnusniðinu „{1}“."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Þessi mynd hefur ekkert litasnið. Án þess er hún talin vera í vinnusniðinu „{0}“."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Halda litasniði hennar"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Umbreyta í vinnusniðið"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Fleygja litasniðinu"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Hafa hana án litasniðs"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Úthluta vinnusniðinu"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Litasnið"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Gera þetta héðan í frá (Stillingar → Litur)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Sjálfvirkt, tengt"
@@ -1129,6 +1269,14 @@ msgstr "Opnaðu mynd (Ctrl+O) eða slepptu skrám hér"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Teiknar…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Prófun: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Litrófsviðvörun"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3141,10 +3289,6 @@ msgstr "hlutfallslegt flæði"
 msgid "selection"
 msgstr "val"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Allar skrár"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Gat ekki lesið tímaröð úr þessari skrá"
@@ -3850,10 +3994,6 @@ msgid "OK"
 msgstr "Í lagi"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Hætta við"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Áætlar {0}"
 
@@ -3998,6 +4138,18 @@ msgid "False colour"
 msgstr "Falslitir"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Prófunarlitir"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Sýna myndina eins og hún mun líta út í prófunarsniðinu sem valið er í Stillingar → Litur (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Merkja litina sem skjárinn getur ekki sýnt, eða prófunarsniðið við prófun (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "WCS-net"
 
@@ -4040,6 +4192,14 @@ msgstr "Plötugreining"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Greint: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Umbreyta í {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Úthluta {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4221,10 +4381,6 @@ msgstr "Fjarlægja grænan blæ (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Litmettun"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Beita litmettun"
@@ -4250,6 +4406,14 @@ msgid "Align channels"
 msgstr "Jafna rásir"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Úthluta litasniði…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Umbreyta í litasnið…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Litur"
 
@@ -5329,6 +5493,86 @@ msgstr "Aldur og reynsla fínstilla sýnileikaspár (dökkaðlagað sjáaldur ~7
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Vistað"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Litastjórnun"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Sýna myndir í gegnum litasnið skjásins"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Vinnusnið"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Skjár"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows stýrir litum á þessum skjá (HDR eða sjálfvirk litastjórnun), svo myndir eru sendar sem sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (frá Windows)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "Ekkert litasnið stillt í Windows (talið vera sRGB)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Mynd með annað litasnið"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Spyrja"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Mynd án litasniðs"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Vistun"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Fella litasnið myndarinnar inn í vistaðar skrár"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8 bita PNG og JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Halda litasniði myndarinnar"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Umbreyta í sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Prófunarsnið"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Birtingaraðferð prófunar"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Velja…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Litur litrófsviðvörunar"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Myndir eru sýndar í gegnum litasnið skjásins, sem Windows leggur til. Skrár án litasniðs (FITS, hráar myndir, staflar) eru taldar vera í vinnusniðinu. 8 bita skrár í breiðu litasniði eins og ProPhoto RGB virðast daufar í forritum án litastjórnunar og geta sýnt rendur; umbreyttu þeim í sRGB fyrir vefinn. Nætursjón sýnir aðeins birtu, svo litastjórnun á ekki við þar."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

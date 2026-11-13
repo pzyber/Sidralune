@@ -843,7 +843,7 @@ msgstr "Ursīdas"
 msgid "Cancelled"
 msgstr "Atcelts"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} neizdevās: {1}"
 
@@ -1107,6 +1107,146 @@ msgstr "Katalogi un efemerīdas ielādēti"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Negaidīta kļūda: {0} (sīkāk žurnālā)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(lineārs)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "saderīgs ar {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Pelēks, sRGB līkne"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Pelēks, gamma {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Pelēks, lineārs"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Bez profila ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Cits fails…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "ICC profili"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Visi faili"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} nav RGB profils"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "Neizdevās nolasīt {0}: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Pārvērst profilā"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Piešķirt profilu"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Attēls tagad"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profils"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Renderēšanas nolūks"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Uztveres"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Relatīvais kolorimetriskais"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Piesātinājums"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Absolūtais kolorimetriskais"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Pārvēršana maina pikseļu vērtības tā, lai krāsas jaunajā profilā izskatītos tāpat."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Piešķiršana maina to, kā pikseļu vērtības tiek saprastas, nevis pašas vērtības, tāpēc krāsas mainās."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Atcelt"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Pārvērst"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Piešķirt"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Neizdevās pārvērst krāsas: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Šim attēlam ir krāsu profils “{0}”, kas atšķiras no darba profila “{1}”."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Šim attēlam nav krāsu profila. Bez profila tas tiek uzskatīts par esošu darba profilā “{0}”."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Saglabāt tā profilu"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Pārvērst darba profilā"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Atmest profilu"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Atstāt bez profila"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Piešķirt darba profilu"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Krāsu profils"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Turpmāk darīt tā (Iestatījumi → Krāsa)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Auto, saistīts"
@@ -1137,6 +1277,14 @@ msgstr "Atveriet attēlu (Ctrl+O) vai ievelciet failus šeit"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Zīmē…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Provēšana: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Gammas brīdinājums"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3158,10 +3306,6 @@ msgstr "relatīvā plūsma"
 msgid "selection"
 msgstr "izvēle"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Visi faili"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "No šī faila neizdevās nolasīt laika rindu"
@@ -3869,10 +4013,6 @@ msgid "OK"
 msgstr "Labi"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Atcelt"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Plāno {0}"
 
@@ -4019,6 +4159,18 @@ msgid "False colour"
 msgstr "Viltus krāsas"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Krāsu provēšana"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Rādīt attēlu, kā tas izskatīsies provēšanas profilā, kas izvēlēts sadaļā Iestatījumi → Krāsa (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Atzīmēt krāsas, ko monitors nevar parādīt, vai provēšanas laikā provēšanas profila krāsas (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "WCS režģis"
 
@@ -4061,6 +4213,14 @@ msgstr "Atrisināt"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Atrisināts: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Pārvērst profilā {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Piešķirt {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4244,10 +4404,6 @@ msgstr "Noņemt zaļo nokrāsu (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Piesātinājums"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Lietot piesātinājumu"
@@ -4273,6 +4429,14 @@ msgid "Align channels"
 msgstr "Izlīdzināt kanālus"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Piešķirt profilu…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Pārvērst profilā…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Krāsa"
 
@@ -5354,6 +5518,86 @@ msgstr "Vecums un pieredze precizē redzamības prognozes (tumsai pielāgota zī
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Saglabāts"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Krāsu pārvaldība"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Rādīt attēlus caur monitora krāsu profilu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Darba profils"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Monitors"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows pārvalda šī ekrāna krāsas (HDR vai automātiskā krāsu pārvaldība), tāpēc attēli tiek sūtīti kā sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (no Windows)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "Windows nav iestatīts profils (tiek uzskatīts par sRGB)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Attēls ar citu profilu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Jautāt"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Attēls bez profila"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Saglabāšana"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Iegult attēla profilu saglabātajos failos"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8 bitu PNG un JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Saglabāt attēla profilu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Pārvērst sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Provēšanas profils"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Provēšanas renderēšanas nolūks"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Izvēlēties…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Gammas brīdinājuma krāsa"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Attēli tiek rādīti caur monitora profilu, ko nodrošina Windows. Faili bez profila (FITS, neapstrādāti kadri, kaudzes) tiek uzskatīti par darba profilā esošiem. 8 bitu faili plašā profilā, piemēram, ProPhoto RGB, programmās bez krāsu pārvaldības izskatās blāvi un var rādīt joslas; tīmeklim pārvērtiet tos sRGB. Nakts redze rāda tikai spilgtumu, tāpēc krāsu pārvaldība tur netiek piemērota."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

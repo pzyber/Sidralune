@@ -27,6 +27,20 @@ Sidralune reads and writes the standard formats of amateur and professional astr
 
 Images are held in memory as 32-bit floating point, normalised so that the full range of an integer format is 0–1. Processing can produce values outside that range; 32-bit float formats keep them.
 
+### Colour profiles
+
+ICC colour profiles are read from and written to these formats (see [Colour management](Colour-management)):
+
+| Format | Where the profile is |
+|---|---|
+| FITS | An 8-bit IMAGE extension named `ICCProfile` after the image, where other colour-managed astronomy programs look for it |
+| XISF | The `ICCProfile` element of the image (written inline; attachments are read too) |
+| TIFF | The ICC profile tag (34675) |
+| PNG | The `iCCP` chunk; a file with an `sRGB` chunk is taken to be sRGB |
+| JPEG | `ICC_PROFILE` APP2 segments (large profiles are split over several) |
+
+Raw camera files (DNG, CRW, CR2, CR3), SER and AVI videos, and files without a profile are untagged: they are taken to be in the working profile. Only RGB profiles are used for colour images and grey profiles for one-channel images. Whether profiles are written, and whether 8-bit PNG and JPEG files are converted to sRGB, is set in **Settings → Colour**.
+
 ## Videos
 
 | Format | Read | Write | Notes |

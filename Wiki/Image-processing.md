@@ -39,13 +39,15 @@ Display controls change only what you see, never the data.
 
 | Control | Effect |
 |---|---|
-| **Display** | **Auto linked** (automatic stretch, the same for all colours, so the colour balance is kept), **Auto unlinked** (each colour stretched separately, which hides colour casts such as the green of a raw image) or **None** (the values as they are, best for images that are already stretched). It only changes what you see, not the image |
+| **Display** | **Auto linked** (automatic stretch, the same for all colours, so the colour balance is kept), **Auto unlinked** (each colour stretched separately, which hides colour casts such as the green of a raw image) or **None** (the values as they are, best for images that are already stretched). It only changes what you see, not the image. A finished picture (an 8-bit file, or one with a colour profile from the program that made it) opens with **None**; other images open stretched |
 | **Invert** | Show a negative, useful for spotting faint nebulosity and gradients |
 | **False colour** | Map brightness to a colour scale to reveal gradients and faint structure |
+| **Proof colours** | Show the image as it will look in the proofing profile chosen in Settings → Colour, such as sRGB or a printer profile (Ctrl+Shift+O). See [Colour management](Colour-management#soft-proofing-and-the-gamut-warning) |
+| **Gamut warning** | Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y) |
 | **WCS grid** | Draw an RA/Dec grid on plate-solved images |
 | Fit, **1:1** | Fit the image to the window (key 0) or show actual pixels (key 1) |
 
-Mouse wheel zooms around the cursor; drag to pan. The readout under the image shows the pixel position, values and, for plate-solved images, RA and Dec.
+Mouse wheel zooms around the cursor; drag to pan. A large image shown whole is drawn at the size it has on screen, and in full detail once you zoom in, so even very large images stay quick to work with. The readout under the image shows the pixel position, values, for plate-solved images RA and Dec, and for colour images the colour profile ("Untagged (ProPhoto RGB)" for an image without one). Images are shown through the monitor's colour profile; see [Colour management](Colour-management).
 
 ## History and undo
 
@@ -102,9 +104,11 @@ Apply it to the linear image, before colour calibration. For large nebulae that 
 | **Star colour calibration** | Measures unsaturated stars in each channel and scales the channels so that the average star is white (like a G2V star) |
 | **Photometric colour calibration (needs WCS)** | Matches the stars in a plate-solved image to Gaia DR3 (online) and scales the channels so that their colours match the stars' catalogue colours through a blackbody model. The most accurate colour balance. Plate solve the image first with **Solve** |
 | **Remove green cast (SCNR)** | Subtractive chromatic noise reduction removes the green tint common in one-shot-colour images. **SCNR amount** sets the strength |
-| **Apply saturation** | Changes colour saturation (**Saturation**, 1 = unchanged) |
+| **Apply saturation** | Changes colour saturation (**Saturation**, 1 = unchanged), keeping each pixel's brightness as the image's colour profile weighs the channels |
 | **Apply hue shift** | Rotates hues by **Hue shift (°)** |
 | **Align RGB channels** | Registers the red and blue channels onto green, correcting chromatic misalignment from atmospheric dispersion or optics. **Stop** in the toolbar ends it between the channels |
+| **Assign profile…** | Gives the image another colour profile without changing its values, so the colours change. Use it when an image carries the wrong profile or none |
+| **Convert to profile…** | Converts the image's values to another colour profile so the colours stay the same, with the rendering intent you choose. Use it, for example, to convert to sRGB before publishing |
 
 ## Deconvolution
 

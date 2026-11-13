@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Sidralune.Core.Mathematics;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Imaging.ColorManagement;
 using Sidralune.Imaging.IO;
 using Sidralune.Science.Astrometry;
 
@@ -60,6 +62,33 @@ namespace Sidralune.UI
             set { _stretch = value; Rebuild(); }
         }
 
+        /// <summary>
+        /// The display stretch for a newly opened image: a finished picture (8-bit, or with a colour profile from the
+        /// program that made it) is shown as it is; other images keep the current choice, but not "None", so linear data
+        /// does not open nearly black.
+        /// </summary>
+        public static DisplayStretch DisplayFor(AstroImage img, DisplayStretch current)
+        {
+            bool finished = img.Profile != null || img.OriginalBitDepth == 8;
+            if (finished) return DisplayStretch.None;
+            return current == DisplayStretch.None ? DisplayStretch.AutoLinked : current;
+        }
+
+        /// <summary>Shows a newly opened image, fitted, with the display stretch it calls for (DisplayFor); returns that stretch.</summary>
+        public DisplayStretch ShowOpened(AstroImage img)
+        {
+            var d = DisplayFor(img, _stretch);
+            SetImage(img, true, d);
+            return d;
+        }
+
+        /// <summary>Shows an image with another display stretch, rendering once.</summary>
+        public void SetImage(AstroImage img, bool fit, DisplayStretch stretch)
+        {
+            _stretch = stretch;
+            SetImage(img, fit);
+        }
+
         public void SetImage(AstroImage img, bool fit = true)
         {
             bool sizeChanged = _image == null || img == null || img.Width != _image.Width || img.Height != _image.Height;
@@ -74,15 +103,140 @@ namespace Sidralune.UI
             Rebuild();
         }
 
+        /// <summary>The monitor (device name) the current bitmap was converted for.</summary>
+        private string _renderedFor;
+
+        /// <summary>Show the image as proofed in the proofing profile (Settings → Colour). Ctrl+Shift+O.</summary>
+        public bool Proof { get { return _proof; } set { if (_proof != value) { _proof = value; ProofingChanged?.Invoke(); Rebuild(); } } }
+        private bool _proof;
+
+        /// <summary>Mark pixels the monitor (or, when proofing, the proofing profile) cannot show. Ctrl+Shift+Y.</summary>
+        public bool GamutWarning { get { return _gamut; } set { if (_gamut != value) { _gamut = value; ProofingChanged?.Invoke(); Rebuild(); } } }
+        private bool _gamut;
+
+        /// <summary>Proof or GamutWarning was switched (also from the keyboard).</summary>
+        public event Action ProofingChanged;
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            ColorSettings.Changed += OnColorSettingsChanged;
+            HookForm();
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            ColorSettings.Changed -= OnColorSettingsChanged;
+            base.OnHandleDestroyed(e);
+        }
+
+        protected override void OnParentChanged(EventArgs e) { base.OnParentChanged(e); HookForm(); }
+
+        private Form _hookedForm;
+        private void HookForm()
+        {
+            var f = FindForm();
+            if (f == _hookedForm) return;
+            if (_hookedForm != null) _hookedForm.Move -= OnFormMoved;
+            _hookedForm = f;
+            if (f != null) f.Move += OnFormMoved;
+        }
+
+        // moved onto another monitor: convert for that monitor's profile
+        private void OnFormMoved(object s, EventArgs e)
+        {
+            if (_image == null || _renderedFor == null || !IsHandleCreated) return;
+            string device;
+            try { device = MonitorColor.Override != null ? "override" : Screen.FromControl(this).DeviceName; } catch { return; }
+            if (device != _renderedFor) Rebuild();
+        }
+
+        private void OnColorSettingsChanged()
+        {
+            if (!IsHandleCreated || IsDisposed) return;
+            try { BeginInvoke(new Action(() => { if (_image != null) Rebuild(); })); } catch (InvalidOperationException) { }
+        }
+
         /// <summary>Recompute display bitmap (async for big images).</summary>
+        // The display bitmap is rendered at 1/scale of the image's size, scale a power of two chosen from the zoom so the
+        // bitmap is never smaller than what is on screen: a large image shown whole is not rendered at full size.
+        private int _renderedScale = 1, _requestedScale = 1;
+        private System.Windows.Forms.Timer _scaleTimer;
+
+        /// <summary>The reduction the current zoom calls for (1 at 100 % and closer).</summary>
+        public int DisplayScale
+        {
+            get
+            {
+                int s = 1;
+                while (s < 64 && s * 2 * _zoom <= 1.0) s *= 2;
+                return s;
+            }
+        }
+
+        /// <summary>The reduction the shown bitmap was rendered at.</summary>
+        public int RenderedScale => _renderedScale;
+
+        // after zooming, render again once the zoom has settled when it now calls for another reduction
+        private void ScaleMayHaveChanged()
+        {
+            // compared with the last render asked for, which may still be running
+            if (_image == null || DisplayScale == _requestedScale) return;
+            if (_scaleTimer == null)
+            {
+                _scaleTimer = new System.Windows.Forms.Timer { Interval = 200 };
+                _scaleTimer.Tick += (s, e) => { _scaleTimer.Stop(); if (_image != null && DisplayScale != _requestedScale) Rebuild(); };
+            }
+            _scaleTimer.Stop();
+            _scaleTimer.Start();
+        }
+
+        /// <summary>An image reduced by a whole factor, each pixel the average of a block (NaN left out).</summary>
+        private static AstroImage Reduce(AstroImage img, int f)
+        {
+            int w = (img.Width + f - 1) / f, h = (img.Height + f - 1) / f, W = img.Width, H = img.Height;
+            var o = new AstroImage(w, h, img.Channels) { Profile = img.Profile };
+            for (int c = 0; c < img.Channels; c++)
+            {
+                var src = img.Data[c]; var dst = o.Data[c];
+                Parallel.For(0, h, y =>
+                {
+                    int y0 = y * f, y1 = Math.Min(H, y0 + f);
+                    for (int x = 0; x < w; x++)
+                    {
+                        int x0 = x * f, x1 = Math.Min(W, x0 + f);
+                        double sum = 0; int n = 0;
+                        for (int yy = y0; yy < y1; yy++)
+                        {
+                            int row = yy * W;
+                            for (int xx = x0; xx < x1; xx++) { float v = src[row + xx]; if (!float.IsNaN(v)) { sum += v; n++; } }
+                        }
+                        dst[y * w + x] = n > 0 ? (float)(sum / n) : float.NaN;
+                    }
+                });
+            }
+            return o;
+        }
+
         public void Rebuild()
         {
             var img = _image;
             if (img == null) { _bitmap?.Dispose(); _bitmap = null; Invalidate(); return; }
             int version = ++_renderVersion;
+            int scale = _requestedScale = DisplayScale;
             var stretch = _stretch;
             var custom = CustomStretch;
             bool inv = Invert, fc = FalseColor, night = Theme.Current.IsNight;
+            // colour management: from the image's profile to the monitor's (not for false colour, nor in night vision mode)
+            bool managed = ColorSettings.Enabled && !night && !(fc && img.Channels == 1);
+            var monitor = managed ? MonitorColor.For(this) : null;
+            var render = managed ? new ManagedRender
+            {
+                Source = img.EffectiveProfile, Target = monitor.Profile, Intent = ColorSettings.Intent,
+                Proofing = _proof ? ColorSettings.ProofingProfile : null, ProofingIntent = ColorSettings.ProofingIntent,
+                Gamut = _gamut, WarningColor = ColorSettings.GamutWarningColor
+            } : null;
+            string device = monitor?.Device;
             Task.Run(() =>
             {
                 HistogramTransform[] t = null;
@@ -103,7 +257,16 @@ namespace Sidralune.UI
                     if (inv) r = 1 - r;
                     return r;
                 };
-                Bitmap bmp = fc && img.Channels == 1 ? FalseColorBitmap(img, tf) : BitmapIO.ToBitmap(img, tf);
+                // the stretch comes from the whole image; the pixels drawn from a reduced copy when zoomed out
+                if (version != _renderVersion) return; // a newer render has started
+                var shown = scale > 1 ? Reduce(img, scale) : img;
+                Bitmap bmp = null;
+                if (render != null)
+                {
+                    try { bmp = render.Draw(shown, tf); }
+                    catch (Exception ex) { LogOnce("Colour management is off for this image: " + ex.Message); }
+                }
+                if (bmp == null) bmp = fc && shown.Channels == 1 ? FalseColorBitmap(shown, tf) : BitmapIO.ToBitmap(shown, tf);
                 if (night) NightTint(bmp);
                 if (IsDisposed) { bmp.Dispose(); return; }
                 try
@@ -115,11 +278,109 @@ namespace Sidralune.UI
                         _bitmap = bmp;
                         _stf = t;
                         _bitmapNight = night;
+                        _renderedFor = device;
+                        _renderedScale = scale;
                         Invalidate();
                     }));
                 }
                 catch { bmp.Dispose(); }
             });
+        }
+
+        private static string _lastLogged;
+        private static void LogOnce(string message)
+        {
+            if (message == _lastLogged) return;
+            _lastLogged = message;
+            Sidralune.Core.Util.Log.Warn("Colour", message);
+        }
+
+        /// <summary>
+        /// Draws an image converted from its profile to the monitor's (optionally through a proofing profile, and marking
+        /// colours out of gamut), with Windows' colour system. The stretched values go in at 16 bits per channel.
+        /// </summary>
+        private sealed class ManagedRender
+        {
+            public IccProfile Source, Target, Proofing;
+            public RenderingIntent Intent, ProofingIntent;
+            public bool Gamut;
+            public int WarningColor;
+
+            public unsafe Bitmap Draw(AstroImage img, Func<int, float, float> tf)
+            {
+                int w = img.Width, h = img.Height;
+                bool mono = img.Channels < 3;
+                // a grey image goes in as linear light (whatever its curve) and is converted as neutral linear sRGB
+                var src = mono ? IccProfiles.ById("srgb-linear") : Source;
+                var grayCurve = mono && Source.IsGray && Source.Curves != null ? Source.Curves[0] : ToneCurve.Linear;
+                // Proofing goes in two real steps, into the proofing profile's own values (where what it cannot show is
+                // lost) and from those to the monitor; one chained transform does not confine colours to the middle
+                // profile. The second step is colorimetric, so the proof is shown as it is.
+                var midFormat = Proofing != null ? WcsTransform.FormatFor(Proofing) : WcsTransform.Format.Rgb16;
+                var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+                var data = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                try
+                {
+                    // strips converted in parallel, each worker with its own transform
+                    int workers = Math.Max(1, Math.Min(Environment.ProcessorCount, h / 64 + 1));
+                    int rowsEach = (h + workers - 1) / workers;
+                    var warn = System.Drawing.Color.FromArgb(WarningColor);
+                    Parallel.For(0, workers, k =>
+                    {
+                        int y0 = k * rowsEach, y1 = Math.Min(h, y0 + rowsEach);
+                        if (y0 >= y1) return;
+                        using (var t = Proofing == null ? new WcsTransform(new[] { src, Target }, new[] { Intent, Intent }, false)
+                                                         : new WcsTransform(new[] { src, Proofing }, new[] { ProofingIntent, ProofingIntent }, false))
+                        using (var t2 = Proofing != null ? new WcsTransform(new[] { Proofing, Target }, new[] { RenderingIntent.RelativeColorimetric, RenderingIntent.RelativeColorimetric }, false) : null)
+                        using (var g = Gamut ? new WcsTransform(Proofing != null ? new[] { src, Proofing } : new[] { src, Target }, new[] { ProofingIntent, ProofingIntent }, true) : null)
+                        {
+                            const int strip = 32;
+                            var buf = new ushort[w * strip * 3];
+                            for (int y = y0; y < y1; y += strip)
+                            {
+                                int rows = Math.Min(strip, y1 - y);
+                                for (int r = 0; r < rows; r++)
+                                {
+                                    int o = (y + r) * w, b = r * w * 3;
+                                    for (int x = 0; x < w; x++, b += 3)
+                                    {
+                                        int i = o + x;
+                                        if (mono)
+                                        {
+                                            ushort v = ColorTransform.U16((float)grayCurve.ToLinear(tf(0, img.Data[0][i])));
+                                            buf[b] = buf[b + 1] = buf[b + 2] = v;
+                                        }
+                                        else
+                                        {
+                                            // Windows' 16-bit layout: blue, green, red
+                                            buf[b] = ColorTransform.U16(tf(2, img.Data[2][i]));
+                                            buf[b + 1] = ColorTransform.U16(tf(1, img.Data[1][i]));
+                                            buf[b + 2] = ColorTransform.U16(tf(0, img.Data[0][i]));
+                                        }
+                                    }
+                                }
+                                var part = rows == strip ? buf : buf.Take(w * rows * 3).ToArray();
+                                var dst = (IntPtr)((byte*)data.Scan0 + (long)y * data.Stride);
+                                if (t2 == null) t.TranslateToBitmap(part, w, rows, dst, data.Stride);
+                                else t2.TranslateToBitmap(t.Translate(part, WcsTransform.Format.Rgb16, w, rows, midFormat), midFormat, w, rows, dst, data.Stride);
+                                if (g != null)
+                                {
+                                    var outside = g.CheckGamut(part, w, rows);
+                                    for (int r = 0; r < rows; r++)
+                                    {
+                                        byte* row = (byte*)dst + (long)r * data.Stride;
+                                        for (int x = 0; x < w; x++)
+                                            if (outside[r * w + x]) { row[x * 4] = warn.B; row[x * 4 + 1] = warn.G; row[x * 4 + 2] = warn.R; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                catch { bmp.UnlockBits(data); bmp.Dispose(); throw; }
+                bmp.UnlockBits(data);
+                return bmp;
+            }
         }
 
         /// <summary>Night vision: show brightness in red only, so images do not spoil dark adaptation.</summary>
@@ -171,6 +432,7 @@ namespace Sidralune.UI
             _zoom = Math.Min((double)Width / _image.Width, (double)Height / _image.Height) * 0.98;
             _offset = new PointF((float)(_image.Width / 2.0 - Width / 2.0 / _zoom), (float)(_image.Height / 2.0 - Height / 2.0 / _zoom));
             Invalidate();
+            ScaleMayHaveChanged();
         }
 
         public void SetZoom(double z, Point? anchor = null)
@@ -181,6 +443,7 @@ namespace Sidralune.UI
             _zoom = AstroMath.Clamp(z, 0.02, 64);
             _offset = new PointF((float)(ix - a.X / _zoom), (float)(iy - a.Y / _zoom));
             Invalidate();
+            ScaleMayHaveChanged();
         }
 
         public void CenterOn(double x, double y)
@@ -244,6 +507,8 @@ namespace Sidralune.UI
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
+            if (e.Control && e.Shift && e.KeyCode == Keys.O) { Proof = !Proof; e.Handled = true; base.OnKeyDown(e); return; }
+            if (e.Control && e.Shift && e.KeyCode == Keys.Y) { GamutWarning = !GamutWarning; e.Handled = true; base.OnKeyDown(e); return; }
             switch (e.KeyCode)
             {
                 case Keys.Oemplus: case Keys.Add: SetZoom(_zoom * 1.25); break;
@@ -279,6 +544,7 @@ namespace Sidralune.UI
                 sb.AppendFormat("   α {0}  δ {1}", AstroMath.FormatHms(ra / 15, 1), AstroMath.FormatDms(dec, 0));
             }
             if (ExtraReadout != null) sb.Append("   " + ExtraReadout(x, y));
+            if (_image.IsColor) sb.Append("   " + ColorUi.ImageProfileText(_image));
             sb.AppendFormat("   zoom {0:0.##}×", _zoom);
             return sb.ToString();
         }
@@ -320,6 +586,17 @@ namespace Sidralune.UI
             g.SmoothingMode = SmoothingMode.AntiAlias;
             if (ShowWcsGrid && Wcs != null) DrawWcsGrid(g, p);
             PaintOverlay?.Invoke(g, ImageToScreen);
+            // proofing and the gamut warning say so, so neither is left on unnoticed
+            if ((_proof || _gamut) && ColorSettings.Enabled && !p.IsNight)
+            {
+                var parts = new List<string>();
+                if (_proof) parts.Add(Sidralune.Core.Util.Lang.T("Proof: {0}", ColorUi.Name(ColorSettings.ProofingProfile)));
+                if (_gamut) parts.Add(Sidralune.Core.Util.Lang.T("Gamut warning"));
+                string text = string.Join("   ·   ", parts);
+                var size = TextRenderer.MeasureText(text, Theme.SmallFont);
+                using (var b = new SolidBrush(Theme.WithAlpha(p.Surface, 210))) g.FillRectangle(b, 6, 6, size.Width + 12, size.Height + 6);
+                TextRenderer.DrawText(g, text, Theme.SmallFont, new Point(12, 9), p.Text);
+            }
             if (Focused && ShowFocusCues) using (var pen = new Pen(p.Focus)) g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
         }
 
@@ -355,6 +632,6 @@ namespace Sidralune.UI
             }
         }
 
-        protected override void Dispose(bool disposing) { if (disposing) _bitmap?.Dispose(); base.Dispose(disposing); }
+        protected override void Dispose(bool disposing) { if (disposing) { _bitmap?.Dispose(); _scaleTimer?.Dispose(); } base.Dispose(disposing); }
     }
 }

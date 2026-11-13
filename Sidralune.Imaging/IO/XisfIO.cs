@@ -88,9 +88,45 @@ namespace Sidralune.Imaging.IO
                     BayerPattern bp;
                     if (Enum.TryParse(((string)cfa.Attribute("pattern") ?? "").ToUpperInvariant(), out bp)) img.Bayer = bp;
                 }
+                var iccEl = imgEl.Elements().FirstOrDefault(e => e.Name.LocalName == "ICCProfile");
+                if (iccEl != null)
+                {
+                    var p = ColorManagement.IccProfile.TryCreate(ReadBlock(fs, iccEl));
+                    if (p != null && p.IsGray == (ch == 1) && (p.IsGray || p.IsRgb)) img.Profile = p;
+                }
                 img.SourcePath = path;
                 return img;
             }
+        }
+
+        /// <summary>The data of a block element: inline (base64 or hex text) or an attachment, decompressed if needed.</summary>
+        private static byte[] ReadBlock(Stream fs, XElement el)
+        {
+            try
+            {
+                var loc = ((string)el.Attribute("location") ?? "").Split(':');
+                byte[] data;
+                if (loc[0] == "inline")
+                {
+                    string text = el.Value.Trim();
+                    data = loc.Length > 1 && loc[1] == "hex"
+                        ? Enumerable.Range(0, text.Length / 2).Select(i => Convert.ToByte(text.Substring(i * 2, 2), 16)).ToArray()
+                        : Convert.FromBase64String(text);
+                }
+                else if (loc[0] == "attachment")
+                {
+                    long pos = long.Parse(loc[1], CultureInfo.InvariantCulture);
+                    int size = int.Parse(loc[2], CultureInfo.InvariantCulture);
+                    data = new byte[size];
+                    fs.Position = pos;
+                    int rd = 0;
+                    while (rd < size) { int r = fs.Read(data, rd, size - rd); if (r <= 0) break; rd += r; }
+                }
+                else return null;
+                string comp = (string)el.Attribute("compression");
+                return string.IsNullOrEmpty(comp) ? data : Decompress(data, comp);
+            }
+            catch { return null; }
         }
 
         private static byte[] Decompress(byte[] data, string spec)
@@ -163,9 +199,10 @@ namespace Sidralune.Imaging.IO
             return dst;
         }
 
-        /// <summary>Write XISF (Float32 by default, or UInt16), optionally zlib-compressed with byte shuffling.</summary>
-        public static void Write(string path, AstroImage img, bool float32 = true, bool compress = true)
+        /// <summary>Write XISF (Float32 by default, or UInt16), optionally zlib-compressed with byte shuffling, with an ICC profile if given.</summary>
+        public static void Write(string path, AstroImage img, bool float32 = true, bool compress = true, ColorManagement.IccProfile profile = null)
         {
+            if (profile != null && profile.IsGray != (img.Channels == 1)) profile = null;
             int w = img.Width, h = img.Height, ch = img.Channels, n = w * h;
             int bps = float32 ? 4 : 2;
             var raw = new byte[(long)n * ch * bps];
@@ -216,6 +253,8 @@ namespace Sidralune.Imaging.IO
                 }
                 if (img.Bayer != BayerPattern.None && ch == 1)
                     image.Add(new XElement(Ns + "ColorFilterArray", new XAttribute("pattern", img.Bayer.ToString()), new XAttribute("width", 2), new XAttribute("height", 2)));
+                if (profile != null)
+                    image.Add(new XElement(Ns + "ICCProfile", new XAttribute("location", "inline:base64"), Convert.ToBase64String(profile.Bytes)));
                 var root = new XElement(Ns + "xisf", new XAttribute("version", "1.0"), image,
                     new XElement(Ns + "Metadata", new XElement(Ns + "Property", new XAttribute("id", "XISF:CreatorApplication"), new XAttribute("type", "String"), "Sidralune")));
                 return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + root.ToString(SaveOptions.DisableFormatting);

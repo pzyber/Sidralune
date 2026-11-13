@@ -282,6 +282,7 @@ namespace Sidralune.Views
         private void SetSharpenImage(AstroImage img)
         {
             if (_sharpJob.Refuse()) return;
+            ColorUi.Opened(img);
             _sharpSource = img; _sharpViewer.SetImage(img); UpdateSharpen();
         }
 
@@ -554,7 +555,7 @@ namespace Sidralune.Views
                     if (d.ShowDialog() != DialogResult.OK) return;
                     string path = d.FileName;
                     AstroImage loaded = null;
-                    _solarJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () => { img = loaded; limb = null; viewer.SetImage(img); });
+                    _solarJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () => { ColorUi.Opened(loaded); img = loaded; limb = null; viewer.SetImage(img); });
                 }
             }, ButtonKind.Normal);
             btn(T("Detect limb"), Icons.Target, () => { limb = null; tool(T("Detecting the limb"), true, (s, l) => null); }, ButtonKind.Normal);

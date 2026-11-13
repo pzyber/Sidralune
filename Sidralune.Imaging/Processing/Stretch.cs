@@ -77,7 +77,9 @@ namespace Sidralune.Imaging
         public static HistogramTransform[] AutoStretch(AstroImage img, bool linked = true, double target = 0.25, double clip = -2.8)
         {
             var stats = new ChannelStats[img.Channels];
-            for (int c = 0; c < img.Channels; c++) stats[c] = ImageStatistics.Compute(img.Data[c], img.Width, 0);
+            // only the median and MAD are needed: the quick statistics, not the full ones (the noise estimate alone
+            // takes seconds on a large image)
+            for (int c = 0; c < img.Channels; c++) stats[c] = ImageStatistics.Robust(img.Data[c]);
             if (linked && img.Channels > 1)
             {
                 var avg = new ChannelStats { Median = 0, Mad = 0 };
@@ -236,12 +238,13 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) { ApplyFunction(img, f); return; }
             var r = img.Data[0]; var g = img.Data[1]; var b = img.Data[2];
+            var w = img.EffectiveProfile.LuminanceWeights; // luminance as the image's colour profile defines it
             Parallel.For(0, img.Height, Core.Util.StopRequest.Options, y =>
             {
                 for (int x = 0; x < img.Width; x++)
                 {
                     int i = y * img.Width + x;
-                    double L = 0.2126 * r[i] + 0.7152 * g[i] + 0.0722 * b[i];
+                    double L = w[0] * r[i] + w[1] * g[i] + w[2] * b[i];
                     if (L <= 1e-9) continue;
                     double k = f(L) / L;
                     r[i] = (float)(r[i] * k); g[i] = (float)(g[i] * k); b[i] = (float)(b[i] * k);

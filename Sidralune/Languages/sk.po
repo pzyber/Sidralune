@@ -843,7 +843,7 @@ msgstr "Ursidy"
 msgid "Cancelled"
 msgstr "Zrušené"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} zlyhalo: {1}"
 
@@ -1107,6 +1107,146 @@ msgstr "Katalógy a efemeridy načítané"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Neočakávaná chyba: {0} (podrobnosti v protokole)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(lineárny)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "kompatibilný s {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Sivá, krivka sRGB"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Sivá, gama {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Sivá, lineárna"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Bez profilu ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Iný súbor…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "Profily ICC"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Všetky súbory"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} nie je profil RGB"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "{0} sa nepodarilo prečítať: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Konvertovať do profilu"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Priradiť profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Snímka teraz"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Spôsob vykreslenia"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Perceptuálny"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Relatívny kolorimetrický"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Sýtosť"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Absolútny kolorimetrický"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Konverzia mení hodnoty pixelov tak, aby farby v novom profile vyzerali rovnako."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Priradenie mení, ako sa hodnoty pixelov chápu, nie samotné hodnoty, takže sa farby zmenia."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Zrušiť"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Konvertovať"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Priradiť"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Farby sa nepodarilo konvertovať: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Táto snímka má farebný profil „{0}“, ktorý sa líši od pracovného profilu „{1}“."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Táto snímka nemá farebný profil. Bez profilu sa považuje za snímku v pracovnom profile „{0}“."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Ponechať jej profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Konvertovať do pracovného profilu"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Zahodiť profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Ponechať bez profilu"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Priradiť pracovný profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Farebný profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Odteraz postupovať takto (Nastavenia → Farba)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Auto, prepojené"
@@ -1137,6 +1277,14 @@ msgstr "Otvorte snímku (Ctrl+O) alebo sem presuňte súbory"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Vykresľuje sa…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Nátlačok: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Upozornenie na gamut"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3158,10 +3306,6 @@ msgstr "relatívny tok"
 msgid "selection"
 msgstr "výber"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Všetky súbory"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Z tohto súboru sa nedá načítať časový rad"
@@ -3869,10 +4013,6 @@ msgid "OK"
 msgstr "OK"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Zrušiť"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Plánuje sa {0}"
 
@@ -4019,6 +4159,18 @@ msgid "False colour"
 msgstr "Nepravé farby"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Nátlačkové farby"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Zobraziť snímku tak, ako bude vyzerať v nátlačkovom profile zvolenom v Nastavenia → Farba (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Označiť farby, ktoré monitor nedokáže zobraziť, alebo pri nátlačku farby mimo nátlačkového profilu (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "Mriežka WCS"
 
@@ -4061,6 +4213,14 @@ msgstr "Vyriešiť"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Vyriešené: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Konvertovať do {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Priradiť {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4244,10 +4404,6 @@ msgstr "Odstrániť zelený nádych (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Sýtosť"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Použiť sýtosť"
@@ -4273,6 +4429,14 @@ msgid "Align channels"
 msgstr "Zarovnať kanály"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Priradiť profil…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Konvertovať do profilu…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Farba"
 
@@ -5354,6 +5518,86 @@ msgstr "Vek a skúsenosť dolaďujú predpovede viditeľnosti (pupila adaptovan�
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Uložené"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Správa farieb"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Zobrazovať snímky cez farebný profil monitora"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Pracovný profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Monitor"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows spravuje farby tohto displeja (HDR alebo automatická správa farieb), takže sa snímky posielajú ako sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (z Windows)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "Vo Windows nie je nastavený profil (považuje sa za sRGB)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Snímka s iným profilom"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Opýtať sa"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Snímka bez profilu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Ukladanie"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Vkladať profil snímky do ukladaných súborov"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8-bitové PNG a JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Ponechať profil snímky"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Konvertovať do sRGB"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Nátlačkový profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Spôsob vykreslenia nátlačku"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Vybrať…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Farba upozornenia na gamut"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Snímky sa zobrazujú cez profil monitora, ktorý poskytuje Windows. Súbory bez profilu (FITS, surové snímky, zložené snímky) sa považujú za snímky v pracovnom profile. 8-bitové súbory v širokom profile, ako je ProPhoto RGB, vyzerajú v programoch bez správy farieb matne a môžu mať pruhy; pre web ich konvertujte do sRGB. Nočné videnie ukazuje iba jas, takže sa tam správa farieb nepoužíva."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

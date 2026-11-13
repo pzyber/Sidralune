@@ -101,6 +101,11 @@ namespace Sidralune.Imaging
         public string SourcePath;
         /// <summary>Original integer bit depth (for export and saturation tests).</summary>
         public int OriginalBitDepth = 16;
+        /// <summary>The image's ICC colour profile, or null when it has none (untagged).</summary>
+        public ColorManagement.IccProfile Profile;
+
+        /// <summary>The profile the image's values are in: its own, or the working profile when it has none.</summary>
+        public ColorManagement.IccProfile EffectiveProfile => Profile ?? (IsColor ? ColorManagement.ColorSettings.WorkingProfile : ColorManagement.ColorSettings.WorkingGrayProfile);
 
         public int Channels => Data.Length;
         public int PixelCount => Width * Height;
@@ -131,12 +136,13 @@ namespace Sidralune.Imaging
             return new AstroImage(Width, Height, d)
             {
                 Header = Header.Clone(), Bayer = Bayer, SourcePath = SourcePath, OriginalBitDepth = OriginalBitDepth,
-                Weight = Weight != null ? (float[])Weight.Clone() : null
+                Weight = Weight != null ? (float[])Weight.Clone() : null, Profile = Profile
             };
         }
 
+        /// <summary>An image of the same size and header; it keeps the profile when it keeps the channel count.</summary>
         public AstroImage CloneEmpty(int channels = -1) =>
-            new AstroImage(Width, Height, channels < 0 ? Channels : channels) { Header = Header.Clone(), OriginalBitDepth = OriginalBitDepth };
+            new AstroImage(Width, Height, channels < 0 ? Channels : channels) { Header = Header.Clone(), OriginalBitDepth = OriginalBitDepth, Profile = channels < 0 || channels == Channels ? Profile : null };
 
         public void ReplaceData(int w, int h, float[][] data)
         {

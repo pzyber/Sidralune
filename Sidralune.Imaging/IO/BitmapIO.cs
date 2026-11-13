@@ -11,10 +11,16 @@ namespace Sidralune.Imaging.IO
     {
         public static AstroImage Read(string path)
         {
-            using (var bmp = new Bitmap(path))
+            var bytes = File.ReadAllBytes(path);
+            // System.Drawing leaves the pixels as they are (no colour conversion); the profile travels with the image
+            using (var ms = new MemoryStream(bytes))
+            using (var bmp = new Bitmap(ms))
             {
                 var img = FromBitmap(bmp);
                 img.SourcePath = path;
+                img.Profile = EmbeddedProfiles.Read(bytes);
+                // only an RGB profile fits colour pixels and only a grey one fits grey pixels (CMYK and the like: unusable)
+                if (img.Profile != null && !(img.Channels == 1 ? img.Profile.IsGray : img.Profile.IsRgb)) img.Profile = null;
                 return img;
             }
         }
@@ -84,21 +90,26 @@ namespace Sidralune.Imaging.IO
             return (byte)(v * 255 + 0.5f);
         }
 
-        public static void Write(string path, AstroImage img, Func<int, float, float> transfer = null, int jpegQuality = 92)
+        /// <param name="profile">An RGB profile to embed in a PNG or JPEG, or null for none (the pixels are always written RGB).</param>
+        public static void Write(string path, AstroImage img, Func<int, float, float> transfer = null, int jpegQuality = 92, ColorManagement.IccProfile profile = null)
         {
             using (var bmp = ToBitmap(img, transfer))
             {
                 string ext = Path.GetExtension(path).ToLowerInvariant();
-                if (ext == ".jpg" || ext == ".jpeg")
+                if (ext == ".bmp") { bmp.Save(path, ImageFormat.Bmp); return; }
+                if (ext == ".gif") { bmp.Save(path, ImageFormat.Gif); return; }
+                using (var ms = new MemoryStream())
                 {
-                    var enc = Array.Find(ImageCodecInfo.GetImageEncoders(), c => c.FormatID == ImageFormat.Jpeg.Guid);
-                    var p = new EncoderParameters(1);
-                    p.Param[0] = new EncoderParameter(Encoder.Quality, (long)jpegQuality);
-                    bmp.Save(path, enc, p);
+                    if (ext == ".jpg" || ext == ".jpeg")
+                    {
+                        var enc = Array.Find(ImageCodecInfo.GetImageEncoders(), c => c.FormatID == ImageFormat.Jpeg.Guid);
+                        var p = new EncoderParameters(1);
+                        p.Param[0] = new EncoderParameter(Encoder.Quality, (long)jpegQuality);
+                        bmp.Save(ms, enc, p);
+                    }
+                    else bmp.Save(ms, ImageFormat.Png);
+                    File.WriteAllBytes(path, EmbeddedProfiles.Write(ms.ToArray(), profile));
                 }
-                else if (ext == ".bmp") bmp.Save(path, ImageFormat.Bmp);
-                else if (ext == ".gif") bmp.Save(path, ImageFormat.Gif);
-                else bmp.Save(path, ImageFormat.Png);
             }
         }
     }
@@ -137,18 +148,48 @@ namespace Sidralune.Imaging.IO
             return img;
         }
 
+        /// <summary>
+        /// Saves an image. Its profile is embedded when Settings → Colour asks for it (an untagged image stays untagged,
+        /// except in 8-bit PNG and JPEG, which carry the profile their colours are in, since viewers otherwise take them
+        /// to be sRGB). 8-bit exports are converted to sRGB first when the settings ask for that.
+        /// </summary>
         public static void Save(string path, AstroImage img, ImageSaveFormat fmt, Func<int, float, float> transfer = null)
         {
+            var profile = ColorManagement.ColorSettings.EmbedProfiles ? img.Profile : null;
             switch (fmt)
             {
-                case ImageSaveFormat.Fits16: FitsIO.Write(path, img, 16); break;
-                case ImageSaveFormat.Fits32Float: FitsIO.Write(path, img, -32); break;
-                case ImageSaveFormat.Xisf32Float: XisfIO.Write(path, img, true); break;
-                case ImageSaveFormat.Xisf16: XisfIO.Write(path, img, false); break;
-                case ImageSaveFormat.Tiff16: TiffIO.Write(path, img, false); break;
-                case ImageSaveFormat.Tiff32Float: TiffIO.Write(path, img, true); break;
-                default: BitmapIO.Write(path, img, transfer); break;
+                case ImageSaveFormat.Fits16: FitsIO.Write(path, img, 16, profile); break;
+                case ImageSaveFormat.Fits32Float: FitsIO.Write(path, img, -32, profile); break;
+                case ImageSaveFormat.Xisf32Float: XisfIO.Write(path, img, true, true, profile); break;
+                case ImageSaveFormat.Xisf16: XisfIO.Write(path, img, false, true, profile); break;
+                case ImageSaveFormat.Tiff16: TiffIO.Write(path, img, false, profile); break;
+                case ImageSaveFormat.Tiff32Float: TiffIO.Write(path, img, true, profile); break;
+                default: Save8Bit(path, img, transfer); break;
             }
+        }
+
+        private static void Save8Bit(string path, AstroImage img, Func<int, float, float> transfer)
+        {
+            var src = img.EffectiveProfile;
+            bool toSrgb = ColorManagement.ColorSettings.Export8BitAsSrgb;
+            // the pixels go out as RGB, so a grey image carries the RGB profile with its curve
+            var rgb = src.IsGray ? ColorManagement.IccProfiles.RgbFor(src) : src;
+            if (!toSrgb && rgb != null)
+            {
+                BitmapIO.Write(path, img, transfer, 92, ColorManagement.ColorSettings.EmbedProfiles ? rgb : null);
+                return;
+            }
+            // to sRGB: stretch first (as on screen), then convert
+            var copy = img.Clone();
+            if (transfer != null)
+                for (int c = 0; c < copy.Channels; c++)
+                {
+                    var d = copy.Data[c]; int ch = c;
+                    System.Threading.Tasks.Parallel.For(0, d.Length / Math.Max(1, copy.Width), y => { for (int x = 0, o = y * copy.Width; x < copy.Width; x++) d[o + x] = transfer(ch, d[o + x]); });
+                }
+            var target = src.IsGray ? ColorManagement.IccProfiles.GrayFor(ColorManagement.IccProfiles.Srgb) : ColorManagement.IccProfiles.Srgb;
+            ColorManagement.ColorTransform.Create(src, target, ColorManagement.ColorSettings.Intent).Apply(copy);
+            BitmapIO.Write(path, copy, null, 92, ColorManagement.ColorSettings.EmbedProfiles ? ColorManagement.IccProfiles.Srgb : null);
         }
 
         public static ImageSaveFormat FormatFromFilterIndex(int idx)

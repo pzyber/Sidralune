@@ -224,6 +224,7 @@ namespace Sidralune.Imaging.Planetary
                             int i = y * ow + x;
                             outImg.Data[c][i] = wsum[i] > 1e-6 ? (float)(acc[c][i] / wsum[i]) : Geometry.SampleAt(reference.Data[c], w, h, x / scale, y / scale, Interpolation.Bicubic);
                         }
+                if (!debayer && first.Profile != null && first.Channels == ch) outImg.Profile = first.Profile; // frames of an image sequence that carry a profile
                 outImg.Header.Set("NCOMBINE", take);
                 outImg.Header.Set("STACKPCT", pct);
                 outImg.Header.AddHistory(string.Format("Lucky stack: best {0}% of {1} frames, {2} APs (size {3}), drizzle {4}", pct, n, aps.Count, o.ApSize, scale));

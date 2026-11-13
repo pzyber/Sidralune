@@ -835,7 +835,7 @@ msgstr "Ursidit"
 msgid "Cancelled"
 msgstr "Peruttu"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} epäonnistui: {1}"
 
@@ -1099,6 +1099,146 @@ msgstr "Luettelot ja efemeridit ladattu"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Odottamaton virhe: {0} (lisätietoja lokissa)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(lineaarinen)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "{0}-yhteensopiva"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Harmaa, sRGB-käyrä"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Harmaa, gamma {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Harmaa, lineaarinen"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Ilman profiilia ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Muu tiedosto…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "ICC-profiilit"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Kaikki tiedostot"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} ei ole RGB-profiili"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "Tiedostoa {0} ei voitu lukea: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Muunna profiiliin"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Liitä profiili"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "Kuva nyt"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profiili"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Toistotapa"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Havaintoon perustuva"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Suhteellinen kolorimetrinen"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Kylläisyys"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Absoluuttinen kolorimetrinen"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Muuntaminen muuttaa pikseliarvoja niin, että värit näyttävät uudessa profiilissa samoilta."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "Liittäminen muuttaa sitä, miten pikseliarvot ymmärretään, ei arvoja itseään, joten värit muuttuvat."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Peruuta"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Muunna"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Liitä"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "Värejä ei voitu muuntaa: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Tällä kuvalla on väriprofiili ”{0}”, joka eroaa työprofiilista ”{1}”."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Tällä kuvalla ei ole väriprofiilia. Ilman profiilia sen katsotaan olevan työprofiilissa ”{0}”."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Säilytä sen profiili"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Muunna työprofiiliin"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "Hylkää profiili"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Jätä ilman profiilia"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "Liitä työprofiili"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Väriprofiili"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Tee näin jatkossa (Asetukset → Väri)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Automaattinen, linkitetty"
@@ -1129,6 +1269,14 @@ msgstr "Avaa kuva (Ctrl+O) tai pudota tiedostoja tähän"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Piirretään…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Vedos: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Värialuevaroitus"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3141,10 +3289,6 @@ msgstr "suhteellinen vuo"
 msgid "selection"
 msgstr "valinta"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Kaikki tiedostot"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Aikasarjaa ei voitu lukea tiedostosta"
@@ -3850,10 +3994,6 @@ msgid "OK"
 msgstr "OK"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Peruuta"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Suunnitellaan {0}"
 
@@ -3998,6 +4138,18 @@ msgid "False colour"
 msgstr "Väärävärit"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Vedosvärit"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "Näytä kuva sellaisena kuin se näyttää kohdassa Asetukset → Väri valitussa vedosprofiilissa (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "Merkitse värit, joita näyttö ei pysty näyttämään, tai vedostaessa vedosprofiili (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "WCS-ruudukko"
 
@@ -4040,6 +4192,14 @@ msgstr "Levynratkaisu"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Ratkaistu: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Muunna profiiliin {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "Liitä {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4221,10 +4381,6 @@ msgstr "Poista vihreä sävy (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Kylläisyys"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Käytä kylläisyyttä"
@@ -4250,6 +4406,14 @@ msgid "Align channels"
 msgstr "Kohdista kanavat"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Liitä profiili…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Muunna profiiliin…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Väri"
 
@@ -5329,6 +5493,86 @@ msgstr "Ikä ja kokemus hienosäätävät näkyvyysennusteita (pimeään sopeutu
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Tallennettu"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Värinhallinta"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "Näytä kuvat näytön väriprofiilin kautta"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Työprofiili"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Näyttö"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "Windows hallitsee tämän näytön värejä (HDR tai automaattinen värinhallinta), joten kuvat lähetetään sRGB:nä"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (Windowsista)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "Windowsissa ei ole asetettu profiilia (katsotaan sRGB:ksi)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Kuva, jolla on toinen profiili"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Kysy"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Kuva ilman profiilia"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Tallennus"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "Upota kuvan profiili tallennettuihin tiedostoihin"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8-bittiset PNG ja JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "Säilytä kuvan profiili"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Muunna sRGB:hen"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Vedosprofiili"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "Vedoksen toistotapa"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Valitse…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "Värialuevaroituksen väri"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "Kuvat näytetään näytön profiilin kautta, jonka Windows antaa. Tiedostojen ilman profiilia (FITS, raakakuvat, pinot) katsotaan olevan työprofiilissa. Laajan profiilin, kuten ProPhoto RGB:n, 8-bittiset tiedostot näyttävät latteilta ohjelmissa ilman värinhallintaa ja niissä voi näkyä raitoja; muunna ne sRGB:hen verkkoa varten. Yönäkö näyttää vain kirkkauden, joten värinhallinta ei koske sitä."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"

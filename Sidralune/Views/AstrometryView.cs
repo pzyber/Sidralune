@@ -23,6 +23,8 @@ namespace Sidralune.Views
     {
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         private readonly ImageViewer _viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Open an image to plate solve (FITS headers with RA/DEC, FOCALLEN and XPIXSZ speed things up)") };
+        private ComboBox _stretchCombo;
+        private bool _settingStretch;
         private AstroImage _img;
         private SolveResult _solve;
         // one solve at a time: opening another image or solving again waits for it
@@ -79,7 +81,7 @@ namespace Sidralune.Views
             var sip = g.Row(T("SIP order"), Ui.Num(2, 0, 4));
             // linear (unstretched) data is mostly black: the automatic stretch shows the faint stars the solution is checked against;
             // None suits images that are already stretched
-            g.Row(T("Display"), Ui.StretchCombo(_viewer.Stretch, v => _viewer.Stretch = v));
+            _stretchCombo = g.Row(T("Display"), Ui.StretchCombo(_viewer.Stretch, v => { if (!_settingStretch) _viewer.Stretch = v; }));
             var labels = g.Row(T("Minor body labels"), Ui.Combo(T("All in the field"), T("Bright enough to show"), Tc("labels", "None")));
             labels.SelectedIndex = Math.Max(0, Array.IndexOf(LabelModes, AppState.Settings.MinorBodyLabels));
             labels.SelectedIndexChanged += (s, e) =>
@@ -225,8 +227,13 @@ namespace Sidralune.Views
         private void SetImage(AstroImage img, TextBox ra, TextBox dec, NumericUpDown scale)
         {
             img = Debayered(img);
+            ColorUi.Opened(img);
             _img = img; _solve = null; _annotations.Clear(); _depthInfo = null; _steps = new TimeSpan[4];
-            _viewer.SetImage(img);
+            // a finished picture is shown as it is, linear data stretched (the list follows)
+            var display = _viewer.ShowOpened(img);
+            _settingStretch = true;
+            _stretchCombo.SelectedIndex = Math.Max(0, Array.IndexOf(Ui.StretchChoices, display));
+            _settingStretch = false;
             double r, d, sc;
             ReadHints(img, out r, out d, out sc);
             ra.Text = double.IsNaN(r) ? "" : AstroMath.FormatHms(r / 15, 1, true);

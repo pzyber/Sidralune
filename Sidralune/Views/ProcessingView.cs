@@ -40,7 +40,7 @@ namespace Sidralune.Views
             var undo = btn(null, Icons.Undo, T("Undo (Ctrl+Z)"), Undo);
             var redo = btn(null, Icons.Redo, T("Redo (Ctrl+Y)"), Redo);
             bar.Controls.Add(Ui.Separator());
-            var stretch = Ui.StretchCombo(DisplayStretch.AutoLinked, v => _viewer.Stretch = v);
+            var stretch = _stretchCombo = Ui.StretchCombo(DisplayStretch.AutoLinked, v => { if (!_settingStretch) _viewer.Stretch = v; });
             stretch.Width = 130;
             bar.Controls.Add(new Label { Text = T("Display"), AutoSize = true, Margin = new Padding(4, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(stretch);
@@ -50,6 +50,13 @@ namespace Sidralune.Views
             var fc = new FlatButton { Text = T("False colour"), Toggle = true }; fc.AutoSizeToText();
             fc.CheckedChanged += (s, e) => { _viewer.FalseColor = fc.Checked; _viewer.Rebuild(); };
             bar.Controls.Add(fc);
+            var proof = new FlatButton { Text = T("Proof colours"), Toggle = true, ToolTipText = T("Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)") }; proof.AutoSizeToText();
+            proof.CheckedChanged += (s, e) => _viewer.Proof = proof.Checked;
+            bar.Controls.Add(proof);
+            var gamut = new FlatButton { Text = T("Gamut warning"), Toggle = true, ToolTipText = T("Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)") }; gamut.AutoSizeToText();
+            gamut.CheckedChanged += (s, e) => _viewer.GamutWarning = gamut.Checked;
+            bar.Controls.Add(gamut);
+            _viewer.ProofingChanged += () => { proof.Checked = _viewer.Proof; gamut.Checked = _viewer.GamutWarning; };
             var grid = new FlatButton { Text = T("WCS grid"), Toggle = true }; grid.AutoSizeToText();
             grid.CheckedChanged += (s, e) => { _viewer.ShowWcsGrid = grid.Checked; _viewer.Invalidate(); };
             bar.Controls.Add(grid);
@@ -93,14 +100,21 @@ namespace Sidralune.Views
             if (img == null) return;
             _job.Cancel();
             if (img.Channels == 1 && img.Bayer != BayerPattern.None) img = Debayer.Apply(img, DebayerMethod.EdgeDirected);
-            _img = img.Clone();
+            _img = img.Clone(); // the sender keeps its own image as it was
+            ColorUi.Opened(_img);
             _name = name;
             _undo.Clear(); _redo.Clear();
             _samples = null;
             Push(T("Open {0}", name), false);
-            _viewer.SetImage(_img);
+            var display = _viewer.ShowOpened(_img);
+            _settingStretch = true;
+            _stretchCombo.SelectedIndex = Math.Max(0, Array.IndexOf(Ui.StretchChoices, display));
+            _settingStretch = false;
             UpdateHistogram();
         }
+
+        private ComboBox _stretchCombo;
+        private bool _settingStretch;
 
         private void Open()
         {
@@ -218,6 +232,29 @@ namespace Sidralune.Views
             });
         }
 
+        /// <summary>Assign a colour profile to the image (the values stay) or convert it to one (the colours stay).</summary>
+        public void ProfileStep(bool convert)
+        {
+            if (_img == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
+            Imaging.ColorManagement.IccProfile p;
+            Imaging.ColorManagement.RenderingIntent intent;
+            if (!ColorUi.ChooseProfile(FindForm(), _img, convert, out p, out intent)) return;
+            ApplyProfileStep(convert, p, intent);
+        }
+
+        /// <summary>The assign/convert step itself (also for scripts and tests).</summary>
+        public void ApplyProfileStep(bool convert, Imaging.ColorManagement.IccProfile p, Imaging.ColorManagement.RenderingIntent intent)
+        {
+            string name = ColorUi.Name(p);
+            if (convert)
+                Apply(T("Convert to {0}", name), img =>
+                {
+                    Imaging.ColorManagement.ColorTransform.Create(img.EffectiveProfile, p, intent).Apply(img);
+                    img.Profile = p;
+                });
+            else Apply(T("Assign {0}", name), img => img.Profile = p);
+        }
+
         private void Replace(string label, Func<AstroImage, AstroImage> op)
         {
             if (_img == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
@@ -312,7 +349,7 @@ namespace Sidralune.Views
                 Apply(T("GHS"), img => StretchOps.ApplyToLuminance(img, f));
             }));
             var asinh = st.Row(T("Arcsinh factor"), Ui.Num(50, 1, 1000));
-            st.Full(new FlatButton(T("Apply arcsinh stretch (colour preserving)"), Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Compute(_img.Luminance(), _img.Width, 0).Background - 0.002 : 0; double k = (double)asinh.Value; Apply(T("Arcsinh"), img => StretchOps.ArcsinhStretch(img, k, Math.Max(0, bg))); }));
+            st.Full(new FlatButton(T("Apply arcsinh stretch (colour preserving)"), Icons.Check, (s, e) => { var bg = _img != null ? ImageStatistics.Robust(_img.Luminance()).Background - 0.002 : 0; double k = (double)asinh.Value; Apply(T("Arcsinh"), img => StretchOps.ArcsinhStretch(img, k, Math.Max(0, bg))); }));
             var lb = st.Row(T("Levels black"), Ui.Num(0, 0, 1, 3, 0.005m));
             var lg = st.Row(T("Levels gamma"), Ui.Num(1, 0.1m, 5, 2, 0.05m));
             var lw = st.Row(T("Levels white"), Ui.Num(1, 0, 2, 3, 0.01m));
@@ -345,6 +382,8 @@ namespace Sidralune.Views
             var hue = col.Row(T("Hue shift (°)"), Ui.Num(0, -180, 180));
             col.Full(new FlatButton(T("Apply hue shift"), Icons.Check, (s, e) => { double a = (double)hue.Value; Apply(T("Hue"), img => ColorOps.HueSaturationLightness(img, a, 1, 1)); }));
             col.Full(new FlatButton(T("Align RGB channels"), Icons.Check, (s, e) => ApplyStoppable(T("Align channels"), (img, ct) => ColorOps.AlignChannels(img, ct))));
+            col.Full(new FlatButton(T("Assign profile…"), Icons.Check, (s, e) => ProfileStep(false)));
+            col.Full(new FlatButton(T("Convert to profile…"), Icons.Check, (s, e) => ProfileStep(true)));
             list.Add(new Collapsible(T("Colour"), col, false));
 
             // deconvolution

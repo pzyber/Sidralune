@@ -33,7 +33,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Planning | Tonight dashboard, planetarium and atlas charts, printable finder charts, comets and asteroids on every chart, 65 moons of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto, observing lists that rank targets by predicted visibility, logbook |
 | Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, planetary video (SER) recording, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers and planetary video |
 | Deep-sky imaging | Calibration with masters, star registration, 12 pixel-combine methods, drizzle, comet stacking, mosaics |
-| Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history |
+| Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history; full colour management with ICC profiles (working profile, monitor profile, assign and convert, embedded profiles in FITS, XISF, TIFF, PNG and JPEG, soft-proofing and gamut warning) |
 | Planetary, lunar and solar | Video pre-processing (centring, cropping, frame rejection), stacking with alignment points, wavelet sharpening, deconvolution, field derotation for alt-az mounts, planetary rotation correction across several videos, solar and lunar tools, mosaic stitching |
 | Astrometry | Built-in blind plate solver with TAN-SIP fitting, ASTAP and astrometry.net bridges, annotation, framing and mosaic planner, exposure and SNR calculator |
 | Photometry | Ensemble differential photometry, AAVSO reports, Lomb-Scargle, BLS and PDM period searches, eclipse timing, O−C, transit fitting with MCMC, transit predictions |
@@ -217,7 +217,7 @@ The solution has two MSTest projects (Visual Studio's own test framework, no NuG
 | Project | Tests | Runs |
 |---|---|---|
 | `Sidralune.Tests` | Every library: about a hundred tests with a thousand checks | Before the application is built, in two to three minutes |
-| `Sidralune.AppTests` | The application: settings, background tasks, scripting, planner, controls, the Observatory workspace and every workspace in day and night mode | After the application is built, in about a minute |
+| `Sidralune.AppTests` | The application: settings, background tasks, scripting, planner, controls, colour management, the Observatory workspace and every workspace in day and night mode | After the application is built, in about a minute |
 
 In Visual Studio, build the solution, open **Test Explorer** from the **Test** menu and choose **Run All**. On the command line, run the library tests, build the application only when they pass, then run the application tests:
 

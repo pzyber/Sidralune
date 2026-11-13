@@ -7,6 +7,7 @@ The **Settings** workspace, at the bottom of the navigation rail, holds everythi
 - [Observer & accounts](#observer--accounts)
 - [Appearance](#appearance)
   - [Languages](#languages)
+- [Colour](#colour)
 - [Data](#data)
 - [About](#about)
 
@@ -135,6 +136,24 @@ A language whose file lacks some texts shows those in English.
 Only words change with the language. Numbers are always written with a decimal point, and dates as `yyyy-MM-dd`, so values look the same as in reports, FITS headers and scripts; day and month names such as `mån 2 nov` do follow the language. Constellation and star names stay as they are. Searching accepts the translated planet names as well as the English ones. Log messages and files written for other programs (AAVSO and MPC reports, FITS headers) stay in English.
 
 The **Pseudo-language** entry is for testing: it shows every translated text with accents, in brackets and a third longer, so text that is not yet translated, and places where a longer translation would not fit, stand out. To help translate Sidralune into your language, see [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#translating-sidralune).
+
+## Colour
+
+How images are shown and how their colour profiles are handled. See [Colour management](Colour-management) for what these mean and how to use them.
+
+| Setting | Meaning |
+|---|---|
+| **Colour management** | Show images through the monitor's colour profile. On by default; off shows the values as they are |
+| **Working profile** | The profile images without one (FITS, raw frames, stacks) are taken to be in. ProPhoto RGB by default; the list has the built-in profiles, those installed in Windows and **Other file…** |
+| **Monitor** | The profile Windows uses for the monitor this window is on, or a note when Windows manages colour on that display itself (HDR or automatic colour management) |
+| **Rendering intent** | How colours are brought onto the monitor and into another profile: **Relative colorimetric** (default), **Perceptual**, **Saturation** or **Absolute colorimetric** |
+| **Image with another profile** | What happens when an opened image's profile differs from the working profile: **Keep its profile** (default), **Convert to the working profile**, **Discard the profile** or **Ask** |
+| **Image without a profile** | **Leave it untagged** (default), **Assign the working profile** or **Ask** |
+| **Saving** | **Embed the image's profile in saved files** (on by default) |
+| **8-bit PNG and JPEG** | **Keep the image's profile** (default) or **Convert to sRGB** (best for the web) |
+| **Proofing profile** | The profile **Proof colours** simulates: sRGB by default, or any installed RGB, CMYK or printer profile |
+| **Proofing intent** | How colours are brought into the proofing profile (Relative colorimetric by default) |
+| **Gamut warning colour** | The colour that marks out-of-gamut pixels (grey by default) |
 
 ## Data
 

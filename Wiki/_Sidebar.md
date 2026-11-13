@@ -16,6 +16,7 @@
 **Imaging and processing**
 - [Deep-sky stacking](Deep-sky-stacking)
 - [Image processing](Image-processing)
+- [Colour management](Colour-management)
 - [Planetary, lunar and solar](Planetary,-lunar-and-solar-imaging)
 
 **Science**

@@ -321,7 +321,12 @@ namespace Sidralune.AppTests
                     CheckTrue("It is drawn in the palette", coverOff == 0, coverOff + " pixels off the palette");
                     CheckTrue("It is layered and transparent to the mouse", OnUi(() => (GetWindowLong(cover, -20) & 0x00080020) == 0x00080020)); // GWL_EXSTYLE: WS_EX_LAYERED | WS_EX_TRANSPARENT
                     var under = OnUi(() => WindowFromPoint(new Point((barAt.Left + barAt.Right) / 2, (barAt.Top + barAt.Bottom) / 2)));
-                    CheckTrue("The mouse over the bar reaches the list", under == list, under + " instead of " + list);
+                    int underPid;
+                    GetWindowThreadProcessId(under, out underPid);
+                    // another program's window over the spot (the lock screen while the computer is locked) hides what Sidralune does there
+                    if (underPid != System.Diagnostics.Process.GetCurrentProcess().Id)
+                        Info("Not checked whether the mouse over the bar reaches the list: another program's window covers that part of the screen (is the computer locked?)");
+                    else CheckTrue("The mouse over the bar reaches the list", under == list, under + " instead of " + list);
                     // a scroll moves the thumb on the cover too
                     OnUi(() => SendMessage(list, 0x0115, new IntPtr(3), IntPtr.Zero)); // WM_VSCROLL, SB_PAGEDOWN
                     var coverOffScrolled = OnUi(() => OffPalette(cover, coverAt));

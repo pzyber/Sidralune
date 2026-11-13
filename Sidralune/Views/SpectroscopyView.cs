@@ -57,7 +57,7 @@ namespace Sidralune.Views
             var disp = g.Row(T("Approx. Å / pixel"), Ui.Num(2.5m, 0.001m, 100, 4, 0.05m));
             var degree = g.Row(T("Polynomial degree"), Ui.Num(3, 1, 6));
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }) { Kind = k, Width = 320 }; g.Full(b); return b; };
-            var openSci = btn(T("1 · Open science frame…"), Icons.Open, () => OpenImage(img => { _sci = img; _trace = null; _viewer.SetImage(img); }), ButtonKind.Normal);
+            var openSci = btn(T("1 · Open science frame…"), Icons.Open, () => OpenImage(img => { _sci = img; _trace = null; _viewer.ShowOpened(img); }), ButtonKind.Normal);
             btn(T("2 · Trace & extract"), Icons.Spectrum, () =>
             {
                 if (_sci == null) throw new InvalidOperationException(T("Open a science frame first"));

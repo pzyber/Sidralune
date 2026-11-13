@@ -835,7 +835,7 @@ msgstr "Ursidák"
 msgid "Cancelled"
 msgstr "Megszakítva"
 
-#: Sidralune/AppState.cs
+#: Sidralune/AppState.cs Sidralune/Views/SettingsView.cs
 msgid "{0} failed: {1}"
 msgstr "{0} sikertelen: {1}"
 
@@ -1099,6 +1099,146 @@ msgstr "Katalógusok és efemeriszek betöltve"
 msgid "Unexpected error: {0} (details in the log)"
 msgstr "Váratlan hiba: {0} (részletek a naplóban)"
 
+#: Sidralune/UI/ColorUi.cs
+msgid "(linear)"
+msgstr "(lineáris)"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} compatible"
+msgstr "{0}-kompatibilis"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, sRGB curve"
+msgstr "Szürke, sRGB-görbe"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, gamma {0}"
+msgstr "Szürke, gamma {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Grey, linear"
+msgstr "Szürke, lineáris"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Untagged ({0})"
+msgstr "Profil nélkül ({0})"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Other file…"
+msgstr "Másik fájl…"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "ICC profiles"
+msgstr "ICC-profilok"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
+msgid "All files"
+msgstr "Minden fájl"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "{0} is not an RGB profile"
+msgstr "{0} nem RGB-profil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not read {0}: {1}"
+msgstr "{0} nem olvasható: {1}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert to profile"
+msgstr "Átalakítás profilba"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign profile"
+msgstr "Profil hozzárendelése"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Image now"
+msgstr "A kép most"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Rendering intent"
+msgstr "Leképezési mód"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Perceptual"
+msgstr "Érzékelés alapú"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Relative colorimetric"
+msgstr "Relatív kolorimetrikus"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs Sidralune/Views/StackingView.cs
+msgid "Saturation"
+msgstr "Telítettség"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Absolute colorimetric"
+msgstr "Abszolút kolorimetrikus"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Converting changes the pixel values so the colours look the same in the new profile."
+msgstr "Az átalakítás úgy változtatja meg a képpontok értékeit, hogy a színek az új profilban ugyanúgy nézzenek ki."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assigning changes how the pixel values are understood, not the values themselves, so the colours change."
+msgstr "A hozzárendelés azt változtatja meg, hogyan értelmezzük a képpontok értékeit, magukat az értékeket nem, így a színek megváltoznak."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/PlannerView.cs
+msgid "Cancel"
+msgstr "Mégse"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Convert"
+msgstr "Átalakítás"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Assign"
+msgstr "Hozzárendelés"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Could not convert the colours: {0}"
+msgstr "A színek nem alakíthatók át: {0}"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has the colour profile “{0}”, which differs from the working profile “{1}”."
+msgstr "Ennek a képnek a színprofilja „{0}”, amely eltér a(z) „{1}” munkaprofiltól."
+
+#: Sidralune/UI/ColorUi.cs
+msgid "This image has no colour profile. Without one it is taken to be in the working profile “{0}”."
+msgstr "Ennek a képnek nincs színprofilja. Profil nélkül úgy számít, mintha a(z) „{0}” munkaprofilban lenne."
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Keep its profile"
+msgstr "Saját profiljának megtartása"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Convert to the working profile"
+msgstr "Átalakítás a munkaprofilba"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Discard the profile"
+msgstr "A profil elvetése"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Leave it untagged"
+msgstr "Profil nélkül hagyás"
+
+#: Sidralune/UI/ColorUi.cs Sidralune/Views/SettingsView.cs
+msgid "Assign the working profile"
+msgstr "A munkaprofil hozzárendelése"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Colour profile"
+msgstr "Színprofil"
+
+#: Sidralune/UI/ColorUi.cs
+msgid "Do this from now on (Settings → Colour)"
+msgstr "Mostantól mindig így (Beállítások → Szín)"
+
 #: Sidralune/UI/Controls.cs
 msgid "Auto linked"
 msgstr "Auto, összekapcsolt"
@@ -1129,6 +1269,14 @@ msgstr "Nyisson meg egy képet (Ctrl+O), vagy húzzon ide fájlokat"
 #: Sidralune/UI/ImageViewer.cs
 msgid "Rendering…"
 msgstr "Rajzolás…"
+
+#: Sidralune/UI/ImageViewer.cs
+msgid "Proof: {0}"
+msgstr "Próbanyomat: {0}"
+
+#: Sidralune/UI/ImageViewer.cs Sidralune/Views/ProcessingView.cs
+msgid "Gamut warning"
+msgstr "Színtartomány-figyelmeztetés"
 
 #: Sidralune/UI/PlotControl.cs
 msgid "Reset zoom"
@@ -3141,10 +3289,6 @@ msgstr "relatív fluxus"
 msgid "selection"
 msgstr "kijelölés"
 
-#: Sidralune/Views/PhotometryView.cs Sidralune/Views/RadioView.cs Sidralune/Views/ScriptingView.cs Sidralune/Views/SpectroscopyView.cs
-msgid "All files"
-msgstr "Minden fájl"
-
 #: Sidralune/Views/PhotometryView.cs
 msgid "Could not read a time series from that file"
 msgstr "Ebből a fájlból nem sikerült idősort olvasni"
@@ -3850,10 +3994,6 @@ msgid "OK"
 msgstr "OK"
 
 #: Sidralune/Views/PlannerView.cs
-msgid "Cancel"
-msgstr "Mégse"
-
-#: Sidralune/Views/PlannerView.cs
 msgid "Planning {0}"
 msgstr "Tervezés: {0}"
 
@@ -3998,6 +4138,18 @@ msgid "False colour"
 msgstr "Hamis színek"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Proof colours"
+msgstr "Próbanyomat-színek"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Show the image as it will look in the proofing profile chosen in Settings → Colour (Ctrl+Shift+O)"
+msgstr "A kép megjelenítése úgy, ahogy a Beállítások → Szín alatt választott próbaprofilban fog kinézni (Ctrl+Shift+O)"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Mark the colours the monitor cannot show, or the proofing profile while proofing (Ctrl+Shift+Y)"
+msgstr "A monitor által meg nem jeleníthető színek jelölése, próbanyomat közben a próbaprofilon kívülieké (Ctrl+Shift+Y)"
+
+#: Sidralune/Views/ProcessingView.cs
 msgid "WCS grid"
 msgstr "WCS-rács"
 
@@ -4040,6 +4192,14 @@ msgstr "Lemezmegoldás"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Plate solved: {0}"
 msgstr "Lemezmegoldás kész: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to {0}"
+msgstr "Átalakítás ebbe: {0}"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Assign {0}"
+msgstr "{0} hozzárendelése"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Histogram"
@@ -4221,10 +4381,6 @@ msgstr "Zöld színezet eltávolítása (SCNR)"
 msgid "SCNR"
 msgstr "SCNR"
 
-#: Sidralune/Views/ProcessingView.cs Sidralune/Views/StackingView.cs
-msgid "Saturation"
-msgstr "Telítettség"
-
 #: Sidralune/Views/ProcessingView.cs
 msgid "Apply saturation"
 msgstr "Telítettség alkalmazása"
@@ -4250,6 +4406,14 @@ msgid "Align channels"
 msgstr "Csatornák illesztése"
 
 #: Sidralune/Views/ProcessingView.cs
+msgid "Assign profile…"
+msgstr "Profil hozzárendelése…"
+
+#: Sidralune/Views/ProcessingView.cs
+msgid "Convert to profile…"
+msgstr "Átalakítás profilba…"
+
+#: Sidralune/Views/ProcessingView.cs Sidralune/Views/SettingsView.cs
 msgid "Colour"
 msgstr "Szín"
 
@@ -5329,6 +5493,86 @@ msgstr "Az életkor és a tapasztalat finomhangolja a láthatósági előrejelz�
 #: Sidralune/Views/SettingsView.cs
 msgid "Saved"
 msgstr "Mentve"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Colour management"
+msgstr "Színkezelés"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show images through the monitor's colour profile"
+msgstr "A képek megjelenítése a monitor színprofilján keresztül"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Working profile"
+msgstr "Munkaprofil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Monitor"
+msgstr "Monitor"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Windows manages colour on this display (HDR or automatic colour management), so images are sent as sRGB"
+msgstr "A Windows kezeli a kijelző színeit (HDR vagy automatikus színkezelés), ezért a képek sRGB-ként kerülnek továbbításra"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "{0} (from Windows)"
+msgstr "{0} (a Windowsból)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "No profile set in Windows (taken to be sRGB)"
+msgstr "A Windowsban nincs profil beállítva (sRGB-nek számít)"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image with another profile"
+msgstr "Kép más profillal"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Ask"
+msgstr "Kérdezzen"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Image without a profile"
+msgstr "Kép profil nélkül"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Saving"
+msgstr "Mentés"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Embed the image's profile in saved files"
+msgstr "A kép profiljának beágyazása a mentett fájlokba"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "8-bit PNG and JPEG"
+msgstr "8 bites PNG és JPEG"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Keep the image's profile"
+msgstr "A kép profiljának megtartása"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Convert to sRGB"
+msgstr "Átalakítás sRGB-be"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing profile"
+msgstr "Próbanyomat-profil"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Proofing intent"
+msgstr "A próbanyomat leképezési módja"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Choose…"
+msgstr "Kiválasztás…"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Gamut warning colour"
+msgstr "A színtartomány-figyelmeztetés színe"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Images are shown through the monitor's profile, which Windows provides. Files without a profile (FITS, raw frames, stacks) are taken to be in the working profile. 8-bit files in a wide profile such as ProPhoto RGB look dull in programs without colour management and can show banding; convert them to sRGB for the web. Night vision mode shows only brightness, so colour management does not apply there."
+msgstr "A képek a monitor profilján keresztül jelennek meg, amelyet a Windows biztosít. A profil nélküli fájlok (FITS, nyers felvételek, összegzések) a munkaprofilban lévőnek számítanak. A széles profilú, például ProPhoto RGB 8 bites fájlok színkezelés nélküli programokban fakónak látszanak, és sávosak lehetnek; a webre alakítsa át őket sRGB-be. Az éjszakai látás csak a fényességet mutatja, ezért ott nincs színkezelés."
 
 #: Sidralune/Views/SettingsView.cs
 msgid "Language"
