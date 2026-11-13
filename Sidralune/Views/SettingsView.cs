@@ -290,7 +290,7 @@ namespace Sidralune.Views
             var g = new FormGrid(240);
             var s = AppState.Settings;
             Action save = () => { AppState.Save(); AppState.ApplyColorSettings(); };
-            Func<ComboBox> intents = () => Ui.Combo(T("Perceptual"), T("Relative colorimetric"), T("Saturation"), T("Absolute colorimetric"));
+            Func<string, RenderingIntent> intentOf = v => { RenderingIntent i; return Enum.TryParse(v ?? "", out i) ? i : RenderingIntent.RelativeColorimetric; };
 
             var on = g.Row(T("Colour management"), new CheckBox { Checked = s.ColorManagement, Text = T("Show images through the monitor's colour profile") });
             on.CheckedChanged += (o, e) => { s.ColorManagement = on.Checked; save(); };
@@ -303,9 +303,7 @@ namespace Sidralune.Views
                     : m.Path != null ? T("{0} (from Windows)", m.Profile.Description) : T("No profile set in Windows (taken to be sRGB)");
             };
             card.VisibleChanged += (o, e) => { if (card.Visible) { MonitorColor.Refresh(); showMonitor(); } };
-            var intent = g.Row(T("Rendering intent"), intents());
-            intent.SelectedIndex = EnumIndex(s.RenderingIntent, RenderingIntent.Perceptual);
-            intent.SelectedIndexChanged += (o, e) => { s.RenderingIntent = ((RenderingIntent)intent.SelectedIndex).ToString(); save(); };
+            g.Row(T("Rendering intent"), ColorUi.IntentCombo(intentOf(s.RenderingIntent), v => { s.RenderingIntent = v.ToString(); save(); }));
 
             var mismatch = g.Row(T("Image with another profile"), Ui.Combo(T("Keep its profile"), T("Convert to the working profile"), T("Discard the profile"), T("Ask")));
             mismatch.SelectedIndex = EnumIndex(s.OnProfileMismatch, ProfileMismatchPolicy.Keep);
@@ -320,9 +318,7 @@ namespace Sidralune.Views
             export8.SelectedIndexChanged += (o, e) => { s.Export8BitAsSrgb = export8.SelectedIndex == 1; save(); };
 
             g.Row(T("Proofing profile"), ColorUi.ProfileCombo(s.ProofingProfile, ProfileKind.Proofing, v => { s.ProofingProfile = v; save(); }));
-            var proofIntent = g.Row(T("Proofing intent"), intents());
-            proofIntent.SelectedIndex = EnumIndex(s.ProofingIntent, RenderingIntent.RelativeColorimetric);
-            proofIntent.SelectedIndexChanged += (o, e) => { s.ProofingIntent = ((RenderingIntent)proofIntent.SelectedIndex).ToString(); save(); };
+            g.Row(T("Proofing intent"), ColorUi.IntentCombo(intentOf(s.ProofingIntent), v => { s.ProofingIntent = v.ToString(); save(); }));
             var warnRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0) };
             var swatch = new Panel { Width = 40, Height = 22, Margin = new Padding(0, 6, 8, 0), Tag = "keepcolor" };
             Func<Color> warning = () => { try { return ColorTranslator.FromHtml(s.GamutWarningColor); } catch { return Color.Gray; } };

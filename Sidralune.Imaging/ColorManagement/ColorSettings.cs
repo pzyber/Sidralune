@@ -28,7 +28,7 @@ namespace Sidralune.Imaging.ColorManagement
         /// <summary>The grey profile untagged one-channel images are taken to be in (the working profile's curve).</summary>
         public static IccProfile WorkingGrayProfile => IccProfiles.GrayFor(WorkingProfile);
 
-        public static RenderingIntent Intent = RenderingIntent.Perceptual;
+        public static RenderingIntent Intent = RenderingIntent.RelativeColorimetric;
         public static ProfileMismatchPolicy OnMismatch = ProfileMismatchPolicy.Keep;
         public static ProfileMissingPolicy OnMissing = ProfileMissingPolicy.LeaveUntagged;
         /// <summary>Write the image's profile into saved files.</summary>

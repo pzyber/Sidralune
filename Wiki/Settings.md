@@ -146,7 +146,7 @@ How images are shown and how their colour profiles are handled. See [Colour mana
 | **Colour management** | Show images through the monitor's colour profile. On by default; off shows the values as they are |
 | **Working profile** | The profile images without one (FITS, raw frames, stacks) are taken to be in. ProPhoto RGB by default; the list has the built-in profiles, those installed in Windows and **Other file…** |
 | **Monitor** | The profile Windows uses for the monitor this window is on, or a note when Windows manages colour on that display itself (HDR or automatic colour management) |
-| **Rendering intent** | How colours are brought onto the monitor and into another profile: **Perceptual** (default), **Relative colorimetric**, **Saturation** or **Absolute colorimetric** |
+| **Rendering intent** | How colours are brought onto the monitor and into another profile: **Relative colorimetric** (default), **Perceptual**, **Saturation** or **Absolute colorimetric** |
 | **Image with another profile** | What happens when an opened image's profile differs from the working profile: **Keep its profile** (default), **Convert to the working profile**, **Discard the profile** or **Ask** |
 | **Image without a profile** | **Leave it untagged** (default), **Assign the working profile** or **Ask** |
 | **Saving** | **Embed the image's profile in saved files** (on by default) |

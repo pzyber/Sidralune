@@ -49,7 +49,7 @@ namespace Sidralune
         // colour management (Settings → Colour); profiles are a built-in id ("prophoto") or a file path
         public bool ColorManagement = true;
         public string WorkingProfile = "prophoto";
-        public string RenderingIntent = "Perceptual";
+        public string RenderingIntent = "RelativeColorimetric";
         public string OnProfileMismatch = "Keep";
         public string OnMissingProfile = "LeaveUntagged";
         public bool EmbedProfiles = true;
@@ -157,7 +157,7 @@ namespace Sidralune
             var s = Settings;
             ColorSettings.Enabled = s.ColorManagement;
             ColorSettings.WorkingProfile = IccProfiles.FromSetting(s.WorkingProfile);
-            ColorSettings.Intent = ParseEnum(s.RenderingIntent, Imaging.ColorManagement.RenderingIntent.Perceptual);
+            ColorSettings.Intent = ParseEnum(s.RenderingIntent, Imaging.ColorManagement.RenderingIntent.RelativeColorimetric);
             ColorSettings.OnMismatch = ParseEnum(s.OnProfileMismatch, ProfileMismatchPolicy.Keep);
             ColorSettings.OnMissing = ParseEnum(s.OnMissingProfile, ProfileMissingPolicy.LeaveUntagged);
             ColorSettings.EmbedProfiles = s.EmbedProfiles;

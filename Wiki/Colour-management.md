@@ -28,7 +28,7 @@ The working profile is deliberately not the monitor's profile: a monitor profile
 
 ## On screen
 
-Every image view (Deep sky, Process, Planetary, Astrometry, Observatory and the others) shows images through the profile Windows uses for the monitor the window is on. Move the window to another monitor and the image is converted for that one. The conversion uses the **rendering intent** set in Settings → Colour (Perceptual unless you choose another) and only changes what you see, never the image.
+Every image view (Deep sky, Process, Planetary, Astrometry, Observatory and the others) shows images through the profile Windows uses for the monitor the window is on. Move the window to another monitor and the image is converted for that one. The conversion uses the **rendering intent** set in Settings → Colour (Relative colorimetric unless you choose another) and only changes what you see, never the image.
 
 - Calibrate your monitor and make its profile the monitor's default in Windows (calibration software does this; otherwise use Windows' **Colour Management**, `colorcpl`). Without one, the monitor is taken to be sRGB.
 - When Windows itself manages colour on a display (HDR, or automatic colour management on Windows 11), Windows converts what programs draw from sRGB. Sidralune then sends images as sRGB so they are not converted twice; Settings → Colour says so.

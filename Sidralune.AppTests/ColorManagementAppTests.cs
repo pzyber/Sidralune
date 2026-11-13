@@ -167,8 +167,8 @@ namespace Sidralune.AppTests
         {
             var view = View<SettingsView>("settings");
             var st = OnUi(() => new { AppState.Settings.WorkingProfile, AppState.Settings.RenderingIntent, AppState.Settings.OnProfileMismatch, AppState.Settings.OnMissingProfile, AppState.Settings.EmbedProfiles, AppState.Settings.Export8BitAsSrgb, AppState.Settings.ColorManagement });
-            CheckTrue("Defaults: on, ProPhoto RGB, perceptual, keep, leave untagged, embed, 8-bit keeps its profile",
-                st.ColorManagement && st.WorkingProfile == "prophoto" && st.RenderingIntent == "Perceptual" && st.OnProfileMismatch == "Keep" && st.OnMissingProfile == "LeaveUntagged" && st.EmbedProfiles && !st.Export8BitAsSrgb,
+            CheckTrue("Defaults: on, ProPhoto RGB, relative colorimetric, keep, leave untagged, embed, 8-bit keeps its profile",
+                st.ColorManagement && st.WorkingProfile == "prophoto" && st.RenderingIntent == "RelativeColorimetric" && OnUi(() => ColorSettings.Intent) == RenderingIntent.RelativeColorimetric && st.OnProfileMismatch == "Keep" && st.OnMissingProfile == "LeaveUntagged" && st.EmbedProfiles && !st.Export8BitAsSrgb,
                 st.ToString());
             var card = OnUi(() => All(view).OfType<Card>().FirstOrDefault(c => c.Title == "Colour management"));
             CheckTrue("Settings has a Colour tab", card != null);
@@ -177,14 +177,16 @@ namespace Sidralune.AppTests
             var working = combos.FirstOrDefault(c => OnUi(() => c.Text) == "ProPhoto RGB");
             CheckTrue("The working profile list shows ProPhoto RGB and offers the others", working != null && OnUi(() => working.Items.Cast<object>().Select(o => o.ToString()).ToList()).Contains("sRGB")
                 && OnUi(() => working.Items.Cast<object>().Last().ToString()) == "Other file…");
-            var intent = combos.FirstOrDefault(c => OnUi(() => c.Text) == "Perceptual");
+            // the rendering intent comes before the proofing intent; both start with Relative colorimetric
+            var intents = combos.Where(c => OnUi(() => c.Items.Count == 4 && c.Items[0].ToString() == "Relative colorimetric" && c.Items[1].ToString() == "Perceptual")).ToList();
+            var intent = intents.FirstOrDefault();
             try
             {
-                CheckTrue("The rendering intent list is there", intent != null);
+                CheckTrue("Both intent lists start with Relative colorimetric, which is chosen", intents.Count == 2 && intents.All(c => OnUi(() => c.Text) == "Relative colorimetric"), intents.Count + " lists");
                 if (intent != null)
                 {
                     OnUi(() => intent.SelectedIndex = 1);
-                    CheckTrue("Changing it is saved and handed to the imaging code", OnUi(() => AppState.Settings.RenderingIntent == "RelativeColorimetric" && ColorSettings.Intent == RenderingIntent.RelativeColorimetric));
+                    CheckTrue("Changing it is saved and handed to the imaging code", OnUi(() => AppState.Settings.RenderingIntent == "Perceptual" && ColorSettings.Intent == RenderingIntent.Perceptual));
                 }
                 if (working != null)
                 {
@@ -198,7 +200,7 @@ namespace Sidralune.AppTests
                 {
                     if (intent != null) intent.SelectedIndex = 0;
                     if (working != null) working.SelectedIndex = working.Items.Cast<object>().Select(o => o.ToString()).ToList().IndexOf("ProPhoto RGB");
-                    AppState.Settings.WorkingProfile = "prophoto"; AppState.Settings.RenderingIntent = "Perceptual"; AppState.ApplyColorSettings();
+                    AppState.Settings.WorkingProfile = "prophoto"; AppState.Settings.RenderingIntent = "RelativeColorimetric"; AppState.ApplyColorSettings();
                 });
             }
         }

@@ -41,6 +41,32 @@ namespace Sidralune.UI
         public static string ImageProfileText(AstroImage img) =>
             img.Profile != null ? Name(img.Profile) : T("Untagged ({0})", Name(img.EffectiveProfile));
 
+        /// <summary>Rendering intents in the order they are offered (the enum keeps Windows' own numbers).</summary>
+        public static readonly RenderingIntent[] Intents = { RenderingIntent.RelativeColorimetric, RenderingIntent.Perceptual, RenderingIntent.Saturation, RenderingIntent.AbsoluteColorimetric };
+
+        public static string IntentName(RenderingIntent i)
+        {
+            switch (i)
+            {
+                case RenderingIntent.Perceptual: return T("Perceptual");
+                case RenderingIntent.Saturation: return T("Saturation");
+                case RenderingIntent.AbsoluteColorimetric: return T("Absolute colorimetric");
+                default: return T("Relative colorimetric");
+            }
+        }
+
+        /// <summary>A list of rendering intents, Relative colorimetric first; changed (optional) receives the new choice.</summary>
+        public static ComboBox IntentCombo(RenderingIntent value, Action<RenderingIntent> changed = null)
+        {
+            var cb = Ui.Combo(Intents.Select(i => (object)IntentName(i)).ToArray());
+            cb.SelectedIndex = Math.Max(0, Array.IndexOf(Intents, value));
+            if (changed != null) cb.SelectedIndexChanged += (s, e) => changed(Intents[Math.Max(0, cb.SelectedIndex)]);
+            return cb;
+        }
+
+        /// <summary>The intent a list made by IntentCombo shows.</summary>
+        public static RenderingIntent IntentOf(ComboBox cb) => Intents[Math.Max(0, cb.SelectedIndex)];
+
         private sealed class Item
         {
             public string Text, Setting;
@@ -139,8 +165,7 @@ namespace Sidralune.UI
                 ComboBox intents = null;
                 if (convert)
                 {
-                    intents = g.Row(T("Rendering intent"), Ui.Combo(T("Perceptual"), T("Relative colorimetric"), T("Saturation"), T("Absolute colorimetric")));
-                    intents.SelectedIndex = (int)ColorSettings.Intent;
+                    intents = g.Row(T("Rendering intent"), IntentCombo(ColorSettings.Intent));
                 }
                 g.Full(Ui.Hint(convert ? T("Converting changes the pixel values so the colours look the same in the new profile.") : T("Assigning changes how the pixel values are understood, not the values themselves, so the colours change.")));
                 var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8, 4, 8, 4) };
@@ -156,7 +181,7 @@ namespace Sidralune.UI
                 f.HandleCreated += (s, e) => Theme.DarkTitleBar(f);
                 if (f.ShowDialog(owner) != DialogResult.OK) return false;
                 profile = FromSetting(chosen);
-                if (intents != null) intent = (RenderingIntent)Math.Max(0, intents.SelectedIndex);
+                if (intents != null) intent = IntentOf(intents);
                 return profile != null;
             }
         }
