@@ -177,8 +177,8 @@ namespace Sidralune.AppTests
             var photo = new AstroImage(2, 2, 3) { OriginalBitDepth = 8 };
             var tagged = new AstroImage(2, 2, 3) { OriginalBitDepth = 16, Profile = IccProfiles.ById("adobergb") };
             var linear = new AstroImage(2, 2, 3) { OriginalBitDepth = -32 };
-            CheckTrue("An 8-bit image or one with a profile opens unstretched", ProcessingView.DisplayFor(photo, DisplayStretch.AutoLinked) == DisplayStretch.None && ProcessingView.DisplayFor(tagged, DisplayStretch.AutoUnlinked) == DisplayStretch.None);
-            CheckTrue("Linear data keeps the chosen stretch, but never opens unstretched", ProcessingView.DisplayFor(linear, DisplayStretch.AutoUnlinked) == DisplayStretch.AutoUnlinked && ProcessingView.DisplayFor(linear, DisplayStretch.None) == DisplayStretch.AutoLinked);
+            CheckTrue("An 8-bit image or one with a profile opens unstretched", ImageViewer.DisplayFor(photo, DisplayStretch.AutoLinked) == DisplayStretch.None && ImageViewer.DisplayFor(tagged, DisplayStretch.AutoUnlinked) == DisplayStretch.None);
+            CheckTrue("Linear data keeps the chosen stretch, but never opens unstretched", ImageViewer.DisplayFor(linear, DisplayStretch.AutoUnlinked) == DisplayStretch.AutoUnlinked && ImageViewer.DisplayFor(linear, DisplayStretch.None) == DisplayStretch.AutoLinked);
 
             var view = View<ProcessingView>("processing");
             var keepPolicy = OnUi(() => AppState.Settings.OnProfileMismatch);
@@ -193,6 +193,15 @@ namespace Sidralune.AppTests
                 CheckTrue("A tagged image opens with Display set to None", shown.Viewer == DisplayStretch.None && shown.Combo == "None", shown.Viewer + " / " + shown.Combo);
                 OnUi(() => view.OpenImage(new AstroImage(4, 4, 3) { OriginalBitDepth = -32 }, "linear"));
                 CheckTrue("…and linear data after it opens stretched again", OnUi(() => Field<ImageViewer>(view, "_viewer").Stretch) == DisplayStretch.AutoLinked);
+
+                // the same in Astrometry → Plate solving (as when a file is opened there)
+                var astro = View<AstrometryView>("astrometry");
+                Action<AstroImage> open = im => OnUi(() => Call(astro, "SetImage", im, Field<TextBox>(astro, "_hintRa"), Field<TextBox>(astro, "_hintDec"), Field<NumericUpDown>(astro, "_hintScale")));
+                Func<string> astroShown = () => OnUi(() => Field<ImageViewer>(astro, "_viewer").Stretch + " / " + Field<ComboBox>(astro, "_stretchCombo").Text);
+                open(new AstroImage(64, 48, 3) { OriginalBitDepth = 8 });
+                CheckTrue("Plate solving: a finished picture opens with Display set to None", astroShown() == "None / None", astroShown());
+                open(new AstroImage(64, 48, 1) { OriginalBitDepth = 16 });
+                CheckTrue("Plate solving: linear data opens stretched", astroShown() == "AutoLinked / Auto linked", astroShown());
             }
             finally { OnUi(() => { AppState.Settings.OnProfileMismatch = keepPolicy; AppState.ApplyColorSettings(); }); }
         }

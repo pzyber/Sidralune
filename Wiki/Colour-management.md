@@ -33,7 +33,7 @@ Every image view (Deep sky, Process, Planetary, Astrometry, Observatory and the 
 - Calibrate your monitor and make its profile the monitor's default in Windows (calibration software does this; otherwise use Windows' **Colour Management**, `colorcpl`). Without one, the monitor is taken to be sRGB.
 - When Windows itself manages colour on a display (HDR, or automatic colour management on Windows 11), Windows converts what programs draw from sRGB. Sidralune then sends images as sRGB so they are not converted twice; Settings → Colour says so.
 - **False colour** is a display mapping of brightness and is not converted.
-- The display stretch (**Display** in Process and the other workspaces) changes tones on top of colour management. To compare colours with another program, show the image with **Display** set to **None**; finished pictures open that way in Process.
+- The display stretch (**Display** in Process and the other workspaces) changes tones on top of colour management. To compare colours with another program, show the image with **Display** set to **None**. Finished pictures (8-bit files, or files with a colour profile) open that way in Process, in Astrometry → Plate solving, in Solar system → MPC astrometry and in Spectroscopy; linear data opens stretched.
 - Switch **Colour management** off in Settings → Colour to show the values as they are, as before.
 
 ## Opening images

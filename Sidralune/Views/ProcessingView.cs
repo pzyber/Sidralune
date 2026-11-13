@@ -106,28 +106,15 @@ namespace Sidralune.Views
             _undo.Clear(); _redo.Clear();
             _samples = null;
             Push(T("Open {0}", name), false);
-            var display = DisplayFor(_img, _viewer.Stretch);
+            var display = _viewer.ShowOpened(_img);
             _settingStretch = true;
             _stretchCombo.SelectedIndex = Math.Max(0, Array.IndexOf(Ui.StretchChoices, display));
             _settingStretch = false;
-            _viewer.SetImage(_img, true, display);
             UpdateHistogram();
         }
 
         private ComboBox _stretchCombo;
         private bool _settingStretch;
-
-        /// <summary>
-        /// The display stretch for a newly opened image: a finished picture (8-bit, or with a colour profile from the
-        /// program that made it) is shown as it is; other images keep the current choice, but not "None", so linear data
-        /// does not open nearly black.
-        /// </summary>
-        public static DisplayStretch DisplayFor(AstroImage img, DisplayStretch current)
-        {
-            bool finished = img.Profile != null || img.OriginalBitDepth == 8;
-            if (finished) return DisplayStretch.None;
-            return current == DisplayStretch.None ? DisplayStretch.AutoLinked : current;
-        }
 
         private void Open()
         {

@@ -62,6 +62,26 @@ namespace Sidralune.UI
             set { _stretch = value; Rebuild(); }
         }
 
+        /// <summary>
+        /// The display stretch for a newly opened image: a finished picture (8-bit, or with a colour profile from the
+        /// program that made it) is shown as it is; other images keep the current choice, but not "None", so linear data
+        /// does not open nearly black.
+        /// </summary>
+        public static DisplayStretch DisplayFor(AstroImage img, DisplayStretch current)
+        {
+            bool finished = img.Profile != null || img.OriginalBitDepth == 8;
+            if (finished) return DisplayStretch.None;
+            return current == DisplayStretch.None ? DisplayStretch.AutoLinked : current;
+        }
+
+        /// <summary>Shows a newly opened image, fitted, with the display stretch it calls for (DisplayFor); returns that stretch.</summary>
+        public DisplayStretch ShowOpened(AstroImage img)
+        {
+            var d = DisplayFor(img, _stretch);
+            SetImage(img, true, d);
+            return d;
+        }
+
         /// <summary>Shows an image with another display stretch, rendering once.</summary>
         public void SetImage(AstroImage img, bool fit, DisplayStretch stretch)
         {

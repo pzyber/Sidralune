@@ -717,7 +717,7 @@ namespace Sidralune.Views
                     {
                         ColorUi.Opened(loaded);
                         _mpcImg = loaded;
-                        _mpcViewer.SetImage(_mpcImg);
+                        _mpcViewer.ShowOpened(_mpcImg); // a finished picture as it is, linear data stretched
                         if (_mpcViewer.Wcs == null) MainForm.Instance.Toast(T("No WCS in this image: plate solve it in Astrometry and save with WCS"), Icons.Info);
                     });
                 }
