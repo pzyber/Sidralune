@@ -8696,7 +8696,7 @@ msgstr "Auriga"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Boötes"
-msgstr "Boötes"
+msgstr "Bootes"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8721,7 +8721,7 @@ msgstr "Canes Venatici"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canis Major"
-msgstr "Canis Major"
+msgstr "Canis Maior"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9066,7 +9066,7 @@ msgstr "Tucana"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Ursa Major"
-msgstr "Ursa Major"
+msgstr "Ursa Maior"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9101,7 +9101,7 @@ msgstr "Galaxias Andromedae"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Triangulum Galaxy"
-msgstr "Galaxias Trianguli"
+msgstr "Nebula Trianguli"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9191,12 +9191,12 @@ msgstr "Galaxias Hamburger"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Large Magellanic Cloud"
-msgstr "Nubes Magellanica Maior"
+msgstr "Nubecula Maior"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Magellanic Cloud"
-msgstr "Nubes Magellanica Minor"
+msgstr "Nubecula Minor"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

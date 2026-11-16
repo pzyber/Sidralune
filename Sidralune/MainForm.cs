@@ -477,7 +477,7 @@ namespace Sidralune
                 foreach (var o in CatalogManager.Instance.Search(q, 12))
                 {
                     var obj = o;
-                    // found by the catalogue's name or the one shown ("M51 Virvelgalaxen")
+                    // found by the catalogue's name or the one shown ("M51 Malströmsgalaxen")
                     entries.Add(new KeyValuePair<int, Entry>(Math.Max(Score(o.DisplayName, q), Score(o.ShownName, q)) + 5, new Entry
                     {
                         Title = o.ShownName, Icon = o is Star ? Icons.Star : Icons.Target,

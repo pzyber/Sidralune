@@ -9237,12 +9237,12 @@ msgstr "Kwintet Stephana"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Orion Nebula"
-msgstr "Mgławica Oriona"
+msgstr "Wielka Mgławica w Orionie"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Great Orion Nebula"
-msgstr "Mgławica Oriona"
+msgstr "Wielka Mgławica w Orionie"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9267,7 +9267,7 @@ msgstr "Mgławica Laguna"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Mgławica Trójdzielna"
+msgstr "Mgławica Trójlistna Koniczyna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9297,12 +9297,12 @@ msgstr "Mgławica Hantle"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Mała Mgławica Hantle"
+msgstr "Mgławica Małe Hantle"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Mała Mgławica Hantle"
+msgstr "Mgławica Małe Hantle"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9437,7 +9437,7 @@ msgstr "Mgławica Tarantula"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Carina Nebula"
-msgstr "Mgławica Kil"
+msgstr "Mgławica Carina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9492,7 +9492,7 @@ msgstr "Mgławica Irys"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cave Nebula"
-msgstr "Mgławica Jaskinia"
+msgstr "Mgławica Grota"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9547,7 +9547,7 @@ msgstr "Żłóbek"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Double Cluster"
-msgstr "Podwójna Gromada"
+msgstr "Podwójna gromada Perseusza"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

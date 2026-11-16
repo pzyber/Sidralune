@@ -8681,7 +8681,7 @@ msgstr "Орел"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Ara"
-msgstr "Олтар"
+msgstr "Жертвеник"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8776,7 +8776,7 @@ msgstr "Гълъб"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
-msgstr "Косата на Вероника"
+msgstr "Косите на Вероника"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8826,7 +8826,7 @@ msgstr "Дракон"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Малкият кон"
+msgstr "Жребче"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8866,7 +8866,7 @@ msgstr "Хидра"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Южна водна змия"
+msgstr "Водна змия"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8916,7 +8916,7 @@ msgstr "Лира"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Трапезна планина"
+msgstr "Маса"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8936,7 +8936,7 @@ msgstr "Муха"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Наугълник"
+msgstr "Ъгломер"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8976,7 +8976,7 @@ msgstr "Феникс"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Pictor"
-msgstr "Художник"
+msgstr "Живописец"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9001,7 +9001,7 @@ msgstr "Компас"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Reticulum"
-msgstr "Мрежа"
+msgstr "Мрежичка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9041,7 +9041,7 @@ msgstr "Секстант"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Taurus"
-msgstr "Телец"
+msgstr "Бик"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9076,7 +9076,7 @@ msgstr "Малка мечка"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vela"
-msgstr "Платна"
+msgstr "Корабни платна"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9091,7 +9091,7 @@ msgstr "Летяща риба"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vulpecula"
-msgstr "Лисичка"
+msgstr "Малка лисица"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9226,7 +9226,7 @@ msgstr "Мъглявина на Дьо Меран"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crab Nebula"
-msgstr "Мъглявина Рак"
+msgstr "Ракообразна мъглявина"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9281,7 +9281,7 @@ msgstr "Мъглявина Бухал"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Мъглявина Спирала"
+msgstr "Мъглявина Охлюв"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9351,7 +9351,7 @@ msgstr "Мъглявина Пеликан"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Veil Nebula"
-msgstr "Мъглявина Було"
+msgstr "Мъглявина Воал"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9396,7 +9396,7 @@ msgstr "Мъглявина Полумесец"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Мъглявина Пашкул"
+msgstr "Мъглявина Какавида"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9441,7 +9441,7 @@ msgstr "Куп Коледна елха"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Elephant's Trunk Nebula"
-msgstr "Мъглявина Хобот на слон"
+msgstr "Мъглявина Слонски хобот"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Куп Бухал"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Ковчеже за бижута"
+msgstr "Кутия за бижута на Хершел"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

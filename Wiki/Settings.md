@@ -92,7 +92,7 @@ Click **Save** to store the changes.
 | Setting | Meaning |
 |---|---|
 | **Language** | The interface language. **Same as Windows** follows the Windows display language and falls back to English if Sidralune has no translation for it. The new language is used after a restart; **Restart now to change the language** appears when you choose another one, and closes Sidralune and starts it again in the new language |
-| **Sky names** | Shows constellation names and the nicknames of well-known objects in the interface language ("Stora björnen", "M51 Virvelgalaxen" in Swedish). On by default; turn it off to see the Latin constellation names and the catalogues' English nicknames. It takes effect at once, without a restart, and has no effect in English. See [Languages](#languages) |
+| **Sky names** | Shows constellation names and the nicknames of well-known objects in the interface language ("Stora björnen", "M51 Malströmsgalaxen" in Swedish). On by default; turn it off to see the Latin constellation names and the catalogues' English nicknames. It takes effect at once, without a restart, and has no effect in English. See [Languages](#languages) |
 | **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N; this box and the moon button always show the same state |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 

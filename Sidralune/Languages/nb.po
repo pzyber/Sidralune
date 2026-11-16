@@ -8701,7 +8701,7 @@ msgstr "Bjørnevokteren"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Caelum"
-msgstr "Gravstikken"
+msgstr "Meiselen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8726,7 +8726,7 @@ msgstr "Store hund"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canis Minor"
-msgstr "Lille hund"
+msgstr "Den lille hund"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8751,12 +8751,12 @@ msgstr "Kentauren"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Cepheus"
-msgstr "Kefevs"
+msgstr "Kefeus"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Cetus"
-msgstr "Hvalen"
+msgstr "Hvalfisken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8781,12 +8781,12 @@ msgstr "Berenikes hår"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Australis"
-msgstr "Sørkronen"
+msgstr "Den sørlige krone"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Borealis"
-msgstr "Nordkronen"
+msgstr "Den nordlige krone"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8816,7 +8816,7 @@ msgstr "Delfinen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Dorado"
-msgstr "Sverdfisken"
+msgstr "Gullfisken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8831,12 +8831,12 @@ msgstr "Føllet"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Eridanus"
-msgstr "Eridanus"
+msgstr "Floden"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Fornax"
-msgstr "Ovnen"
+msgstr "Smelteovnen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8856,7 +8856,7 @@ msgstr "Herkules"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Horologium"
-msgstr "Pendeluret"
+msgstr "Uret"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8866,7 +8866,7 @@ msgstr "Vannslangen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Lille vannslange"
+msgstr "Den sørlige vannslangen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8876,7 +8876,7 @@ msgstr "Indianeren"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Lacerta"
-msgstr "Øglen"
+msgstr "Firfislen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8886,7 +8886,7 @@ msgstr "Løven"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Leo Minor"
-msgstr "Lille løve"
+msgstr "Den lille løve"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8916,7 +8916,7 @@ msgstr "Lyren"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Taffelberget"
+msgstr "Bordet"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8966,7 +8966,7 @@ msgstr "Pegasus"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Perseus"
-msgstr "Perseus"
+msgstr "Persevs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8986,7 +8986,7 @@ msgstr "Fiskene"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Piscis Austrinus"
-msgstr "Sørfisken"
+msgstr "Den sørlige fisken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9051,12 +9051,12 @@ msgstr "Teleskopet"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum"
-msgstr "Triangelen"
+msgstr "Triangelet"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum Australe"
-msgstr "Sydtriangelen"
+msgstr "Det sørlige triangelet"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9116,17 +9116,17 @@ msgstr "Sombrerogalaksen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Vindmøllegalaksen"
+msgstr "Spinneteingalaksen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel"
-msgstr "Den sørlige vindmøllegalaksen"
+msgstr "Sydlige hjulgalaksen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel Galaxy"
-msgstr "Den sørlige vindmøllegalaksen"
+msgstr "Sydlige hjulgalaksen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9141,7 +9141,7 @@ msgstr "Bodes galakse"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Black Eye Galaxy"
-msgstr "Svarte øye-galaksen"
+msgstr "Blått øye-galaksen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9191,12 +9191,12 @@ msgstr "Hamburgergalaksen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Large Magellanic Cloud"
-msgstr "Den store magellanske sky"
+msgstr "Den store magellanske skyen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Magellanic Cloud"
-msgstr "Den lille magellanske sky"
+msgstr "Den lille magellanske skyen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9236,7 +9236,7 @@ msgstr "Lagunetåken"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Trifidtåken"
+msgstr "Trifidetåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9266,12 +9266,12 @@ msgstr "Manualtåken"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Den lille manualtåken"
+msgstr "Lille manualtåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Den lille manualtåken"
+msgstr "Lille manualtåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9286,7 +9286,7 @@ msgstr "Helixtåken"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Eye Nebula"
-msgstr "Katteøyetåken"
+msgstr "Kattøyetåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9376,7 +9376,7 @@ msgstr "Hjertetåken"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Soul Nebula"
-msgstr "Sjeletåken"
+msgstr "Sjeltåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9401,12 +9401,12 @@ msgstr "Kokongtåken"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tarantula Nebula"
-msgstr "Taranteltåken"
+msgstr "Tarantelltåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Carina Nebula"
-msgstr "Carinatåken"
+msgstr "Eta Carinaetåken"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,12 +9506,12 @@ msgstr "Hyadene"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Krybben"
+msgstr "Bikubehopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Krybben"
+msgstr "Bikubehopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Sommerfuglhopen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Ptolemaios' hop"
+msgstr "Ptolemaioshopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Ptolemaios' hop"
+msgstr "Ptolemaioshopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9556,17 +9556,17 @@ msgstr "Smykkeskrinet"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Herkuleshopen"
+msgstr "Store kulehop i Herkules"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Herkuleshopen"
+msgstr "Store kulehop i Herkules"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Kleshengeren"
+msgstr "Brocchis hop"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9576,9 +9576,9 @@ msgstr "Coma-hopen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Skyttens lille stjernesky"
+msgstr "Skyttens stjernesky"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Skyttens lille stjernesky"
+msgstr "Skyttens stjernesky"

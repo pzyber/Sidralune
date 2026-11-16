@@ -630,7 +630,7 @@ namespace Sidralune.Core.Catalogs
             SkyObject o;
             if (_names.TryGetValue(name.Trim(), out o)) return o;
             if (_names.TryGetValue(Normalize(name), out o)) return o;
-            // a nickname in the interface language ("Virvelgalaxen")
+            // a nickname in the interface language ("Malströmsgalaxen")
             foreach (var original in SkyNames.OriginalNicknames(name, false))
                 if (_names.TryGetValue(Normalize(original), out o)) return o;
             var pgc = Pgc;

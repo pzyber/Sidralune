@@ -8716,7 +8716,7 @@ msgstr "Gaforrja"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canes Venatici"
-msgstr "Qentë e Gjahut"
+msgstr "Langonjtë"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8771,22 +8771,22 @@ msgstr "Kompasi"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Columba"
-msgstr "Pëllumbi"
+msgstr "Pëllumbesha"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
-msgstr "Flokët e Berenikës"
+msgstr "Floknaja e Bereniçes"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Australis"
-msgstr "Kurora Jugore"
+msgstr "Kurora e Jugut"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Borealis"
-msgstr "Kurora Veriore"
+msgstr "Kurora e Veriut"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8796,7 +8796,7 @@ msgstr "Korbi"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Crater"
-msgstr "Kupa"
+msgstr "Vazoja"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8851,7 +8851,7 @@ msgstr "Kurrilla"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hercules"
-msgstr "Herakliu"
+msgstr "Herkuli"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8866,7 +8866,7 @@ msgstr "Hidra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Hidra e Jugut"
+msgstr "Hidri"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8986,7 +8986,7 @@ msgstr "Peshqit"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Piscis Austrinus"
-msgstr "Peshku Jugor"
+msgstr "Peshku i Jugut"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9001,7 +9001,7 @@ msgstr "Busulla"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Reticulum"
-msgstr "Rrjeta"
+msgstr "Rrjetëza"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9056,7 +9056,7 @@ msgstr "Trekëndëshi"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum Australe"
-msgstr "Trekëndëshi Jugor"
+msgstr "Trekëndëshi i Jugut"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9096,7 +9096,7 @@ msgstr "Dhelpra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Andromeda Galaxy"
-msgstr "Galaktika e Andromedës"
+msgstr "Galaksia e Andromedës"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9276,7 +9276,7 @@ msgstr "Mjegullnaja e Vogël Shtangë"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Owl Nebula"
-msgstr "Mjegullnaja e Bufit"
+msgstr "Mjegullnaja Kukuvajkë"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9451,7 +9451,7 @@ msgstr "Mjegullnaja e Yllit të Flaktë"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Përkrenarja e Thorit"
+msgstr "Helmeta e Thorit"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,12 +9506,12 @@ msgstr "Hiadat"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Grazhdi"
+msgstr "Grumbulli i Zgjoit"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Grazhdi"
+msgstr "Grumbulli i Zgjoit"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9531,7 +9531,7 @@ msgstr "Grumbulli Rosa e Egër"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Butterfly Cluster"
-msgstr "Grumbulli Flutur"
+msgstr "Grumbulli i Fluturës"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

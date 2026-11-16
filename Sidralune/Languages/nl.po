@@ -8776,7 +8776,7 @@ msgstr "Duif"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
-msgstr "Hoofdhaar van Berenice"
+msgstr "Hoofdhaar"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9096,12 +9096,12 @@ msgstr "Vosje"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Andromeda Galaxy"
-msgstr "Andromedastelsel"
+msgstr "Andromedanevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Triangulum Galaxy"
-msgstr "Driehoekstelsel"
+msgstr "Driehoeknevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9136,12 +9136,12 @@ msgstr "Sigaarstelsel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bode's Galaxy"
-msgstr "Stelsel van Bode"
+msgstr "Bodestelsel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Black Eye Galaxy"
-msgstr "Zwarte-oogstelsel"
+msgstr "Zwarte Oogstelsel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9161,7 +9161,7 @@ msgstr "Walvisstelsel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Antennestelsels"
+msgstr "Antennestelsel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9216,12 +9216,12 @@ msgstr "Orionnevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Nevel van De Mairan"
+msgstr "De Mairans nevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Nevel van De Mairan"
+msgstr "De Mairans nevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9291,7 +9291,7 @@ msgstr "Kattenoognevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eskimo Nebula"
-msgstr "Eskimonevel"
+msgstr "Eskimo-nevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,12 +9321,12 @@ msgstr "Geest van Jupiter"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Insectnevel"
+msgstr "Kevernevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Rosette Nebula"
-msgstr "Rozetnevel"
+msgstr "Rosettenevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9411,12 +9411,12 @@ msgstr "Carinanevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Heksenkopnevel"
+msgstr "Heksenhoofdnevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Heksenkopnevel"
+msgstr "Heksenhoofdnevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,12 +9491,12 @@ msgstr "Apenkopnevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Kolenzak"
+msgstr "Kolenzaknevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pleiades"
-msgstr "Plejaden"
+msgstr "Zevengesternte"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,12 +9506,12 @@ msgstr "Hyaden"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Kribbe"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Kribbe"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9521,12 +9521,12 @@ msgstr "Dubbele Sterrenhoop"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wild Duck Cluster"
-msgstr "Wilde-eendcluster"
+msgstr "Wilde eendcluster"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Amas de l'Ecu de Sobieski"
-msgstr "Wilde-eendcluster"
+msgstr "Wilde eendcluster"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Vlindercluster"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Cluster van Ptolemaeus"
+msgstr "Ptolemaeuscluster"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Cluster van Ptolemaeus"
+msgstr "Ptolemaeuscluster"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9556,12 +9556,12 @@ msgstr "Juwelenkistje"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Herculescluster"
+msgstr "Herculesbolhoop"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Herculescluster"
+msgstr "Herculesbolhoop"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -8661,7 +8661,7 @@ msgstr "Andrómeda"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Antlia"
-msgstr "Loftdælan"
+msgstr "Dælan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8751,7 +8751,7 @@ msgstr "Mannfákurinn"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Cepheus"
-msgstr "Sefeus"
+msgstr "Kefeifur"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8831,7 +8831,7 @@ msgstr "Folinn"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Eridanus"
-msgstr "Fljótið Eridanus"
+msgstr "Fljótið"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8866,7 +8866,7 @@ msgstr "Vatnaskrímslið"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Suðurvatnaskrímslið"
+msgstr "Lagarormurinn"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8886,7 +8886,7 @@ msgstr "Ljónið"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Leo Minor"
-msgstr "Litla ljón"
+msgstr "Litlaljón"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8916,7 +8916,7 @@ msgstr "Harpan"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Borðfjallið"
+msgstr "Borðið"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8951,7 +8951,7 @@ msgstr "Naðurvaldi"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Orion"
-msgstr "Óríon"
+msgstr "Veiðimaðurinn"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8961,7 +8961,7 @@ msgstr "Páfuglinn"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Pegasus"
-msgstr "Pegasus"
+msgstr "Vængfákurinn"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9091,7 +9091,7 @@ msgstr "Flugfiskurinn"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vulpecula"
-msgstr "Refurinn"
+msgstr "Litlirefur"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9286,7 +9286,7 @@ msgstr "Gormþokan"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Eye Nebula"
-msgstr "Kattaraugaþokan"
+msgstr "Kattaraugað"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9331,7 +9331,7 @@ msgstr "Rósettuþokan"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Horsehead Nebula"
-msgstr "Hrosshöfuðþokan"
+msgstr "Riddaraþokan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

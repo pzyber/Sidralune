@@ -8692,7 +8692,7 @@ msgstr "Andromeda"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Antlia"
-msgstr "Vývesa"
+msgstr "Výveva"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8767,7 +8767,7 @@ msgstr "Kozorožec"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Carina"
-msgstr "Lodný kýl"
+msgstr "Kýl"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8847,7 +8847,7 @@ msgstr "Delfín"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Dorado"
-msgstr "Mečúň"
+msgstr "Mečiar"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8857,7 +8857,7 @@ msgstr "Drak"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Koníček"
+msgstr "Koník"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8897,7 +8897,7 @@ msgstr "Hydra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Malý vodný had"
+msgstr "Vodný had"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8947,7 +8947,7 @@ msgstr "Lýra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Tabuľový vrch"
+msgstr "Stolový vrch"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9102,7 +9102,7 @@ msgstr "Veľká medvedica"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Ursa Minor"
-msgstr "Malá medvedica"
+msgstr "Malý medveď"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9122,7 +9122,7 @@ msgstr "Lietajúca ryba"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vulpecula"
-msgstr "Líštička"
+msgstr "Líška"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9142,7 +9142,7 @@ msgstr "Vírová galaxia"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sombrero Galaxy"
-msgstr "Galaxia Sombrero"
+msgstr "Sombrérová galaxia"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9172,7 +9172,7 @@ msgstr "Bodeho galaxia"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Black Eye Galaxy"
-msgstr "Galaxia Čierne oko"
+msgstr "Čiernooká galaxia"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9222,12 +9222,12 @@ msgstr "Galaxia Hamburger"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Large Magellanic Cloud"
-msgstr "Veľký Magellanov oblak"
+msgstr "Veľký Magellanov mrak"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Magellanic Cloud"
-msgstr "Malý Magellanov oblak"
+msgstr "Malý Magellanov mrak"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9247,12 +9247,12 @@ msgstr "Veľká hmlovina v Orióne"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Mairanova hmlovina"
+msgstr "De Mairanova hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Mairanova hmlovina"
+msgstr "De Mairanova hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9272,7 +9272,7 @@ msgstr "Hmlovina Trifid"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eagle Nebula"
-msgstr "Hmlovina Orol"
+msgstr "Orlia hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9307,7 +9307,7 @@ msgstr "Malá Činka"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Owl Nebula"
-msgstr "Hmlovina Sova"
+msgstr "Sovia hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9367,7 +9367,7 @@ msgstr "Konská hlava"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flame Nebula"
-msgstr "Hmlovina Plameň"
+msgstr "Plamenná hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9422,12 +9422,12 @@ msgstr "Hmlovina Kalifornia"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crescent Nebula"
-msgstr "Hmlovina Kosák"
+msgstr "Hmlovina Polmesiac"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Hmlovina Kokón"
+msgstr "Hmlovina Zámotok"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9442,12 +9442,12 @@ msgstr "Hmlovina v Lodnom kýle"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Hmlovina Čarodejnica"
+msgstr "Hmlovina Hlava bosorky"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Hmlovina Čarodejnica"
+msgstr "Hmlovina Hlava bosorky"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9477,17 +9477,17 @@ msgstr "Hmlovina Sloní chobot"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flaming Star Nebula"
-msgstr "Hmlovina Plápolajúca hviezda"
+msgstr "Horiaca hviezda"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Thorova prilba"
+msgstr "Hmlovina Thorova prilba"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Hmlovina Iris"
+msgstr "Hmlovina Kosatec"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9562,7 +9562,7 @@ msgstr "Divá kačica"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Butterfly Cluster"
-msgstr "Hviezdokopa Motýľ"
+msgstr "Motýlia hviezdokopa"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

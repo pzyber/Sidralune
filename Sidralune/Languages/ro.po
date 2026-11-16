@@ -8807,7 +8807,7 @@ msgstr "Porumbelul"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
-msgstr "Părul Berenicei"
+msgstr "Părul-Berenicei"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8857,7 +8857,7 @@ msgstr "Dragonul"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Mânzul"
+msgstr "Calul Mic"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8897,7 +8897,7 @@ msgstr "Hidra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Hidra Mică"
+msgstr "Hidra Australă"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8947,7 +8947,7 @@ msgstr "Lira"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Masa"
+msgstr "Platoul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8957,7 +8957,7 @@ msgstr "Microscopul"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Monoceros"
-msgstr "Inorogul"
+msgstr "Licornul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9137,7 +9137,7 @@ msgstr "Galaxia Triunghiului"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Whirlpool Galaxy"
-msgstr "Galaxia Vârtejului"
+msgstr "Galaxia Volburei"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9192,7 +9192,7 @@ msgstr "Galaxia Balena"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Galaxiile Antenele"
+msgstr "Galaxiile Antennae"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9262,7 +9262,7 @@ msgstr "Nebuloasa Crabului"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Lagoon Nebula"
-msgstr "Nebuloasa Lagunei"
+msgstr "Nebuloasa Lagună"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9287,12 +9287,12 @@ msgstr "Nebuloasa Omega"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Nebuloasa Inelară"
+msgstr "Nebuloasa Inel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Dumbbell Nebula"
-msgstr "Nebuloasa Halteră"
+msgstr "Nebuloasa Dumbbell"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9322,7 +9322,7 @@ msgstr "Nebuloasa Ochi de Pisică"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eskimo Nebula"
-msgstr "Nebuloasa Eschimosului"
+msgstr "Nebuloasa Eschimosul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9357,7 +9357,7 @@ msgstr "Nebuloasa Insectei"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Rosette Nebula"
-msgstr "Nebuloasa Rozetei"
+msgstr "Nebuloasa Rozeta"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9367,7 +9367,7 @@ msgstr "Nebuloasa Cap de Cal"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flame Nebula"
-msgstr "Nebuloasa Flăcării"
+msgstr "Nebuloasa Flacără"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9377,12 +9377,12 @@ msgstr "Nebuloasa America de Nord"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pelican Nebula"
-msgstr "Nebuloasa Pelicanului"
+msgstr "Nebuloasa Pelicanul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Veil Nebula"
-msgstr "Nebuloasa Vălului"
+msgstr "Nebuloasa Voalul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9422,7 +9422,7 @@ msgstr "Nebuloasa California"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crescent Nebula"
-msgstr "Nebuloasa Semilunii"
+msgstr "Nebuloasa Semiluna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9432,7 +9432,7 @@ msgstr "Nebuloasa Coconului"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tarantula Nebula"
-msgstr "Nebuloasa Tarantulei"
+msgstr "Nebuloasa Tarantula"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9522,7 +9522,7 @@ msgstr "Nebuloasa Cap de Maimuță"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Sacul de Cărbune"
+msgstr "Nebuloasa Sacul cu Cărbuni"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9532,47 +9532,47 @@ msgstr "Pleiadele"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hyades"
-msgstr "Hiadele"
+msgstr "Hiade"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Ieslea"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Ieslea"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Double Cluster"
-msgstr "Roiul Dublu"
+msgstr "Roiul Dublu din Perseu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wild Duck Cluster"
-msgstr "Roiul Rața Sălbatică"
+msgstr "Roiul Raței Sălbatice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Amas de l'Ecu de Sobieski"
-msgstr "Roiul Rața Sălbatică"
+msgstr "Roiul Raței Sălbatice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Butterfly Cluster"
-msgstr "Roiul Fluture"
+msgstr "Roiul deschis „Fluturele”"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Roiul lui Ptolemeu"
+msgstr "Roiul deschis al lui Ptolemeu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Roiul lui Ptolemeu"
+msgstr "Roiul deschis al lui Ptolemeu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9602,7 +9602,7 @@ msgstr "Umerașul"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Roiul din Părul Berenicei"
+msgstr "Roiul stelar din Coma"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -9256,7 +9256,7 @@ msgstr "Nébuleuse Oméga"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Nébuleuse de l'Anneau"
+msgstr "Nébuleuse de la Lyre"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9386,7 +9386,7 @@ msgstr "Nébuleuse de la Bulle"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "California Nebula"
-msgstr "Nébuleuse de Californie"
+msgstr "Nébuleuse Californie"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Nébuleuse de la Tête de singe"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Sac à charbon"
+msgstr "Sac de charbon"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9566,7 +9566,7 @@ msgstr "Amas d'Hercule"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Cintre"
+msgstr "Amas du Cintre"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

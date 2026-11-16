@@ -8732,7 +8732,7 @@ msgstr "Jaučiaganis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Caelum"
-msgstr "Kaltas"
+msgstr "Skaptukas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8807,7 +8807,7 @@ msgstr "Balandis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
-msgstr "Berenikės Plaukai"
+msgstr "Berenikės Garbanos"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8857,7 +8857,7 @@ msgstr "Slibinas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Arkliukas"
+msgstr "Žirgelis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8947,7 +8947,7 @@ msgstr "Lyra"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Stalo Kalnas"
+msgstr "Stalkalnis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8967,7 +8967,7 @@ msgstr "Musė"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Kampainis"
+msgstr "Matuoklė"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9007,7 +9007,7 @@ msgstr "Feniksas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Pictor"
-msgstr "Dailininkas"
+msgstr "Tapytojas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9072,7 +9072,7 @@ msgstr "Sekstantas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Taurus"
-msgstr "Jautis"
+msgstr "Tauras"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9117,12 +9117,12 @@ msgstr "Mergelė"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Volans"
-msgstr "Skraidančioji Žuvis"
+msgstr "Skraidanti Žuvis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vulpecula"
-msgstr "Lapė"
+msgstr "Laputė"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9217,7 +9217,7 @@ msgstr "Katės akies galaktika"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hamburger Galaxy"
-msgstr "Mėsainio galaktika"
+msgstr "Hamburgerio galaktika"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9237,12 +9237,12 @@ msgstr "Stefano kvintetas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Orion Nebula"
-msgstr "Oriono ūkas"
+msgstr "Didysis Oriono ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Great Orion Nebula"
-msgstr "Oriono ūkas"
+msgstr "Didysis Oriono ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9277,12 +9277,12 @@ msgstr "Erelio ūkas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Omega Nebula"
-msgstr "Omega ūkas"
+msgstr "Omegos ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Checkmark Nebula"
-msgstr "Omega ūkas"
+msgstr "Omegos ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9352,7 +9352,7 @@ msgstr "Jupiterio vaiduoklis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Vabzdžio ūkas"
+msgstr "Vabalo ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9497,7 +9497,7 @@ msgstr "Olos ūkas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pacman Nebula"
-msgstr "Pakmeno ūkas"
+msgstr "Pakmano ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9582,7 +9582,7 @@ msgstr "Pelėdos spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Brangenybių dėžutė"
+msgstr "Heršelio brangakmenių dėžutė"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9597,7 +9597,7 @@ msgstr "Heraklio spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Pakaba"
+msgstr "Drabužių pakaba"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9607,9 +9607,9 @@ msgstr "Berenikės Plaukų spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Mažasis Šaulio žvaigždžių debesis"
+msgstr "Šaulio žvaigždyno debesis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Mažasis Šaulio žvaigždžių debesis"
+msgstr "Šaulio žvaigždyno debesis"

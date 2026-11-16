@@ -8,7 +8,7 @@ namespace Sidralune.Core.Catalogs
 {
     /// <summary>
     /// Constellation names and the nicknames of well-known deep-sky objects in the interface language ("Stora björnen",
-    /// "Virvelgalaxen"). Only what is shown changes: the catalogues, saved files, reports and scripts keep the original
+    /// "Malströmsgalaxen"). Only what is shown changes: the catalogues, saved files, reports and scripts keep the original
     /// names. Translations are matched on the catalogue's own name, so a name the catalogue rewords, or one that is not in
     /// the list, simply shows as the catalogue has it; the lists are checked against the catalogues by the tests.
     /// </summary>

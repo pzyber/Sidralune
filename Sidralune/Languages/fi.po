@@ -8701,7 +8701,7 @@ msgstr "Karhunvartija"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Caelum"
-msgstr "Kaiverrin"
+msgstr "Veistotaltta"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8826,7 +8826,7 @@ msgstr "Lohikäärme"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Varsa"
+msgstr "Pieni hevonen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8936,7 +8936,7 @@ msgstr "Kärpänen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Kulmaviivain"
+msgstr "Kulmaviivoitin"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8971,7 +8971,7 @@ msgstr "Perseus"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Phoenix"
-msgstr "Feniks"
+msgstr "Feeniks"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9171,7 +9171,7 @@ msgstr "Ilotulitusgalaksi"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Spindle Galaxy"
-msgstr "Sukkulagalaksi"
+msgstr "Värttinägalaksi"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9206,12 +9206,12 @@ msgstr "Stephanin kvintetti"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Orion Nebula"
-msgstr "Orionin kaasusumu"
+msgstr "Orionin sumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Great Orion Nebula"
-msgstr "Orionin kaasusumu"
+msgstr "Orionin sumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9236,7 +9236,7 @@ msgstr "Laguunisumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Trifid-sumu"
+msgstr "Trifidisumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9256,22 +9256,22 @@ msgstr "Omegasumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Rengassumu"
+msgstr "Lyyran rengassumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Dumbbell Nebula"
-msgstr "Käsipainosumu"
+msgstr "Nostopainosumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Pieni käsipainosumu"
+msgstr "Pieni nostopainosumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Pieni käsipainosumu"
+msgstr "Pieni nostopainosumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9281,7 +9281,7 @@ msgstr "Pöllösumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Kierukkasumu"
+msgstr "Helix-sumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,12 +9321,12 @@ msgstr "Jupiterin aave"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Hyönteissumu"
+msgstr "Ludesumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Rosette Nebula"
-msgstr "Rosettisumu"
+msgstr "Rosette-sumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9386,7 +9386,7 @@ msgstr "Kuplasumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "California Nebula"
-msgstr "Kaliforniasumu"
+msgstr "Kalifornia-sumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9401,7 +9401,7 @@ msgstr "Kotelosumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tarantula Nebula"
-msgstr "Tarantulasumu"
+msgstr "Tarantellasumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9476,7 +9476,7 @@ msgstr "Velhosumu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Paw Nebula"
-msgstr "Kissantassusumu"
+msgstr "Kissankäpäläsumu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,12 +9506,12 @@ msgstr "Hyadit"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Mehiläispesä"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Mehiläispesä"
+msgstr "Praesepe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Perhosjoukko"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Ptolemaioksen joukko"
+msgstr "Ptolemaioksen tähtijoukko"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Ptolemaioksen joukko"
+msgstr "Ptolemaioksen tähtijoukko"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Pöllöjoukko"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Jalokivilipas"
+msgstr "Herschelin korulipas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9576,9 +9576,9 @@ msgstr "Coman tähtijoukko"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Jousimiehen pieni tähtipilvi"
+msgstr "Jousimiehen tähtipilvi"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Jousimiehen pieni tähtipilvi"
+msgstr "Jousimiehen tähtipilvi"

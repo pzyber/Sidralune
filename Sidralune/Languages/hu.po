@@ -8831,7 +8831,7 @@ msgstr "Csikó"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Eridanus"
-msgstr "Eridanus"
+msgstr "Eridánusz"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8871,7 +8871,7 @@ msgstr "Déli Vízikígyó"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Indus"
-msgstr "Indián"
+msgstr "Hindu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8991,7 +8991,7 @@ msgstr "Déli Hal"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Puppis"
-msgstr "Hajófar"
+msgstr "Hajófara"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9091,7 +9091,7 @@ msgstr "Repülőhal"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vulpecula"
-msgstr "Róka"
+msgstr "Kis Róka"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9201,7 +9201,7 @@ msgstr "Kis Magellán-felhő"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Stephan's Quintet"
-msgstr "Stephan-ötös"
+msgstr "Stephan-kvintett"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9256,7 +9256,7 @@ msgstr "Omega-köd"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Gyűrű-köd"
+msgstr "Gyűrűs-köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,7 +9321,7 @@ msgstr "Jupiter szelleme"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Rovar-köd"
+msgstr "Bogár-köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9341,7 +9341,7 @@ msgstr "Láng-köd"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "North America Nebula"
-msgstr "Észak-Amerika-köd"
+msgstr "Észak-Amerika köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9406,7 +9406,7 @@ msgstr "Tarantula-köd"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Carina Nebula"
-msgstr "Carina-köd"
+msgstr "Éta Carinae-köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Majomfej-köd"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Szenes zsák"
+msgstr "Szeneszsák-köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9566,7 +9566,7 @@ msgstr "Herkules-gömbhalmaz"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Vállfa"
+msgstr "Brocchi-halmaz"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

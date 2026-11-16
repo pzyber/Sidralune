@@ -8871,7 +8871,7 @@ msgstr "Kleine Wasserschlange"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Indus"
-msgstr "Inder"
+msgstr "Indianer"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9101,7 +9101,7 @@ msgstr "Andromedagalaxie"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Triangulum Galaxy"
-msgstr "Dreiecksgalaxie"
+msgstr "Dreiecksnebel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9111,7 +9111,7 @@ msgstr "Whirlpool-Galaxie"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sombrero Galaxy"
-msgstr "Sombrero-Galaxie"
+msgstr "Sombrerogalaxie"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9351,7 +9351,7 @@ msgstr "Pelikannebel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Veil Nebula"
-msgstr "Schleiernebel"
+msgstr "Cirrusnebel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9396,7 +9396,7 @@ msgstr "Sichelnebel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Kokonnebel"
+msgstr "Kokon-Nebel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Eulenhaufen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Schmuckkästchen"
+msgstr "Herschels Schmuckkästchen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

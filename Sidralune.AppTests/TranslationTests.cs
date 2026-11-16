@@ -371,8 +371,8 @@ namespace Sidralune.AppTests
                 });
                 OnUi(() => { Lang.Folder = LanguagesFolder; Lang.Use("sv"); });
                 // an object by its Swedish nickname: shown in Swedish, kept as the catalogue names it
-                var m51 = find("Virvelgalaxen");
-                CheckTrue("Found by its Swedish nickname, shown in Swedish, in a Swedish constellation", m51[0] == "M51 Virvelgalaxen" && m51[1] == "Galax i Jakthundarna", string.Join(" / ", m51));
+                var m51 = find("Malströmsgalaxen");
+                CheckTrue("Found by its Swedish nickname, shown in Swedish, in a Swedish constellation", m51[0] == "M51 Malströmsgalaxen" && m51[1] == "Galax i Jakthundarna", string.Join(" / ", m51));
                 CheckTrue("…and kept in English for lists and files", m51[2] == "M51 Whirlpool Galaxy", m51[2]);
                 // the labels on the chart
                 var labels = OnUi(() =>
@@ -398,7 +398,7 @@ namespace Sidralune.AppTests
                     var off = find("M51");
                     CheckTrue("With the box cleared: the catalogue's nickname and the IAU constellation", off[0] == "M51 Whirlpool Galaxy" && off[1] == "Galax i Canes Venatici" && !OnUi(() => AppState.Settings.SkyNamesInLanguage), string.Join(" / ", off));
                     OnUi(() => box.Checked = true);
-                    CheckTrue("Ticked again: Swedish names", find("M51")[0] == "M51 Virvelgalaxen" && OnUi(() => AppState.Settings.SkyNamesInLanguage));
+                    CheckTrue("Ticked again: Swedish names", find("M51")[0] == "M51 Malströmsgalaxen" && OnUi(() => AppState.Settings.SkyNamesInLanguage));
                 }
             }
             finally

@@ -8671,7 +8671,7 @@ msgstr "Uccello del Paradiso"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Aquarius"
-msgstr "Acquario"
+msgstr "Aquario"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9216,17 +9216,17 @@ msgstr "Nebulosa di Orione"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Nebulosa di De Mairan"
+msgstr "Nebulosa De Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Nebulosa di De Mairan"
+msgstr "Nebulosa De Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crab Nebula"
-msgstr "Nebulosa del Granchio"
+msgstr "Nebulosa Granchio"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,7 +9321,7 @@ msgstr "Fantasma di Giove"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Nebulosa Insetto"
+msgstr "Nebulosa Farfalla"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Nebulosa Testa di Scimmia"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Sacco di Carbone"
+msgstr "Nebulosa Sacco di Carbone"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9516,7 +9516,7 @@ msgstr "Presepe"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Double Cluster"
-msgstr "Doppio Ammasso"
+msgstr "Ammasso Doppio di Perseo"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,17 +9551,17 @@ msgstr "Ammasso Civetta"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Scrigno di Gioielli"
+msgstr "Scrigno di Gioie"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Ammasso di Ercole"
+msgstr "Ammasso Globulare di Ercole"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Ammasso di Ercole"
+msgstr "Ammasso Globulare di Ercole"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9576,9 +9576,9 @@ msgstr "Ammasso della Chioma"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Piccola Nube Stellare del Sagittario"
+msgstr "Nube stellare del Sagittario"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Piccola Nube Stellare del Sagittario"
+msgstr "Nube stellare del Sagittario"

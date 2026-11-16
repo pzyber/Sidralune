@@ -8687,7 +8687,7 @@ msgstr "IAU nosaukums"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Andromeda"
-msgstr "Andromeda"
+msgstr "Andromēda"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8732,7 +8732,7 @@ msgstr "Vēršu Dzinējs"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Caelum"
-msgstr "Kalts"
+msgstr "Greblis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8767,7 +8767,7 @@ msgstr "Mežāzis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Carina"
-msgstr "Ķīlis"
+msgstr "Kuģa Ķīlis"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8777,7 +8777,7 @@ msgstr "Kasiopeja"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Centaurus"
-msgstr "Kentaurs"
+msgstr "Centaurs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8857,12 +8857,12 @@ msgstr "Pūķis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Equuleus"
-msgstr "Kumeļš"
+msgstr "Mazais Zirgs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Eridanus"
-msgstr "Eridāns"
+msgstr "Eridāna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8947,7 +8947,7 @@ msgstr "Lira"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Galda Kalns"
+msgstr "Galds"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8967,7 +8967,7 @@ msgstr "Muša"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Stūrenis"
+msgstr "Leņķmērs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8992,7 +8992,7 @@ msgstr "Pāvs"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Pegasus"
-msgstr "Pegass"
+msgstr "Pegazs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9022,7 +9022,7 @@ msgstr "Dienvidu Zivs"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Puppis"
-msgstr "Pakaļgals"
+msgstr "Pūpe"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9082,12 +9082,12 @@ msgstr "Teleskops"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum"
-msgstr "Trijstūris"
+msgstr "Trīsstūris"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum Australe"
-msgstr "Dienvidu Trijstūris"
+msgstr "Dienvidu Trīsstūris"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9437,7 +9437,7 @@ msgstr "Tarantula miglājs"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Carina Nebula"
-msgstr "Ķīļa miglājs"
+msgstr "Lielais Ķīļa miglājs"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9527,7 +9527,7 @@ msgstr "Ogļu maiss"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pleiades"
-msgstr "Sietiņš"
+msgstr "Plejādes"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

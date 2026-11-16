@@ -8686,7 +8686,7 @@ msgstr "Altar"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Aries"
-msgstr "Carneiro"
+msgstr "Áries"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9121,12 +9121,12 @@ msgstr "Galáxia do Cata-Vento"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel"
-msgstr "Galáxia do Cata-Vento Austral"
+msgstr "Galáxia Cata-vento do Sul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel Galaxy"
-msgstr "Galáxia do Cata-Vento Austral"
+msgstr "Galáxia Cata-vento do Sul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9141,7 +9141,7 @@ msgstr "Galáxia de Bode"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Black Eye Galaxy"
-msgstr "Galáxia do Olho Negro"
+msgstr "Galáxia Olho Negro"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9231,7 +9231,7 @@ msgstr "Nebulosa do Caranguejo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Lagoon Nebula"
-msgstr "Nebulosa da Lagoa"
+msgstr "Nebulosa Laguna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9281,7 +9281,7 @@ msgstr "Nebulosa da Coruja"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Nebulosa da Hélice"
+msgstr "Nebulosa de Hélix"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9296,7 +9296,7 @@ msgstr "Nebulosa do Esquimó"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Saturn Nebula"
-msgstr "Nebulosa de Saturno"
+msgstr "Nebulosa Saturno"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,12 +9321,12 @@ msgstr "Fantasma de Júpiter"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Nebulosa do Inseto"
+msgstr "Nebulosa Borboleta"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Rosette Nebula"
-msgstr "Nebulosa da Roseta"
+msgstr "Nebulosa Roseta"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9386,12 +9386,12 @@ msgstr "Nebulosa da Bolha"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "California Nebula"
-msgstr "Nebulosa da Califórnia"
+msgstr "Nebulosa Califórnia"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crescent Nebula"
-msgstr "Nebulosa do Crescente"
+msgstr "Nebulosa Crescente"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9406,17 +9406,17 @@ msgstr "Nebulosa da Tarântula"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Carina Nebula"
-msgstr "Nebulosa da Quilha"
+msgstr "Nebulosa de Carina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Nebulosa Cabeça de Bruxa"
+msgstr "Nebulosa Cabeça da Bruxa"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Nebulosa Cabeça de Bruxa"
+msgstr "Nebulosa Cabeça da Bruxa"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9441,7 +9441,7 @@ msgstr "Enxame da Árvore de Natal"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Elephant's Trunk Nebula"
-msgstr "Nebulosa Tromba de Elefante"
+msgstr "Nebulosa Tromba do Elefante"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Nebulosa Cabeça de Macaco"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Saco de Carvão"
+msgstr "Nebulosa do Saco de Carvão"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

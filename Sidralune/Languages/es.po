@@ -9106,7 +9106,7 @@ msgstr "Galaxia del Triángulo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Whirlpool Galaxy"
-msgstr "Galaxia del Remolino"
+msgstr "Galaxia Remolino"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9121,12 +9121,12 @@ msgstr "Galaxia del Molinete"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel"
-msgstr "Galaxia del Molinete Austral"
+msgstr "Molinillo Austral"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel Galaxy"
-msgstr "Galaxia del Molinete Austral"
+msgstr "Molinillo Austral"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9161,7 +9161,7 @@ msgstr "Galaxia de la Ballena"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Galaxias Antena"
+msgstr "Galaxias Antennae"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9261,17 +9261,17 @@ msgstr "Nebulosa del Anillo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Dumbbell Nebula"
-msgstr "Nebulosa de la Haltera"
+msgstr "Nebulosa Dumbbell"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Pequeña Nebulosa de la Haltera"
+msgstr "Nebulosa Dumbbell Pequeña"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Pequeña Nebulosa de la Haltera"
+msgstr "Nebulosa Dumbbell Pequeña"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9296,7 +9296,7 @@ msgstr "Nebulosa del Esquimal"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Saturn Nebula"
-msgstr "Nebulosa de Saturno"
+msgstr "Nebulosa Saturno"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9336,7 +9336,7 @@ msgstr "Nebulosa Cabeza de Caballo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flame Nebula"
-msgstr "Nebulosa de la Llama"
+msgstr "Nebulosa de la Flama"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9346,7 +9346,7 @@ msgstr "Nebulosa Norteamérica"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pelican Nebula"
-msgstr "Nebulosa del Pelícano"
+msgstr "Nebulosa Pelícano"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9401,7 +9401,7 @@ msgstr "Nebulosa del Capullo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tarantula Nebula"
-msgstr "Nebulosa de la Tarántula"
+msgstr "Nebulosa Tarántula"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9436,7 +9436,7 @@ msgstr "Nebulosa del Cono y Cúmulo del Árbol de Navidad"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Christmas Tree Cluster"
-msgstr "Cúmulo del Árbol de Navidad"
+msgstr "Cúmulo Árbol Navideño"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9456,7 +9456,7 @@ msgstr "Casco de Thor"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Nebulosa del Iris"
+msgstr "Nebulosa Iris"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Nebulosa Cabeza de Mono"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Saco de Carbón"
+msgstr "Nebulosa Saco de Carbón"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,17 +9506,17 @@ msgstr "Híades"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Cúmulo del Pesebre"
+msgstr "El Pesebre"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Cúmulo del Pesebre"
+msgstr "El Pesebre"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Double Cluster"
-msgstr "Doble Cúmulo"
+msgstr "Cúmulo Doble de Perseo"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Cúmulo del Búho"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Joyero"
+msgstr "El joyero"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9566,12 +9566,12 @@ msgstr "Cúmulo de Hércules"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Percha"
+msgstr "Perchero"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Cúmulo de Coma"
+msgstr "Cúmulo estelar de Coma"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

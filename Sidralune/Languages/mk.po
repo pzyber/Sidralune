@@ -8661,7 +8661,7 @@ msgstr "Андромеда"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Antlia"
-msgstr "Воздушна пумпа"
+msgstr "Пумпа"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8696,7 +8696,7 @@ msgstr "Кочијаш"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Boötes"
-msgstr "Волар"
+msgstr "Воловар"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8816,7 +8816,7 @@ msgstr "Делфин"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Dorado"
-msgstr "Златна риба"
+msgstr "Златна Рипка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8861,17 +8861,17 @@ msgstr "Часовник"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydra"
-msgstr "Хидра"
+msgstr "Водна Змија"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Јужна хидра"
+msgstr "Мала Водна Змија"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Indus"
-msgstr "Индиец"
+msgstr "Индијанец"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8936,7 +8936,7 @@ msgstr "Мува"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Аголник"
+msgstr "Рамнило"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9001,7 +9001,7 @@ msgstr "Компас"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Reticulum"
-msgstr "Мрежа"
+msgstr "Мрежичка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9076,7 +9076,7 @@ msgstr "Мала мечка"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Vela"
-msgstr "Едра"
+msgstr "Едро"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9226,7 +9226,7 @@ msgstr "Мајранова маглина"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crab Nebula"
-msgstr "Маглина Рак"
+msgstr "Раковидна Маглина"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9236,7 +9236,7 @@ msgstr "Маглина Лагуна"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Маглина Трифид"
+msgstr "Триделна Маглина"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9576,9 +9576,9 @@ msgstr "Јато во Береникина коса"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Мал ѕвезден облак во Стрелец"
+msgstr "Ѕвезден облак во Стрелец"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Мал ѕвезден облак во Стрелец"
+msgstr "Ѕвезден облак во Стрелец"

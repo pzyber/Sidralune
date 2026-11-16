@@ -8666,7 +8666,7 @@ msgstr "Αντλία"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Apus"
-msgstr "Πτηνό του Παραδείσου"
+msgstr "Πτηνόν"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8706,7 +8706,7 @@ msgstr "Γλυφείον"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Camelopardalis"
-msgstr "Καμηλοπάρδαλη"
+msgstr "Καμηλοπάρδαλις"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8716,7 +8716,7 @@ msgstr "Καρκίνος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canes Venatici"
-msgstr "Θηρευτικοί Κύνες"
+msgstr "Κύνες Θηρευτικοί"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8786,7 +8786,7 @@ msgstr "Νότιος Στέφανος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Borealis"
-msgstr "Βόρειος Στέφανος"
+msgstr "Στέφανος Βόρειος"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8811,7 +8811,7 @@ msgstr "Κύκνος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Delphinus"
-msgstr "Δελφίνος"
+msgstr "Δελφίν"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8886,7 +8886,7 @@ msgstr "Λέων"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Leo Minor"
-msgstr "Μικρός Λέων"
+msgstr "Λέων Μικρός"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8906,7 +8906,7 @@ msgstr "Λύκος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Lynx"
-msgstr "Λύγξ"
+msgstr "Λυγξ"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9001,12 +9001,12 @@ msgstr "Πυξίς"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Reticulum"
-msgstr "Δικτυωτόν"
+msgstr "Δίκτυον"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Sagitta"
-msgstr "Οιστός"
+msgstr "Βέλος"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9056,7 +9056,7 @@ msgstr "Τρίγωνον"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum Australe"
-msgstr "Νότιον Τρίγωνον"
+msgstr "Τρίγωνον Νότιον"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9071,7 +9071,7 @@ msgstr "Μεγάλη Άρκτος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Ursa Minor"
-msgstr "Μικρή Άρκτος"
+msgstr "Μικρά Άρκτος"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9086,7 +9086,7 @@ msgstr "Παρθένος"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Volans"
-msgstr "Ιπτάμενος Ιχθύς"
+msgstr "Ιχθύς Ιπτάμενος"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9111,7 +9111,7 @@ msgstr "Γαλαξίας της Δίνης"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sombrero Galaxy"
-msgstr "Γαλαξίας του Σομπρέρο"
+msgstr "Γαλαξίας Σομπρέρο"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9136,7 +9136,7 @@ msgstr "Γαλαξίας του Πούρου"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bode's Galaxy"
-msgstr "Γαλαξίας του Μποντέ"
+msgstr "Γαλαξίας του Μπόντε"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9161,7 +9161,7 @@ msgstr "Γαλαξίας της Φάλαινας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Γαλαξίες των Κεραιών"
+msgstr "Γαλαξίες Κεραίες"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9191,7 +9191,7 @@ msgstr "Γαλαξίας του Χάμπουργκερ"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Large Magellanic Cloud"
-msgstr "Μεγάλο Νέφος του Μαγγελάνου"
+msgstr "Μέγα Νέφος του Μαγγελάνου"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9201,7 +9201,7 @@ msgstr "Μικρό Νέφος του Μαγγελάνου"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Stephan's Quintet"
-msgstr "Πεντάδα του Στεφάν"
+msgstr "Κουιντέτο του Στεφάν"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9231,12 +9231,12 @@ msgstr "Νεφέλωμα του Καρκίνου"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Lagoon Nebula"
-msgstr "Νεφέλωμα της Λιμνοθάλασσας"
+msgstr "Νεφέλωμα Λιμνοθάλασσας"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Τριμερές Νεφέλωμα"
+msgstr "Τρισχιδές νεφέλωμα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9256,7 +9256,7 @@ msgstr "Νεφέλωμα Ωμέγα"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Νεφέλωμα του Δακτυλίου"
+msgstr "Δακτυλιοειδές Νεφέλωμα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9266,12 +9266,12 @@ msgstr "Νεφέλωμα του Αλτήρα"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Μικρό Νεφέλωμα του Αλτήρα"
+msgstr "Νεφέλωμα του Μικρού Αλτήρα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Μικρό Νεφέλωμα του Αλτήρα"
+msgstr "Νεφέλωμα του Μικρού Αλτήρα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9286,7 +9286,7 @@ msgstr "Νεφέλωμα της Έλικας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Eye Nebula"
-msgstr "Νεφέλωμα του Ματιού της Γάτας"
+msgstr "Νεφέλωμα Μάτι της Γάτας"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9331,7 +9331,7 @@ msgstr "Νεφέλωμα της Ροζέτας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Horsehead Nebula"
-msgstr "Νεφέλωμα της Κεφαλής του Ίππου"
+msgstr "Νεφέλωμα της Αλογοκεφαλής"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9341,7 +9341,7 @@ msgstr "Νεφέλωμα της Φλόγας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "North America Nebula"
-msgstr "Νεφέλωμα της Βόρειας Αμερικής"
+msgstr "Νεφέλωμα Βόρειας Αμερικής"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9401,7 +9401,7 @@ msgstr "Νεφέλωμα του Κουκουλιού"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tarantula Nebula"
-msgstr "Νεφέλωμα της Ταραντούλας"
+msgstr "Νεφέλωμα Ταραντούλα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9456,7 +9456,7 @@ msgstr "Κράνος του Θορ"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Νεφέλωμα της Ίριδας"
+msgstr "Νεφέλωμα Ίριδα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9491,7 +9491,7 @@ msgstr "Νεφέλωμα της Κεφαλής του Πιθήκου"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Σάκος του Άνθρακα"
+msgstr "Νεφέλωμα Σάκος Ανθράκων"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9506,12 +9506,12 @@ msgstr "Υάδες"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Φάτνη"
+msgstr "Σμήνος της Κυψέλης"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Φάτνη"
+msgstr "Σμήνος της Κυψέλης"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9531,7 +9531,7 @@ msgstr "Σμήνος της Αγριόπαπιας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Butterfly Cluster"
-msgstr "Σμήνος της Πεταλούδας"
+msgstr "Σμήνος Πεταλούδα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,17 +9551,17 @@ msgstr "Σμήνος της Κουκουβάγιας"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Μπιζουτιέρα"
+msgstr "Σμήνος Κοσμηματοθήκη"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Σμήνος του Ηρακλή"
+msgstr "Σφαιρωτό σμήνος του Ηρακλέους"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Σμήνος του Ηρακλή"
+msgstr "Σφαιρωτό σμήνος του Ηρακλέους"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9571,14 +9571,14 @@ msgstr "Κρεμάστρα"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Σμήνος της Κόμης"
+msgstr "Αστρικό σμήνος της Κόμης"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Μικρό Αστρικό Νέφος του Τοξότη"
+msgstr "Αστρικό νέφος του Τοξότη"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Μικρό Αστρικό Νέφος του Τοξότη"
+msgstr "Αστρικό νέφος του Τοξότη"

@@ -8778,7 +8778,7 @@ msgstr "Rak"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canes Venatici"
-msgstr "Lovska psa"
+msgstr "Lovski psi"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8878,7 +8878,7 @@ msgstr "Delfin"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Dorado"
-msgstr "Zlata riba"
+msgstr "Zlata ribica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8898,7 +8898,7 @@ msgstr "Eridan"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Fornax"
-msgstr "Kemična peč"
+msgstr "Peč"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8928,7 +8928,7 @@ msgstr "Vodna kača"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
-msgstr "Južna vodna kača"
+msgstr "Mala vodna kača"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8938,7 +8938,7 @@ msgstr "Indijanec"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Lacerta"
-msgstr "Kuščar"
+msgstr "Kuščarica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -8978,7 +8978,7 @@ msgstr "Lira"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Mensa"
-msgstr "Miza"
+msgstr "Mizasta gora"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9158,12 +9158,12 @@ msgstr "Lisička"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Andromeda Galaxy"
-msgstr "Galaksija Andromeda"
+msgstr "Andromedina galaksija"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Triangulum Galaxy"
-msgstr "Galaksija Trikotnik"
+msgstr "Galaksija v Trikotniku"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9303,7 +9303,7 @@ msgstr "Meglica Trifid"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eagle Nebula"
-msgstr "Meglica Orel"
+msgstr "Orlova meglica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9318,7 +9318,7 @@ msgstr "Meglica Omega"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ring Nebula"
-msgstr "Meglica Obroč"
+msgstr "Obročasta meglica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9383,7 +9383,7 @@ msgstr "Jupitrov duh"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Meglica Žuželka"
+msgstr "Meglica Hrošč"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9458,7 +9458,7 @@ msgstr "Meglica Polmesec"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Meglica Kokon"
+msgstr "Meglica Zapredek"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9473,12 +9473,12 @@ msgstr "Meglica Gredelj"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Meglica Čarovničina glava"
+msgstr "Meglica Glava čarovnice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Meglica Čarovničina glava"
+msgstr "Meglica Glava čarovnice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9498,7 +9498,7 @@ msgstr "Meglica Stožec in kopica Novoletna jelka"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Christmas Tree Cluster"
-msgstr "Kopica Novoletna jelka"
+msgstr "Kopica Božično drevo"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9508,7 +9508,7 @@ msgstr "Meglica Slonji rilec"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flaming Star Nebula"
-msgstr "Meglica Plamteča zvezda"
+msgstr "Meglica Goreča zvezda"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9548,12 +9548,12 @@ msgstr "Meglica Paglavci"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Monkey Head Nebula"
-msgstr "Meglica Opičja glava"
+msgstr "Meglica Glava opice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coalsack Nebula"
-msgstr "Vreča premoga"
+msgstr "Vreča oglja"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9568,12 +9568,12 @@ msgstr "Hijade"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Jaslice"
+msgstr "Kopica Čebelnjak"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Jaslice"
+msgstr "Kopica Čebelnjak"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9613,7 +9613,7 @@ msgstr "Kopica Sova"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Šatulja z dragulji"
+msgstr "Herschelova škatla z dragulji"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
