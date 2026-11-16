@@ -9461,7 +9461,7 @@ msgstr "Irisnebulosan"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cave Nebula"
-msgstr "Grottnebulosan"
+msgstr "Grottanebulosan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Fjärilshopen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Ptolemaios stjärnhop"
+msgstr "Ptolemaioshopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Ptolemaios stjärnhop"
+msgstr "Ptolemaioshopen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

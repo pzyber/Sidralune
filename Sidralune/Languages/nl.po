@@ -9381,7 +9381,7 @@ msgstr "Zielnevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bubble Nebula"
-msgstr "Bellennevel"
+msgstr "Zeepbelnevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

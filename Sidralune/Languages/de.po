@@ -9311,7 +9311,7 @@ msgstr "Blauer Schneeball"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Blinking Planetary"
-msgstr "Blinkender Planetarischer Nebel"
+msgstr "Blinkender Nebel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9556,12 +9556,12 @@ msgstr "Herschels Schmuckkästchen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Herkules-Kugelsternhaufen"
+msgstr "Herkuleshaufen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Herkules-Kugelsternhaufen"
+msgstr "Herkuleshaufen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

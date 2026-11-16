@@ -9216,12 +9216,12 @@ msgstr "Nébuleuse d'Orion"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Nébuleuse de De Mairan"
+msgstr "Nébuleuse de Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Nébuleuse de De Mairan"
+msgstr "Nébuleuse de Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9576,9 +9576,9 @@ msgstr "Amas de la Chevelure de Bérénice"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Petit nuage stellaire du Sagittaire"
+msgstr "Nuage stellaire du Sagittaire"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Petit nuage stellaire du Sagittaire"
+msgstr "Nuage stellaire du Sagittaire"

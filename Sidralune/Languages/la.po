@@ -9266,12 +9266,12 @@ msgstr "Nebula Halterum"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Nebula Halterum Minor"
+msgstr "Nebula Manubriculi"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Nebula Halterum Minor"
+msgstr "Nebula Manubriculi"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

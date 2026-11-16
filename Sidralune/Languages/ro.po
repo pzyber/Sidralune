@@ -9607,9 +9607,9 @@ msgstr "Roiul stelar din Coma"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Micul Nor Stelar din Săgetătorul"
+msgstr "Norul stelar din Săgetător"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Micul Nor Stelar din Săgetătorul"
+msgstr "Norul stelar din Săgetător"

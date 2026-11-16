@@ -8998,7 +8998,7 @@ msgstr "Muha"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Norma"
-msgstr "Ravnilo"
+msgstr "Kotomer"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9288,7 +9288,7 @@ msgstr "De Mairanova meglica"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crab Nebula"
-msgstr "Rakova meglica"
+msgstr "Meglica Rakovica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9563,7 +9563,7 @@ msgstr "Gostosevci"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hyades"
-msgstr "Hijade"
+msgstr "Hiade"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

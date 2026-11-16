@@ -9116,17 +9116,17 @@ msgstr "Γαλαξίας Σομπρέρο"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Γαλαξίας του Ανεμόμυλου"
+msgstr "Γαλαξίας Ακιδωτός Τροχός"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel"
-msgstr "Νότιος Γαλαξίας του Ανεμόμυλου"
+msgstr "Νότιος Γαλαξίας Ακιδωτός Τροχός"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel Galaxy"
-msgstr "Νότιος Γαλαξίας του Ανεμόμυλου"
+msgstr "Νότιος Γαλαξίας Ακιδωτός Τροχός"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9141,12 +9141,12 @@ msgstr "Γαλαξίας του Μπόντε"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Black Eye Galaxy"
-msgstr "Γαλαξίας του Μαύρου Ματιού"
+msgstr "Γαλαξίας Μαύρο Μάτι"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sunflower Galaxy"
-msgstr "Γαλαξίας του Ηλιοτρόπιου"
+msgstr "Γαλαξίας Ηλιοτρόπιο"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9166,7 +9166,7 @@ msgstr "Γαλαξίες Κεραίες"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Fireworks Galaxy"
-msgstr "Γαλαξίας των Πυροτεχνημάτων"
+msgstr "Γαλαξίας Πυροτέχνημα"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9276,7 +9276,7 @@ msgstr "Νεφέλωμα του Μικρού Αλτήρα"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Owl Nebula"
-msgstr "Νεφέλωμα της Κουκουβάγιας"
+msgstr "Νεφέλωμα Κουκουβάγια"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9321,7 +9321,7 @@ msgstr "Φάντασμα του Δία"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bug Nebula"
-msgstr "Νεφέλωμα του Εντόμου"
+msgstr "Νεφέλωμα Ζωύφιο"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

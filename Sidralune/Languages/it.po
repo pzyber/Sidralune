@@ -9461,7 +9461,7 @@ msgstr "Nebulosa Iris"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cave Nebula"
-msgstr "Nebulosa Caverna"
+msgstr "Nebulosa Grotta"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9481,7 +9481,7 @@ msgstr "Nebulosa Zampa di Gatto"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tadpoles Nebula"
-msgstr "Nebulosa Girini"
+msgstr "Nebulosa Girino"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

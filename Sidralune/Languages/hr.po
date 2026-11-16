@@ -9192,7 +9192,7 @@ msgstr "Galaktika Kit"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Galaktike Antene"
+msgstr "Galaktike Ticala"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

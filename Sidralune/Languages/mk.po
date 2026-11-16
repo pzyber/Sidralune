@@ -9116,22 +9116,22 @@ msgstr "Галаксија Сомбреро"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Галаксија Ветерница"
+msgstr "Галаксија Вртимушка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel"
-msgstr "Јужна Ветерница"
+msgstr "Јужна Вртимушка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Southern Pinwheel Galaxy"
-msgstr "Јужна Ветерница"
+msgstr "Јужна Вртимушка"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cigar Galaxy"
-msgstr "Галаксија Цигара"
+msgstr "Галаксија Пура"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9161,7 +9161,7 @@ msgstr "Галаксија Кит"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Галаксии Антени"
+msgstr "Галаксии Пипки"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9261,17 +9261,17 @@ msgstr "Прстенеста маглина"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Dumbbell Nebula"
-msgstr "Маглина Гира"
+msgstr "Маглина Тег"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Мала Гира"
+msgstr "Маглина Мал Тег"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Мала Гира"
+msgstr "Маглина Мал Тег"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9281,7 +9281,7 @@ msgstr "Маглина Був"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Маглина Хеликс"
+msgstr "Маглина Завојница"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9411,12 +9411,12 @@ msgstr "Маглина Кобилица"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Маглина Вештерка"
+msgstr "Маглина Вештерска глава"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Маглина Вештерка"
+msgstr "Маглина Вештерска глава"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9441,7 +9441,7 @@ msgstr "Јато Новогодишна елка"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Elephant's Trunk Nebula"
-msgstr "Маглина Слонова сурла"
+msgstr "Маглина Слоновска сурла"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9456,7 +9456,7 @@ msgstr "Торов шлем"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Маглина Ирис"
+msgstr "Маглина Перуника"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Јато Був"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Кутија со скапоцености"
+msgstr "Кутија за накит"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
