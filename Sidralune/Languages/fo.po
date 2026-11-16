@@ -8640,3 +8640,945 @@ msgstr "Koyr forrit"
 msgctxt "option"
 msgid "Annotation"
 msgstr "Viðmerking"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Sky names"
+msgstr "Himmalnøvn"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show constellation names and well-known object names in the interface language"
+msgstr "Vís nøvnini á stjørnumerkjum og kendum lutum á máli brúkaraflatans"
+
+#: Sidralune/Views/DatabaseView.cs
+msgid "IAU name"
+msgstr "IAU-navn"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Andromeda"
+msgstr "Andromeda"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Antlia"
+msgstr "Luftpumpan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Apus"
+msgstr "Paradísfuglurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquarius"
+msgstr "Vatnberin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquila"
+msgstr "Ørnin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ara"
+msgstr "Altarið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aries"
+msgstr "Veðrurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Auriga"
+msgstr "Koyrimaðurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Boötes"
+msgstr "Bjarnavaktarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Caelum"
+msgstr "Gravstikkin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Camelopardalis"
+msgstr "Giraffurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cancer"
+msgstr "Krabbin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canes Venatici"
+msgstr "Veiðuhundarnir"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Major"
+msgstr "Stóri hundur"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Minor"
+msgstr "Lítli hundur"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Capricornus"
+msgstr "Steingeitin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Carina"
+msgstr "Kjølurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cassiopeia"
+msgstr "Kassiopeia"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Centaurus"
+msgstr "Kentárurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cepheus"
+msgstr "Kefeus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cetus"
+msgstr "Hvalurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Chamaeleon"
+msgstr "Kameleonurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Circinus"
+msgstr "Passarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Columba"
+msgstr "Dúgvan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Coma Berenices"
+msgstr "Bereniku hár"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Australis"
+msgstr "Suðurkrúnan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Borealis"
+msgstr "Norðurkrúnan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corvus"
+msgstr "Ravnurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crater"
+msgstr "Bikarið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crux"
+msgstr "Suðurkrossurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cygnus"
+msgstr "Svanurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Delphinus"
+msgstr "Delfinurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Dorado"
+msgstr "Gullfiskurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Draco"
+msgstr "Drekin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Equuleus"
+msgstr "Folin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Eridanus"
+msgstr "Eridanus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Fornax"
+msgstr "Ovnurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Gemini"
+msgstr "Tvíburarnir"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Grus"
+msgstr "Tranan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hercules"
+msgstr "Herkules"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Horologium"
+msgstr "Urið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydra"
+msgstr "Vatnormurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydrus"
+msgstr "Lítli vatnormurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Indus"
+msgstr "Indianarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lacerta"
+msgstr "Firfløtan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo"
+msgstr "Leyvan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo Minor"
+msgstr "Lítla leyvan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lepus"
+msgstr "Haran"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Libra"
+msgstr "Vektin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lupus"
+msgstr "Úlvurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lynx"
+msgstr "Gaupin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lyra"
+msgstr "Lýran"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Mensa"
+msgstr "Borðfjallið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Microscopium"
+msgstr "Mikroskopið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Monoceros"
+msgstr "Einhyrningurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Musca"
+msgstr "Flugan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Norma"
+msgstr "Vinkulmátið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Octans"
+msgstr "Oktanturin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ophiuchus"
+msgstr "Ormberin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Orion"
+msgstr "Orion"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pavo"
+msgstr "Páfuglurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pegasus"
+msgstr "Pegasus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Perseus"
+msgstr "Perseus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Phoenix"
+msgstr "Føniks"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pictor"
+msgstr "Málarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pisces"
+msgstr "Fiskarnir"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Piscis Austrinus"
+msgstr "Suðurfiskurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Puppis"
+msgstr "Skutin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pyxis"
+msgstr "Kompassið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Reticulum"
+msgstr "Netið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagitta"
+msgstr "Pílurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagittarius"
+msgstr "Bogaskjúttin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scorpius"
+msgstr "Sporðdrekin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sculptor"
+msgstr "Myndhøggarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scutum"
+msgstr "Skjøldurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Serpens"
+msgstr "Ormurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sextans"
+msgstr "Sekstanturin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Taurus"
+msgstr "Neytið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Telescopium"
+msgstr "Teleskopið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum"
+msgstr "Tríkanturin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum Australe"
+msgstr "Suðurtríkanturin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Tucana"
+msgstr "Tukanurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Major"
+msgstr "Stóri bjørnur"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Minor"
+msgstr "Lítli bjørnur"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vela"
+msgstr "Seglið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Virgo"
+msgstr "Moyggin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Volans"
+msgstr "Flúgvifiskurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vulpecula"
+msgstr "Revurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Andromeda Galaxy"
+msgstr "Andromedavetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Triangulum Galaxy"
+msgstr "Tríkantsvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whirlpool Galaxy"
+msgstr "Hvirlvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sombrero Galaxy"
+msgstr "Sombrerovetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pinwheel Galaxy"
+msgstr "Vindmylluvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel"
+msgstr "Syðra vindmylluvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel Galaxy"
+msgstr "Syðra vindmylluvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cigar Galaxy"
+msgstr "Sigarvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bode's Galaxy"
+msgstr "Vetrarbreyt Bodes"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Black Eye Galaxy"
+msgstr "Svartoyguvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sunflower Galaxy"
+msgstr "Sólblómuvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Needle Galaxy"
+msgstr "Nálvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whale Galaxy"
+msgstr "Hvalvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Antennae Galaxies"
+msgstr "Antennuvetrarbreytirnar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Fireworks Galaxy"
+msgstr "Rakettvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Spindle Galaxy"
+msgstr "Snælduvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Phantom Galaxy"
+msgstr "Spøkilsisvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Galaxy"
+msgstr "Kattoyguvetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hamburger Galaxy"
+msgstr "Hamborgaravetrarbreytin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Large Magellanic Cloud"
+msgstr "Stóra Magellanskýggið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Magellanic Cloud"
+msgstr "Lítla Magellanskýggið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Stephan's Quintet"
+msgstr "Kvintett Stephans"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Orion Nebula"
+msgstr "Oriontokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Great Orion Nebula"
+msgstr "Oriontokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "De Mairan's Nebula"
+msgstr "Toka De Mairans"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Mairan's Nebula"
+msgstr "Toka De Mairans"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crab Nebula"
+msgstr "Krabbatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Lagoon Nebula"
+msgstr "Lónstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Trifid Nebula"
+msgstr "Trífidtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eagle Nebula"
+msgstr "Ørnatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Omega Nebula"
+msgstr "Omegatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Checkmark Nebula"
+msgstr "Omegatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ring Nebula"
+msgstr "Ringtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Dumbbell Nebula"
+msgstr "Handlóðstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Dumbbell"
+msgstr "Lítla handlóðstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Barbell Nebula"
+msgstr "Lítla handlóðstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Nebula"
+msgstr "Uglutokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Helix Nebula"
+msgstr "Helixtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Nebula"
+msgstr "Kattoygutokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eskimo Nebula"
+msgstr "Eskimotokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Saturn Nebula"
+msgstr "Saturnustokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blue Snowball"
+msgstr "Blái kavabóltin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Copeland's Blue Snowball"
+msgstr "Blái kavabóltin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blinking Planetary"
+msgstr "Blinkandi planettokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Jupiter's Ghost Nebula"
+msgstr "Spøkilsi Jupiters"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bug Nebula"
+msgstr "Skordjórstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Rosette Nebula"
+msgstr "Rosettutokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Horsehead Nebula"
+msgstr "Rossahøvdstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flame Nebula"
+msgstr "Logatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "North America Nebula"
+msgstr "Norðuramerikatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pelican Nebula"
+msgstr "Pelikantokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Veil Nebula"
+msgstr "Slørtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Western Veil Nebula"
+msgstr "Vestara slørtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil Nebula"
+msgstr "Eystara slørtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil"
+msgstr "Eystara slørtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Heart Nebula"
+msgstr "Hjartatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Soul Nebula"
+msgstr "Sálartokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bubble Nebula"
+msgstr "Bóbblutokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "California Nebula"
+msgstr "Kaliforniatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crescent Nebula"
+msgstr "Hálvmánatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cocoon Nebula"
+msgstr "Kokongtokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tarantula Nebula"
+msgstr "Tarantultokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Carina Nebula"
+msgstr "Kjalartokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Witch Head Nebula"
+msgstr "Heksahøvdstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Witch Head Nebula"
+msgstr "Heksahøvdstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Running Man Nebula"
+msgstr "Toka rennandi mansins"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Running Man Nebula"
+msgstr "Toka rennandi mansins"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cone Nebula & Christmas Tree"
+msgstr "Keiltokan og Jólatræsbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Christmas Tree Cluster"
+msgstr "Jólatræsbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Elephant's Trunk Nebula"
+msgstr "Fílsnasatokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flaming Star Nebula"
+msgstr "Toka logandi stjørnunnar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Thor's Helmet"
+msgstr "Hjálmur Tórs"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Iris Nebula"
+msgstr "Iristokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cave Nebula"
+msgstr "Hellistokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pacman Nebula"
+msgstr "Pacmantokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wizard Nebula"
+msgstr "Gandakallstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Paw Nebula"
+msgstr "Kattarloputokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tadpoles Nebula"
+msgstr "Rumputrolstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Monkey Head Nebula"
+msgstr "Apahøvdstokan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coalsack Nebula"
+msgstr "Kolsekkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pleiades"
+msgstr "Sjeystjørnan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hyades"
+msgstr "Hyadurnar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive Cluster"
+msgstr "Krubban"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive"
+msgstr "Krubban"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Double Cluster"
+msgstr "Tvíbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wild Duck Cluster"
+msgstr "Villdunnubólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Amas de l'Ecu de Sobieski"
+msgstr "Villdunnubólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Butterfly Cluster"
+msgstr "Fiðrildisbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy Cluster"
+msgstr "Bólkur Ptolemæusar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy's Cluster"
+msgstr "Bólkur Ptolemæusar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Cluster"
+msgstr "Uglubólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Herschel's Jewel Box"
+msgstr "Smykkiskrínið"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Cluster"
+msgstr "Herkulesbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Globular Cluster"
+msgstr "Herkulesbólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coathanger"
+msgstr "Klædnahangarin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coma Star Cluster"
+msgstr "Bereniku-bólkurin"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sagittarius Star Cloud"
+msgstr "Lítla stjørnuskýggið í Bogaskjúttanum"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Sgr Star Cloud"
+msgstr "Lítla stjørnuskýggið í Bogaskjúttanum"

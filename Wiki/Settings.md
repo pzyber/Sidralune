@@ -92,6 +92,7 @@ Click **Save** to store the changes.
 | Setting | Meaning |
 |---|---|
 | **Language** | The interface language. **Same as Windows** follows the Windows display language and falls back to English if Sidralune has no translation for it. The new language is used after a restart; **Restart now to change the language** appears when you choose another one, and closes Sidralune and starts it again in the new language |
+| **Sky names** | Shows constellation names and the nicknames of well-known objects in the interface language ("Stora björnen", "M51 Virvelgalaxen" in Swedish). On by default; turn it off to see the Latin constellation names and the catalogues' English nicknames. It takes effect at once, without a restart, and has no effect in English. See [Languages](#languages) |
 | **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N; this box and the moon button always show the same state |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 
@@ -129,11 +130,12 @@ The whole interface is translated:
 - **Astrometry**, **Photometry** and **Spectra**, including the messages from the plate solvers (spectral line names such as Hα and [O III] stay as they are),
 - **Solar system**, **Radio**, **Databases** and **Scripts** (results that online services return, such as SIMBAD tables, and the scripting API stay as they are),
 - the option names and choices in the property grids (stacking, planetary, photometry, equipment profiles, observing log and sequencer settings), and Yes/No for on/off options,
-- planet names, object types, visibility ratings, moon phases, eclipses and other events, and meteor shower names, wherever they appear.
+- planet names, object types, visibility ratings, moon phases, eclipses and other events, and meteor shower names, wherever they appear,
+- constellation names and the nicknames of about 85 well-known deep-sky objects (the Andromeda Galaxy, the Orion Nebula, the Pleiades and the like), with **Sky names** on.
 
 A language whose file lacks some texts shows those in English.
 
-Only words change with the language. Numbers are always written with a decimal point, and dates as `yyyy-MM-dd`, so values look the same as in reports, FITS headers and scripts; day and month names such as `mån 2 nov` do follow the language. Constellation and star names stay as they are. Searching accepts the translated planet names as well as the English ones. Log messages and files written for other programs (AAVSO and MPC reports, FITS headers) stay in English.
+Only words change with the language. Numbers are always written with a decimal point, and dates as `yyyy-MM-dd`, so values look the same as in reports, FITS headers and scripts; day and month names such as `mån 2 nov` do follow the language. Star names (Vega, Mizar) and designations (M 51, NGC 5195, Centaurus A) stay as they are, and so do nicknames without an established translation, which show as the catalogue has them. Translated names are only shown: the catalogues, planner entries, saved files and reports keep the Latin and English names. Searching accepts the translated names as well as the original ones, and finds constellations too: "Stora björnen", "Ursa Major" and "UMa" all centre the chart on the Great Bear. The Databases view lists constellations with their translated name and, beside it, the IAU name. Log messages and files written for other programs (AAVSO and MPC reports, FITS headers) stay in English.
 
 The **Pseudo-language** entry is for testing: it shows every translated text with accents, in brackets and a third longer, so text that is not yet translated, and places where a longer translation would not fit, stand out. To help translate Sidralune into your language, see [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#translating-sidralune).
 

@@ -181,7 +181,7 @@ namespace Sidralune.Views
                     foreach (var s in scored.OrderByDescending(x => x.Item1 + (x.Item2.Messier != null ? 0.3 : 0)).Take(40))
                     {
                         var o = s.Item2;
-                        d.Targets.Add(new object[] { SelectedObject.From(o), o.DisplayName, DeepSkyObject.TypeLabel(o.Type), o.Constellation, double.IsNaN(o.Mag) ? "" : o.Mag.ToString("0.0"),
+                        d.Targets.Add(new object[] { SelectedObject.From(o), o.ShownName, DeepSkyObject.TypeLabel(o.Type), o.Constellation, double.IsNaN(o.Mag) ? "" : o.Mag.ToString("0.0"),
                             double.IsNaN(o.MajorAxis) ? "" : AstroMath.FormatAngleAuto(o.MajorAxis / 60), hm(s.Item3), s.Item4.ToString("0") + "°", VisibilityResult.Label(s.Item5), s.Item1.ToString("+0.0") });
                     }
                 }

@@ -8671,3 +8671,945 @@ msgstr "Paleisti programą"
 msgctxt "option"
 msgid "Annotation"
 msgstr "Pastaba"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Sky names"
+msgstr "Dangaus pavadinimai"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show constellation names and well-known object names in the interface language"
+msgstr "Rodyti žvaigždynų ir žinomų objektų pavadinimus sąsajos kalba"
+
+#: Sidralune/Views/DatabaseView.cs
+msgid "IAU name"
+msgstr "IAU pavadinimas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Andromeda"
+msgstr "Andromeda"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Antlia"
+msgstr "Siurblys"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Apus"
+msgstr "Rojaus Paukštis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquarius"
+msgstr "Vandenis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquila"
+msgstr "Erelis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ara"
+msgstr "Aukuras"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aries"
+msgstr "Avinas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Auriga"
+msgstr "Vežėjas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Boötes"
+msgstr "Jaučiaganis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Caelum"
+msgstr "Kaltas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Camelopardalis"
+msgstr "Žirafa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cancer"
+msgstr "Vėžys"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canes Venatici"
+msgstr "Skalikai"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Major"
+msgstr "Didysis Šuo"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Minor"
+msgstr "Mažasis Šuo"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Capricornus"
+msgstr "Ožiaragis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Carina"
+msgstr "Laivo Kilis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cassiopeia"
+msgstr "Kasiopėja"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Centaurus"
+msgstr "Kentauras"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cepheus"
+msgstr "Cefėjas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cetus"
+msgstr "Banginis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Chamaeleon"
+msgstr "Chameleonas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Circinus"
+msgstr "Skriestuvas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Columba"
+msgstr "Balandis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Coma Berenices"
+msgstr "Berenikės Plaukai"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Australis"
+msgstr "Pietų Vainikas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Borealis"
+msgstr "Šiaurės Vainikas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corvus"
+msgstr "Varnas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crater"
+msgstr "Taurė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crux"
+msgstr "Pietų Kryžius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cygnus"
+msgstr "Gulbė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Delphinus"
+msgstr "Delfinas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Dorado"
+msgstr "Aukso Žuvis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Draco"
+msgstr "Slibinas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Equuleus"
+msgstr "Arkliukas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Eridanus"
+msgstr "Eridanas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Fornax"
+msgstr "Krosnis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Gemini"
+msgstr "Dvyniai"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Grus"
+msgstr "Gervė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hercules"
+msgstr "Heraklis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Horologium"
+msgstr "Laikrodis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydra"
+msgstr "Hidra"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydrus"
+msgstr "Pietų Hidra"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Indus"
+msgstr "Indėnas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lacerta"
+msgstr "Driežas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo"
+msgstr "Liūtas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo Minor"
+msgstr "Mažasis Liūtas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lepus"
+msgstr "Kiškis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Libra"
+msgstr "Svarstyklės"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lupus"
+msgstr "Vilkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lynx"
+msgstr "Lūšis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lyra"
+msgstr "Lyra"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Mensa"
+msgstr "Stalo Kalnas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Microscopium"
+msgstr "Mikroskopas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Monoceros"
+msgstr "Vienaragis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Musca"
+msgstr "Musė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Norma"
+msgstr "Kampainis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Octans"
+msgstr "Oktantas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ophiuchus"
+msgstr "Gyvatnešis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Orion"
+msgstr "Orionas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pavo"
+msgstr "Povas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pegasus"
+msgstr "Pegasas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Perseus"
+msgstr "Persėjas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Phoenix"
+msgstr "Feniksas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pictor"
+msgstr "Dailininkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pisces"
+msgstr "Žuvys"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Piscis Austrinus"
+msgstr "Pietų Žuvis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Puppis"
+msgstr "Laivagalis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pyxis"
+msgstr "Kompasas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Reticulum"
+msgstr "Tinklelis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagitta"
+msgstr "Strėlė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagittarius"
+msgstr "Šaulys"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scorpius"
+msgstr "Skorpionas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sculptor"
+msgstr "Skulptorius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scutum"
+msgstr "Skydas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Serpens"
+msgstr "Gyvatė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sextans"
+msgstr "Sekstantas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Taurus"
+msgstr "Jautis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Telescopium"
+msgstr "Teleskopas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum"
+msgstr "Trikampis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum Australe"
+msgstr "Pietų Trikampis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Tucana"
+msgstr "Tukanas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Major"
+msgstr "Didieji Grįžulo Ratai"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Minor"
+msgstr "Mažieji Grįžulo Ratai"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vela"
+msgstr "Burės"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Virgo"
+msgstr "Mergelė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Volans"
+msgstr "Skraidančioji Žuvis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vulpecula"
+msgstr "Lapė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Andromeda Galaxy"
+msgstr "Andromedos galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Triangulum Galaxy"
+msgstr "Trikampio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whirlpool Galaxy"
+msgstr "Sūkurio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sombrero Galaxy"
+msgstr "Sombrero galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pinwheel Galaxy"
+msgstr "Vėjo malūnėlio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel"
+msgstr "Pietų vėjo malūnėlio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel Galaxy"
+msgstr "Pietų vėjo malūnėlio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cigar Galaxy"
+msgstr "Cigaro galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bode's Galaxy"
+msgstr "Bodės galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Black Eye Galaxy"
+msgstr "Juodosios akies galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sunflower Galaxy"
+msgstr "Saulėgrąžos galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Needle Galaxy"
+msgstr "Adatos galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whale Galaxy"
+msgstr "Banginio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Antennae Galaxies"
+msgstr "Antenų galaktikos"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Fireworks Galaxy"
+msgstr "Fejerverkų galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Spindle Galaxy"
+msgstr "Verpstės galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Phantom Galaxy"
+msgstr "Fantomo galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Galaxy"
+msgstr "Katės akies galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hamburger Galaxy"
+msgstr "Mėsainio galaktika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Large Magellanic Cloud"
+msgstr "Didysis Magelano Debesis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Magellanic Cloud"
+msgstr "Mažasis Magelano Debesis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Stephan's Quintet"
+msgstr "Stefano kvintetas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Orion Nebula"
+msgstr "Oriono ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Great Orion Nebula"
+msgstr "Oriono ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "De Mairan's Nebula"
+msgstr "De Mairano ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Mairan's Nebula"
+msgstr "De Mairano ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crab Nebula"
+msgstr "Krabo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Lagoon Nebula"
+msgstr "Lagūnos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Trifid Nebula"
+msgstr "Trilypis ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eagle Nebula"
+msgstr "Erelio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Omega Nebula"
+msgstr "Omega ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Checkmark Nebula"
+msgstr "Omega ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ring Nebula"
+msgstr "Žiedo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Dumbbell Nebula"
+msgstr "Hantelio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Dumbbell"
+msgstr "Mažasis hantelio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Barbell Nebula"
+msgstr "Mažasis hantelio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Nebula"
+msgstr "Pelėdos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Helix Nebula"
+msgstr "Sraigės ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Nebula"
+msgstr "Katės akies ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eskimo Nebula"
+msgstr "Eskimo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Saturn Nebula"
+msgstr "Saturno ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blue Snowball"
+msgstr "Mėlynoji sniego gniūžtė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Copeland's Blue Snowball"
+msgstr "Mėlynoji sniego gniūžtė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blinking Planetary"
+msgstr "Mirksintis planetinis ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Jupiter's Ghost Nebula"
+msgstr "Jupiterio vaiduoklis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bug Nebula"
+msgstr "Vabzdžio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Rosette Nebula"
+msgstr "Rozetės ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Horsehead Nebula"
+msgstr "Arklio galvos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flame Nebula"
+msgstr "Liepsnos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "North America Nebula"
+msgstr "Šiaurės Amerikos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pelican Nebula"
+msgstr "Pelikano ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Veil Nebula"
+msgstr "Šydo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Western Veil Nebula"
+msgstr "Vakarinis Šydo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil Nebula"
+msgstr "Rytinis Šydo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil"
+msgstr "Rytinis Šydo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Heart Nebula"
+msgstr "Širdies ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Soul Nebula"
+msgstr "Sielos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bubble Nebula"
+msgstr "Burbulo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "California Nebula"
+msgstr "Kalifornijos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crescent Nebula"
+msgstr "Pusmėnulio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cocoon Nebula"
+msgstr "Kokono ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tarantula Nebula"
+msgstr "Tarantulo ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Carina Nebula"
+msgstr "Laivo Kilio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Witch Head Nebula"
+msgstr "Raganos galvos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Witch Head Nebula"
+msgstr "Raganos galvos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Running Man Nebula"
+msgstr "Bėgančio žmogaus ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Running Man Nebula"
+msgstr "Bėgančio žmogaus ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cone Nebula & Christmas Tree"
+msgstr "Kūgio ūkas ir Kalėdų eglutės spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Christmas Tree Cluster"
+msgstr "Kalėdų eglutės spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Elephant's Trunk Nebula"
+msgstr "Dramblio straublio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flaming Star Nebula"
+msgstr "Liepsnojančios žvaigždės ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Thor's Helmet"
+msgstr "Toro šalmas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Iris Nebula"
+msgstr "Irio ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cave Nebula"
+msgstr "Olos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pacman Nebula"
+msgstr "Pakmeno ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wizard Nebula"
+msgstr "Burtininko ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Paw Nebula"
+msgstr "Katės letenos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tadpoles Nebula"
+msgstr "Buožgalvių ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Monkey Head Nebula"
+msgstr "Beždžionės galvos ūkas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coalsack Nebula"
+msgstr "Anglių maišas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pleiades"
+msgstr "Sietynas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hyades"
+msgstr "Hiados"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive Cluster"
+msgstr "Ėdžios"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive"
+msgstr "Ėdžios"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Double Cluster"
+msgstr "Dvigubas spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wild Duck Cluster"
+msgstr "Laukinės anties spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Amas de l'Ecu de Sobieski"
+msgstr "Laukinės anties spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Butterfly Cluster"
+msgstr "Drugelio spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy Cluster"
+msgstr "Ptolemėjo spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy's Cluster"
+msgstr "Ptolemėjo spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Cluster"
+msgstr "Pelėdos spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Herschel's Jewel Box"
+msgstr "Brangenybių dėžutė"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Cluster"
+msgstr "Heraklio spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Globular Cluster"
+msgstr "Heraklio spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coathanger"
+msgstr "Pakaba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coma Star Cluster"
+msgstr "Berenikės Plaukų spiečius"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sagittarius Star Cloud"
+msgstr "Mažasis Šaulio žvaigždžių debesis"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Sgr Star Cloud"
+msgstr "Mažasis Šaulio žvaigždžių debesis"

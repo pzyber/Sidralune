@@ -8671,3 +8671,945 @@ msgstr "Spustiť program"
 msgctxt "option"
 msgid "Annotation"
 msgstr "Poznámka"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Sky names"
+msgstr "Názvy na oblohe"
+
+#: Sidralune/Views/SettingsView.cs
+msgid "Show constellation names and well-known object names in the interface language"
+msgstr "Zobrazovať názvy súhvezdí a známych objektov v jazyku rozhrania"
+
+#: Sidralune/Views/DatabaseView.cs
+msgid "IAU name"
+msgstr "Názov IAU"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Andromeda"
+msgstr "Andromeda"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Antlia"
+msgstr "Vývesa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Apus"
+msgstr "Rajka"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquarius"
+msgstr "Vodnár"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aquila"
+msgstr "Orol"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ara"
+msgstr "Oltár"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Aries"
+msgstr "Baran"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Auriga"
+msgstr "Povozník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Boötes"
+msgstr "Pastier"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Caelum"
+msgstr "Rydlo"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Camelopardalis"
+msgstr "Žirafa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cancer"
+msgstr "Rak"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canes Venatici"
+msgstr "Poľovné psy"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Major"
+msgstr "Veľký pes"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Canis Minor"
+msgstr "Malý pes"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Capricornus"
+msgstr "Kozorožec"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Carina"
+msgstr "Lodný kýl"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cassiopeia"
+msgstr "Kasiopeja"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Centaurus"
+msgstr "Kentaur"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cepheus"
+msgstr "Cefeus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cetus"
+msgstr "Veľryba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Chamaeleon"
+msgstr "Chameleón"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Circinus"
+msgstr "Kružidlo"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Columba"
+msgstr "Holubica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Coma Berenices"
+msgstr "Vlasy Bereniky"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Australis"
+msgstr "Južná koruna"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corona Borealis"
+msgstr "Severná koruna"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Corvus"
+msgstr "Havran"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crater"
+msgstr "Pohár"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Crux"
+msgstr "Južný kríž"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Cygnus"
+msgstr "Labuť"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Delphinus"
+msgstr "Delfín"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Dorado"
+msgstr "Mečúň"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Draco"
+msgstr "Drak"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Equuleus"
+msgstr "Koníček"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Eridanus"
+msgstr "Eridanus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Fornax"
+msgstr "Pec"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Gemini"
+msgstr "Blíženci"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Grus"
+msgstr "Žeriav"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hercules"
+msgstr "Herkules"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Horologium"
+msgstr "Hodiny"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydra"
+msgstr "Hydra"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Hydrus"
+msgstr "Malý vodný had"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Indus"
+msgstr "Indián"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lacerta"
+msgstr "Jašterica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo"
+msgstr "Lev"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Leo Minor"
+msgstr "Malý lev"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lepus"
+msgstr "Zajac"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Libra"
+msgstr "Váhy"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lupus"
+msgstr "Vlk"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lynx"
+msgstr "Rys"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Lyra"
+msgstr "Lýra"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Mensa"
+msgstr "Tabuľový vrch"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Microscopium"
+msgstr "Mikroskop"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Monoceros"
+msgstr "Jednorožec"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Musca"
+msgstr "Mucha"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Norma"
+msgstr "Pravítko"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Octans"
+msgstr "Oktant"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ophiuchus"
+msgstr "Hadonos"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Orion"
+msgstr "Orión"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pavo"
+msgstr "Páv"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pegasus"
+msgstr "Pegas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Perseus"
+msgstr "Perzeus"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Phoenix"
+msgstr "Fénix"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pictor"
+msgstr "Maliar"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pisces"
+msgstr "Ryby"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Piscis Austrinus"
+msgstr "Južná ryba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Puppis"
+msgstr "Korma"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Pyxis"
+msgstr "Kompas"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Reticulum"
+msgstr "Sieť"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagitta"
+msgstr "Šíp"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sagittarius"
+msgstr "Strelec"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scorpius"
+msgstr "Škorpión"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sculptor"
+msgstr "Sochár"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Scutum"
+msgstr "Štít"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Serpens"
+msgstr "Had"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Sextans"
+msgstr "Sextant"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Taurus"
+msgstr "Býk"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Telescopium"
+msgstr "Ďalekohľad"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum"
+msgstr "Trojuholník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Triangulum Australe"
+msgstr "Južný trojuholník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Tucana"
+msgstr "Tukan"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Major"
+msgstr "Veľká medvedica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Ursa Minor"
+msgstr "Malá medvedica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vela"
+msgstr "Plachty"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Virgo"
+msgstr "Panna"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Volans"
+msgstr "Lietajúca ryba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "constellation"
+msgid "Vulpecula"
+msgstr "Líštička"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Andromeda Galaxy"
+msgstr "Galaxia v Androméde"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Triangulum Galaxy"
+msgstr "Galaxia v Trojuholníku"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whirlpool Galaxy"
+msgstr "Vírová galaxia"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sombrero Galaxy"
+msgstr "Galaxia Sombrero"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pinwheel Galaxy"
+msgstr "Galaxia Veterník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel"
+msgstr "Južný Veterník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Southern Pinwheel Galaxy"
+msgstr "Južný Veterník"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cigar Galaxy"
+msgstr "Galaxia Cigara"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bode's Galaxy"
+msgstr "Bodeho galaxia"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Black Eye Galaxy"
+msgstr "Galaxia Čierne oko"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sunflower Galaxy"
+msgstr "Galaxia Slnečnica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Needle Galaxy"
+msgstr "Galaxia Ihla"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Whale Galaxy"
+msgstr "Galaxia Veľryba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Antennae Galaxies"
+msgstr "Galaxie Tykadlá"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Fireworks Galaxy"
+msgstr "Galaxia Ohňostroj"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Spindle Galaxy"
+msgstr "Galaxia Vreteno"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Phantom Galaxy"
+msgstr "Galaxia Fantóm"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Galaxy"
+msgstr "Galaxia Mačacie oko"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hamburger Galaxy"
+msgstr "Galaxia Hamburger"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Large Magellanic Cloud"
+msgstr "Veľký Magellanov oblak"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Magellanic Cloud"
+msgstr "Malý Magellanov oblak"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Stephan's Quintet"
+msgstr "Stephanov kvintet"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Orion Nebula"
+msgstr "Veľká hmlovina v Orióne"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Great Orion Nebula"
+msgstr "Veľká hmlovina v Orióne"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "De Mairan's Nebula"
+msgstr "Mairanova hmlovina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Mairan's Nebula"
+msgstr "Mairanova hmlovina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crab Nebula"
+msgstr "Krabia hmlovina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Lagoon Nebula"
+msgstr "Hmlovina Lagúna"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Trifid Nebula"
+msgstr "Hmlovina Trifid"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eagle Nebula"
+msgstr "Hmlovina Orol"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Omega Nebula"
+msgstr "Hmlovina Omega"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Checkmark Nebula"
+msgstr "Hmlovina Omega"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ring Nebula"
+msgstr "Prstencová hmlovina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Dumbbell Nebula"
+msgstr "Hmlovina Činka"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Dumbbell"
+msgstr "Malá Činka"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Barbell Nebula"
+msgstr "Malá Činka"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Nebula"
+msgstr "Hmlovina Sova"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Helix Nebula"
+msgstr "Hmlovina Helix"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Eye Nebula"
+msgstr "Hmlovina Mačacie oko"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eskimo Nebula"
+msgstr "Hmlovina Eskimák"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Saturn Nebula"
+msgstr "Hmlovina Saturn"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blue Snowball"
+msgstr "Modrá snehová guľa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Copeland's Blue Snowball"
+msgstr "Modrá snehová guľa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blinking Planetary"
+msgstr "Blikajúca planetárna hmlovina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Jupiter's Ghost Nebula"
+msgstr "Jupiterov duch"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bug Nebula"
+msgstr "Hmlovina Chrobák"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Rosette Nebula"
+msgstr "Hmlovina Rozeta"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Horsehead Nebula"
+msgstr "Konská hlava"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flame Nebula"
+msgstr "Hmlovina Plameň"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "North America Nebula"
+msgstr "Hmlovina Severná Amerika"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pelican Nebula"
+msgstr "Hmlovina Pelikán"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Veil Nebula"
+msgstr "Hmlovina Závoj"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Western Veil Nebula"
+msgstr "Západný Závoj"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil Nebula"
+msgstr "Východný Závoj"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eastern Veil"
+msgstr "Východný Závoj"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Heart Nebula"
+msgstr "Hmlovina Srdce"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Soul Nebula"
+msgstr "Hmlovina Duša"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bubble Nebula"
+msgstr "Hmlovina Bublina"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "California Nebula"
+msgstr "Hmlovina Kalifornia"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Crescent Nebula"
+msgstr "Hmlovina Kosák"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cocoon Nebula"
+msgstr "Hmlovina Kokón"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tarantula Nebula"
+msgstr "Hmlovina Tarantula"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Carina Nebula"
+msgstr "Hmlovina v Lodnom kýle"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Witch Head Nebula"
+msgstr "Hmlovina Čarodejnica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Witch Head Nebula"
+msgstr "Hmlovina Čarodejnica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Running Man Nebula"
+msgstr "Hmlovina Bežiaci muž"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the Running Man Nebula"
+msgstr "Hmlovina Bežiaci muž"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cone Nebula & Christmas Tree"
+msgstr "Hmlovina Kužeľ a hviezdokopa Vianočný stromček"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Christmas Tree Cluster"
+msgstr "Vianočný stromček"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Elephant's Trunk Nebula"
+msgstr "Hmlovina Sloní chobot"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Flaming Star Nebula"
+msgstr "Hmlovina Plápolajúca hviezda"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Thor's Helmet"
+msgstr "Thorova prilba"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Iris Nebula"
+msgstr "Hmlovina Iris"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cave Nebula"
+msgstr "Hmlovina Jaskyňa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pacman Nebula"
+msgstr "Hmlovina Pacman"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wizard Nebula"
+msgstr "Hmlovina Čarodej"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cat's Paw Nebula"
+msgstr "Hmlovina Mačacia labka"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Tadpoles Nebula"
+msgstr "Hmlovina Žubrienky"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Monkey Head Nebula"
+msgstr "Hmlovina Opičia hlava"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coalsack Nebula"
+msgstr "Uhoľné vrece"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pleiades"
+msgstr "Plejády"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hyades"
+msgstr "Hyády"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive Cluster"
+msgstr "Jasličky"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Beehive"
+msgstr "Jasličky"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Double Cluster"
+msgstr "Dvojitá hviezdokopa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wild Duck Cluster"
+msgstr "Divá kačica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Amas de l'Ecu de Sobieski"
+msgstr "Divá kačica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Butterfly Cluster"
+msgstr "Hviezdokopa Motýľ"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy Cluster"
+msgstr "Ptolemaiova hviezdokopa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Ptolemy's Cluster"
+msgstr "Ptolemaiova hviezdokopa"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Owl Cluster"
+msgstr "Hviezdokopa Sova"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Herschel's Jewel Box"
+msgstr "Šperkovnica"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Cluster"
+msgstr "Guľová hviezdokopa v Herkulovi"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hercules Globular Cluster"
+msgstr "Guľová hviezdokopa v Herkulovi"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coathanger"
+msgstr "Vešiak"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coma Star Cluster"
+msgstr "Hviezdokopa vo Vlasoch Bereniky"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sagittarius Star Cloud"
+msgstr "Malý hviezdny oblak v Strelcovi"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Small Sgr Star Cloud"
+msgstr "Malý hviezdny oblak v Strelcovi"

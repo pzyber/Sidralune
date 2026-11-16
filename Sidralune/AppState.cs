@@ -45,6 +45,8 @@ namespace Sidralune
         public string MinorBodyLabels = "All";
         /// <summary>The interface language: "" for the Windows display language, "en", a code with a .po file ("sv"), or the pseudo-language.</summary>
         public string Language = "";
+        /// <summary>Constellation names and well-known object nicknames in the interface language, or Latin and English.</summary>
+        public bool SkyNamesInLanguage = true;
 
         // colour management (Settings → Colour); profiles are a built-in id ("prophoto") or a file path
         public bool ColorManagement = true;
@@ -148,6 +150,7 @@ namespace Sidralune
                 Settings.Sites = new List<Observer> { new Observer { Name = "Home", LatitudeDeg = 52.0, LongitudeDeg = Math.Round(off * 15, 1), ElevationM = 20, SqmZenith = 20.8, Bortle = 5 } };
             }
             DeviceManager.Instance.Site = Site;
+            Core.Catalogs.SkyNames.InLanguage = Settings.SkyNamesInLanguage;
             ApplyColorSettings();
         }
 

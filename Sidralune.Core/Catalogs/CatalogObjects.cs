@@ -26,7 +26,10 @@ namespace Sidralune.Core.Catalogs
 
         public double RaHours => Ra * AstroMath.Rad2Hour;
         public double DecDeg => Dec * AstroMath.Rad2Deg;
+        /// <summary>The name kept as data (planner entries, FITS headers, reports): designation and the catalogue's own nickname.</summary>
         public abstract string DisplayName { get; }
+        /// <summary>The name as shown on screen, with a nickname in the interface language (SkyNames); star names stay as they are.</summary>
+        public virtual string ShownName => DisplayName;
         public override string ToString() => DisplayName;
     }
 
@@ -87,14 +90,15 @@ namespace Sidralune.Core.Catalogs
         public double Redshift = double.NaN;
         public string Notes;
 
-        public override string DisplayName
+        public override string DisplayName => WithName(Name);
+
+        public override string ShownName => WithName(SkyNames.Nickname(Name));
+
+        private string WithName(string name)
         {
-            get
-            {
-                string id = !string.IsNullOrEmpty(Messier) ? Messier : (Id ?? "");
-                if (!string.IsNullOrEmpty(Name)) return id.Length > 0 ? id + " " + Name : Name;
-                return id;
-            }
+            string id = !string.IsNullOrEmpty(Messier) ? Messier : (Id ?? "");
+            if (!string.IsNullOrEmpty(name)) return id.Length > 0 ? id + " " + name : name;
+            return id;
         }
 
         /// <summary>Mean surface brightness estimate from magnitude and size if not supplied.</summary>

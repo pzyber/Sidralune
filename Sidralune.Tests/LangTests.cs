@@ -156,16 +156,18 @@ namespace Sidralune.Tests
                 "// T(\"In a comment\")\n" +
                 "/// <summary>Marked with T(\"…\").</summary>\n" +
                 "var f = GetT(\"Not this\"); var g = AT(\"Nor this\"); var h = T(name);\n" +
-                "var i = new Dataset { Name = Lang.N(\"Kept as data\") }; var j = GetN(\"Not this either\");\n";
+                "var i = new Dataset { Name = Lang.N(\"Kept as data\") }; var j = GetN(\"Not this either\");\n" +
+                "var k = new[] { Nc(\"constellation\", \"Ursa Major\") };\n";
             var found = Lang.Extract(source);
-            CheckTrue("Texts in T, N, Tc and Tn calls", found.Count == 6, string.Join(" | ", found.Select(x => x.Id)));
+            CheckTrue("Texts in T, N, Tc, Nc and Tn calls", found.Count == 7, string.Join(" | ", found.Select(x => x.Id)));
             CheckTrue("Marked only, translated where shown", found[5].Id == "Kept as data" && Lang.N("Kept as data") == "Kept as data");
+            CheckTrue("Marked only, with a context", found[6].Context == "constellation" && found[6].Id == "Ursa Major" && Lang.Nc("constellation", "Ursa Major") == "Ursa Major");
             CheckTrue("Plain and formatted", found[0].Id == "Tonight" && found[1].Id == "Go to {0}");
             CheckTrue("With a context", found[2].Context == "file" && found[2].Id == "Open");
             CheckTrue("With a plural", found[3].Id == "{0} star" && found[3].Plural == "{0} stars");
             CheckTrue("Joined over lines, with escapes", found[4].Id == "A long text on two lines\r\nwith a \"quote\" and å");
             var collected = Lang.Collect(new[] { new KeyValuePair<string, string>("A.cs", source), new KeyValuePair<string, string>("B.cs", "T(\"Tonight\"); T(\"Sky\");") });
-            CheckTrue("Each text once, with the files that use it", collected.Count == 7 && collected[0].References.SequenceEqual(new[] { "A.cs", "B.cs" }) && collected.Last().Id == "Sky");
+            CheckTrue("Each text once, with the files that use it", collected.Count == 8 && collected[0].References.SequenceEqual(new[] { "A.cs", "B.cs" }) && collected.Last().Id == "Sky");
             CheckTrue("Placeholders", Lang.Placeholders("{1:0.0} of {0} and {0}, {{literal}}").SequenceEqual(new[] { 0, 1 }));
         }
     }

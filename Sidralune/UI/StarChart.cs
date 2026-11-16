@@ -359,7 +359,7 @@ namespace Sidralune.UI
                 {
                     PointF pt;
                     var h = AltAz(c.LabelRa, c.LabelDec);
-                    if (h.Alt > 2 * AstroMath.Deg2Rad && ToPage(h, out pt)) Label(c.Name.ToUpperInvariant(), f, Palette.ConstellationName, pt, 0, true);
+                    if (h.Alt > 2 * AstroMath.Deg2Rad && ToPage(h, out pt)) Label(SkyNames.ConstellationName(c).ToUpperInvariant(), f, Palette.ConstellationName, pt, 0, true);
                 }
         }
 
@@ -746,7 +746,7 @@ namespace Sidralune.UI
             var mrs = AstroEvents.BodyRiseSet(Body.Moon, site, noon);
             moonBlock.Rows.Add(new[] { T("Rises"), mrs.AlwaysUp ? T("up all day") : mrs.NeverUp ? T("does not rise") : Hm(site, mrs.Rise) });
             moonBlock.Rows.Add(new[] { T("Sets"), mrs.AlwaysUp || mrs.NeverUp ? "—" : Hm(site, mrs.Set) });
-            moonBlock.Rows.Add(new[] { T("In"), CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)?.Name ?? "—" });
+            moonBlock.Rows.Add(new[] { T("In"), SkyNames.ConstellationName(CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)) ?? "—" });
             blocks.Add(moonBlock);
 
             // planets above the horizon at some time between sunset and sunrise

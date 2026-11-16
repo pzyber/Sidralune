@@ -443,7 +443,7 @@ namespace Sidralune.UI
             {
                 PointF pt;
                 if (!ProjectIcrs(c.LabelRa, c.LabelDec, out pt) || !InView(pt)) continue;
-                string txt = FovDeg > 120 ? c.Abbr.ToUpperInvariant() : c.Name.ToUpperInvariant();
+                string txt = FovDeg > 120 ? c.Abbr.ToUpperInvariant() : SkyNames.ConstellationName(c).ToUpperInvariant();
                 var sz = TextRenderer.MeasureText(txt, font);
                 TextRenderer.DrawText(g, txt, font, new Point((int)pt.X - sz.Width / 2, (int)pt.Y - sz.Height / 2), _p.ConstellationName);
             }

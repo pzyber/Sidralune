@@ -356,6 +356,49 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestSwedishSkyNames()
+        {
+            var sky = View<SkyView>("sky");
+            var settings = View<SettingsView>("settings");
+            string saved = Lang.Folder;
+            try
+            {
+                Func<string, string[]> find = q => OnUi(() =>
+                {
+                    Call(sky, "FindObject", q);
+                    var sel = Field<SelectedObject>(sky, "_sel");
+                    return new[] { Field<Control>(sky, "_objTitle").Text, Field<Control>(sky, "_objSub").Text, sel != null ? sel.Name : "" };
+                });
+                OnUi(() => { Lang.Folder = LanguagesFolder; Lang.Use("sv"); });
+                // an object by its Swedish nickname: shown in Swedish, kept as the catalogue names it
+                var m51 = find("Virvelgalaxen");
+                CheckTrue("Found by its Swedish nickname, shown in Swedish, in a Swedish constellation", m51[0] == "M51 Virvelgalaxen" && m51[1] == "Galax i Jakthundarna", string.Join(" / ", m51));
+                CheckTrue("…and kept in English for lists and files", m51[2] == "M51 Whirlpool Galaxy", m51[2]);
+                // a constellation by its Swedish name or abbreviation: the chart goes there, kept in Latin
+                foreach (var q in new[] { "Stora björnen", "UMa" })
+                {
+                    var uma = find(q);
+                    CheckTrue("\"" + q + "\" finds the constellation, shown in Swedish", uma[0] == "Stora björnen" && uma[1] == "Stjärnbild" && uma[2] == "Ursa Major", string.Join(" / ", uma));
+                }
+                // the setting in Settings → Appearance turns it off at once
+                var box = OnUi(() => All(settings).OfType<CheckBox>().FirstOrDefault(c => c.Text == "Show constellation names and well-known object names in the interface language"));
+                CheckTrue("Settings has the Sky names box, ticked", box != null && OnUi(() => box.Checked) && OnUi(() => AppState.Settings.SkyNamesInLanguage));
+                if (box != null)
+                {
+                    OnUi(() => box.Checked = false);
+                    var off = find("M51");
+                    CheckTrue("With the box cleared: the catalogue's nickname and the IAU constellation", off[0] == "M51 Whirlpool Galaxy" && off[1] == "Galax i Canes Venatici" && !OnUi(() => AppState.Settings.SkyNamesInLanguage), string.Join(" / ", off));
+                    OnUi(() => box.Checked = true);
+                    CheckTrue("Ticked again: Swedish names", find("M51")[0] == "M51 Virvelgalaxen" && OnUi(() => AppState.Settings.SkyNamesInLanguage));
+                }
+            }
+            finally
+            {
+                OnUi(() => { Core.Catalogs.SkyNames.InLanguage = AppState.Settings.SkyNamesInLanguage = true; Lang.Folder = saved; Lang.Use("en"); });
+            }
+        }
+
+        [TestMethod]
         public void TestRestartCommandLine()
         {
             // restarting for a new language keeps the other options, leaves out --lang and quotes what Windows splits

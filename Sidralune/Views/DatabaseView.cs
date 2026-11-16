@@ -56,7 +56,7 @@ namespace Sidralune.Views
                 string q = text.Text.Trim(), cn = con.Text.Trim();
                 double mlim = (double)mag.Value, smin = (double)minSize.Value;
                 ObjectType? ot = type.SelectedIndex > 0 ? types[type.SelectedIndex - 1] : (ObjectType?)null;
-                Func<SkyObject, bool> common = o => (q.Length == 0 || o.DisplayName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 || (o.Name ?? "").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                Func<SkyObject, bool> common = o => (q.Length == 0 || o.DisplayName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 || o.ShownName.IndexOf(q, StringComparison.CurrentCultureIgnoreCase) >= 0 || (o.Name ?? "").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
                     && (cn.Length == 0 || string.Equals(o.Constellation, cn, StringComparison.OrdinalIgnoreCase))
                     && (double.IsNaN(o.Mag) || o.Mag <= mlim) && (ot == null || o.Type == ot.Value);
                 if (kind.SelectedIndex == 0)
@@ -65,7 +65,7 @@ namespace Sidralune.Views
                     var res = CatalogManager.Instance.DeepSky.All().Where(d => common(d) && (smin == 0 || d.MajorAxis >= smin)).OrderBy(d => double.IsNaN(d.Mag) ? 99 : d.Mag).Take(5000).ToList();
                     foreach (var d in res)
                     {
-                        int k = grid.Rows.Add(d.DisplayName, d.Type, d.Constellation, AstroMath.FormatHms(d.RaHours, 0, true), AstroMath.FormatDms(d.DecDeg, 0, true, true), F(d.Mag, "0.0"),
+                        int k = grid.Rows.Add(d.ShownName, d.Type, d.Constellation, AstroMath.FormatHms(d.RaHours, 0, true), AstroMath.FormatDms(d.DecDeg, 0, true, true), F(d.Mag, "0.0"),
                             double.IsNaN(d.MajorAxis) ? "" : F(d.MajorAxis, "0.0") + (double.IsNaN(d.MinorAxis) ? "" : "×" + F(d.MinorAxis, "0.0")), F(d.SurfaceBrightness, "0.0"),
                             F(ctx.IcrsToHorizontal(d.Ra, d.Dec).AltDeg, "0"), string.Join(", ", d.AltNames.Take(3)));
                         grid.Rows[k].Tag = d;
@@ -87,9 +87,13 @@ namespace Sidralune.Views
                 }
                 else
                 {
-                    foreach (var c in new[] { T("Abbr."), T("Name"), T("Genitive"), T("Label RA"), T("Label Dec"), T("Alt now") }) grid.Columns.Add(c, c);
-                    foreach (var c in CatalogManager.Instance.Constellations.Where(c => q.Length == 0 || c.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
-                        grid.Rows.Add(c.Abbr, c.Name, c.Genitive, AstroMath.FormatHms(c.LabelRa * AstroMath.Rad2Hour, 0, true), AstroMath.FormatDms(c.LabelDec * AstroMath.Rad2Deg, 0, true, true), F(ctx.IcrsToHorizontal(c.LabelRa, c.LabelDec).AltDeg, "0"));
+                    // the name shown, and the IAU name beside it when the two differ (in another language)
+                    var all = CatalogManager.Instance.Constellations;
+                    bool iau = all.Any(c => SkyNames.ConstellationName(c) != c.Name);
+                    foreach (var c in new[] { T("Abbr."), T("Name") }.Concat(iau ? new[] { T("IAU name") } : new string[0]).Concat(new[] { T("Genitive"), T("Label RA"), T("Label Dec"), T("Alt now") })) grid.Columns.Add(c, c);
+                    foreach (var c in q.Length == 0 ? all : SkyNames.SearchConstellations(all, q).OrderBy(c => all.IndexOf(c)).ToList())
+                        grid.Rows.Add(new object[] { c.Abbr, SkyNames.ConstellationName(c) }.Concat(iau ? new object[] { c.Name } : new object[0])
+                            .Concat(new object[] { c.Genitive, AstroMath.FormatHms(c.LabelRa * AstroMath.Rad2Hour, 0, true), AstroMath.FormatDms(c.LabelDec * AstroMath.Rad2Deg, 0, true, true), F(ctx.IcrsToHorizontal(c.LabelRa, c.LabelDec).AltDeg, "0") }).ToArray());
                     count.Text = Tn("{0} constellation", "{0} constellations", grid.Rows.Count);
                 }
             };
