@@ -590,8 +590,7 @@ namespace Sidralune.UI
                 _hits.Add(new Hit { P = pt, R = Math.Max(7, rmaj), O = SelectedObject.From(d), Priority = 1 });
                 if (Layers.DeepSkyLabels && (messier || FovDeg < 25) && (!pgc || FovDeg < 3))
                 {
-                    string label = messier ? d.Messier + (FovDeg < 20 && d.Name != null ? " " + d.Name : "") : (d.Name != null && FovDeg < 10 ? d.Id + " " + d.Name : d.Id);
-                    TextRenderer.DrawText(g, label, Theme.SmallFont, new Point((int)(pt.X + rmaj * 0.7f + 2), (int)(pt.Y + rmaj * 0.7f)), c);
+                    TextRenderer.DrawText(g, DeepSkyLabel(d, FovDeg), Theme.SmallFont, new Point((int)(pt.X + rmaj * 0.7f + 2), (int)(pt.Y + rmaj * 0.7f)), c);
                 }
             }
         }
@@ -1041,6 +1040,17 @@ namespace Sidralune.UI
                 ContextRequested?.Invoke(ra * AstroMath.Rad2Deg, dec * AstroMath.Rad2Deg, e);
             }
             base.OnMouseUp(e);
+        }
+
+        /// <summary>
+        /// A deep-sky object's label at a field of view: a Messier object by its number, with its nickname (in the
+        /// interface language) below 20°; others by designation, with the nickname below 10°.
+        /// </summary>
+        public static string DeepSkyLabel(DeepSkyObject d, double fovDeg)
+        {
+            string nick = SkyNames.Nickname(d.Name);
+            if (d.Messier != null) return d.Messier + (fovDeg < 20 && nick != null ? " " + nick : "");
+            return nick != null && fovDeg < 10 ? d.Id + " " + nick : d.Id;
         }
 
         public SelectedObject HitTest(Point p)

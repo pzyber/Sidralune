@@ -337,7 +337,7 @@ namespace Sidralune.Views
             var start = AppState.Now;
             var local = site.ToLocal(start.ToDateTimeUtc());
             var noon = site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12));
-            var series = _alt.AddSeries(o.Name);
+            var series = _alt.AddSeries(DisplayName(o));
             // UTC on the axis, labelled with the site's clock: a daylight saving change must not fold the curve
             _alt.TimeZone = site.TimeZone;
             for (int i = 0; i <= 96; i++)

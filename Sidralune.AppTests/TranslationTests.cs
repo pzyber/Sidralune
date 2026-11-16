@@ -374,6 +374,15 @@ namespace Sidralune.AppTests
                 var m51 = find("Virvelgalaxen");
                 CheckTrue("Found by its Swedish nickname, shown in Swedish, in a Swedish constellation", m51[0] == "M51 Virvelgalaxen" && m51[1] == "Galax i Jakthundarna", string.Join(" / ", m51));
                 CheckTrue("…and kept in English for lists and files", m51[2] == "M51 Whirlpool Galaxy", m51[2]);
+                // the labels on the chart
+                var labels = OnUi(() =>
+                {
+                    var cm = Core.Catalogs.CatalogManager.Instance;
+                    var m57 = (Core.Catalogs.DeepSkyObject)cm.Find("M57");
+                    var ngc7000 = (Core.Catalogs.DeepSkyObject)cm.Find("NGC 7000");
+                    return new[] { SkyChart.DeepSkyLabel(m57, 10), SkyChart.DeepSkyLabel(m57, 30), SkyChart.DeepSkyLabel(ngc7000, 5) };
+                });
+                CheckTrue("Chart labels with Swedish nicknames, and the number only when zoomed out", labels[0] == "M57 Ringnebulosan" && labels[1] == "M57" && labels[2] == "NGC 7000 Nordamerikanebulosan", string.Join(" / ", labels));
                 // a constellation by its Swedish name or abbreviation: the chart goes there, kept in Latin
                 foreach (var q in new[] { "Stora björnen", "UMa" })
                 {

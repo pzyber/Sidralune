@@ -718,7 +718,8 @@ namespace Sidralune.UI
 
         private List<Block> BuildInfo()
         {
-            string key = string.Format(Inv, "{0}|{1}|{2}|{3:0.0}|{4}", Site.Name, Site.LatitudeDeg, Site.LongitudeDeg, Time.JdUtc * 1440, MagLimit);
+            // the names in it follow the language and the Sky names setting
+            string key = string.Format(Inv, "{0}|{1}|{2}|{3:0.0}|{4}|{5}|{6}", Site.Name, Site.LatitudeDeg, Site.LongitudeDeg, Time.JdUtc * 1440, MagLimit, Generation, SkyNames.InLanguage);
             if (key == _infoKey) return _info;
             var blocks = new List<Block>();
             var site = Site;
@@ -776,7 +777,7 @@ namespace Sidralune.UI
             var zen = _ctx.HorizontalToIcrs(0, AstroMath.HalfPi);
             CatalogManager.Instance.DeepSky.Cone(zen.Ra, zen.Dec, 65 * AstroMath.Deg2Rad, 99, list);
             foreach (var o in list.Where(x => x.Messier != null && !double.IsNaN(x.Mag) && x.Mag <= 7.5).OrderBy(x => x.Mag).Take(8))
-                dso.Rows.Add(new[] { o.Messier + (o.Name != null ? " " + o.Name : ""), string.Format(Inv, "{0} {1:0.0}", DeepSkyObject.TypeLabel(o.Type).ToLowerInvariant(), o.Mag) });
+                dso.Rows.Add(new[] { o.Messier + (o.Name != null ? " " + SkyNames.Nickname(o.Name) : ""), string.Format(Inv, "{0} {1:0.0}", DeepSkyObject.TypeLabel(o.Type).ToLowerInvariant(), o.Mag) });
             if (dso.Rows.Count > 0) blocks.Add(dso);
 
             var showers = new Block { Heading = T("Meteor showers") };
