@@ -359,7 +359,7 @@ namespace Sidralune.UI
                 {
                     PointF pt;
                     var h = AltAz(c.LabelRa, c.LabelDec);
-                    if (h.Alt > 2 * AstroMath.Deg2Rad && ToPage(h, out pt)) Label(c.Name.ToUpperInvariant(), f, Palette.ConstellationName, pt, 0, true);
+                    if (h.Alt > 2 * AstroMath.Deg2Rad && ToPage(h, out pt)) Label(SkyNames.ConstellationName(c).ToUpperInvariant(), f, Palette.ConstellationName, pt, 0, true);
                 }
         }
 
@@ -718,7 +718,8 @@ namespace Sidralune.UI
 
         private List<Block> BuildInfo()
         {
-            string key = string.Format(Inv, "{0}|{1}|{2}|{3:0.0}|{4}", Site.Name, Site.LatitudeDeg, Site.LongitudeDeg, Time.JdUtc * 1440, MagLimit);
+            // the names in it follow the language and the Sky names setting
+            string key = string.Format(Inv, "{0}|{1}|{2}|{3:0.0}|{4}|{5}|{6}", Site.Name, Site.LatitudeDeg, Site.LongitudeDeg, Time.JdUtc * 1440, MagLimit, Generation, SkyNames.InLanguage);
             if (key == _infoKey) return _info;
             var blocks = new List<Block>();
             var site = Site;
@@ -746,7 +747,7 @@ namespace Sidralune.UI
             var mrs = AstroEvents.BodyRiseSet(Body.Moon, site, noon);
             moonBlock.Rows.Add(new[] { T("Rises"), mrs.AlwaysUp ? T("up all day") : mrs.NeverUp ? T("does not rise") : Hm(site, mrs.Rise) });
             moonBlock.Rows.Add(new[] { T("Sets"), mrs.AlwaysUp || mrs.NeverUp ? "—" : Hm(site, mrs.Set) });
-            moonBlock.Rows.Add(new[] { T("In"), CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)?.Name ?? "—" });
+            moonBlock.Rows.Add(new[] { T("In"), SkyNames.ConstellationName(CatalogManager.Instance.ConstellationAt(mp.Astrometric.Ra, mp.Astrometric.Dec)) ?? "—" });
             blocks.Add(moonBlock);
 
             // planets above the horizon at some time between sunset and sunrise
@@ -776,7 +777,7 @@ namespace Sidralune.UI
             var zen = _ctx.HorizontalToIcrs(0, AstroMath.HalfPi);
             CatalogManager.Instance.DeepSky.Cone(zen.Ra, zen.Dec, 65 * AstroMath.Deg2Rad, 99, list);
             foreach (var o in list.Where(x => x.Messier != null && !double.IsNaN(x.Mag) && x.Mag <= 7.5).OrderBy(x => x.Mag).Take(8))
-                dso.Rows.Add(new[] { o.Messier + (o.Name != null ? " " + o.Name : ""), string.Format(Inv, "{0} {1:0.0}", DeepSkyObject.TypeLabel(o.Type).ToLowerInvariant(), o.Mag) });
+                dso.Rows.Add(new[] { o.Messier + (o.Name != null ? " " + SkyNames.Nickname(o.Name) : ""), string.Format(Inv, "{0} {1:0.0}", DeepSkyObject.TypeLabel(o.Type).ToLowerInvariant(), o.Mag) });
             if (dso.Rows.Count > 0) blocks.Add(dso);
 
             var showers = new Block { Heading = T("Meteor showers") };

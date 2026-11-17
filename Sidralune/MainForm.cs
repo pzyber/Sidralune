@@ -477,12 +477,20 @@ namespace Sidralune
                 foreach (var o in CatalogManager.Instance.Search(q, 12))
                 {
                     var obj = o;
-                    entries.Add(new KeyValuePair<int, Entry>(Score(o.DisplayName, q) + 5, new Entry
+                    // found by the catalogue's name or the one shown ("M51 Malströmsgalaxen")
+                    entries.Add(new KeyValuePair<int, Entry>(Math.Max(Score(o.DisplayName, q), Score(o.ShownName, q)) + 5, new Entry
                     {
-                        Title = o.DisplayName, Icon = o is Star ? Icons.Star : Icons.Target,
+                        Title = o.ShownName, Icon = o is Star ? Icons.Star : Icons.Target,
                         Sub = (o is Star ? T("Star") : DeepSkyObject.TypeLabel(o.Type)) + (double.IsNaN(o.Mag) ? "" : "  ·  " + T("mag {0:0.0}", o.Mag)) + (o.Constellation != null ? "  ·  " + o.Constellation : "") + "  ·  " + T("show in sky chart"),
                         Run = () => MainForm.Instance.ShowObject(SelectedObject.From(obj))
                     }));
+                }
+                // constellations by abbreviation, IAU name or the name shown ("Stora björnen")
+                foreach (var con in SkyNames.SearchConstellations(CatalogManager.Instance.Constellations, q).Take(4))
+                {
+                    var c = con;
+                    int s = Math.Max(Math.Max(Score(SkyNames.ConstellationName(c), q), Score(c.Name, q)), string.Equals(c.Abbr, q, StringComparison.Ordinal) ? 100 : 0);
+                    entries.Add(new KeyValuePair<int, Entry>(s + 10, new Entry { Title = SkyNames.ConstellationName(c), Sub = T("Constellation") + "  ·  " + c.Abbr + "  ·  " + T("show in sky chart"), Icon = Icons.Target, Run = () => MainForm.Instance.ShowObject(Views.SkyView.ConstellationObject(c)) }));
                 }
                 foreach (Body b in Enum.GetValues(typeof(Body)))
                 {

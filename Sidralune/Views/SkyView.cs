@@ -283,7 +283,11 @@ namespace Sidralune.Views
             if (body.Count > 0) { var o = PlanetObject(body[0]); AppState.Select(o); Goto(o); return; }
             var moon = MoonObject(q);
             if (moon != null) { AppState.Select(moon); Goto(moon); return; }
-            var hit = CatalogManager.Instance.Find(q) ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
+            var hit = CatalogManager.Instance.Find(q);
+            // a constellation by its abbreviation, IAU name or the name shown ("Stora björnen")
+            var constellation = hit == null ? SkyNames.FindConstellation(CatalogManager.Instance.Constellations, q) : null;
+            if (constellation != null) { var o = ConstellationObject(constellation); AppState.Select(o); Goto(o); return; }
+            hit = hit ?? CatalogManager.Instance.Search(q, 1).FirstOrDefault();
             if (hit != null) { var o = SelectedObject.From(hit); AppState.Select(o); Goto(o); return; }
             var mb = MinorBodyStore.Instance.Find(q);
             if (mb != null) { var o = MinorObject(mb); AppState.Select(o); Goto(o); return; }
@@ -304,6 +308,8 @@ namespace Sidralune.Views
             }
             double fov = Chart.FovDeg;
             if (o.Kind == SelectedKind.DeepSky && !double.IsNaN(o.SizeArcmin)) fov = Math.Max(0.3, Math.Min(Chart.FovDeg, o.SizeArcmin / 60 * 8));
+            // a constellation whole, about as wide as the larger ones
+            if (IsConstellation(o)) fov = Math.Max(fov, 50);
             if (o.Kind == SelectedKind.PlanetMoon && o.Planet.HasValue)
             {
                 // close enough to tell the moon from its planet, with the planet in view too
@@ -323,7 +329,7 @@ namespace Sidralune.Views
             StarChart.Invalidate();
             _objTitle.Text = DisplayName(o);
             var con = CatalogManager.Instance.ConstellationAt(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad);
-            _objSub.Text = con != null ? T("{0} in {1}", KindLabel(o), con.Name) : KindLabel(o);
+            _objSub.Text = IsConstellation(o) ? T("Constellation") : con != null ? T("{0} in {1}", KindLabel(o), SkyNames.ConstellationName(con)) : KindLabel(o);
             UpdateLiveInfo();
             // altitude curve for the coming night
             _alt.Clear();
@@ -331,7 +337,7 @@ namespace Sidralune.Views
             var start = AppState.Now;
             var local = site.ToLocal(start.ToDateTimeUtc());
             var noon = site.ToUtc(local.Date.AddHours(local.Hour < 12 ? -12 : 12));
-            var series = _alt.AddSeries(o.Name);
+            var series = _alt.AddSeries(DisplayName(o));
             // UTC on the axis, labelled with the site's clock: a daylight saving change must not fold the curve
             _alt.TimeZone = site.TimeZone;
             for (int i = 0; i <= 96; i++)
@@ -353,8 +359,17 @@ namespace Sidralune.Views
             _alt.Invalidate();
         }
 
-        /// <summary>An object's name as shown: the Sun, Moon and planets in the interface language.</summary>
-        public static string DisplayName(SelectedObject o) => o.Kind == SelectedKind.Planet && o.Planet.HasValue ? BodyNames.Name(o.Planet.Value) : o.Name;
+        /// <summary>An object's name as shown: the Sun, Moon, planets and well-known nicknames in the interface language.</summary>
+        public static string DisplayName(SelectedObject o) =>
+            o.Kind == SelectedKind.Planet && o.Planet.HasValue ? BodyNames.Name(o.Planet.Value)
+            : o.Catalog != null && o.Name == o.Catalog.DisplayName ? o.Catalog.ShownName
+            : IsConstellation(o) ? SkyNames.ConstellationName(o.Name) : o.Name;
+
+        /// <summary>A constellation to show: the chart centred on its label. Its name is kept in Latin and shown translated.</summary>
+        public static SelectedObject ConstellationObject(Constellation c) =>
+            new SelectedObject { Kind = SelectedKind.Coordinates, Name = c.Name, RaDeg = c.LabelRa * AstroMath.Rad2Deg, DecDeg = c.LabelDec * AstroMath.Rad2Deg };
+
+        private static bool IsConstellation(SelectedObject o) => o.Kind == SelectedKind.Coordinates && o.Name != null && Array.IndexOf(SkyNames.Constellations, o.Name) >= 0;
 
         // what kind of object it is, in words
         private static string KindLabel(SelectedObject o)

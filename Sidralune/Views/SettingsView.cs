@@ -385,7 +385,15 @@ namespace Sidralune.Views
                 restartRow.Visible = AppState.Settings.Language != started;
             };
             g.Full(restartRow);
-            var night = g.Row(T("Night vision (red) mode"), new CheckBox { Checked = Theme.Current.IsNight, Text = T("Use deep red colours to protect dark adaptation") });
+            var skyNames = g.Row(T("Sky names"), new CheckBox { Checked = AppState.Settings.SkyNamesInLanguage, Text = T("Show constellation names and well-known object names in the interface language") });
+            skyNames.CheckedChanged += (s, e) =>
+            {
+                AppState.Settings.SkyNamesInLanguage = Core.Catalogs.SkyNames.InLanguage = skyNames.Checked;
+                AppState.Save();
+                // the charts draw the names anew; panels and lists show them the next time they are filled
+                MainForm.Instance?.Invalidate(true);
+            };
+            var night =g.Row(T("Night vision (red) mode"), new CheckBox { Checked = Theme.Current.IsNight, Text = T("Use deep red colours to protect dark adaptation") });
             bool syncing = false;
             night.CheckedChanged += (s, e) => { if (!syncing) MainForm.Instance.SetNightMode(night.Checked); };
             EventHandler sync = (s, e) => { syncing = true; night.Checked = Theme.Current.IsNight; syncing = false; };

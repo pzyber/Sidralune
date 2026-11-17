@@ -100,7 +100,7 @@ The chart can zoom from the whole sky (200°) down to 36″ (0.01°), close enou
 
 ## Finding objects
 
-- Type in the **find box** on the toolbar and press Enter. It accepts names (`Albireo`, `Ring Nebula`), designations (`M 57`, `NGC 6720`, `HIP 95947`), planets and their moons (`Titan`, `Oberon`), comets and asteroids, and coordinates in the form `hh mm ss +dd mm ss`.
+- Type in the **find box** on the toolbar and press Enter. It accepts names (`Albireo`, `Ring Nebula`), designations (`M 57`, `NGC 6720`, `HIP 95947`), constellations (`Cygnus`, `Cyg`), planets and their moons (`Titan`, `Oberon`), comets and asteroids, and coordinates in the form `hh mm ss +dd mm ss`. In another interface language, the translated names of planets, constellations and well-known objects work too (`Svanen`, `Ringnebulosan` in Swedish); see [Languages](Settings#languages).
 - Or press **Ctrl+K** anywhere for the [command palette](The-user-interface#command-palette).
 
 The chart centres on the object and selects it. If a name is not found in the local catalogues, try **Databases → Online databases → Resolve name**, which asks the CDS Sesame service.

@@ -329,7 +329,7 @@ namespace Sidralune.Views
             foreach (var d in dsos)
             {
                 double x, y;
-                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(new Annotation { Name = d.DisplayName, X = x, Y = y, Color = pal => pal.Nebula });
+                if (w.WorldToPixel(d.RaHours * 15, d.DecDeg, out x, out y) && x >= 0 && y >= 0 && x < w.ImageWidth && y < w.ImageHeight) list.Add(new Annotation { Name = d.ShownName, X = x, Y = y, Color = pal => pal.Nebula });
             }
             var stars = new List<Star>();
             CatalogManager.Instance.Stars.Cone(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad, r, 12, stars);

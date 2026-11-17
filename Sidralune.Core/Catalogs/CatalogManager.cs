@@ -630,6 +630,9 @@ namespace Sidralune.Core.Catalogs
             SkyObject o;
             if (_names.TryGetValue(name.Trim(), out o)) return o;
             if (_names.TryGetValue(Normalize(name), out o)) return o;
+            // a nickname in the interface language ("Malströmsgalaxen")
+            foreach (var original in SkyNames.OriginalNicknames(name, false))
+                if (_names.TryGetValue(Normalize(original), out o)) return o;
             var pgc = Pgc;
             if (pgc != null)
             {
@@ -710,6 +713,15 @@ namespace Sidralune.Core.Catalogs
                 else if (kv.Key.StartsWith(tn, StringComparison.OrdinalIgnoreCase) || kv.Key.StartsWith(t, StringComparison.OrdinalIgnoreCase)) score = 1 + kv.Key.Length;
                 else if (t.Length >= 3 && kv.Key.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0) score = 100 + kv.Key.Length;
                 if (score >= 0 && seen.Add(kv.Value)) res.Add(new KeyValuePair<int, SkyObject>(score, kv.Value));
+            }
+            // nicknames in the interface language, scored as the names they stand for
+            foreach (var original in SkyNames.OriginalNicknames(t, true))
+            {
+                SkyObject o;
+                if (!_names.TryGetValue(Normalize(original), out o) || !seen.Add(o)) continue;
+                string shown = SkyNames.Nickname(original);
+                int score = string.Equals(shown, t, StringComparison.CurrentCultureIgnoreCase) ? 0 : shown.StartsWith(t, StringComparison.CurrentCultureIgnoreCase) ? 1 + shown.Length : 100 + shown.Length;
+                res.Add(new KeyValuePair<int, SkyObject>(score, o));
             }
             var list = res.OrderBy(k => k.Key).ThenBy(k => double.IsNaN(k.Value.Mag) ? 99 : k.Value.Mag).Take(max).Select(k => k.Value).ToList();
             // then PGC galaxies by their numbers and other names

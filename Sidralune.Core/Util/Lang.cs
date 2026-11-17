@@ -48,8 +48,12 @@ namespace Sidralune.Core.Util
                     catch (Exception ex) { Log.Warn("Language", "Could not read " + file + ": " + ex.Message); }
             _catalogs = catalogs;
             DateNames = NamesOf(Code);
+            Generation++;
             return Code;
         }
+
+        /// <summary>Counts the languages used, so what is worked out from the texts of one can tell when another is in use.</summary>
+        public static int Generation { get; private set; }
 
         /// <summary>The invariant culture with the day and month names of the language in use, for dates shown as words ("ddd", "MMMM").</summary>
         public static CultureInfo DateNames { get; private set; } = CultureInfo.InvariantCulture;
@@ -207,13 +211,16 @@ namespace Sidralune.Core.Util
         /// </summary>
         public static string N(string text) => text;
 
-        /// <summary>The texts marked for translation in C# source: T("…"), N("…"), Tc("context", "…") and Tn("…", "…", n).</summary>
+        /// <summary>Marks text with a context for translation without translating it; translated where it is shown with Tc(context, variable).</summary>
+        public static string Nc(string context, string text) => text;
+
+        /// <summary>The texts marked for translation in C# source: T("…"), N("…"), Tc("context", "…"), Nc("context", "…") and Tn("…", "…", n).</summary>
         public static List<PoEntry> Extract(string source)
         {
             const string lit = "\"(?:[^\"\\\\\\r\\n]|\\\\.)*\"";
             string text = "(?<{0}>" + lit + ")(?:\\s*\\+\\s*(?<{0}>" + lit + "))*";
             var call = new Regex("(?<![\\w])(?:(?<f>[TN])\\(\\s*" + string.Format(text, "a") +
-                "|(?<f>Tc)\\(\\s*" + string.Format(text, "c") + "\\s*,\\s*" + string.Format(text, "a") +
+                "|(?<f>Tc|Nc)\\(\\s*" + string.Format(text, "c") + "\\s*,\\s*" + string.Format(text, "a") +
                 "|(?<f>Tn)\\(\\s*" + string.Format(text, "a") + "\\s*,\\s*" + string.Format(text, "p") + ")");
             Func<Group, string> join = g => g.Success ? string.Concat(g.Captures.Cast<Capture>().Select(x => Unescape(x.Value.Substring(1, x.Value.Length - 2)))) : null;
             var list = new List<PoEntry>();

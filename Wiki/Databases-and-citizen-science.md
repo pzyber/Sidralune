@@ -31,7 +31,7 @@ Click **Search**. Results (up to 5000) are sorted by brightness.
 |---|---|
 | Deep-sky objects | Object, type, constellation, RA, Dec, magnitude, size, surface brightness, current altitude, other names |
 | Stars | Star, constellation, RA, Dec, V magnitude, B−V, spectral type, parallax, variable type, current altitude |
-| Constellations | Abbreviation, name, genitive, label position, current altitude |
+| Constellations | Abbreviation, name (in the interface language, with the IAU name beside it when they differ), genitive, label position, current altitude |
 
 Double-click a row to show it in the Sky chart. Select rows (Ctrl or Shift for several) and click **Add to plan** to add them to the active [observing list](Observation-planning). **CSV…** exports the results.
 
