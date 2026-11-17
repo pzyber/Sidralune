@@ -116,6 +116,43 @@ namespace Sidralune.Tests
             CheckTrue("Moffat β found", !double.IsNaN(m.Beta) && m.Beta > 1, m.Beta.ToString("0.0"));
         }
 
+        /// <summary>
+        /// Stars about one pixel wide (short focal length or bin 2, as for polar alignment) are found and measured the same
+        /// wherever they fall within a pixel. Centred on a pixel they used to measure as narrow as a hot pixel and were
+        /// dropped, which made the simulated polar alignment fail now and then.
+        /// </summary>
+        [TestMethod]
+        public void TestUndersampledStars()
+        {
+            int w = 160, h = 120;
+            var img = new AstroImage(w, h, 1);
+            var d = img.Data[0];
+            var rng = new Random(3);
+            for (int i = 0; i < d.Length; i++) d[i] = (float)(0.05 + 0.002 * (rng.NextDouble() - 0.5));
+            // a Gaussian of FWHM 1.41 px integrated over each pixel's area, at every quarter-pixel phase
+            double sigma = 0.6;
+            var truth = new List<double[]>();
+            for (int k = 0; k < 16; k++)
+            {
+                double cx = 15 + (k % 4) * 35 + 0.25 * (k % 4), cy = 15 + (k / 4) * 28 + 0.25 * (k / 4);
+                truth.Add(new[] { cx, cy });
+                for (int y = (int)cy - 4; y <= (int)cy + 4; y++)
+                    for (int x = (int)cx - 4; x <= (int)cx + 4; x++)
+                    {
+                        double fx = Core.Mathematics.Stats.NormalCdf((x + 0.5 - cx) / sigma) - Core.Mathematics.Stats.NormalCdf((x - 0.5 - cx) / sigma);
+                        double fy = Core.Mathematics.Stats.NormalCdf((y + 0.5 - cy) / sigma) - Core.Mathematics.Stats.NormalCdf((y - 0.5 - cy) / sigma);
+                        d[y * w + x] += (float)(0.5 * fx * fy);
+                    }
+            }
+            foreach (var p in new[] { 30 * w + 32, 57 * w + 68, 110 * w + 140 }) d[p] += 0.3f; // hot pixels, between the stars
+            var found = StarDetector.Detect(img);
+            var matched = truth.Select(t => found.FirstOrDefault(f => Math.Abs(f.X - t[0]) < 0.3 && Math.Abs(f.Y - t[1]) < 0.3)).ToList();
+            CheckTrue("Every undersampled star found, hot pixels rejected", matched.All(f => f != null) && found.Count == truth.Count, matched.Count(f => f != null) + " of " + truth.Count + " found, " + found.Count + " detections");
+            var widths = matched.Where(f => f != null).Select(f => f.Fwhm).ToList();
+            CheckTrue("FWHM 1.41 px at every phase", widths.Count > 0 && widths.Min() > 1.2 && widths.Max() < 1.65, widths.Count > 0 ? widths.Min().ToString("0.00") + "–" + widths.Max().ToString("0.00") : "none");
+            CheckTrue("Undersampled stars round", matched.Where(f => f != null).All(f => f.Eccentricity < 0.6), string.Join(" ", matched.Where(f => f != null).Select(f => f.Eccentricity.ToString("0.00"))));
+        }
+
         [TestMethod]
         public void TestStarMatchingModels()
         {

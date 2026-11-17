@@ -359,8 +359,7 @@ namespace Sidralune.Devices.Simulators
                     double x = w / 2.0 - xi * AstroMath.Rad2ArcSec / scale, y = h / 2.0 - eta * AstroMath.Rad2ArcSec / scale;
                     if (x < -r || y < -r || x > w + r || y > h + r) continue;
                     double flux = Math.Pow(10, -0.4 * (s.Mag - ZeroPointMag)) * exp; // electrons
-                    double amp = flux / (2 * Math.PI * sigma * sigma);
-                    Splat(d, w, h, x, y, amp, sigma, r);
+                    Splat(d, w, h, x, y, flux, sigma, r);
                 }
                 if (SyntheticFieldStars)
                 {
@@ -384,7 +383,7 @@ namespace Sidralune.Devices.Simulators
                                 double x = w / 2.0 - xi * AstroMath.Rad2ArcSec / scale, y = h / 2.0 - eta * AstroMath.Rad2ArcSec / scale;
                                 if (x < -r || y < -r || x > w + r || y > h + r) continue;
                                 double flux = Math.Pow(10, -0.4 * (mag - ZeroPointMag)) * exp;
-                                Splat(d, w, h, x, y, flux / (2 * Math.PI * sigma * sigma), sigma, r);
+                                Splat(d, w, h, x, y, flux, sigma, r);
                             }
                         }
                 }
@@ -417,18 +416,41 @@ namespace Sidralune.Devices.Simulators
         /// <summary>Add synthetic faint field stars (deterministic per sky position). Simulation only.</summary>
         public bool SyntheticFieldStars = true;
 
-        private static void Splat(float[] d, int w, int h, double x, double y, double amp, double sigma, int r)
+        /// <summary>
+        /// Adds a Gaussian star of the given total flux, integrated over each pixel's area as a sensor collects it. Sampling
+        /// the Gaussian only at pixel centres made undersampled stars (bin 2, about one pixel wide) look narrower or more
+        /// elongated depending on where they fell within a pixel, so the star detector dropped many as hot pixels.
+        /// </summary>
+        private static void Splat(float[] d, int w, int h, double x, double y, double flux, double sigma, int r)
         {
-            for (int yy = (int)y - r; yy <= (int)y + r; yy++)
+            int x0 = (int)x - r, y0 = (int)y - r, n = 2 * r + 1;
+            var fx = PixelFractions(x, x0, n, sigma);
+            var fy = PixelFractions(y, y0, n, sigma);
+            for (int j = 0; j < n; j++)
             {
+                int yy = y0 + j;
                 if (yy < 0 || yy >= h) continue;
-                for (int xx = (int)x - r; xx <= (int)x + r; xx++)
+                for (int i = 0; i < n; i++)
                 {
+                    int xx = x0 + i;
                     if (xx < 0 || xx >= w) continue;
-                    double dx = xx - x, dy = yy - y;
-                    d[yy * w + xx] += (float)(amp * Math.Exp(-0.5 * (dx * dx + dy * dy) / (sigma * sigma)));
+                    d[yy * w + xx] += (float)(flux * fx[i] * fy[j]);
                 }
             }
+        }
+
+        /// <summary>The fraction of a 1-D Gaussian centred at c that falls in each pixel from p0 (pixel p spans p ± 0.5).</summary>
+        private static double[] PixelFractions(double c, int p0, int n, double sigma)
+        {
+            var f = new double[n];
+            double prev = Stats.NormalCdf((p0 - 0.5 - c) / sigma);
+            for (int i = 0; i < n; i++)
+            {
+                double next = Stats.NormalCdf((p0 + i + 0.5 - c) / sigma);
+                f[i] = next - prev;
+                prev = next;
+            }
+            return f;
         }
 
         private double Gauss()
