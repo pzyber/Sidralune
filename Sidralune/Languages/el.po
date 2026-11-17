@@ -9582,3 +9582,253 @@ msgstr "Αστρικό νέφος του Τοξότη"
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
 msgstr "Αστρικό νέφος του Τοξότη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Barnard's Merope Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Toby Jug Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coddington's Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bow-Tie nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sculptor Filament"
+msgstr "Γαλαξίας του Γλύπτη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sculptor Galaxy"
+msgstr "Γαλαξίας του Γλύπτη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Maia Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Merope Nebula"
+msgstr "Νεφέλωμα της Μερόπης"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hind's Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Hubble's Nebula"
+msgstr "Μεταβλητό Νεφέλωμα του Χαμπλ"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Great Bird Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Caroline's Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Bear Claw Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Helix Galaxy"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pencil Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Eight-Burst Nebula"
+msgstr "Νότιο δακτυλιοειδές νεφέλωμα"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wishing Well Cluster"
+msgstr "Σμήνος πηγάδι των ευχών"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Pearl Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blue Planetary"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Miniature Spiral"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Medusa Galaxy Merger"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coma Pinwheel"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Virgo Galaxy"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Cocoon Galaxy"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Butterfly Galaxies"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Coalsack Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Umbrella Galaxy"
+msgstr "Γαλαξίας της ομπρέλας"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Mice Galaxy"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Omega Centauri"
+msgstr "Ωμέγα Κενταύρου"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Rim Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Box Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "the War and Peace Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Ghost Nebula"
+msgstr "Νεφέλωμα Μικρό Φάντασμα"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Gem"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Red Spider Nebula"
+msgstr "Νεφέλωμα Κόκκινη Αράχνη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Phantom Streak Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Little Gem Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Foxhead Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Barnard's Galaxy"
+msgstr "Γαλαξίας του Μπάρναρντ"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Blue Flash Nebula"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Circinus Galaxy"
+msgstr "Γαλαξίας του Διαβήτη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sculptor Dwarf Elliptical"
+msgstr "Νάνος του Γλύπτη"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Fornax Dwarf Spheroidal"
+msgstr "Νάνος της Καμίνου"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Seyfert's Sextet"
+msgstr "Εξάδα του Σίφερτ"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Wolf-Lundmark-Melotte"
+msgstr "Βολφ-Λούντμαρκ-Μελότ"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Sextans Dwarf Spheroidal"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Surfboard Galaxy"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Rosette Cluster"
+msgstr ""
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Praesepe"
+msgstr "Σμήνος της Κυψέλης"
+
+#: Sidralune.Core/Catalogs/SkyNames.cs
+msgctxt "object name"
+msgid "Brocchi's Cluster"
+msgstr ""

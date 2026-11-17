@@ -66,6 +66,9 @@ namespace Sidralune.Tests
                 var vega = cm.Find("Vega");
                 CheckTrue("Star names stay as they are", vega != null && vega.ShownName == vega.DisplayName);
                 CheckTrue("A name without a translation stays as the catalogue has it", SkyNames.Nickname("Winnecke 4") == "Winnecke 4");
+                var sculptor = (DeepSkyObject)cm.Find("Bildhuggargalaxen");
+                CheckTrue("A less famous nickname in Swedish, found by it", sculptor != null && sculptor.ShownName == "NGC 253 Bildhuggargalaxen" && sculptor.Name == "Sculptor Galaxy", sculptor?.ShownName);
+                CheckTrue("A nickname Swedish has no name of its own for stays in English", SkyNames.Nickname("Surfboard Galaxy") == "Surfboard Galaxy");
                 CheckTrue("Found by the Swedish name, in any case, and by the English one", cm.Find("Malströmsgalaxen") == m51 && cm.Find("malströmsgalaxen") == m51 && cm.Find("Whirlpool Galaxy") == m51);
                 CheckTrue("Searching finds part of the Swedish name", cm.Search("Malström").Contains(m51) && cm.Search("Andromedagal").Any(o => ((DeepSkyObject)o).Messier == "M31"));
                 CheckTrue("A constellation by its Swedish or IAU name or abbreviation", SkyNames.FindConstellation(cm.Constellations, "stora björnen") == uma

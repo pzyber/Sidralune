@@ -131,7 +131,7 @@ The whole interface is translated:
 - **Solar system**, **Radio**, **Databases** and **Scripts** (results that online services return, such as SIMBAD tables, and the scripting API stay as they are),
 - the option names and choices in the property grids (stacking, planetary, photometry, equipment profiles, observing log and sequencer settings), and Yes/No for on/off options,
 - planet names, object types, visibility ratings, moon phases, eclipses and other events, and meteor shower names, wherever they appear,
-- constellation names and the nicknames of about 85 well-known deep-sky objects (the Andromeda Galaxy, the Orion Nebula, the Pleiades and the like), with **Sky names** on. A nickname is translated only where the language has an established name of its own; otherwise it stays in English.
+- constellation names and the nicknames of about 130 deep-sky objects (the Andromeda Galaxy, the Orion Nebula, the Pleiades, the Sculptor Galaxy and the like), with **Sky names** on. A nickname is translated only where the language has an established name of its own; otherwise it stays in English.
 
 A language whose file lacks some texts shows those in English.
 

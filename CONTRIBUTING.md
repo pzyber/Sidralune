@@ -109,7 +109,7 @@ The translations other than Swedish were written in one go and have not yet been
 The constellation names and object nicknames follow the title or opening sentence of the language's own Wikipedia article where there is one (Malströmsgalaxen, not "Virvelgalaxen"), then Wikidata and other established sources.
 
 - **Constellations** have names in every language, so every language file names all 88. A name that no source confirms is a best guess and its entry carries the comment `# No checked source confirms this name. Please correct it if your language uses another.` If you know the name your language uses, change the `msgstr` and remove the comment; if the guess is right, just remove the comment.
-- **Object nicknames** are mostly English coinages ("Pacman Nebula", "Blinking Planetary") that many languages have no name of their own for. A nickname is translated only where the language has an established name; otherwise its `msgstr` is left empty and the English nickname is shown, as it is when **Sky names** is off. Fill one in when your language uses a name of its own, not a word-for-word translation.
+- **Object nicknames** are every nickname in the built-in data and OpenNGC, apart from designations such as Centaurus A or h Persei. They are mostly English coinages ("Pacman Nebula", "Blinking Planetary") that many languages have no name of their own for. A nickname is translated only where the language has an established name; otherwise its `msgstr` is left empty and the English nickname is shown, as it is when **Sky names** is off. Fill one in when your language uses a name of its own, not a word-for-word translation.
 
 ## Contributing code
 
