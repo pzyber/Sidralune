@@ -9391,7 +9391,7 @@ msgstr "Kalifornia-köd"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crescent Nebula"
-msgstr "Félhold-köd"
+msgstr "Sarló-köd"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

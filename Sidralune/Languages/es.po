@@ -9116,7 +9116,7 @@ msgstr "Galaxia del Sombrero"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Galaxia del Molinete"
+msgstr "Galaxia del Molinillo"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9216,12 +9216,12 @@ msgstr "Nebulosa de Orión"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Nebulosa de De Mairan"
+msgstr "Nebulosa de Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Nebulosa de De Mairan"
+msgstr "Nebulosa de Mairan"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9336,7 +9336,7 @@ msgstr "Nebulosa Cabeza de Caballo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flame Nebula"
-msgstr "Nebulosa de la Flama"
+msgstr "Nebulosa de la Llama"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9451,7 +9451,7 @@ msgstr "Nebulosa de la Estrella Llameante"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Casco de Thor"
+msgstr "Nebulosa del Casco de Thor"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9461,7 +9461,7 @@ msgstr "Nebulosa Iris"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cave Nebula"
-msgstr "Nebulosa de la Cueva"
+msgstr "Nebulosa de la Caverna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9566,7 +9566,7 @@ msgstr "Cúmulo de Hércules"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Perchero"
+msgstr "Cúmulo de la Percha"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

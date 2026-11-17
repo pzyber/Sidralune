@@ -9041,7 +9041,7 @@ msgstr "Секстант"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Taurus"
-msgstr "Бик"
+msgstr "Телец"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
@@ -9276,7 +9276,7 @@ msgstr "Малка Гира"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Owl Nebula"
-msgstr "Мъглявина Бухал"
+msgstr "Мъглявина Сова"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Куп Пеперуда"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Куп на Птолемей"
+msgstr "Птолемеев куп"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Куп на Птолемей"
+msgstr "Птолемеев куп"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -9327,7 +9327,7 @@ msgstr "Mgławica Eskimos"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Saturn Nebula"
-msgstr "Mgławica Saturn"
+msgstr "Mgławica Saturna"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9342,7 +9342,7 @@ msgstr "Niebieska Śnieżka"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Blinking Planetary"
-msgstr "Mrugająca Mgławica Planetarna"
+msgstr "Mgławica Mrugająca"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9477,7 +9477,7 @@ msgstr "Mgławica Trąba Słonia"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flaming Star Nebula"
-msgstr "Mgławica Płonącej Gwiazdy"
+msgstr "Mgławica Płonąca Gwiazda"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9502,7 +9502,7 @@ msgstr "Mgławica Pacman"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wizard Nebula"
-msgstr "Mgławica Czarodziej"
+msgstr "Mgławica Czarodzieja"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9602,14 +9602,14 @@ msgstr "Wieszak"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Gromada w Warkoczu Bereniki"
+msgstr "Gromada Warkocza Bereniki"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Sagittarius Star Cloud"
-msgstr "Mały Obłok Gwiazd w Strzelcu"
+msgstr "Chmura gwiazd Strzelca"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Small Sgr Star Cloud"
-msgstr "Mały Obłok Gwiazd w Strzelcu"
+msgstr "Chmura gwiazd Strzelca"

@@ -9286,7 +9286,7 @@ msgstr "Nebulosa de Hélix"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Eye Nebula"
-msgstr "Nebulosa Olho de Gato"
+msgstr "Nebulosa do Olho de Gato"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9301,12 +9301,12 @@ msgstr "Nebulosa Saturno"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Blue Snowball"
-msgstr "Bola de Neve Azul"
+msgstr "Nebulosa Bola de Neve Azul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Copeland's Blue Snowball"
-msgstr "Bola de Neve Azul"
+msgstr "Nebulosa Bola de Neve Azul"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9411,12 +9411,12 @@ msgstr "Nebulosa de Carina"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Nebulosa Cabeça da Bruxa"
+msgstr "Nebulosa Cabeça de Bruxa"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Nebulosa Cabeça da Bruxa"
+msgstr "Nebulosa Cabeça de Bruxa"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -9487,7 +9487,7 @@ msgstr "Toro šalmas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Irio ūkas"
+msgstr "Vilkdalgio ūkas"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9552,12 +9552,12 @@ msgstr "Dvigubas spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wild Duck Cluster"
-msgstr "Laukinės anties spiečius"
+msgstr "Laukinių ančių spiečius"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Amas de l'Ecu de Sobieski"
-msgstr "Laukinės anties spiečius"
+msgstr "Laukinių ančių spiečius"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9567,12 +9567,12 @@ msgstr "Drugelio spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Ptolemėjo spiečius"
+msgstr "Ptolemėjaus spiečius"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Ptolemėjo spiečius"
+msgstr "Ptolemėjaus spiečius"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -9106,7 +9106,7 @@ msgstr "Kolmnurga galaktika"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Whirlpool Galaxy"
-msgstr "Keerisgalaktika"
+msgstr "Veekeerise galaktika"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9116,7 +9116,7 @@ msgstr "Sombrero galaktika"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Tuuleveskigalaktika"
+msgstr "Tuuleratta galaktika"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9236,7 +9236,7 @@ msgstr "Laguuni udu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Trifid Nebula"
-msgstr "Trifiidudu"
+msgstr "Trifidi udukogu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9261,7 +9261,7 @@ msgstr "Lüüra rõngasudu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Dumbbell Nebula"
-msgstr "Hantliudu"
+msgstr "Hantli udukogu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9316,7 +9316,7 @@ msgstr "Vilkuv planetaarne udu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Jupiter's Ghost Nebula"
-msgstr "Jupiteri vaim"
+msgstr "Jupiteri kummitus"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9411,12 +9411,12 @@ msgstr "Kiilu udukogu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Nõiapea udu"
+msgstr "Nõiapea udukogu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Nõiapea udu"
+msgstr "Nõiapea udukogu"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9556,12 +9556,12 @@ msgstr "Ehtekarp"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Heraklese kerasparv"
+msgstr "Herkulese kerasparv"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Heraklese kerasparv"
+msgstr "Herkulese kerasparv"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

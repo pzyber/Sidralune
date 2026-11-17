@@ -9176,7 +9176,7 @@ msgstr "Galaxie du Fuseau"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Phantom Galaxy"
-msgstr "Galaxie fantôme"
+msgstr "Galaxie du Fantôme"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9301,12 +9301,12 @@ msgstr "Nébuleuse Saturne"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Blue Snowball"
-msgstr "Boule de neige bleue"
+msgstr "Nébuleuse de la Boule de neige bleue"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Copeland's Blue Snowball"
-msgstr "Boule de neige bleue"
+msgstr "Nébuleuse de la Boule de neige bleue"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9451,7 +9451,7 @@ msgstr "Nébuleuse de l'Étoile flamboyante"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Casque de Thor"
+msgstr "Nébuleuse du Casque de Thor"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9481,7 +9481,7 @@ msgstr "Nébuleuse de la Patte de chat"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tadpoles Nebula"
-msgstr "Nébuleuse des Têtards"
+msgstr "Nébuleuse du Têtard"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9521,12 +9521,12 @@ msgstr "Double amas de Persée"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wild Duck Cluster"
-msgstr "Amas du Canard sauvage"
+msgstr "Amas des Canards sauvages"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Amas de l'Ecu de Sobieski"
-msgstr "Amas du Canard sauvage"
+msgstr "Amas des Canards sauvages"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9556,12 +9556,12 @@ msgstr "Boîte à bijoux"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Amas d'Hercule"
+msgstr "Grand Amas d'Hercule"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Amas d'Hercule"
+msgstr "Grand Amas d'Hercule"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

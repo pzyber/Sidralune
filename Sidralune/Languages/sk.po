@@ -9297,12 +9297,12 @@ msgstr "Hmlovina Činka"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Malá Činka"
+msgstr "Hmlovina Malá činka"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Malá Činka"
+msgstr "Hmlovina Malá činka"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9312,7 +9312,7 @@ msgstr "Sovia hmlovina"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Hmlovina Helix"
+msgstr "Hmlovina Slimák"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9362,7 +9362,7 @@ msgstr "Hmlovina Rozeta"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Horsehead Nebula"
-msgstr "Konská hlava"
+msgstr "Hmlovina Konská hlava"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9412,7 +9412,7 @@ msgstr "Hmlovina Duša"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Bubble Nebula"
-msgstr "Hmlovina Bublina"
+msgstr "Bublinová hmlovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9467,7 +9467,7 @@ msgstr "Hmlovina Kužeľ a hviezdokopa Vianočný stromček"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Christmas Tree Cluster"
-msgstr "Vianočný stromček"
+msgstr "Hviezdokopa Vianočný stromček"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

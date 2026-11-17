@@ -9127,7 +9127,7 @@ msgstr "Lisica"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Andromeda Galaxy"
-msgstr "Galaksija Andromeda"
+msgstr "Andromedina galaksija"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

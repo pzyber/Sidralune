@@ -9496,7 +9496,7 @@ msgstr "Saccus Carbonis"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pleiades"
-msgstr "Pleiades"
+msgstr "Vergiliae"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

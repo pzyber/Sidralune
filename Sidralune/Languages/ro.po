@@ -9147,7 +9147,7 @@ msgstr "Galaxia Sombrero"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pinwheel Galaxy"
-msgstr "Galaxia Morișca"
+msgstr "Galaxia Vârtelniței"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9182,12 +9182,12 @@ msgstr "Galaxia Floarea-Soarelui"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Needle Galaxy"
-msgstr "Galaxia Acul"
+msgstr "Galaxia Acului"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Whale Galaxy"
-msgstr "Galaxia Balena"
+msgstr "Galaxia Balenei"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9492,7 +9492,7 @@ msgstr "Nebuloasa Iris"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cave Nebula"
-msgstr "Nebuloasa Peșterii"
+msgstr "Nebuloasa Peștera"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9582,17 +9582,17 @@ msgstr "Roiul Bufniței"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Cutia cu Bijuterii"
+msgstr "Cutia de bijuterii"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Cluster"
-msgstr "Roiul lui Hercule"
+msgstr "Marele Roi Globular din Hercule"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hercules Globular Cluster"
-msgstr "Roiul lui Hercule"
+msgstr "Marele Roi Globular din Hercule"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

@@ -9247,12 +9247,12 @@ msgstr "Mlhovina v Orionu"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "De Mairan's Nebula"
-msgstr "Mairanova mlhovina"
+msgstr "De Mairanova mlhovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Mairan's Nebula"
-msgstr "Mairanova mlhovina"
+msgstr "De Mairanova mlhovina"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9467,7 +9467,7 @@ msgstr "Mlhovina Kužel a hvězdokupa Vánoční stromek"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Christmas Tree Cluster"
-msgstr "Vánoční stromek"
+msgstr "Hvězdokupa Vánoční stromeček"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9502,7 +9502,7 @@ msgstr "Mlhovina Pacman"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wizard Nebula"
-msgstr "Mlhovina Čaroděj"
+msgstr "Mlhovina Kouzelník"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

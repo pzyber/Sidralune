@@ -9106,7 +9106,7 @@ msgstr "Галаксија Триаголник"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Whirlpool Galaxy"
-msgstr "Галаксија Вртлог"
+msgstr "Галаксија Вител"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9396,7 +9396,7 @@ msgstr "Маглина Полумесечина"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Маглина Пашкул"
+msgstr "Маглина Кожурец"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Јато Пеперутка"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Птоломејово јато"
+msgstr "Птоломеево јато"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Птоломејово јато"
+msgstr "Птоломеево јато"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

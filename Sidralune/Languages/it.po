@@ -9451,7 +9451,7 @@ msgstr "Nebulosa Stella Fiammeggiante"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Elmo di Thor"
+msgstr "Nebulosa Elmetto di Thor"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9521,12 +9521,12 @@ msgstr "Ammasso Doppio di Perseo"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Wild Duck Cluster"
-msgstr "Ammasso Anatra Selvatica"
+msgstr "Ammasso dell'Anitra Selvatica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Amas de l'Ecu de Sobieski"
-msgstr "Ammasso Anatra Selvatica"
+msgstr "Ammasso dell'Anitra Selvatica"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9571,7 +9571,7 @@ msgstr "Attaccapanni"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Ammasso della Chioma"
+msgstr "Ammasso della Chioma di Berenice"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

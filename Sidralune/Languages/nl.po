@@ -9391,12 +9391,12 @@ msgstr "Californianevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Crescent Nebula"
-msgstr "Halvemaannevel"
+msgstr "Sikkelnevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Cocongnevel"
+msgstr "Kokonnevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9446,7 +9446,7 @@ msgstr "Olifantsslurfnevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flaming Star Nebula"
-msgstr "Nevel van de Vlammende Ster"
+msgstr "Vlammende ster-nevel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Uilcluster"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Juwelenkistje"
+msgstr "Juwelendoos"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

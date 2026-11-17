@@ -9328,12 +9328,12 @@ msgstr "Meglica Ročka"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Little Dumbbell"
-msgstr "Mala Ročka"
+msgstr "Meglica Mala ročka"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Barbell Nebula"
-msgstr "Mala Ročka"
+msgstr "Meglica Mala ročka"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9393,7 +9393,7 @@ msgstr "Meglica Rozeta"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Horsehead Nebula"
-msgstr "Konjska glava"
+msgstr "Meglica Konjska glava"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

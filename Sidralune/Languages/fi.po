@@ -9551,7 +9551,7 @@ msgstr "Pöllöjoukko"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Herschelin korulipas"
+msgstr "Jalokivirasia"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

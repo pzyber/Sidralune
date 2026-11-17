@@ -9436,7 +9436,7 @@ msgstr "Konusnebel und Weihnachtsbaumhaufen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Christmas Tree Cluster"
-msgstr "Weihnachtsbaumhaufen"
+msgstr "Weihnachtsbaum-Sternhaufen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9446,7 +9446,7 @@ msgstr "Elefantenrüsselnebel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Flaming Star Nebula"
-msgstr "Nebel des flammenden Sterns"
+msgstr "Flammensternnebel"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9536,12 +9536,12 @@ msgstr "Schmetterlingshaufen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy Cluster"
-msgstr "Ptolemäus-Haufen"
+msgstr "Ptolemaeus' Sternhaufen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Ptolemy's Cluster"
-msgstr "Ptolemäus-Haufen"
+msgstr "Ptolemaeus' Sternhaufen"
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
