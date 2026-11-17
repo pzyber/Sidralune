@@ -8684,6 +8684,7 @@ msgstr "Zobrazovat názvy souhvězdí a známých objektů v jazyce rozhraní"
 msgid "IAU name"
 msgstr "Název IAU"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Andromeda"
@@ -8994,6 +8995,7 @@ msgctxt "constellation"
 msgid "Pegasus"
 msgstr "Pegas"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Perseus"
@@ -9192,7 +9194,7 @@ msgstr "Galaxie Velryba"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Antennae Galaxies"
-msgstr "Galaxie Tykadla"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9387,17 +9389,17 @@ msgstr "Mlhovina Řasy"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Western Veil Nebula"
-msgstr "Západní Závoj"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eastern Veil Nebula"
-msgstr "Východní Závoj"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Eastern Veil"
-msgstr "Východní Závoj"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9462,7 +9464,7 @@ msgstr "Mlhovina Běžící muž"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cone Nebula & Christmas Tree"
-msgstr "Mlhovina Kužel a hvězdokupa Vánoční stromek"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9512,7 +9514,7 @@ msgstr "Mlhovina Kočičí tlapa"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Tadpoles Nebula"
-msgstr "Mlhovina Pulci"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9602,7 +9604,7 @@ msgstr "Ramínko"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coma Star Cluster"
-msgstr "Hvězdokupa ve Vlasu Bereniky"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

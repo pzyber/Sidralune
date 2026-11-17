@@ -104,7 +104,13 @@ namespace Sidralune.AppTests
                 int nplurals = forms.Success ? int.Parse(forms.Groups[1].Value) : 2;
                 var short_ = po.Entries.Where(e => e.Plural != null && e.Strings.Count(s => s.Length > 0) != nplurals).Select(e => e.Id).ToList();
                 CheckTrue(name + ": " + nplurals + " plural forms for each counted text", short_.Count == 0, string.Join(" | ", short_.Take(10)));
-                var untranslated = texts.Where(t => { var e = po.Entries.FirstOrDefault(x => x.Key == t.Key); return e == null || e.Fuzzy || e.Strings.Length == 0 || e.Strings.Any(s => s.Length == 0); }).Select(t => t.Id).ToList();
+                // an object nickname is left empty where the language has no established name of its own: the English one is shown
+                var untranslated = texts.Where(t =>
+                {
+                    var e = po.Entries.FirstOrDefault(x => x.Key == t.Key);
+                    if (e == null || e.Fuzzy) return true;
+                    return e.Context != Core.Catalogs.SkyNames.ObjectContext && (e.Strings.Length == 0 || e.Strings.Any(s => s.Length == 0));
+                }).Select(t => t.Id).ToList();
                 Info(string.Format("{0}: {1} of {2} texts translated", name, texts.Count - untranslated.Count, texts.Count));
                 // a regional file (pt-BR.po) has only the texts that differ from its language's file, which must be there
                 if (name.Contains("-")) CheckTrue(name + ": its language's own file is there", File.Exists(Path.Combine(SourceLanguages, name.Split('-')[0] + ".po")));
