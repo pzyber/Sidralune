@@ -157,11 +157,15 @@ namespace Sidralune.Imaging.Analysis
                 acc += kv.Value;
                 if (acc >= m0 / 2) { hfr = kv.Key; break; }
             }
-            // adaptive Gaussian-weighted moments (Bernstein & Jarvis 2002): fixed point sigma_w^2 = 2 <r^2>/2
-            double sw2 = Math.Max(0.5, hfr * hfr / 1.386); // HFR = 1.1774 sigma for a Gaussian
-            double mxx = 0, myy = 0, mxy = 0;
+            // adaptive Gaussian-weighted moments (Bernstein & Jarvis 2002): fixed point sigma_w^2 = 2 <r^2>/2. The weight is
+            // never narrower than a pixel: narrower, it sees little beyond the brightest pixel, and an undersampled star
+            // centred on a pixel measured as narrow as a hot pixel
+            const double minWeight = 1.0;
+            double sw2 = Math.Max(minWeight, hfr * hfr / 1.386); // HFR = 1.1774 sigma for a Gaussian
+            double mxx = 0, myy = 0, mxy = 0, usedWeight = sw2;
             for (int it = 0; it < 12; it++)
             {
+                usedWeight = sw2;
                 double ws = 0, sx2 = 0, sy2 = 0, sxy = 0, scx = 0, scy = 0;
                 for (int y = y0; y <= y1; y++)
                     for (int x = x0; x <= x1; x++)
@@ -175,12 +179,26 @@ namespace Sidralune.Imaging.Analysis
                 if (ws <= 0) break;
                 mxx = sx2 / ws; myy = sy2 / ws; mxy = sxy / ws;
                 cx += scx / ws; cy += scy / ws;
-                double nsw2 = Math.Max(0.25, mxx + myy);
+                double nsw2 = Math.Max(minWeight, mxx + myy);
                 if (Math.Abs(nsw2 - sw2) < 1e-4 * sw2) { sw2 = nsw2; break; }
                 sw2 = nsw2;
             }
-            // at the fixed point the true moments are twice the weighted ones; remove pixel-integration variance (1/12)
-            double txx = Math.Max(0.02, 2 * mxx - 1.0 / 12), tyy = Math.Max(0.02, 2 * myy - 1.0 / 12), txy = 2 * mxy;
+            // at the fixed point the true moments are twice the weighted ones
+            double cxx = 2 * mxx, cyy = 2 * myy, cxy = 2 * mxy;
+            if (mxx + myy < usedWeight * (1 - 1e-3))
+            {
+                // a star narrower than the weight never reaches the fixed point. A Gaussian of covariance C weighted by a
+                // round Gaussian of variance s measures M = (C^-1 + I/s)^-1, so C = (M^-1 - I/s)^-1
+                double detM = mxx * myy - mxy * mxy;
+                if (detM > 0)
+                {
+                    double ia = myy / detM - 1 / usedWeight, ib = -mxy / detM, id = mxx / detM - 1 / usedWeight;
+                    double detI = ia * id - ib * ib;
+                    if (ia > 0 && detI > 0) { cxx = id / detI; cyy = ia / detI; cxy = -ib / detI; }
+                }
+            }
+            // remove the pixel-integration variance (1/12)
+            double txx = Math.Max(0.02, cxx - 1.0 / 12), tyy = Math.Max(0.02, cyy - 1.0 / 12), txy = cxy;
             double tr = txx + tyy, det = txx * tyy - txy * txy;
             double disc = Math.Sqrt(Math.Max(0, tr * tr / 4 - det));
             double l1 = tr / 2 + disc, l2 = Math.Max(1e-9, tr / 2 - disc);

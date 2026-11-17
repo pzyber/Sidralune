@@ -117,7 +117,8 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Background | Mesh of robust (sigma-clipped) local medians with interpolation |
 | Noise | Multiresolution support / difference noise estimators |
 | Detection | Thresholding above the background noise with connected components |
-| Centroid, FWHM, eccentricity | Adaptive (Gaussian-weighted) moments, as in Bernstein & Jarvis (2002); unbiased FWHM even for undersampled stars |
+| Centroid, FWHM, eccentricity | Adaptive (Gaussian-weighted) moments, as in Bernstein & Jarvis (2002). The weight is never narrower than a pixel, so stars only one or two pixels wide get the same FWHM wherever they fall within a pixel |
+| Hot pixels | Sources narrower than a pixel (FWHM below 0.8 px) are rejected as hot pixels or cosmic rays |
 | Half-flux radius | Radius containing half the background-subtracted flux |
 | PSF fitting | Gaussian and Moffat fits by Levenberg-Marquardt |
 
