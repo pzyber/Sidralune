@@ -385,10 +385,10 @@ namespace Sidralune.AppTests
                 {
                     var cm = Core.Catalogs.CatalogManager.Instance;
                     var m57 = (Core.Catalogs.DeepSkyObject)cm.Find("M57");
-                    var ngc7000 = (Core.Catalogs.DeepSkyObject)cm.Find("NGC 7000");
-                    return new[] { SkyChart.DeepSkyLabel(m57, 10), SkyChart.DeepSkyLabel(m57, 30), SkyChart.DeepSkyLabel(ngc7000, 5) };
+                    var ngc7293 = (Core.Catalogs.DeepSkyObject)cm.Find("NGC 7293");
+                    return new[] { SkyChart.DeepSkyLabel(m57, 10), SkyChart.DeepSkyLabel(m57, 30), SkyChart.DeepSkyLabel(ngc7293, 5) };
                 });
-                CheckTrue("Chart labels with Swedish nicknames, and the number only when zoomed out", labels[0] == "M57 Ringnebulosan" && labels[1] == "M57" && labels[2] == "NGC 7000 Nordamerikanebulosan", string.Join(" / ", labels));
+                CheckTrue("Chart labels with Swedish nicknames, and the number only when zoomed out", labels[0] == "M57 Ringnebulosan" && labels[1] == "M57" && labels[2] == "NGC 7293 Helixnebulosan", string.Join(" / ", labels));
                 // a constellation by its Swedish name or abbreviation: the chart goes there, kept in Latin
                 foreach (var q in new[] { "Stora björnen", "UMa" })
                 {
