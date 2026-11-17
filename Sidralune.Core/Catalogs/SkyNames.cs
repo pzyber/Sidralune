@@ -47,9 +47,10 @@ namespace Sidralune.Core.Catalogs
         };
 
         /// <summary>
-        /// The nicknames that have a name of their own in other languages, spelt as the built-in data or OpenNGC has them
-        /// (both spellings when they differ). Designations such as Centaurus A or Omega Centauri, and names without an
-        /// established translation, are left out and show as the catalogue has them.
+        /// The nicknames in the built-in data and OpenNGC, spelt as the catalogue has them (both spellings when they differ).
+        /// Designations such as Centaurus A, Virgo A or h Persei are left out and show as the catalogue has them. A language
+        /// translates a nickname only where it has an established name of its own; elsewhere the entry is empty and the
+        /// English nickname is shown.
         /// </summary>
         public static readonly string[] Nicknames =
         {
@@ -61,7 +62,14 @@ namespace Sidralune.Core.Catalogs
             Nc("object name", "Whale Galaxy"), Nc("object name", "Antennae Galaxies"), Nc("object name", "Fireworks Galaxy"),
             Nc("object name", "Spindle Galaxy"), Nc("object name", "Phantom Galaxy"), Nc("object name", "Cat's Eye Galaxy"),
             Nc("object name", "Hamburger Galaxy"), Nc("object name", "Large Magellanic Cloud"), Nc("object name", "Small Magellanic Cloud"),
-            Nc("object name", "Stephan's Quintet"),
+            Nc("object name", "Stephan's Quintet"), Nc("object name", "Sculptor Galaxy"), Nc("object name", "Sculptor Filament"),
+            Nc("object name", "Coma Pinwheel"), Nc("object name", "Virgo Galaxy"), Nc("object name", "Surfboard Galaxy"),
+            Nc("object name", "Barnard's Galaxy"), Nc("object name", "Circinus Galaxy"), Nc("object name", "Coddington's Nebula"),
+            Nc("object name", "Bear Claw Nebula"), Nc("object name", "Helix Galaxy"), Nc("object name", "Miniature Spiral"),
+            Nc("object name", "Medusa Galaxy Merger"), Nc("object name", "Cocoon Galaxy"), Nc("object name", "Butterfly Galaxies"),
+            Nc("object name", "Umbrella Galaxy"), Nc("object name", "Mice Galaxy"), Nc("object name", "Seyfert's Sextet"),
+            Nc("object name", "Sculptor Dwarf Elliptical"), Nc("object name", "Fornax Dwarf Spheroidal"),
+            Nc("object name", "Sextans Dwarf Spheroidal"), Nc("object name", "Wolf-Lundmark-Melotte"),
             // nebulae
             Nc("object name", "Orion Nebula"), Nc("object name", "Great Orion Nebula"), Nc("object name", "De Mairan's Nebula"),
             Nc("object name", "Mairan's Nebula"), Nc("object name", "Crab Nebula"), Nc("object name", "Lagoon Nebula"),
@@ -82,14 +90,23 @@ namespace Sidralune.Core.Catalogs
             Nc("object name", "Flaming Star Nebula"), Nc("object name", "Thor's Helmet"), Nc("object name", "Iris Nebula"),
             Nc("object name", "Cave Nebula"), Nc("object name", "Pacman Nebula"), Nc("object name", "Wizard Nebula"),
             Nc("object name", "Cat's Paw Nebula"), Nc("object name", "Tadpoles Nebula"), Nc("object name", "Monkey Head Nebula"),
-            Nc("object name", "Coalsack Nebula"),
+            Nc("object name", "Coalsack Nebula"), Nc("object name", "Barnard's Merope Nebula"), Nc("object name", "Merope Nebula"),
+            Nc("object name", "Maia Nebula"), Nc("object name", "Toby Jug Nebula"), Nc("object name", "Bow-Tie nebula"),
+            Nc("object name", "Hind's Nebula"), Nc("object name", "Hubble's Nebula"), Nc("object name", "Pencil Nebula"),
+            Nc("object name", "Eight-Burst Nebula"), Nc("object name", "Blue Planetary"), Nc("object name", "Rim Nebula"),
+            Nc("object name", "Box Nebula"), Nc("object name", "the War and Peace Nebula"), Nc("object name", "Little Ghost Nebula"),
+            Nc("object name", "Little Gem"), Nc("object name", "Little Gem Nebula"), Nc("object name", "Red Spider Nebula"),
+            Nc("object name", "Phantom Streak Nebula"), Nc("object name", "Blue Flash Nebula"),
             // clusters and star clouds
             Nc("object name", "Pleiades"), Nc("object name", "Hyades"), Nc("object name", "Beehive Cluster"), Nc("object name", "Beehive"),
             Nc("object name", "Double Cluster"), Nc("object name", "Wild Duck Cluster"), Nc("object name", "Amas de l'Ecu de Sobieski"),
             Nc("object name", "Butterfly Cluster"), Nc("object name", "Ptolemy Cluster"), Nc("object name", "Ptolemy's Cluster"),
             Nc("object name", "Owl Cluster"), Nc("object name", "Herschel's Jewel Box"), Nc("object name", "Hercules Cluster"),
             Nc("object name", "Hercules Globular Cluster"), Nc("object name", "Coathanger"), Nc("object name", "Coma Star Cluster"),
-            Nc("object name", "Sagittarius Star Cloud"), Nc("object name", "Small Sgr Star Cloud")
+            Nc("object name", "Sagittarius Star Cloud"), Nc("object name", "Small Sgr Star Cloud"), Nc("object name", "Praesepe"),
+            Nc("object name", "Brocchi's Cluster"), Nc("object name", "Omega Centauri"), Nc("object name", "Rosette Cluster"),
+            Nc("object name", "Great Bird Cluster"), Nc("object name", "Caroline's Cluster"), Nc("object name", "Wishing Well Cluster"),
+            Nc("object name", "Pearl Cluster"), Nc("object name", "Coalsack Cluster"), Nc("object name", "Foxhead Cluster")
         };
 
         /// <summary>A constellation's name as shown: in the interface language, or its IAU name.</summary>

@@ -92,7 +92,7 @@ Click **Save** to store the changes.
 | Setting | Meaning |
 |---|---|
 | **Language** | The interface language. **Same as Windows** follows the Windows display language and falls back to English if Sidralune has no translation for it. The new language is used after a restart; **Restart now to change the language** appears when you choose another one, and closes Sidralune and starts it again in the new language |
-| **Sky names** | Shows constellation names and the nicknames of well-known objects in the interface language ("Stora björnen", "M51 Malströmsgalaxen" in Swedish). On by default; turn it off to see the Latin constellation names and the catalogues' English nicknames. It takes effect at once, without a restart, and has no effect in English. See [Languages](#languages) |
+| **Sky names** | Shows constellation names and the nicknames of well-known objects in the interface language ("Stora björnen", "M51 Malströmsgalaxen" in Swedish). A nickname the language has no established name of its own for stays in English. On by default; turn it off to see the Latin constellation names and the catalogues' English nicknames. It takes effect at once, without a restart, and has no effect in English. See [Languages](#languages) |
 | **Night vision (red) mode** | Replaces every colour with deep reds. Same as the moon button and Ctrl+Shift+N; this box and the moon button always show the same state |
 | **Atmospheric refraction** | Apply refraction to altitudes, so objects near the horizon appear where you actually see them. Turn it off to compare with geometric (airless) tables |
 
@@ -131,7 +131,7 @@ The whole interface is translated:
 - **Solar system**, **Radio**, **Databases** and **Scripts** (results that online services return, such as SIMBAD tables, and the scripting API stay as they are),
 - the option names and choices in the property grids (stacking, planetary, photometry, equipment profiles, observing log and sequencer settings), and Yes/No for on/off options,
 - planet names, object types, visibility ratings, moon phases, eclipses and other events, and meteor shower names, wherever they appear,
-- constellation names and the nicknames of about 85 well-known deep-sky objects (the Andromeda Galaxy, the Orion Nebula, the Pleiades and the like), with **Sky names** on.
+- constellation names and the nicknames of about 130 deep-sky objects (the Andromeda Galaxy, the Orion Nebula, the Pleiades, the Sculptor Galaxy and the like), with **Sky names** on. A nickname is translated only where the language has an established name of its own; otherwise it stays in English.
 
 A language whose file lacks some texts shows those in English.
 

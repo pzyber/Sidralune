@@ -66,6 +66,9 @@ namespace Sidralune.Tests
                 var vega = cm.Find("Vega");
                 CheckTrue("Star names stay as they are", vega != null && vega.ShownName == vega.DisplayName);
                 CheckTrue("A name without a translation stays as the catalogue has it", SkyNames.Nickname("Winnecke 4") == "Winnecke 4");
+                var sculptor = (DeepSkyObject)cm.Find("Bildhuggargalaxen");
+                CheckTrue("A less famous nickname in Swedish, found by it", sculptor != null && sculptor.ShownName == "NGC 253 Bildhuggargalaxen" && sculptor.Name == "Sculptor Galaxy", sculptor?.ShownName);
+                CheckTrue("A nickname Swedish has no name of its own for stays in English", SkyNames.Nickname("Surfboard Galaxy") == "Surfboard Galaxy");
                 CheckTrue("Found by the Swedish name, in any case, and by the English one", cm.Find("Malströmsgalaxen") == m51 && cm.Find("malströmsgalaxen") == m51 && cm.Find("Whirlpool Galaxy") == m51);
                 CheckTrue("Searching finds part of the Swedish name", cm.Search("Malström").Contains(m51) && cm.Search("Andromedagal").Any(o => ((DeepSkyObject)o).Messier == "M31"));
                 CheckTrue("A constellation by its Swedish or IAU name or abbreviation", SkyNames.FindConstellation(cm.Constellations, "stora björnen") == uma
@@ -78,14 +81,18 @@ namespace Sidralune.Tests
                 CheckTrue("Setting off: the catalogue's nickname", m51.ShownName == "M51 Whirlpool Galaxy");
                 CheckTrue("Setting off: the Swedish name is not searched", cm.Find("Malströmsgalaxen") == null && SkyNames.FindConstellation(cm.Constellations, "Stora björnen") == null);
                 SkyNames.InLanguage = true;
-                // every language has a name for each constellation and listed nickname
+                // every language names each constellation; a nickname is translated only where the language has an established
+                // name of its own (its entry is there but empty otherwise, and the English nickname is shown)
                 foreach (var file in Directory.GetFiles(Languages(), "*.po"))
                 {
                     var po = PoCatalog.Load(file);
-                    var missing = SkyNames.Constellations.Where(n => po.Find(SkyNames.ConstellationContext, n) == null)
-                        .Concat(SkyNames.Nicknames.Where(n => po.Find(SkyNames.ObjectContext, n) == null)).ToList();
-                    CheckTrue(Path.GetFileName(file) + ": every constellation and nickname translated", missing.Count == 0, string.Join(", ", missing.Take(10)));
+                    var missing = SkyNames.Constellations.Where(n => po.Find(SkyNames.ConstellationContext, n) == null).ToList();
+                    CheckTrue(Path.GetFileName(file) + ": every constellation translated", missing.Count == 0, string.Join(", ", missing.Take(10)));
+                    var absent = SkyNames.Nicknames.Where(n => !po.Entries.Any(e => e.Context == SkyNames.ObjectContext && e.Id == n)).ToList();
+                    CheckTrue(Path.GetFileName(file) + ": an entry for every nickname", absent.Count == 0, string.Join(", ", absent.Take(10)));
                 }
+                Lang.Use("fo");
+                CheckTrue("A nickname without an established name in the language stays in English", m51.ShownName == "M51 Whirlpool Galaxy" && cm.Find("Whirlpool Galaxy") == m51, m51.ShownName);
             }
             finally
             {
