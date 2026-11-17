@@ -9444,12 +9444,12 @@ msgstr "Mlhovina Carina"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Mlhovina Hlava čarodějnice"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Mlhovina Hlava čarodějnice"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9584,7 +9584,7 @@ msgstr "Hvězdokupa Sova"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Herschelova klenotnice"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

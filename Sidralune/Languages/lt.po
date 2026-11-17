@@ -9217,7 +9217,7 @@ msgstr "Katės akies galaktika"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hamburger Galaxy"
-msgstr "Hamburgerio galaktika"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9497,7 +9497,7 @@ msgstr "Olos ūkas"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Pacman Nebula"
-msgstr "Pakmano ūkas"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9582,7 +9582,7 @@ msgstr "Pelėdos spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Heršelio brangakmenių dėžutė"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9597,7 +9597,7 @@ msgstr "Heraklio spiečius"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Coathanger"
-msgstr "Drabužių pakaba"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9862,4 +9862,4 @@ msgstr "Ėdžios"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Brocchi's Cluster"
-msgstr "Drabužių pakaba"
+msgstr ""

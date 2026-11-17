@@ -9442,12 +9442,12 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Hmlovina Hlava bosorky"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Hmlovina Hlava bosorky"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9487,7 +9487,7 @@ msgstr "Hmlovina Thorova prilba"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Iris Nebula"
-msgstr "Hmlovina Kosatec"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

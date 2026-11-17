@@ -9281,7 +9281,7 @@ msgstr "Мъглявина Сова"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Helix Nebula"
-msgstr "Мъглявина Охлюв"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9351,7 +9351,7 @@ msgstr "Мъглявина Пеликан"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Veil Nebula"
-msgstr "Мъглявина Воал"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9396,7 +9396,7 @@ msgstr "Мъглявина Полумесец"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cocoon Nebula"
-msgstr "Мъглявина Какавида"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9441,7 +9441,7 @@ msgstr "Куп Коледна елха"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Elephant's Trunk Nebula"
-msgstr "Мъглявина Слонски хобот"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9551,7 +9551,7 @@ msgstr "Куп Бухал"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Herschel's Jewel Box"
-msgstr "Кутия за бижута на Хершел"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

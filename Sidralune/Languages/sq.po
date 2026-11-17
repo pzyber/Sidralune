@@ -8718,6 +8718,7 @@ msgctxt "constellation"
 msgid "Cancer"
 msgstr "Gaforrja"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Canes Venatici"
@@ -8774,21 +8775,25 @@ msgctxt "constellation"
 msgid "Circinus"
 msgstr "Kompasi"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Columba"
 msgstr "Pëllumbesha"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Coma Berenices"
 msgstr "Floknaja e Bereniçes"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Australis"
 msgstr "Kurora e Jugut"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Corona Borealis"
@@ -8799,6 +8804,7 @@ msgctxt "constellation"
 msgid "Corvus"
 msgstr "Korbi"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Crater"
@@ -8872,6 +8878,7 @@ msgctxt "constellation"
 msgid "Hydra"
 msgstr "Hidra"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Hydrus"
@@ -8996,6 +9003,7 @@ msgctxt "constellation"
 msgid "Pisces"
 msgstr "Peshqit"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Piscis Austrinus"
@@ -9011,6 +9019,7 @@ msgctxt "constellation"
 msgid "Pyxis"
 msgstr "Busulla"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Reticulum"
@@ -9066,6 +9075,7 @@ msgctxt "constellation"
 msgid "Triangulum"
 msgstr "Trekëndëshi"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Triangulum Australe"
@@ -9290,7 +9300,7 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Owl Nebula"
-msgstr "Mjegullnaja Kukuvajkë"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9465,7 +9475,7 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Thor's Helmet"
-msgstr "Helmeta e Thorit"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9520,12 +9530,12 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive Cluster"
-msgstr "Grumbulli i Zgjoit"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Beehive"
-msgstr "Grumbulli i Zgjoit"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9545,7 +9555,7 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Butterfly Cluster"
-msgstr "Grumbulli i Fluturës"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
@@ -9840,7 +9850,7 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Praesepe"
-msgstr "Grumbulli i Zgjoit"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

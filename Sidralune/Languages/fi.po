@@ -9476,7 +9476,7 @@ msgstr ""
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Paw Nebula"
-msgstr "Kissankäpäläsumu"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

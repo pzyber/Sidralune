@@ -9411,12 +9411,12 @@ msgstr "Carinanevel"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Witch Head Nebula"
-msgstr "Heksenhoofdnevel"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "the Witch Head Nebula"
-msgstr "Heksenhoofdnevel"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"

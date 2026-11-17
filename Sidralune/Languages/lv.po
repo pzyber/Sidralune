@@ -8684,6 +8684,7 @@ msgstr "Rādīt zvaigznāju un zināmu objektu nosaukumus saskarnes valodā"
 msgid "IAU name"
 msgstr "IAU nosaukums"
 
+# No checked source confirms this name. Please correct it if your language uses another.
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "constellation"
 msgid "Andromeda"

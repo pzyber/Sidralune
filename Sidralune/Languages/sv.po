@@ -9181,12 +9181,12 @@ msgstr "Fantomgalaxen"
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Cat's Eye Galaxy"
-msgstr "Kattögegalaxen"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
 msgid "Hamburger Galaxy"
-msgstr "Hamburgargalaxen"
+msgstr ""
 
 #: Sidralune.Core/Catalogs/SkyNames.cs
 msgctxt "object name"
