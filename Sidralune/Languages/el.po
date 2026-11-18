@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "Οι δορυφόροι του Δία"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Οι δακτύλιοι και οι δορυφόροι του Κρόνου"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Κομήτες και αστεροειδείς"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} σε διάβαση"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} κρυμμένος"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Δακτύλιοι με κλίση {0:0.0}°, ορατή η βόρεια πλευρά, ανοίγουν"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Δακτύλιοι με κλίση {0:0.0}°, ορατή η βόρεια πλευρά, κλείνουν"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Δακτύλιοι με κλίση {0:0.0}°, ορατή η νότια πλευρά, ανοίγουν"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Δακτύλιοι με κλίση {0:0.0}°, ορατή η νότια πλευρά, κλείνουν"
 
 #: property grid
 msgctxt "option"

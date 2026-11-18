@@ -7279,6 +7279,10 @@ msgid "Jupiter's moons"
 msgstr "Jupiterovy měsíce"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Saturnovy prstence a měsíce"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Komety a planetky"
 
@@ -7381,6 +7385,22 @@ msgstr "{0} přechází přes disk"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} skrytý"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Prstence skloněny o {0:0.0}°, viditelná severní strana, otevírají se"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Prstence skloněny o {0:0.0}°, viditelná severní strana, zavírají se"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Prstence skloněny o {0:0.0}°, viditelná jižní strana, otevírají se"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Prstence skloněny o {0:0.0}°, viditelná jižní strana, zavírají se"
 
 #: property grid
 msgctxt "option"

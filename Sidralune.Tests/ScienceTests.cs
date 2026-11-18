@@ -52,6 +52,29 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestSaturnView()
+        {
+            var obs = new Core.Observer { LatitudeDeg = 0, LongitudeDeg = 0, ElevationM = 0 };
+            Func<double, SaturnView> at = jdTT => SaturnView.Compute(new Core.SkyContext(obs, Core.Time.AstroTime.FromTT(jdTT)));
+            // Meeus example 45.a, 1992 Dec 16 0h TD: B = +16.442° (the north side shows), P = +6.741°, outer ring 35.87" across
+            var v = at(2448972.5);
+            Check("Ring tilt B", v.TiltDeg, 16.442, 0.05);
+            // P to 0.1°: the IAU pole of Saturn used here is not quite Meeus's
+            Check("Pole position angle P", v.PoleAngleDeg, 6.741, 0.1);
+            Check("Outer ring diameter", 2 * SaturnView.RingOuter * v.RadiusArcsec, 35.87, 0.3);
+            CheckTrue("North side visible", v.NorthFace);
+            // edge-on on 23 March 2025; the south side then opening; the north side closing in 2020 after its 2017 widest
+            CheckTrue("Edge-on on 23 March 2025", at(Core.Time.AstroTime.CalendarToJd(2025, 3, 23)).EdgeOn);
+            var now = at(Core.Time.AstroTime.CalendarToJd(2026, 11, 18));
+            CheckTrue("South side opening in November 2026", !now.NorthFace && now.Opening && !now.EdgeOn, now.TiltDeg.ToString("0.00") + "°");
+            var y2020 = at(Core.Time.AstroTime.CalendarToJd(2020, 1, 15));
+            CheckTrue("North side closing in 2020", y2020.NorthFace && !y2020.Opening, y2020.TiltDeg.ToString("0.00") + "°");
+            // the classical moons as bright as Mimas, nearest first: not Hyperion
+            CheckTrue("Moons shown", now.Moons.Select(m => m.Moon.Name).SequenceEqual(new[] { "Mimas", "Enceladus", "Tethys", "Dione", "Rhea", "Titan", "Iapetus" }),
+                string.Join(", ", now.Moons.Select(m => m.Moon.Name + " " + m.Mag.ToString("0.0"))));
+        }
+
+        [TestMethod]
         public void TestPlanetMoonsAgainstHorizons()
         {
             // JPL Horizons, geometric ICRF positions (km) from the planet's centre (barycentre for Himalia, Sinope, Phoebe,

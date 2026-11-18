@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "Jupiteri kuud"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Saturni rõngad ja kuud"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Komeedid ja asteroidid"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} transiidil"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} varjatud"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Rõngaste kalle {0:0.0}°, nähtav põhjapool, avanevad"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Rõngaste kalle {0:0.0}°, nähtav põhjapool, sulguvad"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Rõngaste kalle {0:0.0}°, nähtav lõunapool, avanevad"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Rõngaste kalle {0:0.0}°, nähtav lõunapool, sulguvad"
 
 #: property grid
 msgctxt "option"

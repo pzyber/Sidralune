@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "Месечините на Јупитер"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Прстените и месечините на Сатурн"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Комети и астероиди"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} во транзит"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} скриен"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Прстените се наклонети за {0:0.0}°, се гледа северната страна, се отвораат"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Прстените се наклонети за {0:0.0}°, се гледа северната страна, се затвораат"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Прстените се наклонети за {0:0.0}°, се гледа јужната страна, се отвораат"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Прстените се наклонети за {0:0.0}°, се гледа јужната страна, се затвораат"
 
 #: property grid
 msgctxt "option"

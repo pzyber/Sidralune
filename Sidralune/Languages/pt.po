@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "Luas de Júpiter"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Anéis e luas de Saturno"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Cometas e asteroides"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} em trânsito"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} oculto"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Anéis inclinados {0:0.0}°, face norte visível, a abrir"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Anéis inclinados {0:0.0}°, face norte visível, a fechar"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Anéis inclinados {0:0.0}°, face sul visível, a abrir"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Anéis inclinados {0:0.0}°, face sul visível, a fechar"
 
 #: property grid
 msgctxt "option"

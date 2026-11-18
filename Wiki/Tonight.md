@@ -10,6 +10,7 @@ Everything on the page is for the active site and the current (or simulated) tim
 - [Best deep-sky targets tonight](#best-deep-sky-targets-tonight)
 - [Coming up](#coming-up)
 - [Jupiter's moons](#jupiters-moons)
+- [Saturn's rings and moons](#saturns-rings-and-moons)
 - [Comets & asteroids](#comets--asteroids)
 - [Getting started](#getting-started)
 
@@ -73,6 +74,12 @@ Times are local. For more detail on eclipses, occultations and meteors, see [Sol
 ## Jupiter's moons
 
 A live diagram of Io, Europa, Ganymede and Callisto on either side of Jupiter, as seen in binoculars or a small telescope (north up). The caption names any moon that is in transit across the disc or hidden behind the planet. For a list of transits and occultations over the coming week, use **Solar sys. → Planets & moons → Galilean moon events**.
+
+## Saturn's rings and moons
+
+Saturn with its rings at their present tilt and its brighter moons (Mimas, Enceladus, Tethys, Dione, Rhea, Titan and Iapetus), as seen in a small telescope (north up, east left). The drawing is scaled so the moons out to Titan fit. Iapetus, which can be more than 9′ from Saturn, is often farther out: it is then marked at the edge with an arrowhead pointing towards it and its distance in arcminutes.
+
+The line under the drawing gives the rings' tilt towards us, which side of them shows, and whether they are opening or closing. The tilt goes from 0° (edge-on, last in March 2025) to about 27° and back again every 15 years or so. Opening or closing compares the tilt with a year from now, so the small yearly wobble from the Earth's own orbit doesn't count. The line also names any moon in transit across the disc or hidden behind the planet.
 
 ## Comets & asteroids
 

@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "Hënat e Jupiterit"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Unazat dhe hënat e Saturnit"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Kometat dhe asteroidët"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} në tranzit"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} i fshehur"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Unazat të pjerrëta {0:0.0}°, duket ana veriore, po hapen"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Unazat të pjerrëta {0:0.0}°, duket ana veriore, po mbyllen"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Unazat të pjerrëta {0:0.0}°, duket ana jugore, po hapen"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Unazat të pjerrëta {0:0.0}°, duket ana jugore, po mbyllen"
 
 #: property grid
 msgctxt "option"

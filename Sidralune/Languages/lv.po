@@ -7279,6 +7279,10 @@ msgid "Jupiter's moons"
 msgstr "Jupitera pavadoņi"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Saturna gredzeni un pavadoņi"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Komētas un asteroīdi"
 
@@ -7381,6 +7385,22 @@ msgstr "{0} tranzītā"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} paslēpts"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Gredzenu slīpums {0:0.0}°, redzama ziemeļu puse, atveras"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Gredzenu slīpums {0:0.0}°, redzama ziemeļu puse, aizveras"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Gredzenu slīpums {0:0.0}°, redzama dienvidu puse, atveras"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Gredzenu slīpums {0:0.0}°, redzama dienvidu puse, aizveras"
 
 #: property grid
 msgctxt "option"
