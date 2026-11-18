@@ -7279,6 +7279,10 @@ msgid "Jupiter's moons"
 msgstr "Sateliții lui Jupiter"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Inelele și sateliții lui Saturn"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Comete și asteroizi"
 
@@ -7381,6 +7385,22 @@ msgstr "{0} în tranzit"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} ascuns"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Inele înclinate cu {0:0.0}°, fața nordică vizibilă, se deschid"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Inele înclinate cu {0:0.0}°, fața nordică vizibilă, se închid"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Inele înclinate cu {0:0.0}°, fața sudică vizibilă, se deschid"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Inele înclinate cu {0:0.0}°, fața sudică vizibilă, se închid"
 
 #: property grid
 msgctxt "option"

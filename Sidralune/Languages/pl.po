@@ -7279,6 +7279,10 @@ msgid "Jupiter's moons"
 msgstr "Księżyce Jowisza"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "Pierścienie i księżyce Saturna"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Komety i planetoidy"
 
@@ -7381,6 +7385,22 @@ msgstr "{0} na tle tarczy"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} ukryty"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "Pierścienie nachylone o {0:0.0}°, widoczna strona północna, otwierają się"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "Pierścienie nachylone o {0:0.0}°, widoczna strona północna, zamykają się"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "Pierścienie nachylone o {0:0.0}°, widoczna strona południowa, otwierają się"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "Pierścienie nachylone o {0:0.0}°, widoczna strona południowa, zamykają się"
 
 #: property grid
 msgctxt "option"

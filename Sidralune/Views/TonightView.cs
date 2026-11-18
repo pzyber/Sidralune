@@ -40,6 +40,8 @@ namespace Sidralune.Views
         private readonly DataGridView _eventGrid = Ui.Grid();
         private readonly Card _jupiter = new Card(T("Jupiter's moons"));
         private readonly JupiterMoonsGlyph _jupGlyph = new JupiterMoonsGlyph { Dock = DockStyle.Fill };
+        private readonly Card _saturn = new Card(T("Saturn's rings and moons"));
+        private readonly SaturnGlyph _satGlyph = new SaturnGlyph { Dock = DockStyle.Fill };
         private readonly Card _minor = new Card(T("Comets & asteroids"));
         private readonly DataGridView _minorGrid = Ui.Grid();
         private readonly Card _data = new Card(T("Getting started"));
@@ -54,9 +56,10 @@ namespace Sidralune.Views
             _targets.Controls.Add(_targetGrid);
             _events.Controls.Add(_eventGrid);
             _jupiter.Controls.Add(_jupGlyph);
+            _saturn.Controls.Add(_satGlyph);
             _minor.Controls.Add(_minorGrid);
             BuildDataCard();
-            foreach (var c in new Control[] { _night, _moon, _planets, _targets, _events, _jupiter, _minor, _data }) _flow.Controls.Add(c);
+            foreach (var c in new Control[] { _night, _moon, _planets, _targets, _events, _jupiter, _saturn, _minor, _data }) _flow.Controls.Add(c);
             _flow.Resize += (s, e) => LayoutCards();
             foreach (var g in new[] { _planetGrid, _targetGrid, _minorGrid })
                 g.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && ((DataGridView)s).Rows[e.RowIndex].Tag is SelectedObject) MainForm.Instance.ShowObject((SelectedObject)((DataGridView)s).Rows[e.RowIndex].Tag); };
@@ -83,6 +86,7 @@ namespace Sidralune.Views
             _targets.Size = new Size(cols >= 2 ? cw * 2 + 12 : cw, 360);
             _events.Size = new Size(cw, 360);
             _jupiter.Size = new Size(cw, 180);
+            _saturn.Size = new Size(cw, 180);
             _minor.Size = new Size(cw, 300);
             _data.Size = new Size(cw, 300);
         }
@@ -115,6 +119,7 @@ namespace Sidralune.Views
             public List<object[]> Events = new List<object[]>();
             public List<object[]> Minor = new List<object[]>();
             public double JdTT;
+            public SaturnView Saturn;
         }
 
         private void Refresh(bool full)
@@ -148,6 +153,7 @@ namespace Sidralune.Views
                     var so = new SelectedObject { Kind = SelectedKind.Planet, Planet = b, Name = b.ToString(), RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude };
                     d.Planets.Add(new object[] { so, BodyNames.Name(b), hm(rs.Rise), hm(rs.Transit), hm(rs.Set), pl.Magnitude.ToString("0.0"), pl.DiameterArcsec.ToString("0.0") + "\"", con != null ? con.Abbr : "", pl.Horizontal.AltDeg.ToString("0") + "°" });
                 }
+                d.Saturn = SaturnView.Compute(ctx);
                 Tasks.Report(t, 0.3);
                 // best targets: sample the dark hours, take each object's best detection margin with the current instrument
                 if (d.Tw.AstronomicalDusk.HasValue || d.Tw.NauticalDusk.HasValue)
@@ -248,6 +254,7 @@ namespace Sidralune.Views
             Fill(_minorGrid, new[] { T("Object"), T("Mag"), T("Con"), T("Elong."), T("Alt"), "Δ" }, d.Minor);
             if (d.Targets.Count == 0) _targets.Subtitle = T("no dark sky tonight, or no objects above 20°");
             _jupGlyph.Set(GalileanMoons.Positions(d.JdTT));
+            _satGlyph.Set(d.Saturn);
             Theme.Apply(this);
         }
 
@@ -377,6 +384,150 @@ namespace Sidralune.Views
             }
             string ev = string.Join(", ", _m.Where(m => m.Transit || m.Occulted).Select(m => m.Transit ? T("{0} in transit", m.Name) : T("{0} hidden", m.Name)));
             if (ev.Length > 0) TextRenderer.DrawText(g, ev, Theme.SmallFont, new Point(6, Height - 18), p.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Saturn, its rings at their tilt and its brighter moons (east left, north up), scaled so the moons out to Titan fit.
+    /// A moon farther out (usually Iapetus) is marked at the edge, towards where it is, with its distance.
+    /// </summary>
+    public class SaturnGlyph : Control, IThemed
+    {
+        private SaturnView _v;
+        public SaturnGlyph() { SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true); }
+        public void ApplyTheme(Palette p) => Invalidate();
+        public void Set(SaturnView v) { _v = v; Invalidate(); }
+
+        /// <summary>The line under the drawing: how far the rings are tilted, which side shows and which way they are going.</summary>
+        public static string RingText(SaturnView v) =>
+            v.NorthFace ? (v.Opening ? T("Rings tilted {0:0.0}°, north side visible, opening", Math.Abs(v.TiltDeg)) : T("Rings tilted {0:0.0}°, north side visible, closing", Math.Abs(v.TiltDeg)))
+                        : (v.Opening ? T("Rings tilted {0:0.0}°, south side visible, opening", Math.Abs(v.TiltDeg)) : T("Rings tilted {0:0.0}°, south side visible, closing", Math.Abs(v.TiltDeg)));
+
+        /// <summary>Where Saturn and each moon go in a w × h drawing area, and whether the moon is past the edge.</summary>
+        public static void Arrange(SaturnView v, int w, int h, out PointF centre, out float scale, out PointF[] moons, out bool[] beyond)
+        {
+            // room for E and W at the sides, the ring text under it
+            float halfW = w / 2f - 22, halfH = (h - 20) / 2f - 4;
+            centre = new PointF(w / 2f, (h - 20) / 2f);
+            // the rings' bounding box, turned by the pole's position angle; the moons out to Titan (20 radii)
+            double r = v.RadiusArcsec, a = SaturnView.RingOuter * r, b = Math.Max(a * Math.Abs(Math.Sin(v.TiltDeg * AstroMath.Deg2Rad)), r);
+            double th = v.PoleAngleDeg * AstroMath.Deg2Rad;
+            double ex = Math.Sqrt(a * a * Math.Cos(th) * Math.Cos(th) + b * b * Math.Sin(th) * Math.Sin(th)), ey = Math.Sqrt(a * a * Math.Sin(th) * Math.Sin(th) + b * b * Math.Cos(th) * Math.Cos(th));
+            foreach (var m in v.Moons.Where(m => !m.Occulted && m.SeparationArcsec <= 22 * r))
+            {
+                ex = Math.Max(ex, Math.Abs(m.EastArcsec)); ey = Math.Max(ey, Math.Abs(m.NorthArcsec));
+            }
+            scale = (float)Math.Min(halfW / ex, halfH / ey);
+            moons = new PointF[v.Moons.Length]; beyond = new bool[v.Moons.Length];
+            for (int i = 0; i < v.Moons.Length; i++)
+            {
+                double x = -v.Moons[i].EastArcsec * scale, y = -v.Moons[i].NorthArcsec * scale;
+                // past the edge: drawn on it, on the line towards the moon
+                double k = Math.Max(Math.Abs(x) / halfW, Math.Abs(y) / halfH);
+                // (the moon that sets the scale is on the edge, not past it)
+                if (k > 1.001) { x /= k; y /= k; beyond[i] = true; }
+                moons[i] = new PointF(centre.X + (float)x, centre.Y + (float)y);
+            }
+        }
+
+        /// <summary>Saturn's size in pixels: equatorial radius, the rings' outer and inner radius, the apparent polar radius, |sin B|.</summary>
+        public static void Shape(SaturnView v, float scale, out float r, out float ringOuter, out float ringInner, out float polar, out float sinB)
+        {
+            r = (float)(v.RadiusArcsec * scale);
+            sinB = (float)Math.Abs(Math.Sin(v.TiltDeg * AstroMath.Deg2Rad));
+            ringOuter = (float)(SaturnView.RingOuter * r); ringInner = (float)(SaturnView.RingInner * r);
+            polar = r * (float)Math.Sqrt(SaturnView.Flattening * SaturnView.Flattening * (1 - sinB * sinB) + sinB * sinB);
+        }
+
+        /// <summary>
+        /// Where each visible moon's name goes (<paramref name="shown"/> are indices into the moons), clear of each other,
+        /// of the dots and of the <paramref name="avoid"/> areas: Saturn and its rings, the E and W, the line of text and
+        /// outside the drawing.
+        /// </summary>
+        public static Point[] Names(SaturnView v, int w, int h, PointF c, float scale, PointF[] pts, bool[] beyond, Func<string, Size> measure,
+            out int[] shown, out string[] names, out Rectangle[] avoid)
+        {
+            shown = Enumerable.Range(0, pts.Length).Where(i => !v.Moons[i].Occulted).ToArray();
+            var bey = beyond;
+            names = shown.Select(i => v.Moons[i].Moon.Name + (bey[i] ? " " + (v.Moons[i].SeparationArcsec / 60).ToString("0.0") + "′" : "")).ToArray();
+            float r, ao, ai, polar, sinB;
+            Shape(v, scale, out r, out ao, out ai, out polar, out sinB);
+            // the rings' bounding box, turned by the pole's position angle
+            double th = v.PoleAngleDeg * AstroMath.Deg2Rad, b = Math.Max(ao * sinB, polar);
+            int hx = (int)Math.Ceiling(Math.Sqrt(ao * ao * Math.Cos(th) * Math.Cos(th) + b * b * Math.Sin(th) * Math.Sin(th))) + 2;
+            int hy = (int)Math.Ceiling(Math.Sqrt(ao * ao * Math.Sin(th) * Math.Sin(th) + b * b * Math.Cos(th) * Math.Cos(th))) + 2;
+            avoid = new[]
+            {
+                new Rectangle((int)c.X - hx, (int)c.Y - hy, 2 * hx, 2 * hy),
+                new Rectangle(0, (int)c.Y - 8, 18, 16), new Rectangle(w - 18, (int)c.Y - 8, 18, 16),
+                new Rectangle(0, h - 20, w, 400), new Rectangle(0, -400, w, 400), new Rectangle(-400, 0, 400, h), new Rectangle(w, 0, 400, h),
+            };
+            var sizes = names.Select(measure).ToArray();
+            var at = LabelStack.Place(shown.Select(i => pts[i]).ToList(), sizes, shown.Select(i => i % 2 == 1).ToList(), 5, 5, 3, avoid);
+            // inside the drawing even when there was no free place
+            for (int k = 0; k < at.Length; k++)
+                at[k] = new Point(Math.Max(2, Math.Min(w - sizes[k].Width - 2, at[k].X)), Math.Max(0, Math.Min(h - 20 - sizes[k].Height, at[k].Y)));
+            return at;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var p = Theme.Current;
+            var g = e.Graphics;
+            g.Clear(Parent?.BackColor ?? p.Surface);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            if (_v == null) return;
+            PointF c; float scale; PointF[] pts; bool[] beyond;
+            Arrange(_v, Width, Height, out c, out scale, out pts, out beyond);
+            TextRenderer.DrawText(g, Tc("compass", "E"), Theme.SmallFont, new Point(4, (int)c.Y - 6), p.TextDim);
+            TextRenderer.DrawText(g, Tc("compass", "W"), Theme.SmallFont, new Point(Width - 16, (int)c.Y - 6), p.TextDim);
+
+            // in a frame with Saturn's north pole up: the rings behind, the globe, then the rings' near half over it (the
+            // lower half when the north side shows)
+            float r, ao, ai, polar, sinB;
+            Shape(_v, scale, out r, out ao, out ai, out polar, out sinB);
+            var st = g.Save();
+            g.TranslateTransform(c.X, c.Y);
+            g.RotateTransform((float)-_v.PoleAngleDeg);
+            var ringColor = Theme.Blend(Parent?.BackColor ?? p.Surface, p.Planet, 0.7);
+            using (var rings = new GraphicsPath(FillMode.Alternate))
+            using (var rb = new SolidBrush(ringColor))
+            using (var pen = new Pen(ringColor, 1.5f))
+            {
+                bool line = ao * sinB < 1;
+                if (!line) { rings.AddEllipse(-ao, -ao * sinB, 2 * ao, 2 * ao * sinB); rings.AddEllipse(-ai, -ai * sinB, 2 * ai, 2 * ai * sinB); }
+                if (line) g.DrawLine(pen, -ao, 0, ao, 0); else g.FillPath(rb, rings);
+                using (var b = new SolidBrush(p.Planet)) g.FillEllipse(b, -r, -polar, 2 * r, 2 * polar);
+                var near = _v.NorthFace ? new RectangleF(-ao - 2, 0, 2 * ao + 4, ao + 2) : new RectangleF(-ao - 2, -ao - 2, 2 * ao + 4, ao + 2);
+                g.SetClip(near);
+                if (line) g.DrawLine(pen, -ao, 0, ao, 0); else g.FillPath(rb, rings);
+                g.ResetClip();
+            }
+            g.Restore(st);
+
+            // the moons, named alternately under and over; one past the edge gets its distance and a pointer outwards
+            int[] shown; string[] names; Rectangle[] avoid;
+            var at = Names(_v, Width, Height, c, scale, pts, beyond, n => TextRenderer.MeasureText(n, Theme.SmallFont), out shown, out names, out avoid);
+            for (int k = 0; k < shown.Length; k++)
+            {
+                int i = shown[k]; var pt = pts[i];
+                using (var b = new SolidBrush(_v.Moons[i].Transit ? p.TextDim : p.Text))
+                {
+                    if (beyond[i])
+                    {
+                        // a small triangle pointing away from Saturn
+                        double ang = Math.Atan2(pt.Y - c.Y, pt.X - c.X);
+                        Func<double, float, PointF> at2 = (d, len) => new PointF(pt.X + len * (float)Math.Cos(ang + d), pt.Y + len * (float)Math.Sin(ang + d));
+                        g.FillPolygon(b, new[] { at2(0, 4), at2(2.4, 4), at2(-2.4, 4) });
+                    }
+                    else g.FillEllipse(b, pt.X - 2.5f, pt.Y - 2.5f, 5, 5);
+                }
+                TextRenderer.DrawText(g, names[k], Theme.SmallFont, at[k], p.TextDim);
+            }
+            string text = RingText(_v);
+            TextRenderer.DrawText(g, text, Theme.SmallFont, new Point(6, Height - 18), p.TextDim);
+            string ev = string.Join(", ", _v.Moons.Where(m => m.Transit || m.Occulted).Select(m => m.Transit ? T("{0} in transit", m.Moon.Name) : T("{0} hidden", m.Moon.Name)));
+            if (ev.Length > 0) TextRenderer.DrawText(g, "  ·  " + ev, Theme.SmallFont, new Point(6 + TextRenderer.MeasureText(text, Theme.SmallFont).Width, Height - 18), p.Warning);
         }
     }
 }

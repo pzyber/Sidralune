@@ -7248,6 +7248,10 @@ msgid "Jupiter's moons"
 msgstr "A Jupiter holdjai"
 
 #: Sidralune/Views/TonightView.cs
+msgid "Saturn's rings and moons"
+msgstr "A Szaturnusz gyűrűi és holdjai"
+
+#: Sidralune/Views/TonightView.cs
 msgid "Comets & asteroids"
 msgstr "Üstökösök és kisbolygók"
 
@@ -7350,6 +7354,22 @@ msgstr "{0} átvonulóban"
 #: Sidralune/Views/TonightView.cs
 msgid "{0} hidden"
 msgstr "{0} takarásban"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, opening"
+msgstr "A gyűrűk dőlése {0:0.0}°, az északi oldal látszik, nyílnak"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, north side visible, closing"
+msgstr "A gyűrűk dőlése {0:0.0}°, az északi oldal látszik, záródnak"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, opening"
+msgstr "A gyűrűk dőlése {0:0.0}°, a déli oldal látszik, nyílnak"
+
+#: Sidralune/Views/TonightView.cs
+msgid "Rings tilted {0:0.0}°, south side visible, closing"
+msgstr "A gyűrűk dőlése {0:0.0}°, a déli oldal látszik, záródnak"
 
 #: property grid
 msgctxt "option"
