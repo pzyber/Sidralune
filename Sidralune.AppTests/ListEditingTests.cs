@@ -233,5 +233,38 @@ namespace Sidralune.AppTests
             }
             finally { store.Remove(mb); OnUi(() => grid.Rows.Clear()); }
         }
+
+        [TestMethod]
+        public void TestMinorBodyOrbitShownForTheFirstListed()
+        {
+            // the list selects its first object by itself, and the orbit diagram shows that object's orbit at once,
+            // whether one object is found or several
+            var view = View<SolarSystemView>("solarsystem");
+            var grid = Field<DataGridView>(view, "_mbGrid");
+            var orbits = Field<Control>(view, "_orbits");
+            // the Minor bodies tab, shown as when it is used: a hidden list selects nothing by itself
+            OnUi(() => Field<TabbedPanel>(view, "_tabs").Select(1));
+            Settle();
+            Func<List<MinorBody>> highlight = () => OnUi(() => ((List<MinorBody>)orbits.GetType().GetField("Highlight").GetValue(orbits)).ToList());
+            Func<MinorBody> first = () => OnUi(() => grid.Rows.Count > 0 ? grid.Rows[0].Tag as MinorBody : null);
+            var asteroids = MinorBodyStore.Instance.Asteroids.Take(4).ToList();
+            CheckTrue("Asteroids to list", asteroids.Count >= 2);
+            try
+            {
+                foreach (var filter in new[] { asteroids[0].DisplayName, "" })
+                {
+                    OnUi(() => grid.Rows.Clear());
+                    OnUi(() => Call(view, "ListMinor", 1, 99.0, filter));
+                    WaitFor(() => first() != null, 20000);
+                    Settle();
+                    int n = OnUi(() => grid.Rows.Count);
+                    string tag = filter == "" ? "Several objects (" + n + ")" : "One object";
+                    CheckTrue(tag + ": listed", filter == "" ? n >= 2 : n == 1, n.ToString());
+                    var h = highlight();
+                    CheckTrue(tag + ": the first one's orbit is shown", h.Count == 1 && h[0] == first(), string.Join(", ", h.Select(m => m.DisplayName)));
+                }
+            }
+            finally { OnUi(() => grid.Rows.Clear()); }
+        }
     }
 }

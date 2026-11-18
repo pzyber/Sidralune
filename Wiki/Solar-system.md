@@ -47,7 +47,7 @@ The **Minor bodies** tab lists comets and asteroids with their current circumsta
 
 The table shows the object, its type or orbit class, current magnitude, RA, Dec, distances from Earth and Sun, elongation, current altitude, and orbital elements: perihelion distance q (comets) or semi-major axis a (asteroids), eccentricity e and inclination i. Up to 2000 objects are shown, brightest first.
 
-Select rows to highlight their orbits in the diagram. Double-click a row to show the object in the Sky chart.
+The first object in the list is selected when it is filled, and its orbit is shown. Select other rows to highlight their orbits in the diagram. Double-click a row to show the object in the Sky chart.
 
 The **orbit diagram** on the right is a top-down view of the solar system on the ecliptic plane, with the planets' orbits and current positions, the listed objects as dots, and full orbits for the selected ones (comets on near-parabolic orbits are drawn around perihelion). Scroll the mouse wheel to zoom from the inner planets out to the Kuiper belt.
 

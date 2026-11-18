@@ -236,11 +236,7 @@ namespace Sidralune.Views
                 _positionsJob.StopButton(n => n == T("Minor body positions")), Ui.Separator(), add, sbdb, remove, nea);
             _mbGrid = Ui.Grid();
             foreach (var c in new[] { T("Object"), T("Type"), T("Mag now"), T("RA"), T("Dec"), T("Δ (AU)"), T("r (AU)"), T("Elong."), T("Alt now"), T("q / a (AU)"), T("e"), T("i (°)") }) _mbGrid.Columns.Add(c, c);
-            _mbGrid.SelectionChanged += (s, e) =>
-            {
-                _orbits.Highlight = _mbGrid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as MinorBody).Where(m => m != null).ToList();
-                _orbits.Invalidate();
-            };
+            _mbGrid.SelectionChanged += (s, e) => ShowSelectedOrbits();
             _mbGrid.CellDoubleClick += (s, e) =>
             {
                 if (e.RowIndex < 0) return;
@@ -292,9 +288,18 @@ namespace Sidralune.Views
                     _mbGrid.Rows[k].Tag = m;
                 }
                 _orbits.Bodies = rows.Select(r => r.Item1).Take(300).ToList();
-                _orbits.Invalidate();
+                // the grid selects the first row as it is added, before its object is attached to it, so the orbit of
+                // the object selected that way is shown only now
+                ShowSelectedOrbits();
                 MainForm.Instance.Toast(Tn("{0} object", "{0} objects", rows.Count) + (rows.Count > 2000 ? " " + T("(first 2000 shown)") : ""));
             });
+        }
+
+        /// <summary>The orbits of the objects selected in the list, highlighted in the diagram.</summary>
+        private void ShowSelectedOrbits()
+        {
+            _orbits.Highlight = _mbGrid.SelectedRows.Cast<DataGridViewRow>().Select(r => r.Tag as MinorBody).Where(m => m != null).ToList();
+            _orbits.Invalidate();
         }
 
         private void RemoveAdded()
