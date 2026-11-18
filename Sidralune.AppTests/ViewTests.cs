@@ -32,6 +32,42 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestTonightScrollsWhenOpened()
+        {
+            // a fresh Tonight tab in a window too low for its cards, opened as the main window opens a workspace: it
+            // scrolls at once, without resizing or switching tabs first
+            foreach (var size in new[] { new Size(1486, 943), new Size(1100, 700) })
+            {
+                var state = OnUi(() =>
+                {
+                    var f = new Form { StartPosition = FormStartPosition.Manual, Location = new Point(-3000, 0), ShowInTaskbar = false, Size = size };
+                    f.Show();
+                    var v = new Sidralune.Views.TonightView { Dock = DockStyle.Fill };
+                    f.Controls.Add(v);
+                    Theme.Apply(v);
+                    return Tuple.Create(f, (FlowLayoutPanel)typeof(Sidralune.Views.TonightView).GetField("_flow", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(v));
+                });
+                Settle(500);
+                var r = OnUi(() =>
+                {
+                    var flow = state.Item2;
+                    int bottom = flow.Controls.OfType<Card>().Max(c => c.Bottom);
+                    bool bar = flow.VerticalScroll.Visible;
+                    // scrolled to the end, the lowest card is in view
+                    flow.AutoScrollPosition = new Point(0, 100000);
+                    int bottomScrolled = flow.Controls.OfType<Card>().Max(c => c.Bottom);
+                    var res = Tuple.Create(bottom, flow.ClientSize.Height, bar, bottomScrolled);
+                    state.Item1.Close();
+                    return res;
+                });
+                string tag = size.Width + "×" + size.Height + ": ";
+                CheckTrue(tag + "the cards reach below the window", r.Item1 > r.Item2, r.Item1 + " > " + r.Item2);
+                CheckTrue(tag + "Tonight has a scroll bar for them", r.Item3);
+                CheckTrue(tag + "scrolled to the end, the lowest card is in view", r.Item4 <= r.Item2, r.Item4 + " ≤ " + r.Item2);
+            }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;

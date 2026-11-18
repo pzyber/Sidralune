@@ -61,6 +61,10 @@ namespace Sidralune.Views
             BuildDataCard();
             foreach (var c in new Control[] { _night, _moon, _planets, _targets, _events, _jupiter, _saturn, _minor, _data }) _flow.Controls.Add(c);
             _flow.Resize += (s, e) => LayoutCards();
+            // the panel's scroll range leaves out its own padding, which would hide the bottom of the lowest card: an
+            // empty row of that height after the cards makes up for it
+            _flow.SetFlowBreak(_data, true);
+            _flow.Controls.Add(new Panel { Size = new Size(1, _flow.Padding.Vertical), Margin = Padding.Empty });
             foreach (var g in new[] { _planetGrid, _targetGrid, _minorGrid })
                 g.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && ((DataGridView)s).Rows[e.RowIndex].Tag is SelectedObject) MainForm.Instance.ShowObject((SelectedObject)((DataGridView)s).Rows[e.RowIndex].Tag); };
             _targets.Subtitle = T("double-click to show in the sky chart");
@@ -80,6 +84,7 @@ namespace Sidralune.Views
             int w = _flow.ClientSize.Width - _flow.Padding.Horizontal - 20;
             int cols = w > 1300 ? 3 : w > 820 ? 2 : 1;
             int cw = w / cols - 12;
+            _flow.SuspendLayout();
             _night.Size = new Size(cw, 230);
             _moon.Size = new Size(cw, 230);
             _planets.Size = new Size(cols >= 3 ? cw : cw, 300);
@@ -89,6 +94,11 @@ namespace Sidralune.Views
             _saturn.Size = new Size(cw, 180);
             _minor.Size = new Size(cw, 300);
             _data.Size = new Size(cw, 300);
+            _flow.ResumeLayout(true);
+            // The cards are sized while the panel handles its own resize, and the layout that moves them then does not
+            // update the scroll range: the window opened on Tonight had no scroll bar for cards below it until the next
+            // resize or tab change. Lay out once more when that is over.
+            if (_flow.IsHandleCreated) _flow.BeginInvoke(new Action(() => { if (!_flow.IsDisposed) _flow.PerformLayout(); }));
         }
 
         private void BuildDataCard()
