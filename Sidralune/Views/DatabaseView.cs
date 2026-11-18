@@ -102,8 +102,7 @@ namespace Sidralune.Views
                 if (e.RowIndex < 0) return;
                 var o = grid.Rows[e.RowIndex].Tag as SkyObject;
                 if (o == null) return;
-                AppState.Select(SelectedObject.From(o));
-                MainForm.Instance.Navigate("sky");
+                MainForm.Instance.ShowObject(SelectedObject.From(o));
             };
             var toPlan = new FlatButton(T("Add to plan"), Icons.Planner, (s, e) =>
             {
@@ -195,8 +194,7 @@ namespace Sidralune.Views
                 if (rc < 0 || dc < 0) return;
                 double ra = AstroMath.ParseInvariant(_last.Rows[e.RowIndex][rc]), dec = AstroMath.ParseInvariant(_last.Rows[e.RowIndex][dc]);
                 if (double.IsNaN(ra) || double.IsNaN(dec)) return;
-                AppState.Select(new SelectedObject { Kind = SelectedKind.Coordinates, Name = _last.Rows[e.RowIndex][0], RaDeg = ra, DecDeg = dec });
-                MainForm.Instance.Navigate("sky");
+                MainForm.Instance.ShowObject(new SelectedObject { Kind = SelectedKind.Coordinates, Name = _last.Rows[e.RowIndex][0], RaDeg = ra, DecDeg = dec });
             };
             panel.Controls.Add(_onGrid);
             panel.Controls.Add(_onInfo);

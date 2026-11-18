@@ -104,8 +104,7 @@ namespace Sidralune.Views
             {
                 var o = _ephBody.SelectedItem;
                 if (o == null) return;
-                AppState.Select(o is Body ? SkyView.PlanetObject((Body)o) : SkyView.MinorObject((MinorBody)o));
-                MainForm.Instance.Navigate("sky");
+                MainForm.Instance.ShowObject(o is Body ? SkyView.PlanetObject((Body)o) : SkyView.MinorObject((MinorBody)o));
             }) { Kind = ButtonKind.Subtle };
             chart.AutoSizeToText();
             var bar = Ui.Toolbar(_ephBody, new Label { Text = T("from (UTC)"), AutoSize = true, Margin = new Padding(4, 6, 2, 0) }, start, step, count, go, _ephemJob.StopButton(), csv, horizons, chart);
@@ -242,8 +241,7 @@ namespace Sidralune.Views
                 if (e.RowIndex < 0) return;
                 var m = _mbGrid.Rows[e.RowIndex].Tag as MinorBody;
                 if (m == null) return;
-                AppState.Select(SkyView.MinorObject(m));
-                MainForm.Instance.Navigate("sky");
+                MainForm.Instance.ShowObject(SkyView.MinorObject(m));
             };
             _orbits = new OrbitDiagram { Dock = DockStyle.Right, Width = 460 };
             panel.Controls.Add(_mbGrid);
