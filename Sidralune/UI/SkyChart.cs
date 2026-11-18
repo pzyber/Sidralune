@@ -77,6 +77,8 @@ namespace Sidralune.UI
         private Dictionary<MinorBody, BodyPlace> _minorCache = new Dictionary<MinorBody, BodyPlace>();
         private double _minorCacheJd = double.NaN;
         private bool _minorComputing;
+        // the store has changed since the positions were last worked out (set from any thread)
+        private volatile bool _minorStale;
         public SelectedObject Highlight;
 
         public SkyChart()
@@ -85,6 +87,22 @@ namespace Sidralune.UI
             TabStop = true;
             CenterLon = -Math.PI; // facing south
             CenterLat = 35 * AstroMath.Deg2Rad;
+            MinorBodyStore.Instance.Changed += OnMinorBodiesChanged;
+        }
+
+        // Comets and asteroids are loaded in the background at start-up and can be added or removed by hand: their
+        // positions are worked out again then, not only when the time has moved on (a chart drawn first, as when
+        // Sidralune opens on the Sky tab, otherwise showed no comets for 15 minutes of chart time)
+        private void OnMinorBodiesChanged(object sender, EventArgs e)
+        {
+            _minorStale = true;
+            try { if (IsHandleCreated && !IsDisposed) BeginInvoke(new Action(Invalidate)); } catch (InvalidOperationException) { }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) MinorBodyStore.Instance.Changed -= OnMinorBodiesChanged;
+            base.Dispose(disposing);
         }
 
         public void ApplyTheme(Palette p) => Invalidate();
@@ -747,9 +765,11 @@ namespace Sidralune.UI
         {
             var store = MinorBodyStore.Instance;
             double jd = Time.JdUtc;
-            if ((double.IsNaN(_minorCacheJd) || Math.Abs(jd - _minorCacheJd) > 1.0 / 96) && !_minorComputing)
+            // (a change while they are being worked out leaves them stale, so they are worked out once more after)
+            if ((double.IsNaN(_minorCacheJd) || Math.Abs(jd - _minorCacheJd) > 1.0 / 96 || _minorStale) && !_minorComputing)
             {
                 _minorComputing = true;
+                _minorStale = false;
                 var site = Site; var t = Time;
                 var bodies = store.All.ToList();
                 Task.Run(() =>
@@ -765,35 +785,67 @@ namespace Sidralune.UI
                         }
                         catch { }
                     }
-                    BeginInvoke(new Action(() => { _minorCache = cache; _minorCacheJd = t.JdUtc; _minorComputing = false; Invalidate(); }));
+                    // a chart closed meanwhile has no window to hand them back through
+                    try { BeginInvoke(new Action(() => { _minorCache = cache; _minorCacheJd = t.JdUtc; _minorComputing = false; Invalidate(); })); }
+                    catch (InvalidOperationException) { _minorComputing = false; }
                 });
             }
             double lim = Math.Min(EffectiveMagLimit + 2, 15);
+            // The selected body is drawn whatever its brightness, from its place at the chart's time rather than from
+            // the positions worked out in the background (which it may not be in yet, and which are up to 15 minutes
+            // old); the selection marker follows it.
+            var selected = Highlight != null && Highlight.Kind == SelectedKind.MinorBody ? Highlight.Minor : null;
+            Func<MinorBody, bool> isSelected = m => selected != null && (ReferenceEquals(m, selected) || (m.IsComet == selected.IsComet && m.Designation == selected.Designation && m.DisplayName == selected.DisplayName));
             foreach (var kv in _minorCache)
+                if (kv.Value.Magnitude <= lim && !isSelected(kv.Key)) DrawMinorBody(g, kv.Key, kv.Value, lim, false);
+            if (selected != null)
             {
-                var pl = kv.Value;
-                if (pl.Magnitude > lim) continue;
-                PointF pt;
-                var f = ToFrame(pl.Astrometric.ToVector().Normalized());
-                if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) continue;
-                if (!Project(f, out pt) || !InView(pt)) continue;
-                var c = kv.Key.IsComet ? _p.Comet : _p.Asteroid;
-                using (var pen = new Pen(c, 1.3f))
-                {
-                    if (kv.Key.IsComet)
-                    {
-                        // tail points away from the Sun
-                        PointF sp;
-                        var sun = _ctx.BodyPlace(Body.Sun);
-                        double ang = ProjectIcrs(sun.Astrometric.Ra, sun.Astrometric.Dec, out sp) ? Math.Atan2(pt.Y - sp.Y, pt.X - sp.X) : 0;
-                        g.DrawLine(pen, pt.X, pt.Y, pt.X + (float)(Math.Cos(ang) * 14), pt.Y + (float)(Math.Sin(ang) * 14));
-                        using (var b = new SolidBrush(c)) g.FillEllipse(b, pt.X - 3, pt.Y - 3, 6, 6);
-                    }
-                    else { g.DrawLine(pen, pt.X - 4, pt.Y, pt.X + 4, pt.Y); g.DrawLine(pen, pt.X, pt.Y - 4, pt.X, pt.Y + 4); }
-                }
-                if (pl.Magnitude < lim - 1.5 || FovDeg < 10) TextRenderer.DrawText(g, kv.Key.DisplayName, Theme.SmallFont, new Point((int)pt.X + 6, (int)pt.Y + 2), c);
-                _hits.Add(new Hit { P = pt, R = 7, O = new SelectedObject { Kind = SelectedKind.MinorBody, Name = kv.Key.DisplayName, Minor = kv.Key, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude }, Priority = 1 });
+                BodyPlace pl = null;
+                try { pl = MinorBodyStore.Place(_ctx, selected); } catch { }
+                if (pl != null && DrawMinorBody(g, selected, pl, lim, true)) { Highlight.RaDeg = pl.Astrometric.RaHours * 15; Highlight.DecDeg = pl.Astrometric.DecDeg; }
             }
+        }
+
+        /// <summary>
+        /// Screen direction (radians, from +x towards +y) of a comet's tail: away from the Sun along the sky, found from a
+        /// point a little way from the comet in that direction. Aiming at the Sun's own place on the chart instead
+        /// changed with the zoom, as the Sun is usually far outside the chart, and failed when it could not be projected.
+        /// </summary>
+        private double TailAngle(Vec3 comet, PointF at)
+        {
+            var sun = _ctx.BodyPlace(Body.Sun).Astrometric.ToVector().Normalized();
+            // the part of the comet's direction across the Sun's: along the great circle from the Sun through the comet
+            var away = comet * Vec3.Dot(comet, sun) - sun;
+            away = away - comet * Vec3.Dot(away, comet);
+            if (away.Length < 1e-12) return 0;
+            PointF p2;
+            // a hundredth of the field along the sky: some pixels at any zoom, so the direction is clean
+            double step = FovDeg * AstroMath.Deg2Rad * 0.01;
+            if (!Project(ToFrame((comet + away.Normalized() * step).Normalized()), out p2) || (p2.X == at.X && p2.Y == at.Y)) return 0;
+            return Math.Atan2(p2.Y - at.Y, p2.X - at.X);
+        }
+
+        /// <summary>A comet (dot with a tail away from the Sun) or an asteroid (cross), named when bright or zoomed in. False when it is out of view.</summary>
+        private bool DrawMinorBody(Graphics g, MinorBody m, BodyPlace pl, double lim, bool selected)
+        {
+            PointF pt;
+            var f = ToFrame(pl.Astrometric.ToVector().Normalized());
+            if (Mode == ChartMode.Planetarium && Layers.Horizon && f.Z < 0) return false;
+            if (!Project(f, out pt) || !InView(pt)) return false;
+            var c = m.IsComet ? _p.Comet : _p.Asteroid;
+            using (var pen = new Pen(c, 1.3f))
+            {
+                if (m.IsComet)
+                {
+                    double ang = TailAngle(pl.Astrometric.ToVector().Normalized(), pt);
+                    g.DrawLine(pen, pt.X, pt.Y, pt.X + (float)(Math.Cos(ang) * 14), pt.Y + (float)(Math.Sin(ang) * 14));
+                    using (var b = new SolidBrush(c)) g.FillEllipse(b, pt.X - 3, pt.Y - 3, 6, 6);
+                }
+                else { g.DrawLine(pen, pt.X - 4, pt.Y, pt.X + 4, pt.Y); g.DrawLine(pen, pt.X, pt.Y - 4, pt.X, pt.Y + 4); }
+            }
+            if (selected || pl.Magnitude < lim - 1.5 || FovDeg < 10) TextRenderer.DrawText(g, m.DisplayName, Theme.SmallFont, new Point((int)pt.X + 6, (int)pt.Y + 2), c);
+            _hits.Add(new Hit { P = pt, R = 7, O = new SelectedObject { Kind = SelectedKind.MinorBody, Name = m.DisplayName, Minor = m, RaDeg = pl.Astrometric.RaHours * 15, DecDeg = pl.Astrometric.DecDeg, Mag = pl.Magnitude }, Priority = 1 });
+            return true;
         }
 
         private void DrawFovs(Graphics g)

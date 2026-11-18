@@ -33,7 +33,7 @@ Click **Search**. Results (up to 5000) are sorted by brightness.
 | Stars | Star, constellation, RA, Dec, V magnitude, B−V, spectral type, parallax, variable type, current altitude |
 | Constellations | Abbreviation, name (in the interface language, with the IAU name beside it when they differ), genitive, label position, current altitude |
 
-Double-click a row to show it in the Sky chart. Select rows (Ctrl or Shift for several) and click **Add to plan** to add them to the active [observing list](Observation-planning). **CSV…** exports the results.
+Double-click a row to show it in the Sky chart, centred and selected. Select rows (Ctrl or Shift for several) and click **Add to plan** to add them to the active [observing list](Observation-planning). **CSV…** exports the results.
 
 Examples:
 
@@ -88,7 +88,7 @@ WHERE CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', 202.47, 47.20, 0.5)) = 1
 ### Working with results
 
 - The grid shows up to 20,000 rows; the panel on the right shows the row and column count and messages.
-- Double-click a row that has RA and Dec columns (in degrees) to show that position in the Sky chart.
+- Double-click a row that has RA and Dec columns (in degrees) to show that position in the Sky chart, centred.
 - **CSV…** saves the results.
 - **Plot columns…** asks for two column names and opens a scatter plot of one against the other (magnitude axes are inverted automatically), for example `bp_rp,Gmag` for a colour-magnitude diagram of a Gaia cone search.
 

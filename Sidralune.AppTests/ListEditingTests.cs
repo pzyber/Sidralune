@@ -233,5 +233,73 @@ namespace Sidralune.AppTests
             }
             finally { store.Remove(mb); OnUi(() => grid.Rows.Clear()); }
         }
+
+        [TestMethod]
+        public void TestMinorBodyOrbitShownForTheFirstListed()
+        {
+            // the list selects its first object by itself, and the orbit diagram shows that object's orbit at once,
+            // whether one object is found or several
+            var view = View<SolarSystemView>("solarsystem");
+            var grid = Field<DataGridView>(view, "_mbGrid");
+            var orbits = Field<Control>(view, "_orbits");
+            // the Minor bodies tab, shown as when it is used: a hidden list selects nothing by itself
+            OnUi(() => Field<TabbedPanel>(view, "_tabs").Select(1));
+            Settle();
+            Func<List<MinorBody>> highlight = () => OnUi(() => ((List<MinorBody>)orbits.GetType().GetField("Highlight").GetValue(orbits)).ToList());
+            Func<MinorBody> first = () => OnUi(() => grid.Rows.Count > 0 ? grid.Rows[0].Tag as MinorBody : null);
+            var asteroids = MinorBodyStore.Instance.Asteroids.Take(4).ToList();
+            CheckTrue("Asteroids to list", asteroids.Count >= 2);
+            try
+            {
+                foreach (var filter in new[] { asteroids[0].DisplayName, "" })
+                {
+                    OnUi(() => grid.Rows.Clear());
+                    OnUi(() => Call(view, "ListMinor", 1, 99.0, filter));
+                    WaitFor(() => first() != null, 20000);
+                    Settle();
+                    int n = OnUi(() => grid.Rows.Count);
+                    string tag = filter == "" ? "Several objects (" + n + ")" : "One object";
+                    CheckTrue(tag + ": listed", filter == "" ? n >= 2 : n == 1, n.ToString());
+                    var h = highlight();
+                    CheckTrue(tag + ": the first one's orbit is shown", h.Count == 1 && h[0] == first(), string.Join(", ", h.Select(m => m.DisplayName)));
+                }
+            }
+            finally { OnUi(() => grid.Rows.Clear()); }
+        }
+
+        [TestMethod]
+        public void TestMinorBodyCentredInSky()
+        {
+            // double-clicking a listed minor body opens the Sky tab centred on it, with it selected
+            var view = View<SolarSystemView>("solarsystem");
+            var grid = Field<DataGridView>(view, "_mbGrid");
+            OnUi(() => Field<TabbedPanel>(view, "_tabs").Select(1));
+            Settle();
+            var body = MinorBodyStore.Instance.Asteroids.First();
+            try
+            {
+                OnUi(() => Call(view, "ListMinor", 1, 99.0, body.DisplayName));
+                WaitFor(() => OnUi(() => grid.Rows.Count > 0 && grid.Rows[0].Tag == body), 20000);
+                // somewhere else first, so centring shows
+                OnUi(() => App.GetView<SkyView>("sky").Chart.CenterOn(0, 0, 60));
+                OnUi(() => Call(grid, "OnCellDoubleClick", new DataGridViewCellEventArgs(0, 0)));
+                Settle();
+                var r = OnUi(() =>
+                {
+                    var chart = App.GetView<SkyView>("sky").Chart;
+                    double ra, dec;
+                    chart.ScreenToIcrs(new System.Drawing.Point(chart.Width / 2, chart.Height / 2), out ra, out dec);
+                    return Tuple.Create(App.GetView<SkyView>("sky").Visible, ra * 180 / Math.PI, dec * 180 / Math.PI, chart.Highlight);
+                });
+                CheckTrue("The Sky tab opens", r.Item1);
+                CheckTrue("The object is selected", r.Item4 != null && r.Item4.Minor == body, r.Item4?.Name);
+                if (r.Item4 != null)
+                {
+                    double d = Core.Mathematics.AstroMath.Separation(r.Item2 * Math.PI / 180, r.Item3 * Math.PI / 180, r.Item4.RaDeg * Math.PI / 180, r.Item4.DecDeg * Math.PI / 180) * 180 / Math.PI;
+                    CheckTrue("The chart is centred on it", d < 0.5, d.ToString("0.000") + "°");
+                }
+            }
+            finally { OnUi(() => { grid.Rows.Clear(); App.Navigate("solarsystem"); }); }
+        }
     }
 }

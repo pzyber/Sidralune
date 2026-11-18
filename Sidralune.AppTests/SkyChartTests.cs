@@ -36,6 +36,142 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestSelectedMinorBodyDrawn()
+        {
+            // a faint asteroid, selected and centred as the Sky tab shows it, at a wide, a medium and a narrow field and at
+            // a low and a deep magnitude limit: it is drawn at each, where the selection marker is, also in the first
+            // frame, before the other minor bodies' positions are worked out in the background; a faint one that is not
+            // selected keeps to the limit
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 18, 19, 43, 0, DateTimeKind.Utc));
+            var store = Core.MinorBodies.MinorBodyStore.Instance;
+            var ctx = new SkyContext(AppState.Site, time);
+            var body = store.Asteroids.Select(m => new { m, p = Core.MinorBodies.MinorBodyStore.Place(ctx, m) }).Where(x => x.p.Magnitude > 9.5 && x.p.Magnitude < 13)
+                .OrderBy(x => x.p.Magnitude).Select(x => x.m).FirstOrDefault();
+            CheckTrue("A faint asteroid to show", body != null);
+            if (body == null) return;
+            var place = Core.MinorBodies.MinorBodyStore.Place(ctx, body);
+            var sel = new SelectedObject { Kind = SelectedKind.MinorBody, Name = body.DisplayName, Minor = body, RaDeg = place.Astrometric.RaHours * 15, DecDeg = place.Astrometric.DecDeg, Mag = place.Magnitude };
+            // another faint one, not selected, to see the limit still applies
+            var other = store.Asteroids.FirstOrDefault(m => m != body && Core.MinorBodies.MinorBodyStore.Place(ctx, m).Magnitude > 8.6);
+            foreach (var mode in new[] { ChartMode.Atlas, ChartMode.Planetarium })
+            foreach (var lim in new[] { 6.5, 14.0 })
+            foreach (var fov in new[] { 100.0, 2.25, 14.5 / 60 })
+            {
+                var r = OnUi(() =>
+                {
+                    using (var chart = new SkyChart { Mode = mode, Size = new Size(1600, 1000), FixedTime = time, Highlight = sel })
+                    using (var bmp = new Bitmap(1600, 1000))
+                    using (var g = Graphics.FromImage(bmp))
+                    {
+                        chart.Layers.AutoMagLimit = false; chart.Layers.MagLimit = lim;
+                        chart.CenterOn(place.Astrometric.Ra, place.Astrometric.Dec, fov);
+                        Func<Tuple<PointF, float>, double?> off = d => d == null ? (double?)null : Math.Sqrt(Math.Pow(d.Item1.X - 800, 2) + Math.Pow(d.Item1.Y - 500, 2));
+                        // the first frame, while the positions are still being worked out in the background (they are handed
+                        // back through the window)
+                        var handle = chart.Handle;
+                        chart.Render(g, 1600, 1000, Theme.Current, false);
+                        var first = off(Drawn(chart, body.DisplayName));
+                        var until = DateTime.Now.AddSeconds(20);
+                        while (Field<bool>(chart, "_minorComputing") && DateTime.Now < until) { Application.DoEvents(); System.Threading.Thread.Sleep(20); }
+                        chart.Render(g, 1600, 1000, Theme.Current, false);
+                        var otherDrawn = other != null && Drawn(chart, other.DisplayName) != null;
+                        return Tuple.Create(first, off(Drawn(chart, body.DisplayName)), otherDrawn);
+                    }
+                });
+                string tag = body.DisplayName + " (mag " + place.Magnitude.ToString("0.0") + ") at " + AstroMath.FormatAngleAuto(fov) + ", limit " + lim + ", " + mode + ": ";
+                CheckTrue(tag + "drawn in the first frame", r.Item1 != null);
+                CheckTrue(tag + "drawn", r.Item2 != null);
+                if (r.Item2 != null) CheckTrue(tag + "where it is selected, in the middle", r.Item2.Value < 3, r.Item2.Value.ToString("0.0") + " px");
+                if (other != null && lim == 6.5) CheckTrue(tag + other.DisplayName + ", fainter than the limit and not selected, is left out", !r.Item3);
+            }
+        }
+
+        [TestMethod]
+        public void TestMinorBodiesLoadedLaterAreDrawn()
+        {
+            // a chart drawn before a comet is loaded (the catalogues load in the background at start-up, and comets can be
+            // added by hand) shows it once it is there, without being selected and without the time moving on
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 18, 20, 30, 0, DateTimeKind.Utc));
+            var store = Core.MinorBodies.MinorBodyStore.Instance;
+            var ast = store.Asteroids.First();
+            var comet = new Core.MinorBodies.MinorBody { Designation = "C/2026 Z8", Name = "C/2026 Z8 (test)", IsComet = true, Elements = ast.Elements, H = 2 };
+            var place = Core.MinorBodies.MinorBodyStore.Place(new SkyContext(AppState.Site, time), comet);
+            CheckTrue("The test comet is bright", place.Magnitude < 8, place.Magnitude.ToString("0.0"));
+            var chart = OnUi(() => new SkyChart { Mode = ChartMode.Atlas, Size = new Size(1600, 1000), FixedTime = time });
+            Func<bool> render = () => OnUi(() =>
+            {
+                using (var bmp = new Bitmap(1600, 1000))
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    chart.Render(g, 1600, 1000, Theme.Current, false);
+                    var until = DateTime.Now.AddSeconds(20);
+                    while (Field<bool>(chart, "_minorComputing") && DateTime.Now < until) { Application.DoEvents(); System.Threading.Thread.Sleep(20); }
+                    chart.Render(g, 1600, 1000, Theme.Current, false);
+                    return Drawn(chart, comet.DisplayName) != null;
+                }
+            });
+            try
+            {
+                OnUi(() => { var h = chart.Handle; chart.Layers.AutoMagLimit = false; chart.Layers.MagLimit = 10; chart.CenterOn(place.Astrometric.Ra, place.Astrometric.Dec, 10); });
+                CheckTrue("Not drawn before it is loaded", !render());
+                store.Add(comet);
+                CheckTrue("Drawn once it is loaded", render());
+                store.Remove(comet);
+                CheckTrue("Gone again once it is removed", !render());
+            }
+            finally { store.Remove(comet); OnUi(() => chart.Dispose()); }
+        }
+
+        [TestMethod]
+        public void TestCometTailAwayFromSun()
+        {
+            // a comet (an asteroid's orbit with a comet's brightness), selected and centred: its tail keeps its direction as
+            // the chart zooms, and points away from the Sun along the sky, in both chart modes
+            var time = AstroTime.FromDateTime(new DateTime(2026, 11, 18, 20, 15, 0, DateTimeKind.Utc));
+            var ast = Core.MinorBodies.MinorBodyStore.Instance.Asteroids.First();
+            var comet = new Core.MinorBodies.MinorBody { Designation = "C/2026 Z9", Name = "C/2026 Z9 (test)", IsComet = true, Elements = ast.Elements, H = 8 };
+            var ctx = new SkyContext(AppState.Site, time);
+            var place = Core.MinorBodies.MinorBodyStore.Place(ctx, comet);
+            var sun = ctx.BodyPlace(Body.Sun);
+            var sel = new SelectedObject { Kind = SelectedKind.MinorBody, Name = comet.DisplayName, Minor = comet, RaDeg = place.Astrometric.RaHours * 15, DecDeg = place.Astrometric.DecDeg };
+            foreach (var mode in new[] { ChartMode.Atlas, ChartMode.Planetarium })
+            {
+                var angles = new System.Collections.Generic.List<double>();
+                foreach (var fov in new[] { 64.0, 51.2, 2.0, 14.5 / 60 })
+                {
+                    var r = OnUi(() =>
+                    {
+                        using (var chart = new SkyChart { Mode = mode, Size = new Size(1600, 1000), FixedTime = time, Highlight = sel })
+                        using (var bmp = new Bitmap(1600, 1000))
+                        using (var g = Graphics.FromImage(bmp))
+                        {
+                            chart.CenterOn(place.Astrometric.Ra, place.Astrometric.Dec, fov);
+                            chart.Render(g, 1600, 1000, Theme.Current, false);
+                            var d = Drawn(chart, comet.DisplayName);
+                            if (d == null) return null;
+                            double ang = (double)Call(chart, "TailAngle", place.Astrometric.ToVector().Normalized(), d.Item1);
+                            // 20 px along the tail, back on the sky: farther from the Sun than the comet
+                            double ra, dec;
+                            chart.ScreenToIcrs(Point.Round(new PointF(d.Item1.X + 20 * (float)Math.Cos(ang), d.Item1.Y + 20 * (float)Math.Sin(ang))), out ra, out dec);
+                            double from = AstroMath.Separation(sun.Astrometric.Ra, sun.Astrometric.Dec, place.Astrometric.Ra, place.Astrometric.Dec);
+                            double tail = AstroMath.Separation(sun.Astrometric.Ra, sun.Astrometric.Dec, ra, dec);
+                            return Tuple.Create(ang, tail - from, 20 * fov / 1600 * AstroMath.Deg2Rad);
+                        }
+                    });
+                    string tag = mode + " at " + AstroMath.FormatAngleAuto(fov) + ": ";
+                    CheckTrue(tag + "the comet is drawn", r != null);
+                    if (r == null) continue;
+                    angles.Add(r.Item1);
+                    // nearly the whole 20 px away from the Sun (a pixel's rounding allowed)
+                    CheckTrue(tag + "the tail points away from the Sun", r.Item2 > 0.8 * r.Item3, (r.Item2 * AstroMath.Rad2Deg * 3600).ToString("0.0") + "\" of " + (r.Item3 * AstroMath.Rad2Deg * 3600).ToString("0.0") + "\"");
+                }
+                // the same direction at every zoom (within 1°)
+                double spread = angles.Count < 2 ? 0 : angles.Max(a => angles.Max(b => Math.Abs(Math.IEEERemainder(a - b, 2 * Math.PI)))) * AstroMath.Rad2Deg;
+                CheckTrue(mode + ": the tail keeps its direction when zooming", spread < 1, spread.ToString("0.00") + "°");
+            }
+        }
+
+        [TestMethod]
         public void TestJupiterPartlyInView()
         {
             var time = AstroTime.FromDateTime(new DateTime(2026, 10, 31, 1, 0, 0, DateTimeKind.Utc));
