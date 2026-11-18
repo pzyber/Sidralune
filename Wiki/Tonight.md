@@ -2,6 +2,8 @@
 
 Everything on the page is for the active site and the current (or simulated) time. It updates every minute, whenever you change the time, and fully recalculates when you change the site or install new catalogues or orbits. Double-click any row in its tables to show that object in the [Sky chart](Sky-chart).
 
+The cards are arranged in three columns in a wide window, two in a medium one and one in a narrow one. Each card sits as high as it fits, so a short card leaves no empty space under it, and the list of deep-sky targets spans two columns.
+
 ## Contents
 
 - [Tonight card](#tonight-card)

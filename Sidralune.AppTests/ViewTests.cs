@@ -32,6 +32,64 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestTonightLayout()
+        {
+            // a fresh Tonight tab opened as the main window opens a workspace, at a large, a medium and the smallest window size
+            foreach (var size in new[] { new Size(2000, 1100), new Size(1486, 943), new Size(1100, 700) })
+            {
+                var state = OnUi(() =>
+                {
+                    var f = new Form { StartPosition = FormStartPosition.Manual, Location = new Point(-3000, 0), ShowInTaskbar = false, Size = size };
+                    f.Show();
+                    var v = new Sidralune.Views.TonightView { Dock = DockStyle.Fill };
+                    f.Controls.Add(v);
+                    Theme.Apply(v);
+                    return Tuple.Create(f, (Panel)typeof(Sidralune.Views.TonightView).GetField("_cards", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(v));
+                });
+                Settle(500);
+                var r = OnUi(() =>
+                {
+                    var panel = state.Item2;
+                    var cards = panel.Controls.OfType<Card>().ToDictionary(c => c.Title, c => c.Bounds);
+                    bool bar = panel.VerticalScroll.Visible;
+                    // scrolled to the end, where the lowest card is
+                    panel.AutoScrollPosition = new Point(0, 100000);
+                    int bottomScrolled = panel.Controls.OfType<Card>().Max(c => c.Bottom);
+                    var res = Tuple.Create(cards, panel.ClientSize, bar, bottomScrolled);
+                    state.Item1.Close();
+                    return res;
+                });
+                string tag = size.Width + "×" + size.Height + ": ";
+                var b = r.Item1.Values.ToList();
+                int bottom = b.Max(x => x.Bottom), right = b.Max(x => x.Right);
+                Func<string, Rectangle> card = t => r.Item1.First(kv => kv.Key.StartsWith(t)).Value;
+                // the scroll bar is there at once when the cards go below the window, without resizing or switching tabs first
+                CheckTrue(tag + "a scroll bar exactly when the cards go below the window", r.Item3 == (bottom > r.Item2.Height), bottom + " vs " + r.Item2.Height);
+                CheckTrue(tag + "scrolled to the end, the lowest card is in view", r.Item4 <= r.Item2.Height, r.Item4 + " ≤ " + r.Item2.Height);
+                CheckTrue(tag + "nothing to scroll sideways", right <= r.Item2.Width, right + " ≤ " + r.Item2.Width);
+                // packed: no card overlaps another, and each is at the top or right under the lowest card above it
+                CheckTrue(tag + "no card overlaps another", !b.Any(x => b.Any(y => y != x && y.IntersectsWith(x))));
+                int top0 = b.Min(y => y.Top);
+                CheckTrue(tag + "no gap above any card", b.All(x => x.Top == b.Where(y => y.Bottom <= x.Top && y.Left < x.Right && x.Left < y.Right).Select(y => y.Bottom + 12).DefaultIfEmpty(top0).Max()),
+                    string.Join(", ", r.Item1.Select(kv => kv.Key + " " + kv.Value)));
+                if (size.Width == 1100)
+                {
+                    // two columns: Coming up beside Planets, under the Moon, before the deep-sky targets across both
+                    CheckTrue(tag + "Coming up under the Moon", card("Coming up").Top == card("Moon").Bottom + 12 && card("Coming up").Left == card("Moon").Left);
+                    CheckTrue(tag + "the deep-sky targets under Planets and Coming up", card("Best deep-sky").Top == Math.Max(card("Planets").Bottom, card("Coming up").Bottom) + 12);
+                }
+                if (size.Width == 1486)
+                {
+                    // three columns: Coming up right under Planets, the targets under Tonight and Moon, Getting started under Jupiter
+                    CheckTrue(tag + "Coming up under Planets", card("Coming up").Top == card("Planets").Bottom + 12 && card("Coming up").Left == card("Planets").Left);
+                    CheckTrue(tag + "the deep-sky targets under Tonight and the Moon", card("Best deep-sky").Top == card("Tonight").Bottom + 12 && card("Best deep-sky").Right == card("Moon").Right);
+                    CheckTrue(tag + "Comets & asteroids under Coming up", card("Comets").Top == card("Coming up").Bottom + 12);
+                    CheckTrue(tag + "Getting started under Jupiter's moons", card("Getting started").Top == card("Jupiter").Bottom + 12);
+                }
+            }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;
