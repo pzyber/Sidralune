@@ -22,7 +22,9 @@ namespace Sidralune.Views
     /// <summary>Home dashboard: what's up tonight, at a glance (SkyTools "Nightly Planner" summary).</summary>
     public class TonightView : UserControl, IActivatable
     {
-        private readonly FlowLayoutPanel _flow = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(10), WrapContents = true };
+        // the cards, placed by LayoutCards; the space under the lowest one is the same as at the sides
+        private readonly Panel _cards = new Panel { Dock = DockStyle.Fill, AutoScroll = true, AutoScrollMargin = new Size(0, CardPad) };
+        private const int CardPad = 16, CardGap = 12;
         private readonly Card _night = new Card(T("Tonight"));
         // time and site changes come quickly: the newest calculation wins, and a full one is not lost to a partial one
         private readonly JobSlot _job = new JobSlot();
@@ -49,7 +51,7 @@ namespace Sidralune.Views
 
         public TonightView()
         {
-            Controls.Add(_flow);
+            Controls.Add(_cards);
             _night.Controls.Add(_nightText); _night.Controls.Add(_timeline);
             _moon.Controls.Add(_moonText); _moon.Controls.Add(_moonGlyph);
             _planets.Controls.Add(_planetGrid);
@@ -59,12 +61,8 @@ namespace Sidralune.Views
             _saturn.Controls.Add(_satGlyph);
             _minor.Controls.Add(_minorGrid);
             BuildDataCard();
-            foreach (var c in new Control[] { _night, _moon, _planets, _targets, _events, _jupiter, _saturn, _minor, _data }) _flow.Controls.Add(c);
-            _flow.Resize += (s, e) => LayoutCards();
-            // the panel's scroll range leaves out its own padding, which would hide the bottom of the lowest card: an
-            // empty row of that height after the cards makes up for it
-            _flow.SetFlowBreak(_data, true);
-            _flow.Controls.Add(new Panel { Size = new Size(1, _flow.Padding.Vertical), Margin = Padding.Empty });
+            foreach (var c in new Control[] { _night, _moon, _planets, _targets, _events, _jupiter, _saturn, _minor, _data }) _cards.Controls.Add(c);
+            _cards.Resize += (s, e) => LayoutCards();
             foreach (var g in new[] { _planetGrid, _targetGrid, _minorGrid })
                 g.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && ((DataGridView)s).Rows[e.RowIndex].Tag is SelectedObject) MainForm.Instance.ShowObject((SelectedObject)((DataGridView)s).Rows[e.RowIndex].Tag); };
             _targets.Subtitle = T("double-click to show in the sky chart");
@@ -79,26 +77,59 @@ namespace Sidralune.Views
 
         public void Activated() { if ((DateTime.Now - _lastRefresh).TotalMinutes > 5) Refresh(true); }
 
+        /// <summary>
+        /// The cards in one to three columns, in order, each where it can sit highest (the deep-sky targets across two
+        /// columns), so a short card leaves no gap under it. A wide card may go one or two places later when that makes
+        /// the whole shorter, so the cards beside a tall one fill the space next to it. The columns are measured as if the
+        /// scroll bar showed, so it coming or going never changes them.
+        /// </summary>
         private void LayoutCards()
         {
-            int w = _flow.ClientSize.Width - _flow.Padding.Horizontal - 20;
+            int sb = SystemInformation.VerticalScrollBarWidth;
+            int w = _cards.ClientSize.Width + (_cards.VerticalScroll.Visible ? sb : 0) - 2 * CardPad - sb;
             int cols = w > 1300 ? 3 : w > 820 ? 2 : 1;
-            int cw = w / cols - 12;
-            _flow.SuspendLayout();
-            _night.Size = new Size(cw, 230);
-            _moon.Size = new Size(cw, 230);
-            _planets.Size = new Size(cols >= 3 ? cw : cw, 300);
-            _targets.Size = new Size(cols >= 2 ? cw * 2 + 12 : cw, 360);
-            _events.Size = new Size(cw, 360);
-            _jupiter.Size = new Size(cw, 180);
-            _saturn.Size = new Size(cw, 180);
-            _minor.Size = new Size(cw, 300);
-            _data.Size = new Size(cw, 300);
-            _flow.ResumeLayout(true);
-            // The cards are sized while the panel handles its own resize, and the layout that moves them then does not
-            // update the scroll range: the window opened on Tonight had no scroll bar for cards below it until the next
-            // resize or tab change. Lay out once more when that is over.
-            if (_flow.IsHandleCreated) _flow.BeginInvoke(new Action(() => { if (!_flow.IsDisposed) _flow.PerformLayout(); }));
+            int cw = Math.Max(100, (w - (cols - 1) * CardGap) / cols);
+            var cards = new List<Tuple<Control, int, int>>
+            {
+                Tuple.Create((Control)_night, 230, 1), Tuple.Create((Control)_moon, 230, 1), Tuple.Create((Control)_planets, 300, 1),
+                Tuple.Create((Control)_targets, 360, 2), Tuple.Create((Control)_events, 360, 1), Tuple.Create((Control)_jupiter, 180, 1),
+                Tuple.Create((Control)_saturn, 180, 1), Tuple.Create((Control)_minor, 300, 1), Tuple.Create((Control)_data, 300, 1),
+            };
+            // the order as given, then with the wide card one or two places later; the shortest wins, the earliest of equals
+            int wide = cards.FindIndex(c => c.Item3 > 1);
+            Rectangle[] best = null; int bestHeight = int.MaxValue; List<Tuple<Control, int, int>> bestOrder = null;
+            for (int d = 0; d <= 2 && wide + d < cards.Count; d++)
+            {
+                var order = cards.ToList();
+                var x = order[wide]; order.RemoveAt(wide); order.Insert(wide + d, x);
+                int height;
+                var bounds = PackCards(order, cols, cw, out height);
+                if (height < bestHeight) { best = bounds; bestHeight = height; bestOrder = order; }
+            }
+            var scroll = _cards.AutoScrollPosition;
+            _cards.SuspendLayout();
+            for (int i = 0; i < bestOrder.Count; i++) { var r = best[i]; r.Offset(scroll); bestOrder[i].Item1.Bounds = r; }
+            _cards.ResumeLayout(true);
+        }
+
+        /// <summary>Each card (control, height, columns spanned) in turn where it can sit highest, leftmost of equals.</summary>
+        private static Rectangle[] PackCards(IList<Tuple<Control, int, int>> cards, int cols, int cw, out int height)
+        {
+            var tops = new int[cols];
+            var res = new Rectangle[cards.Count];
+            for (int i = 0; i < cards.Count; i++)
+            {
+                int span = Math.Min(cards[i].Item3, cols), col = 0, y = int.MaxValue;
+                for (int c = 0; c + span <= cols; c++)
+                {
+                    int top = Enumerable.Range(c, span).Max(k => tops[k]);
+                    if (top < y) { y = top; col = c; }
+                }
+                res[i] = new Rectangle(CardPad + col * (cw + CardGap), CardPad + y, span * cw + (span - 1) * CardGap, cards[i].Item2);
+                for (int k = col; k < col + span; k++) tops[k] = y + cards[i].Item2 + CardGap;
+            }
+            height = tops.Max();
+            return res;
         }
 
         private void BuildDataCard()
