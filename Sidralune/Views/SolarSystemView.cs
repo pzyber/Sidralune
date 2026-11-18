@@ -371,6 +371,42 @@ namespace Sidralune.Views
                 }
             }
 
+            /// <summary>
+            /// The line of a near-parabolic or hyperbolic orbit (heliocentric, equatorial, AU), in time order: out from
+            /// perihelion both ways until it is <paramref name="reachAu"/> from the Sun, and always past where the body is
+            /// at <paramref name="jd"/>, so the body is on its line however far from perihelion it is. (A fixed 200 days
+            /// either side left a slow comet far out, such as C/2022 N2 at 5.6 AU, off the end of its line.) A long
+            /// ellipse that turns back within that reach is followed to aphelion from both sides, which closes it. Steps
+            /// are short where the body moves fast and long where it moves slowly, a hundredth of the reach at most.
+            /// </summary>
+            public static List<Vec3> OpenOrbitLine(MinorBody m, double jd, double reachAu)
+            {
+                var el = m.Elements;
+                double T = el.PerihelionTime, reach = Math.Max(reachAu, m.HeliocentricEquatorial(jd).Length * 1.1), maxStep = reach / 100;
+                double half = el.Eccentricity < 1 ? el.PeriodDays / 2 : double.PositiveInfinity;
+                Func<int, List<Vec3>> side = dir =>
+                {
+                    var res = new List<Vec3>();
+                    var prev = m.HeliocentricEquatorial(T);
+                    double t = 0, dt = 0.5;
+                    for (int n = 0; n < 5000; n++)
+                    {
+                        double next = Math.Min(t + dt, half);
+                        var pos = m.HeliocentricEquatorial(T + dir * next);
+                        double d = (pos - prev).Length;
+                        if (d > maxStep && dt > 1e-3) { dt /= 2; continue; }
+                        res.Add(pos); prev = pos; t = next;
+                        if (pos.Length > reach || t >= half || t > 1e7) break;
+                        if (d < maxStep / 3) dt *= 1.6;
+                    }
+                    return res;
+                };
+                var before = side(-1); before.Reverse();
+                var line = new List<Vec3>(before) { m.HeliocentricEquatorial(T) };
+                line.AddRange(side(1));
+                return line;
+            }
+
             private static Vec3 Ecl(Vec3 eq) { double e = 23.4392911 * AstroMath.Deg2Rad; return new Vec3(eq.X, eq.Y * Math.Cos(e) + eq.Z * Math.Sin(e), -eq.Y * Math.Sin(e) + eq.Z * Math.Cos(e)); }
 
             protected override void OnPaint(PaintEventArgs e)
@@ -413,7 +449,8 @@ namespace Sidralune.Views
                                 double per = Math.Pow(el.SemiMajorAxis, 1.5) * 365.25;
                                 for (int k = 0; k <= 200; k++) pts.Add(map(m.HeliocentricEquatorial(jd + per * k / 200.0)));
                             }
-                            else for (int k = -100; k <= 100; k++) pts.Add(map(m.HeliocentricEquatorial(el.PerihelionTime + k * 2.0)));
+                            // out to the diagram's farthest corner
+                            else pts.AddRange(OpenOrbitLine(m, jd, Math.Sqrt(cx * cx + cy * cy) / sc * 1.05).Select(map));
                             using (var pen = new Pen(col, 1.5f)) g.DrawLines(pen, pts.ToArray());
                         }
                         var now = map(m.HeliocentricEquatorial(jd));

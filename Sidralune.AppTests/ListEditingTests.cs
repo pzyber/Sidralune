@@ -301,5 +301,47 @@ namespace Sidralune.AppTests
             }
             finally { OnUi(() => { grid.Rows.Clear(); App.Navigate("solarsystem"); }); }
         }
+
+        [TestMethod]
+        public void TestOpenOrbitReachesTheComet()
+        {
+            // the orbit diagram's line for a near-parabolic or hyperbolic orbit goes through where the comet is, however
+            // far from perihelion, and on to the edge of the view both ways (a long ellipse that turns back sooner closes)
+            var line = typeof(SolarSystemView).GetNestedType("OrbitDiagram", BindingFlags.NonPublic).GetMethod("OpenOrbitLine");
+            double jd = Core.Time.AstroTime.FromDateTime(new DateTime(2026, 11, 18, 21, 0, 0, DateTimeKind.Utc)).JdTT, d2r = Math.PI / 180;
+            var cases = new[]
+            {
+                // name, q (AU), e, inclination (°), days since perihelion; the first like C/2022 N2 (PANSTARRS), hyperbolic
+                // with q 3.8 AU, past perihelion and 5 AU or more out
+                Tuple.Create("far past perihelion", 3.829, 1.0048, 5.5, 600.0),
+                Tuple.Create("near perihelion", 0.5, 0.999, 60.0, 30.0),
+                Tuple.Create("hyperbolic, still coming in", 1.2, 1.05, 120.0, -900.0),
+                Tuple.Create("long ellipse", 0.3, 0.995, 20.0, 2000.0),
+            };
+            foreach (var c in cases)
+            {
+                var m = new MinorBody { Designation = "C/2026 Z7", Name = "C/2026 Z7 (" + c.Item1 + ")", IsComet = true, Elements = new Core.Ephemeris.OrbitalElements
+                {
+                    Epoch = jd, PerihelionDistance = c.Item2, Eccentricity = c.Item3, Inclination = c.Item4 * d2r, Node = 40 * d2r, ArgPerihelion = 120 * d2r, PerihelionTime = jd - c.Item5,
+                } };
+                double reach = 6 * 1.5;
+                var pts = (List<Core.Mathematics.Vec3>)line.Invoke(null, new object[] { m, jd, reach });
+                var now = m.HeliocentricEquatorial(jd);
+                // the comet's distance from the line (AU)
+                double off = double.MaxValue;
+                for (int i = 1; i < pts.Count; i++)
+                {
+                    var a = pts[i - 1]; var ab = pts[i] - a;
+                    double t = Math.Max(0, Math.Min(1, Core.Mathematics.Vec3.Dot(now - a, ab) / Math.Max(1e-30, Core.Mathematics.Vec3.Dot(ab, ab))));
+                    off = Math.Min(off, (now - (a + ab * t)).Length);
+                }
+                string tag = c.Item1 + " (comet " + now.Length.ToString("0.0") + " AU from the Sun): ";
+                CheckTrue(tag + "on its line", off < 0.01, off.ToString("0.0000") + " AU");
+                bool closes = c.Item3 < 1 && c.Item2 * (1 + c.Item3) / (1 - c.Item3) < reach;
+                CheckTrue(tag + "the line reaches the edge of the view both ways",
+                    closes || (pts[0].Length >= Math.Max(reach, now.Length) && pts[pts.Count - 1].Length >= Math.Max(reach, now.Length)),
+                    pts[0].Length.ToString("0.0") + " and " + pts[pts.Count - 1].Length.ToString("0.0") + " AU");
+            }
+        }
     }
 }
