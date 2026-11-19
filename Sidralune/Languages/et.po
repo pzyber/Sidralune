@@ -6194,6 +6194,10 @@ msgstr "Leheküljed {0}–{1}/{2}"
 msgid "Page {0} of {1}"
 msgstr "Lehekülg {0}/{1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Eelvaate ettevalmistamine…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Tähekaart lehel {0}"

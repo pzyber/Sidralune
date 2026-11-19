@@ -6219,6 +6219,10 @@ msgstr "Stránky {0}–{1} z {2}"
 msgid "Page {0} of {1}"
 msgstr "Stránka {0} z {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Připravuje se náhled…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Hvězdná mapa na {0}"

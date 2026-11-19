@@ -6194,6 +6194,10 @@ msgstr "Sida {0}–{1} av {2}"
 msgid "Page {0} of {1}"
 msgstr "Sida {0} av {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Förbereder förhandsgranskningen…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Stjärnkarta på {0}"

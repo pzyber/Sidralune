@@ -6194,6 +6194,10 @@ msgstr "Σελίδες {0}–{1} από {2}"
 msgid "Page {0} of {1}"
 msgstr "Σελίδα {0} από {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Προετοιμασία προεπισκόπησης…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Αστρικός χάρτης σε {0}"

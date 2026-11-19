@@ -6194,6 +6194,10 @@ msgstr "{0}–{1}. oldal / {2}"
 msgid "Page {0} of {1}"
 msgstr "{0}. oldal / {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Előnézet előkészítése…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Csillagtérkép ezen: {0}"

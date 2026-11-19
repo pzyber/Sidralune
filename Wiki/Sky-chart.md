@@ -257,7 +257,7 @@ Typical use: select the target, choose **Finder (5°)** for a finder chart and *
 
 ### The print preview
 
-Both the finder chart and the star chart open in Sidralune's print preview, which shows the pages exactly as they will be printed.
+Both the finder chart and the star chart open in Sidralune's print preview, which shows the pages exactly as they will be printed. It opens at once and shows **Preparing the preview…** while the pages are drawn, which takes about a second for a chart.
 
 | Control | What it does |
 |---|---|

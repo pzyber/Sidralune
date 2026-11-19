@@ -216,11 +216,12 @@ namespace Sidralune.AppTests
             };
             OnUi(() =>
             {
-                PrintPreviewWindow w;
-                try { w = new PrintPreviewWindow(doc, "Preview test", false); }
-                catch (System.Drawing.Printing.InvalidPrinterException) { Assert.Inconclusive("No printer is installed"); return; }
-                using (w)
+                if (!doc.PrinterSettings.IsValid) { Assert.Inconclusive("No printer is installed"); return; }
+                using (var w = new PrintPreviewWindow(doc, "Preview test", false))
                 {
+                    // it opens at once and draws the pages after it is shown
+                    CheckTrue("The preview opens before the pages are drawn", w.Pages.Length == 0 && printed == 0);
+                    w.Generate();
                     CheckTrue("The preview has Sidralune's icon", ReferenceEquals(w.Icon, MainForm.AppIcon));
                     CheckTrue("The preview has the app's background", w.BackColor == Theme.Current.Background);
                     CheckTrue("The preview has every page", w.Pages.Length == 2);

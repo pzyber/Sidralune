@@ -6194,6 +6194,10 @@ msgstr "Faqet {0}–{1} nga {2}"
 msgid "Page {0} of {1}"
 msgstr "Faqja {0} nga {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Po përgatitet parapamja…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Harta e yjeve në {0}"

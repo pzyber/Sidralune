@@ -6219,6 +6219,10 @@ msgstr "Lappuses {0}–{1} no {2}"
 msgid "Page {0} of {1}"
 msgstr "Lappuse {0} no {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Sagatavo priekšskatījumu…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Zvaigžņu karte uz {0}"

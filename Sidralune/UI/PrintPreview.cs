@@ -27,14 +27,15 @@ namespace Sidralune.UI
         private readonly Label _zoomText, _pageText;
         private readonly EventHandler _themeChanged;
 
-        /// <summary>The pages as the printer will get them.</summary>
-        public PreviewPageInfo[] Pages { get; }
+        private readonly List<Control> _pageControls = new List<Control>();
 
-        /// <summary>Renders the pages of <paramref name="doc"/>. <paramref name="choosePrinter"/>: Print asks for the printer first.</summary>
+        /// <summary>The pages as the printer will get them; empty until they are drawn (<see cref="Generate"/>), just after the window opens.</summary>
+        public PreviewPageInfo[] Pages { get; private set; } = new PreviewPageInfo[0];
+
+        /// <summary>The preview of <paramref name="doc"/>; the pages are drawn once it is shown. <paramref name="choosePrinter"/>: Print asks for the printer first.</summary>
         public PrintPreviewWindow(PrintDocument doc, string title, bool choosePrinter)
         {
             _doc = doc; _choosePrinter = choosePrinter;
-            Pages = RenderPages(doc);
 
             Text = string.IsNullOrEmpty(title) ? T("Print preview") : title;
             Icon = MainForm.AppIcon;
@@ -58,7 +59,10 @@ namespace Sidralune.UI
             var close = new FlatButton(T("Close"), Icons.Close, (s, e) => Close());
 
             var items = new List<Control> { _print, Ui.Separator(), _zoomOut, _zoomText, _zoomIn, _fit };
-            if (Pages.Length > 1) items.AddRange(new Control[] { Ui.Separator(), _prev, _pageText, _next, _two });
+            // the page controls are shown once the pages are drawn, if there is more than one
+            _pageControls.AddRange(new Control[] { Ui.Separator(), _prev, _pageText, _next, _two });
+            foreach (var c in _pageControls) c.Visible = false;
+            items.AddRange(_pageControls);
             items.AddRange(new Control[] { Ui.Separator(), close });
             var bar = Ui.Toolbar(items.ToArray());
             Controls.Add(_view);
@@ -71,12 +75,32 @@ namespace Sidralune.UI
             Changed();
         }
 
-        /// <summary>Draws the pages before the window appears: a slow first paint would show the empty window white (blinding at night).</summary>
-        protected override void OnLoad(EventArgs e)
+        /// <summary>
+        /// The window opens at once with "Preparing the preview…", then draws the pages (about a second for a chart).
+        /// They are drawn after the window has been painted and shown, so it never shows empty or white meanwhile.
+        /// </summary>
+        protected override void OnShown(EventArgs e)
         {
-            base.OnLoad(e);
+            base.OnShown(e);
+            BeginInvoke(new Action(() =>
+            {
+                if (IsDisposed) return;
+                System.Windows.Forms.Cursor.Current = Cursors.WaitCursor; // shown at once: the window is busy until the pages are drawn
+                try { Generate(); }
+                catch (InvalidPrinterException) { MainForm.Instance?.Toast(T("No printer is installed"), Icons.Warning); Close(); }
+                finally { System.Windows.Forms.Cursor.Current = Cursors.Default; }
+            }));
+        }
+
+        /// <summary>Draws the pages (the document prints into the preview) and shows them.</summary>
+        public void Generate()
+        {
+            if (Pages.Length > 0) return;
+            Pages = RenderPages(_doc);
+            foreach (var c in _pageControls) c.Visible = Pages.Length > 1;
             Changed();
             _view.Prerender();
+            _view.Invalidate();
         }
 
         private static FlatButton IconButton(string icon, string tip, EventHandler click)
@@ -89,10 +113,8 @@ namespace Sidralune.UI
         /// <summary>Shows the preview of <paramref name="doc"/> as a dialog, or says that no printer is installed.</summary>
         public static void Show(IWin32Window owner, PrintDocument doc, string title, bool choosePrinter, Size size)
         {
-            PrintPreviewWindow w;
-            try { w = new PrintPreviewWindow(doc, title, choosePrinter); }
-            catch (InvalidPrinterException) { MainForm.Instance?.Toast(T("No printer is installed"), Icons.Warning); return; }
-            using (w)
+            if (!doc.PrinterSettings.IsValid) { MainForm.Instance?.Toast(T("No printer is installed"), Icons.Warning); return; }
+            using (var w = new PrintPreviewWindow(doc, title, choosePrinter))
             {
                 var area = Screen.FromHandle(MainForm.Instance?.Handle ?? IntPtr.Zero).WorkingArea;
                 w.Size = new Size(Math.Min(size.Width, area.Width), Math.Min(size.Height, area.Height));
@@ -112,6 +134,7 @@ namespace Sidralune.UI
 
         private void PrintNow()
         {
+            if (Pages.Length == 0) return; // still preparing
             if (_choosePrinter)
                 using (var pd = new PrintDialog { Document = _doc, UseEXDialog = true })
                     if (pd.ShowDialog(this) != DialogResult.OK) return;
@@ -121,6 +144,7 @@ namespace Sidralune.UI
 
         private void ZoomBy(int dir)
         {
+            if (Pages.Length == 0) return; // still preparing
             float z = _view.ShownZoom;
             float next = dir > 0 ? ZoomSteps.FirstOrDefault(s => s > z * 1.001f) : ZoomSteps.LastOrDefault(s => s < z * 0.999f);
             if (next == 0) return;
@@ -138,9 +162,11 @@ namespace Sidralune.UI
         private void Changed()
         {
             _view.Relayout();
-            _zoomText.Text = _view.ShownZoom.ToString("P0", CultureInfo.CurrentCulture);
-            _zoomIn.Enabled = _view.ShownZoom < ZoomSteps[ZoomSteps.Length - 1] * 0.999f;
-            _zoomOut.Enabled = _view.ShownZoom > ZoomSteps[0] * 1.001f;
+            bool ready = Pages.Length > 0;
+            _print.Enabled = _fit.Enabled = ready;
+            _zoomText.Text = ready ? _view.ShownZoom.ToString("P0", CultureInfo.CurrentCulture) : "";
+            _zoomIn.Enabled = ready && _view.ShownZoom < ZoomSteps[ZoomSteps.Length - 1] * 0.999f;
+            _zoomOut.Enabled = ready && _view.ShownZoom > ZoomSteps[0] * 1.001f;
             int shown = _view.Shown.Count;
             _pageText.Text = shown > 1 ? T("Pages {0}–{1} of {2}", _view.First + 1, _view.First + shown, Pages.Length) : T("Page {0} of {1}", _view.First + 1, Pages.Length);
             _prev.Enabled = _view.First > 0;
@@ -295,7 +321,11 @@ namespace Sidralune.UI
             {
                 var p = Theme.Current;
                 e.Graphics.Clear(p.Background);
-                if (Shown.Count == 0) return;
+                if (Shown.Count == 0)
+                {
+                    TextRenderer.DrawText(e.Graphics, T("Preparing the preview…"), Theme.HeaderFont, ClientRectangle, p.TextDim, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                    return;
+                }
                 var sizes = Shown.Select(PagePixels).ToList();
                 int total = sizes.Sum(s => s.Width) + Gap * (sizes.Count - 1), tall = sizes.Max(s => s.Height);
                 int x = Math.Max(Pad, (ClientSize.Width - total) / 2) + AutoScrollPosition.X;

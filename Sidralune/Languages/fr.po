@@ -6194,6 +6194,10 @@ msgstr "Pages {0}–{1} sur {2}"
 msgid "Page {0} of {1}"
 msgstr "Page {0} sur {1}"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Préparation de l’aperçu…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Carte stellaire sur {0}"
