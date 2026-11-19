@@ -581,7 +581,7 @@ namespace Sidralune.Views
                     foreach (var it in items) { g.DrawString(it, sf, Brushes.Black, lx, ly); lx += 160; if (lx > r.Right - 160) { lx = r.X; ly += 18; } }
                 }
             };
-            using (var dlg = new PrintPreviewDialog { Document = doc, Width = 1100, Height = 800 })
+            using (var dlg = new PrintPreviewDialog { Icon = MainForm.AppIcon, Document = doc, Width = 1100, Height = 800 })
                 dlg.ShowDialog(this);
         }
 
@@ -628,7 +628,7 @@ namespace Sidralune.Views
             doc.PrintPage += (s, e) => page.PrintPage(s, e);
             using (var pd = new PrintDialog { Document = doc, UseEXDialog = true })
                 if (pd.ShowDialog(this) != DialogResult.OK) return;
-            using (var dlg = new PrintPreviewDialog { Document = doc, Width = 1000, Height = 1100, Text = T("Star chart on {0}", paper.Name) })
+            using (var dlg = new PrintPreviewDialog { Icon = MainForm.AppIcon, Document = doc, Width = 1000, Height = 1100, Text = T("Star chart on {0}", paper.Name) })
                 dlg.ShowDialog(this);
         }
 
