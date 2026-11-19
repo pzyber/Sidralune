@@ -6150,6 +6150,50 @@ msgstr "Sidralune tähekaart"
 msgid "No printer is installed"
 msgstr "Printerit pole installitud"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Prindieelvaade"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Prindi…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Prindi"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Vähenda"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Suurenda"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Terve lehekülg"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Eelmine lehekülg"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Järgmine lehekülg"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Kaks lehekülge"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Leheküljed {0}–{1}/{2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Lehekülg {0}/{1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Tähekaart lehel {0}"

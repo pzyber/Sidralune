@@ -6150,6 +6150,50 @@ msgstr "Sidralune csillagtérkép"
 msgid "No printer is installed"
 msgstr "Nincs telepített nyomtató"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Nyomtatási kép"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Nyomtatás…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Nyomtatás"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Kicsinyítés"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Nagyítás"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Teljes oldal"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Előző oldal"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Következő oldal"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Két oldal"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "{0}–{1}. oldal / {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "{0}. oldal / {1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Csillagtérkép ezen: {0}"

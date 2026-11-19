@@ -6150,6 +6150,50 @@ msgstr "Harta e yjeve Sidralune"
 msgid "No printer is installed"
 msgstr "Nuk është instaluar asnjë printer"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Parapamja e shtypjes"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Shtyp…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Shtyp"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Zvogëlo"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Zmadho"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "E gjithë faqja"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Faqja e mëparshme"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Faqja tjetër"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Dy faqe"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Faqet {0}–{1} nga {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Faqja {0} nga {1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Harta e yjeve në {0}"

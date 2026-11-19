@@ -6150,6 +6150,50 @@ msgstr "Αστρικός χάρτης Sidralune"
 msgid "No printer is installed"
 msgstr "Δεν υπάρχει εγκατεστημένος εκτυπωτής"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Προεπισκόπηση εκτύπωσης"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Εκτύπωση…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Εκτύπωση"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Σμίκρυνση"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Μεγέθυνση"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Ολόκληρη σελίδα"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Προηγούμενη σελίδα"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Επόμενη σελίδα"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Δύο σελίδες"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Σελίδες {0}–{1} από {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Σελίδα {0} από {1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Αστρικός χάρτης σε {0}"

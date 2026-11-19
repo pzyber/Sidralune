@@ -6150,6 +6150,50 @@ msgstr "Sidralune – tähtikartta"
 msgid "No printer is installed"
 msgstr "Tulostinta ei ole asennettu"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Tulostuksen esikatselu"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Tulosta…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Tulosta"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Loitonna"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Lähennä"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Koko sivu"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Edellinen sivu"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Seuraava sivu"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Kaksi sivua"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Sivut {0}–{1}/{2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Sivu {0}/{1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Tähtikartta paperille {0}"

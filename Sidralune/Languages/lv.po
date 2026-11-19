@@ -6175,6 +6175,50 @@ msgstr "Sidralune zvaigžņu karte"
 msgid "No printer is installed"
 msgstr "Nav instalēts printeris"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Drukas priekšskatījums"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Drukāt…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Drukāt"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Tālināt"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Tuvināt"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Visa lappuse"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Iepriekšējā lappuse"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Nākamā lappuse"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Divas lappuses"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Lappuses {0}–{1} no {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Lappuse {0} no {1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Zvaigžņu karte uz {0}"

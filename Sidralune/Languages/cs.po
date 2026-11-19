@@ -6175,6 +6175,50 @@ msgstr "Hvězdná mapa Sidralune"
 msgid "No printer is installed"
 msgstr "Není nainstalována žádná tiskárna"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Náhled tisku"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Tisk…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Tisk"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Oddálit"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Přiblížit"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Whole page"
+msgstr "Celá stránka"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Předchozí stránka"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Další stránka"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Dvě stránky"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Stránky {0}–{1} z {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Stránka {0} z {1}"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Hvězdná mapa na {0}"

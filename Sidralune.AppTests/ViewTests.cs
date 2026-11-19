@@ -174,5 +174,41 @@ namespace Sidralune.AppTests
                     CheckTrue("A text window has Sidralune's icon", ReferenceEquals(f.Icon, MainForm.AppIcon));
             });
         }
+
+        [TestMethod]
+        public void TestPrintPreview()
+        {
+            // Sidralune's print preview: the app's icon and colours, every page, the paper as printed by day and red on dark paper at night
+            var doc = new System.Drawing.Printing.PrintDocument();
+            int printed = 0;
+            doc.BeginPrint += (s, e) => printed = 0;
+            doc.PrintPage += (s, e) =>
+            {
+                var b = e.MarginBounds;
+                e.Graphics.FillRectangle(Brushes.Black, b.X + b.Width / 4, b.Y + b.Height / 4, b.Width / 2, b.Height / 2); // ink in the middle, paper at the edges
+                e.HasMorePages = ++printed < 2;
+            };
+            OnUi(() =>
+            {
+                PrintPreviewWindow w;
+                try { w = new PrintPreviewWindow(doc, "Preview test", false); }
+                catch (System.Drawing.Printing.InvalidPrinterException) { Assert.Inconclusive("No printer is installed"); return; }
+                using (w)
+                {
+                    CheckTrue("The preview has Sidralune's icon", ReferenceEquals(w.Icon, MainForm.AppIcon));
+                    CheckTrue("The preview has the app's background", w.BackColor == Theme.Current.Background);
+                    CheckTrue("The preview has every page", w.Pages.Length == 2);
+                    var size = new Size(200, 280);
+                    using (var day = PrintPreviewWindow.RenderPage(w.Pages[0], size, false))
+                    using (var night = PrintPreviewWindow.RenderPage(w.Pages[0], size, true))
+                    {
+                        Color paper = day.GetPixel(4, 4), ink = day.GetPixel(100, 140);
+                        CheckTrue("By day the paper is white and the ink black", paper.R > 240 && paper.G > 240 && paper.B > 240 && ink.R < 20 && ink.G < 20 && ink.B < 20);
+                        paper = night.GetPixel(4, 4); ink = night.GetPixel(100, 140);
+                        CheckTrue("At night the paper is dark and the ink red", paper.R < 60 && ink.R > 150 && ink.G < 30 && ink.B < 30 && paper.G < 10 && paper.B < 10);
+                    }
+                }
+            });
+        }
     }
 }
