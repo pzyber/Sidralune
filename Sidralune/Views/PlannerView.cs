@@ -244,7 +244,7 @@ namespace Sidralune.Views
 
         public static string Prompt(string title, string label, string value)
         {
-            using (var f = new Form { Text = title, Width = 380, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false })
+            using (var f = new Form { Icon = MainForm.AppIcon, Text = title, Width = 380, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false })
             {
                 var tb = new TextBox { Text = value, Left = 12, Top = 32, Width = 340 };
                 var l = new Label { Text = label, Left = 12, Top = 10, AutoSize = true };
@@ -403,7 +403,7 @@ namespace Sidralune.Views
             var e = _grid.SelectedRows.Count > 0 ? _grid.SelectedRows[0].Tag as ListEntry : null;
             if (e == null) return;
             var entry = new LogEntry { TimeUtc = DateTime.UtcNow, Object = e.Name, Site = AppState.Site.Name, Instrument = AppState.Instrument.Name, Eyepiece = AppState.Instrument.EyepieceFocalMm + " mm", Sqm = AppState.Site.SqmZenith, Notes = "" };
-            using (var f = new Form { Text = T("Log observation — {0}", NameText(e)), Width = 460, Height = 420, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog })
+            using (var f = new Form { Icon = MainForm.AppIcon, Text = T("Log observation — {0}", NameText(e)), Width = 460, Height = 420, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog })
             {
                 var pg = new PropertyGrid { Dock = DockStyle.Fill, SelectedObject = new GridAdapter(entry, T("Observation")), HelpVisible = false };
                 var ok = new FlatButton(T("Save"), Icons.Save) { Dock = DockStyle.Bottom, Kind = ButtonKind.Primary, Height = 36 };
@@ -512,7 +512,7 @@ namespace Sidralune.Views
         /// <summary>A choice from a list in a small dialog: the index chosen, or -1 when cancelled.</summary>
         public static int Choose(string title, string label, string[] options)
         {
-            using (var f = new Form { Text = title, Width = 380, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false })
+            using (var f = new Form { Icon = MainForm.AppIcon, Text = title, Width = 380, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false })
             {
                 var combo = new ComboBox { Left = 12, Top = 32, Width = 340, DropDownStyle = ComboBoxStyle.DropDownList };
                 combo.Items.AddRange(options);

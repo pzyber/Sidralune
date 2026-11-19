@@ -260,9 +260,10 @@ namespace Sidralune.Views
             var s = plot.AddSeries(T("data"), SeriesStyle.Scatter);
             for (int i = 0; i < _last.Rows.Count; i++) s.Add(_last.GetDouble(i, _last.Columns[xc]), _last.GetDouble(i, _last.Columns[yc]));
             if (p[1].Trim().ToLowerInvariant().Contains("mag")) plot.InvertY = true;
-            var f = new Form { Text = plot.Title, Size = new Size(900, 600), StartPosition = FormStartPosition.CenterParent };
+            var f = new Form { Text = plot.Title, Size = new Size(900, 600), StartPosition = FormStartPosition.CenterParent, Icon = MainForm.AppIcon };
             f.Controls.Add(plot);
             Theme.Apply(f);
+            f.HandleCreated += (s2, e2) => Theme.DarkTitleBar(f);
             f.Show(this);
         }
 
