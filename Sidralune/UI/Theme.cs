@@ -148,6 +148,25 @@ namespace Sidralune.UI
             catch { }
         }
 
+        /// <summary>
+        /// Keeps a window hidden (cloaked by the desktop window manager) until it has painted once. Otherwise Windows
+        /// shows a new window white for a moment before its first paint, which is blinding in night mode.
+        /// </summary>
+        public static void HideUntilPainted(Form f)
+        {
+            if (f.Visible) return;
+            bool shown = false;
+            Action<bool> cloak = on => { try { int v = on ? 1 : 0; DwmSetWindowAttribute(f.Handle, 13, ref v, 4); } catch { } }; // DWMWA_CLOAK
+            if (f.IsHandleCreated) cloak(true);
+            f.HandleCreated += (s, e) => { if (!shown) cloak(true); };
+            f.Shown += (s, e) =>
+            {
+                shown = true;
+                try { RedrawWindow(f.Handle, IntPtr.Zero, IntPtr.Zero, 0x0001 | 0x0004 | 0x0400 | 0x0080 | 0x0100); } // paint everything now: RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW
+                finally { cloak(false); }
+            };
+        }
+
         /// <summary>Use the Explorer dark theme for native scrollbars and common controls.</summary>
         public static void DarkNative(Control c)
         {
@@ -1040,6 +1059,7 @@ namespace Sidralune.UI
                 if (!(c.Tag is string && (string)c.Tag == "keepcolor")) { c.BackColor = c is Form ? p.Background : (c.Parent != null && !(c.Parent is Form) ? c.Parent.BackColor : p.Background); }
                 c.ForeColor = p.Text;
                 if (c is SplitContainer) { ((SplitContainer)c).BackColor = p.Border; }
+                if (first && c is Form) HideUntilPainted((Form)c); // no white flash when it opens
                 if (first && !(c is Form)) { DarkNative(c); HookScroll(c); } // scroll bars on scrolling panels
                 if (first && c is FlowLayoutPanel) FitFlowHeight((FlowLayoutPanel)c);
                 else if (!(c is Form)) RedrawAll(c);

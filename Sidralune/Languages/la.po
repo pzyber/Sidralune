@@ -6150,6 +6150,54 @@ msgstr "Tabula stellarum Sidralune"
 msgid "No printer is installed"
 msgstr "Nullum impressorium institutum est"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Praevisio impressionis"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Imprime…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Imprime"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Minue"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Amplifica"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Fenestrae apta"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Pagina prior"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Pagina sequens"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Duae paginae"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Paginae {0}–{1} ex {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Pagina {0} ex {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Praevisio paratur…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Tabula stellarum in {0}"

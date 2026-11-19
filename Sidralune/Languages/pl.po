@@ -6175,6 +6175,54 @@ msgstr "Mapa gwiazd Sidralune"
 msgid "No printer is installed"
 msgstr "Nie zainstalowano drukarki"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Podgląd wydruku"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Drukuj…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Drukuj"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Pomniejsz"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Powiększ"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Dopasuj do okna"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Poprzednia strona"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Następna strona"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Dwie strony"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Strony {0}–{1} z {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Strona {0} z {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Przygotowywanie podglądu…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Mapa gwiazd na {0}"

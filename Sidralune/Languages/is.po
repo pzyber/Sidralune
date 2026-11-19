@@ -6150,6 +6150,54 @@ msgstr "Sidralune – stjörnukort"
 msgid "No printer is installed"
 msgstr "Enginn prentari er uppsettur"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Prentskoðun"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Prenta…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Prenta"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Minnka"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Stækka"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Passa í glugga"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Fyrri síða"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Næsta síða"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Tvær síður"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Síður {0}–{1} af {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Síða {0} af {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Undirbý prentskoðun…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Stjörnukort á {0}"

@@ -6150,6 +6150,54 @@ msgstr "Carte stellaire Sidralune"
 msgid "No printer is installed"
 msgstr "Aucune imprimante n'est installée"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Aperçu avant impression"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Imprimer…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Imprimer"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Ajuster à la fenêtre"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Page précédente"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Page suivante"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Deux pages"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Pages {0}–{1} sur {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Page {0} sur {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Préparation de l’aperçu…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Carte stellaire sur {0}"

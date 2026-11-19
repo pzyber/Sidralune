@@ -6175,6 +6175,54 @@ msgstr "Hartă stelară Sidralune"
 msgid "No printer is installed"
 msgstr "Nicio imprimantă instalată"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Previzualizare înainte de imprimare"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Imprimare…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Imprimare"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Micșorare"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Mărire"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Potrivește în fereastră"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Pagina anterioară"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Pagina următoare"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Două pagini"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Paginile {0}–{1} din {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Pagina {0} din {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Se pregătește previzualizarea…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Hartă stelară pe {0}"

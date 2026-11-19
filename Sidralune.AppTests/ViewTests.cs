@@ -174,5 +174,68 @@ namespace Sidralune.AppTests
                     CheckTrue("A text window has Sidralune's icon", ReferenceEquals(f.Icon, MainForm.AppIcon));
             });
         }
+
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
+
+        private static bool Cloaked(Form f) { int v; return DwmGetWindowAttribute(f.Handle, 14, out v, 4) == 0 && v != 0; } // DWMWA_CLOAKED
+
+        [TestMethod]
+        public void TestWindowsOpenWithoutFlash()
+        {
+            // a new window is kept off the screen until it has painted once (its text box showed white for a moment, blinding
+            // in night mode), and is then shown: the main window and a text window (API help)
+            CheckTrue("The main window is shown", OnUi(() => !Cloaked(App)));
+            Form f = null;
+            try
+            {
+                OnUi(() =>
+                {
+                    f = Views.ProcessingView.TextWindow("Script API", "text");
+                    f.StartPosition = FormStartPosition.Manual; f.Location = new Point(-3000, 0); f.ShowInTaskbar = false;
+                    var h = f.Handle; // the window exists but has not been shown or painted
+                });
+                CheckTrue("A new text window is hidden until it is painted", OnUi(() => Cloaked(f)));
+                OnUi(() => f.Show(App));
+                CheckTrue("The text window is shown once it has painted", WaitFor(() => f.Visible && !Cloaked(f)));
+            }
+            finally { OnUi(() => f?.Dispose()); }
+        }
+
+        [TestMethod]
+        public void TestPrintPreview()
+        {
+            // Sidralune's print preview: the app's icon and colours, every page, the paper as printed by day and red on dark paper at night
+            var doc = new System.Drawing.Printing.PrintDocument();
+            int printed = 0;
+            doc.BeginPrint += (s, e) => printed = 0;
+            doc.PrintPage += (s, e) =>
+            {
+                var b = e.MarginBounds;
+                e.Graphics.FillRectangle(Brushes.Black, b.X + b.Width / 4, b.Y + b.Height / 4, b.Width / 2, b.Height / 2); // ink in the middle, paper at the edges
+                e.HasMorePages = ++printed < 2;
+            };
+            OnUi(() =>
+            {
+                if (!doc.PrinterSettings.IsValid) { Assert.Inconclusive("No printer is installed"); return; }
+                using (var w = new PrintPreviewWindow(doc, "Preview test", false))
+                {
+                    // it opens at once and draws the pages after it is shown
+                    CheckTrue("The preview opens before the pages are drawn", w.Pages.Length == 0 && printed == 0);
+                    w.Generate();
+                    CheckTrue("The preview has Sidralune's icon", ReferenceEquals(w.Icon, MainForm.AppIcon));
+                    CheckTrue("The preview has the app's background", w.BackColor == Theme.Current.Background);
+                    CheckTrue("The preview has every page", w.Pages.Length == 2);
+                    var size = new Size(200, 280);
+                    using (var day = PrintPreviewWindow.RenderPage(w.Pages[0], size, false))
+                    using (var night = PrintPreviewWindow.RenderPage(w.Pages[0], size, true))
+                    {
+                        Color paper = day.GetPixel(4, 4), ink = day.GetPixel(100, 140);
+                        CheckTrue("By day the paper is white and the ink black", paper.R > 240 && paper.G > 240 && paper.B > 240 && ink.R < 20 && ink.G < 20 && ink.B < 20);
+                        paper = night.GetPixel(4, 4); ink = night.GetPixel(100, 140);
+                        CheckTrue("At night the paper is dark and the ink red", paper.R < 60 && ink.R > 150 && ink.G < 30 && ink.B < 30 && paper.G < 10 && paper.B < 10);
+                    }
+                }
+            });
+        }
     }
 }

@@ -245,7 +245,7 @@ Changing the time here changes it for the whole program; see [Time](The-user-int
 
 ## Printing finder charts
 
-In Planetarium and Atlas modes, click the printer button to open a print preview of the current view. (On the Chart tab, it prints the star chart instead: see [Printing and saving the star chart](#printing-and-saving-the-star-chart).) The printed chart:
+In Planetarium and Atlas modes, click the printer button to open a [print preview](#the-print-preview) of the current view. (On the Chart tab, it prints the star chart instead: see [Printing and saving the star chart](#printing-and-saving-the-star-chart).) The printed chart:
 
 - uses a black-on-white print palette that saves ink and reads well under a red torch,
 - is rendered at three times screen resolution for crisp output,
@@ -254,6 +254,20 @@ In Planetarium and Atlas modes, click the printer button to open a print preview
 - includes field-of-view circles and rectangles, comets and asteroids, and any mirror or invert setting.
 
 Typical use: select the target, choose **Finder (5°)** for a finder chart and **Eyepiece** for a detailed chart, switch to **Atlas** mode, set mirror or invert to match your telescope, and print both.
+
+### The print preview
+
+Both the finder chart and the star chart open in Sidralune's print preview, which shows the pages exactly as they will be printed. It opens at once and shows **Preparing the preview…** while the pages are drawn, which takes about a second for a chart.
+
+| Control | What it does |
+|---|---|
+| **Print** | Prints the pages and closes the preview (Ctrl+P). For a finder chart it is **Print…**, which first opens the print dialog to pick the printer; for the star chart the printer was picked before the preview |
+| Zoom out, zoom in | Steps from 25 % to 400 % (− and +, or Ctrl+mouse wheel). When zoomed in, drag the page or use the scroll bars to move around |
+| **Fit to window** | Fits the whole page (or both pages) in the window (0) |
+| Previous, next page, **Two pages** | Shown when there is more than one page: move between pages (Page Up, Page Down) or show two side by side |
+| **Close** | Closes the preview without printing (Esc) |
+
+The preview follows the app's colours. In night mode (Ctrl+Shift+N also works in the preview) the page is shown as red lines and text on dark paper, like the Sky chart at night, so checking a chart at the telescope does not spoil your dark adaptation. The printed page is black on white either way.
 
 ## Exporting images
 

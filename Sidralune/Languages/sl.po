@@ -6200,6 +6200,54 @@ msgstr "Zvezdna karta Sidralune"
 msgid "No printer is installed"
 msgstr "Ni nameščenega tiskalnika"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Predogled tiskanja"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Natisni…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Natisni"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Pomanjšaj"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Povečaj"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Prilagodi oknu"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Prejšnja stran"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Naslednja stran"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Dve strani"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Strani {0}–{1} od {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Stran {0} od {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Pripravljanje predogleda…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Zvezdna karta na {0}"

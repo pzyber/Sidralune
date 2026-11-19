@@ -6150,6 +6150,54 @@ msgstr "Звездна карта Sidralune"
 msgid "No printer is installed"
 msgstr "Няма инсталиран принтер"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Преглед преди печат"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Печат…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Печат"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Намаляване"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Увеличаване"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Побиране в прозореца"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Предишна страница"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Следваща страница"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "Две страници"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Страници {0}–{1} от {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Страница {0} от {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Подготвя се прегледът…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Звездна карта на {0}"

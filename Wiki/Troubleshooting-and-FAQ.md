@@ -70,7 +70,7 @@ The visibility model accounts for your sky brightness, the Moon, your telescope 
 At high latitudes in summer the Sun may not get far enough below the horizon. The list also needs the deep-sky catalogue; the built-in one has only bright objects.
 
 **The printed chart is too dark or wastes ink.**
-Printing always uses a black-on-white palette, whatever the screen theme. Use the print preview to check before printing.
+Printing always uses a black-on-white palette, whatever the screen theme. Use the [print preview](Sky-chart#the-print-preview) to check before printing.
 
 **The chart is mirrored compared with my eyepiece.**
 Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky chart](Sky-chart#mirror-and-invert).

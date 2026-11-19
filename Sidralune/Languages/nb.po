@@ -6150,6 +6150,54 @@ msgstr "Sidralune – stjernekart"
 msgid "No printer is installed"
 msgstr "Ingen skriver er installert"
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr "Forhåndsvisning"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr "Skriv ut…"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr "Skriv ut"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr "Zoom ut"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr "Zoom inn"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr "Tilpass til vinduet"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr "Forrige side"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr "Neste side"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr "To sider"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr "Side {0}–{1} av {2}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr "Side {0} av {1}"
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr "Forbereder forhåndsvisningen…"
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr "Stjernekart på {0}"

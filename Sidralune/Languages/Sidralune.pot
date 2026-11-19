@@ -6150,6 +6150,54 @@ msgstr ""
 msgid "No printer is installed"
 msgstr ""
 
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print preview"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print…"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Print"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom out"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Zoom in"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Fit to window"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Previous page"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Next page"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Two pages"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Pages {0}–{1} of {2}"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Page {0} of {1}"
+msgstr ""
+
+#: Sidralune/UI/PrintPreview.cs
+msgid "Preparing the preview…"
+msgstr ""
+
 #: Sidralune/Views/SkyView.cs
 msgid "Star chart on {0}"
 msgstr ""

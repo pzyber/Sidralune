@@ -68,6 +68,7 @@
     <Compile Include="UI\ColorUi.cs" />
     <Compile Include="UI\MonitorColor.cs" />
     <Compile Include="UI\PlotControl.cs" />
+    <Compile Include="UI\PrintPreview.cs" />
     <Compile Include="UI\ScrollOverlays.cs" />
     <Compile Include="UI\SystemColorHook.cs" />
     <Compile Include="UI\SkyChart.cs" />
