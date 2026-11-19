@@ -49,7 +49,7 @@ namespace Sidralune.UI
             _zoomOut = IconButton(Icons.ZoomOut, T("Zoom out") + "  −", (s, e) => ZoomBy(-1));
             _zoomText = new Label { AutoSize = false, Width = 52, Height = 30, TextAlign = ContentAlignment.MiddleCenter };
             _zoomIn = IconButton(Icons.Zoom, T("Zoom in") + "  +", (s, e) => ZoomBy(1));
-            _fit = new FlatButton(T("Whole page"), Icons.Fit, (s, e) => { _view.Zoom = 0; Changed(); }) { ToolTipText = T("Whole page") + "  0" };
+            _fit = new FlatButton(T("Fit to window"), Icons.Fit, (s, e) => { _view.Zoom = 0; Changed(); }) { ToolTipText = T("Fit to window (0)") };
             _prev = IconButton(Icons.Left, T("Previous page") + "  PgUp", (s, e) => Go(_view.First - 1));
             _pageText = new Label { AutoSize = true, Padding = new Padding(0, 7, 0, 0) };
             _next = IconButton(Icons.Right, T("Next page") + "  PgDn", (s, e) => Go(_view.First + 1));
@@ -69,6 +69,14 @@ namespace Sidralune.UI
             _themeChanged = (s, e) => { Theme.Apply(this); Theme.DarkTitleBar(this); _view.ThemeChanged(); };
             Theme.Changed += _themeChanged;
             Changed();
+        }
+
+        /// <summary>Draws the pages before the window appears: a slow first paint would show the empty window white (blinding at night).</summary>
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            Changed();
+            _view.Prerender();
         }
 
         private static FlatButton IconButton(string icon, string tip, EventHandler click)
@@ -264,8 +272,15 @@ namespace Sidralune.UI
                 }
                 var sizes = Shown.Select(PagePixels).ToList();
                 AutoScrollMinSize = Zoom > 0 ? new Size(sizes.Sum(s => s.Width) + Gap * (sizes.Count - 1) + 2 * Pad, sizes.Max(s => s.Height) + 2 * Pad) : Size.Empty;
-                ClearCache();
+                // pages drawn at their new size when painted; ones no longer shown are let go
+                foreach (var i in _cache.Keys.Where(i => !Shown.Contains(i)).ToList()) { _cache[i].Dispose(); _cache.Remove(i); }
                 Invalidate();
+            }
+
+            /// <summary>Draws the shown pages now, so the next paint only copies them.</summary>
+            public void Prerender()
+            {
+                foreach (var i in Shown) Page(i, PagePixels(i), Theme.Current.IsNight);
             }
 
             protected override void OnResize(EventArgs e)

@@ -175,6 +175,32 @@ namespace Sidralune.AppTests
             });
         }
 
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
+
+        private static bool Cloaked(Form f) { int v; return DwmGetWindowAttribute(f.Handle, 14, out v, 4) == 0 && v != 0; } // DWMWA_CLOAKED
+
+        [TestMethod]
+        public void TestWindowsOpenWithoutFlash()
+        {
+            // a new window is kept off the screen until it has painted once (its text box showed white for a moment, blinding
+            // in night mode), and is then shown: the main window and a text window (API help)
+            CheckTrue("The main window is shown", OnUi(() => !Cloaked(App)));
+            Form f = null;
+            try
+            {
+                OnUi(() =>
+                {
+                    f = Views.ProcessingView.TextWindow("Script API", "text");
+                    f.StartPosition = FormStartPosition.Manual; f.Location = new Point(-3000, 0); f.ShowInTaskbar = false;
+                    var h = f.Handle; // the window exists but has not been shown or painted
+                });
+                CheckTrue("A new text window is hidden until it is painted", OnUi(() => Cloaked(f)));
+                OnUi(() => f.Show(App));
+                CheckTrue("The text window is shown once it has painted", WaitFor(() => f.Visible && !Cloaked(f)));
+            }
+            finally { OnUi(() => f?.Dispose()); }
+        }
+
         [TestMethod]
         public void TestPrintPreview()
         {

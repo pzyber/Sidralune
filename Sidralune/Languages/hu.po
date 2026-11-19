@@ -6171,8 +6171,8 @@ msgid "Zoom in"
 msgstr "Nagyítás"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "Teljes oldal"
+msgid "Fit to window"
+msgstr "Ablakhoz igazítás"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

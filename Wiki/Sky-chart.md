@@ -263,7 +263,7 @@ Both the finder chart and the star chart open in Sidralune's print preview, whic
 |---|---|
 | **Print** | Prints the pages and closes the preview (Ctrl+P). For a finder chart it is **Print…**, which first opens the print dialog to pick the printer; for the star chart the printer was picked before the preview |
 | Zoom out, zoom in | Steps from 25 % to 400 % (− and +, or Ctrl+mouse wheel). When zoomed in, drag the page or use the scroll bars to move around |
-| **Whole page** | Fits the whole page (or both pages) in the window (0) |
+| **Fit to window** | Fits the whole page (or both pages) in the window (0) |
 | Previous, next page, **Two pages** | Shown when there is more than one page: move between pages (Page Up, Page Down) or show two side by side |
 | **Close** | Closes the preview without printing (Esc) |
 

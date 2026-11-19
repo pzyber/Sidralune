@@ -6171,8 +6171,8 @@ msgid "Zoom in"
 msgstr "Zmadho"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "E gjithë faqja"
+msgid "Fit to window"
+msgstr "Përshtat me dritaren"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

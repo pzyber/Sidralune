@@ -6196,8 +6196,8 @@ msgid "Zoom in"
 msgstr "Tuvināt"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "Visa lappuse"
+msgid "Fit to window"
+msgstr "Ietilpināt logā"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

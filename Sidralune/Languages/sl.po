@@ -6221,8 +6221,8 @@ msgid "Zoom in"
 msgstr "Povečaj"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "Cela stran"
+msgid "Fit to window"
+msgstr "Prilagodi oknu"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

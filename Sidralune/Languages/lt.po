@@ -6196,8 +6196,8 @@ msgid "Zoom in"
 msgstr "Didinti"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "Visas puslapis"
+msgid "Fit to window"
+msgstr "Pritaikyti langui"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

@@ -6171,8 +6171,8 @@ msgid "Zoom in"
 msgstr "Suurenda"
 
 #: Sidralune/UI/PrintPreview.cs
-msgid "Whole page"
-msgstr "Terve lehekülg"
+msgid "Fit to window"
+msgstr "Sobita aknasse"
 
 #: Sidralune/UI/PrintPreview.cs
 msgid "Previous page"

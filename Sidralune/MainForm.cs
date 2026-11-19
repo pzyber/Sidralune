@@ -71,6 +71,7 @@ namespace Sidralune
             StartPosition = FormStartPosition.CenterScreen;
             KeyPreview = true;
             Icon = AppIcon;
+            Theme.HideUntilPainted(this); // no white flash at startup
             Tasks.UiContext = this;
             _toasts = new ToastHost(this);
 
