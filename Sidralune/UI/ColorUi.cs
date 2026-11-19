@@ -156,7 +156,7 @@ namespace Sidralune.UI
             bool gray = !img.IsColor;
             var current = img.EffectiveProfile;
             string setting = current.Id ?? IccProfiles.ToSetting(gray ? ColorSettings.WorkingGrayProfile : ColorSettings.WorkingProfile);
-            using (var f = new Form { Text = convert ? T("Convert to profile") : T("Assign profile"), Width = 520, Height = convert ? 250 : 210, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false })
+            using (var f = new Form { Icon = MainForm.AppIcon, Text = convert ? T("Convert to profile") : T("Assign profile"), Width = 520, Height = convert ? 250 : 210, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false })
             {
                 var g = new FormGrid(150) { Dock = DockStyle.Fill, Padding = new Padding(10) };
                 g.Row(T("Image now"), new Label { Text = ImageProfileText(img), AutoSize = true, Margin = new Padding(0, 6, 0, 6) });
@@ -206,7 +206,7 @@ namespace Sidralune.UI
             var choices = different
                 ? new[] { Tuple.Create(T("Keep its profile"), ProfileChoice.Keep), Tuple.Create(T("Convert to the working profile"), ProfileChoice.ConvertToWorking), Tuple.Create(T("Discard the profile"), ProfileChoice.Discard) }
                 : new[] { Tuple.Create(T("Leave it untagged"), ProfileChoice.LeaveUntagged), Tuple.Create(T("Assign the working profile"), ProfileChoice.AssignWorking) };
-            using (var f = new Form { Text = T("Colour profile"), Width = 520, Height = 210, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false })
+            using (var f = new Form { Icon = MainForm.AppIcon, Text = T("Colour profile"), Width = 520, Height = 210, FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false })
             {
                 var label = new Label { Text = text, Left = 14, Top = 12, Width = 480, Height = 54 };
                 var always = new CheckBox { Text = T("Do this from now on (Settings → Colour)"), Left = 14, Top = 70, AutoSize = true };

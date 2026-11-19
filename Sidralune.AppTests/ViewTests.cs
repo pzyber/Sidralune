@@ -161,5 +161,18 @@ namespace Sidralune.AppTests
                 }
             });
         }
+
+        [TestMethod]
+        public void TestWindowsHaveTheAppIcon()
+        {
+            // windows Sidralune opens (API help, Image information) show its icon, not Windows' generic one
+            OnUi(() =>
+            {
+                CheckTrue("Sidralune's icon loads", MainForm.AppIcon != null);
+                CheckTrue("The main window has Sidralune's icon", ReferenceEquals(App.Icon, MainForm.AppIcon));
+                using (var f = Views.ProcessingView.TextWindow("Script API", "text"))
+                    CheckTrue("A text window has Sidralune's icon", ReferenceEquals(f.Icon, MainForm.AppIcon));
+            });
+        }
     }
 }

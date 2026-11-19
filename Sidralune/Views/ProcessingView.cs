@@ -313,14 +313,18 @@ namespace Sidralune.Views
 
         public static void ShowText(string title, string text)
         {
-            using (var f = new Form { Text = title, Width = 820, Height = 640, StartPosition = FormStartPosition.CenterParent })
-            {
-                var tb = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Both, Font = Theme.MonoFont, Text = text, WordWrap = false };
-                f.Controls.Add(tb);
-                Theme.Apply(f);
-                f.HandleCreated += (s, e) => Theme.DarkTitleBar(f);
-                f.ShowDialog(MainForm.Instance);
-            }
+            using (var f = TextWindow(title, text)) f.ShowDialog(MainForm.Instance);
+        }
+
+        /// <summary>The window ShowText shows: read-only text in a sizeable window with Sidralune's icon.</summary>
+        public static Form TextWindow(string title, string text)
+        {
+            var f = new Form { Text = title, Width = 820, Height = 640, StartPosition = FormStartPosition.CenterParent, Icon = MainForm.AppIcon };
+            var tb = new TextBox { Multiline = true, ReadOnly = true, Dock = DockStyle.Fill, ScrollBars = ScrollBars.Both, Font = Theme.MonoFont, Text = text, WordWrap = false };
+            f.Controls.Add(tb);
+            Theme.Apply(f);
+            f.HandleCreated += (s, e) => Theme.DarkTitleBar(f);
+            return f;
         }
 
         // ------------------------------------------------------------------ tools

@@ -25,6 +25,21 @@ namespace Sidralune
     public class MainForm : Form, IThemed
     {
         public static MainForm Instance { get; private set; }
+
+        private static Icon _appIcon;
+        /// <summary>Sidralune's icon, for the main window and every other window it opens (otherwise Windows shows its generic icon).</summary>
+        public static Icon AppIcon
+        {
+            get
+            {
+                if (_appIcon == null)
+                {
+                    try { _appIcon = new Icon(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Sidralune.ico")); }
+                    catch { try { _appIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { } }
+                }
+                return _appIcon;
+            }
+        }
         private readonly NavRail _rail = new NavRail { Dock = DockStyle.Left };
         private readonly Panel _content = new Panel { Dock = DockStyle.Fill };
         private readonly Panel _top = new Panel { Dock = DockStyle.Top, Height = 48 };
@@ -55,7 +70,7 @@ namespace Sidralune
             Size = new Size(1500, 950);
             StartPosition = FormStartPosition.CenterScreen;
             KeyPreview = true;
-            try { Icon = new Icon(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Sidralune.ico")); } catch { try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { } }
+            Icon = AppIcon;
             Tasks.UiContext = this;
             _toasts = new ToastHost(this);
 
