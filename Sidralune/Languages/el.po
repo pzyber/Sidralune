@@ -251,6 +251,94 @@ msgstr "ολική αλλού"
 msgid "annular elsewhere"
 msgstr "δακτυλιοειδής αλλού"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Εκλείψεις"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Έκλειψη"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Από τη θέση σας"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Κάλυψη Ηλίου"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Ύψος"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Έτη"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Εκλείψεις Ηλίου και Σελήνης από την ενεργή θέση. Μια έκλειψη Ηλίου δίνεται στο μέγιστό της εκεί, μια έκλειψη Σελήνης στη μέγιστη φάση, την ίδια στιγμή παντού. Επιλέξτε μία για να δείτε τις φάσεις της με το ύψος του Ηλίου ή της Σελήνης· η Εμφάνιση στον ουρανό ρυθμίζει την ώρα σε αυτήν."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Μέγιστη έκλειψη στη Γη"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Αρχή μερικής έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Μέγιστο έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Τέλος μερικής έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Αρχή ολικής έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Αρχή δακτυλιοειδούς έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Τέλος ολικής έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Τέλος δακτυλιοειδούς έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Ανατολή Ηλίου"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Δύση Ηλίου"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Μέγιστη έκλειψη"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Αρχή παρασκιώδους έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Τέλος παρασκιώδους έκλειψης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Ανατολή Σελήνης"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Δύση Σελήνης"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Ήλιος"

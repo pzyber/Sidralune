@@ -70,11 +70,11 @@ Every calculation in Sidralune is based on published methods. This page lists th
 
 | Item | Method |
 |---|---|
-| Rise, transit and set | Altitude sampling with root refinement, standard altitudes −0.833° (Sun), −0.567° (stars) and a parallax-dependent value for the Moon |
+| Rise, transit and set | Altitude sampling with root refinement, standard altitudes −0.833° (Sun), −0.567° (stars) and for the Moon −0.567° less its semidiameter (about −0.83°), since its altitude is already seen from the site, parallax included. Moonset in Stockholm on 28 August 2026 agrees with published times within 2 minutes |
 | Twilight | Sun at −6°, −12° and −18° |
 | Moon phases, perigee and apogee | Root finding on elongation and distance |
 | Conjunctions, oppositions, elongations | Root finding on the planets' ecliptic longitude difference from the Sun |
-| Eclipses | Lunar: the Moon's distance from the Earth's shadow axis at each full Moon, with umbra and penumbra radii from Danjon's rule. Solar: geocentric Sun-Moon separation against the sum of their radii plus parallax at each new Moon. From a site: the topocentric Sun and Moon (Moon radius k = 0.2725076 Earth radii, mean limb) give the contacts, the local maximum, the magnitude and the share of the Sun's disc covered (the overlap of two discs), and whether the Sun is up; a lunar eclipse's umbral phase is checked against moonrise and moonset. For 12 August 2026 the contacts and maximum agree with published local circumstances within about a minute, the magnitude within 0.01 |
+| Eclipses | Lunar: the Moon's distance from the Earth's shadow axis at each full Moon, with umbra and penumbra radii from Danjon's rule. Solar: geocentric Sun-Moon separation against the sum of their radii plus parallax at each new Moon. From a site: the topocentric Sun and Moon (Moon radius k = 0.2725076 Earth radii, mean limb) give the contacts, the local maximum, the magnitude and the share of the Sun's disc covered (the overlap of two discs), and whether the Sun is up; a lunar eclipse's umbral phase is checked against moonrise and moonset. The phases (the contacts of the total or annular phase, and of the penumbral, partial and total phases of a lunar eclipse) are found by bisection where the discs, or the Moon and the shadow, touch, and sunrise, sunset, moonrise and moonset during them in 2-minute steps, refined. For 12 August 2026 the contacts and maximum agree with published local circumstances within about a minute, the magnitude within 0.01 |
 | Meteor shower peaks | Solar longitude of the peak (IMO calendar values, on the J2000.0 ecliptic and equinox as the IMO gives them) |
 
 ## Comets and asteroids

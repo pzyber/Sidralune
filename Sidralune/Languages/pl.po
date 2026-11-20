@@ -255,6 +255,94 @@ msgstr "gdzie indziej całkowite"
 msgid "annular elsewhere"
 msgstr "gdzie indziej obrączkowe"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Zaćmienia"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Zaćmienie"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Z twojego miejsca"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Pokrycie Słońca"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Wysokość"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Lata"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Zaćmienia Słońca i Księżyca z aktywnego miejsca. Zaćmienie Słońca jest podane w chwili jego maksimum w tym miejscu, zaćmienie Księżyca w chwili największej fazy, tej samej wszędzie. Wybierz jedno, aby zobaczyć jego fazy z wysokością Słońca lub Księżyca; Pokaż na niebie ustawia czas na nie."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Największa faza na Ziemi"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Początek zaćmienia częściowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Maksimum zaćmienia"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Koniec zaćmienia częściowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Początek zaćmienia całkowitego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Początek zaćmienia obrączkowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Koniec zaćmienia całkowitego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Koniec zaćmienia obrączkowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Wschód Słońca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Zachód Słońca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Największa faza"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Początek zaćmienia półcieniowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Koniec zaćmienia półcieniowego"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Wschód Księżyca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Zachód Księżyca"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Słońce"

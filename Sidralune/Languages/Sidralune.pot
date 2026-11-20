@@ -251,6 +251,94 @@ msgstr ""
 msgid "annular elsewhere"
 msgstr ""
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr ""
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr ""
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr ""

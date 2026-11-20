@@ -251,6 +251,94 @@ msgstr "i plotë gjetkë"
 msgid "annular elsewhere"
 msgstr "unazor gjetkë"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Eklipset"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Eklipsi"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Nga vendi juaj"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Diell i mbuluar"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Lartësia"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Vite"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Eklipset e Diellit dhe të Hënës nga vendi aktiv. Një eklips i Diellit jepet në maksimumin e tij atje, një eklips i Hënës në fazën maksimale, i njëjti çast kudo. Përzgjidhni një për të parë fazat e tij me lartësinë e Diellit ose të Hënës; Shfaq në qiell vendos kohën tek ai."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Faza maksimale në Tokë"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Fillon eklipsi i pjesshëm"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Maksimumi i eklipsit"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Mbaron eklipsi i pjesshëm"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Fillon eklipsi i plotë"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Fillon eklipsi unazor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Mbaron eklipsi i plotë"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Mbaron eklipsi unazor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Lindja e diellit"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Perëndimi i diellit"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Faza maksimale"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Fillon eklipsi gjysmëhijor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Mbaron eklipsi gjysmëhijor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Lindja e Hënës"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Perëndimi i Hënës"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Dielli"

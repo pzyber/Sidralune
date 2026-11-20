@@ -251,6 +251,94 @@ msgstr "máshol teljes"
 msgid "annular elsewhere"
 msgstr "máshol gyűrűs"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Fogyatkozások"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Fogyatkozás"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Az Ön helyéről"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Nap fedettsége"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Magasság"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Év"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Nap- és holdfogyatkozások az aktív helyről. A napfogyatkozás az ottani maximum idejével szerepel, a holdfogyatkozás a legnagyobb fázis idejével, amely mindenhol ugyanaz a pillanat. Válasszon ki egyet a fázisaihoz a Nap vagy a Hold magasságával; a Megjelenítés az égen erre az időre állít."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Legnagyobb fázis a Földön"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "A részleges fogyatkozás kezdete"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "A fogyatkozás maximuma"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "A részleges fogyatkozás vége"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "A teljes fogyatkozás kezdete"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "A gyűrűs fogyatkozás kezdete"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "A teljes fogyatkozás vége"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "A gyűrűs fogyatkozás vége"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Napkelte"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Napnyugta"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Legnagyobb fázis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "A félárnyékos fogyatkozás kezdete"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "A félárnyékos fogyatkozás vége"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Holdkelte"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Holdnyugta"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Nap"

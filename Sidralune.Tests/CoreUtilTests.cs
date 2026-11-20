@@ -521,6 +521,42 @@ namespace Sidralune.Tests
                 Check("Partial phase begins 02:33 UT (min)", (l.Start.Value.ToDateTimeUtc() - new DateTime(2026, 8, 28, 2, 33, 0)).TotalMinutes, 0, 3);
                 Check("Partial phase ends 05:51 UT (min)", (l.End.Value.ToDateTimeUtc() - new DateTime(2026, 8, 28, 5, 51, 0)).TotalMinutes, 0, 3);
             }
+            // the phases (timeanddate.com): Reykjavík on the edge of the path has about a minute of totality around 17:48 UT;
+            // in Stockholm the lunar eclipse's penumbral phase begins at 01:23 UT and the Moon sets at 03:41 UT
+            if (aug12.Count == 1)
+            {
+                var rp = Events.SolarEclipsePhases(reykjavik, aug12[0].Time);
+                var c2 = rp.FirstOrDefault(p => p.Name == "Total eclipse begins"); var c3 = rp.FirstOrDefault(p => p.Name == "Total eclipse ends");
+                var rn = rp.Select(p => p.Name).ToList();
+                var contacts = new[] { "Partial eclipse begins", "Total eclipse begins", "Maximum eclipse", "Total eclipse ends", "Partial eclipse ends" };
+                CheckTrue("Reykjavík: first contact, totality, maximum, last contact and greatest eclipse on Earth, in time order",
+                    rp.Count == 6 && rn.Contains("Greatest eclipse on Earth") && contacts.All(rn.Contains) && contacts.Select(n => rn.IndexOf(n)).SequenceEqual(contacts.Select(n => rn.IndexOf(n)).OrderBy(i => i))
+                    && rp.Select(p => p.Time.JdTT).SequenceEqual(rp.Select(p => p.Time.JdTT).OrderBy(t => t)),
+                    string.Join(" / ", rp.Select(p => p.Name + " " + p.Time.ToDateTimeUtc().ToString("HH:mm:ss"))));
+                if (c2 != null && c3 != null)
+                {
+                    Check("Reykjavík totality about a minute (s)", (c3.Time.JdTT - c2.Time.JdTT) * 86400, 60, 45);
+                    Check("Reykjavík totality around 17:48 UT (min)", (c2.Time.ToDateTimeUtc() - new DateTime(2026, 8, 12, 17, 48, 0)).TotalMinutes, 0, 2);
+                }
+                CheckTrue("Phases with the Sun's altitude", rp.All(p => p.Altitude > 0 && p.Altitude < 40), string.Join(", ", rp.Select(p => p.Altitude.ToString("0.0"))));
+            }
+            if (aug28.Count == 1)
+            {
+                var lp = Events.LunarEclipsePhases(stockholm, aug28[0].Time);
+                var names = lp.Select(p => p.Name).ToList();
+                CheckTrue("Lunar phases in time order, without a total phase", names.SequenceEqual(new[] { "Penumbral eclipse begins", "Partial eclipse begins", "Moonset", "Greatest eclipse", "Partial eclipse ends", "Penumbral eclipse ends" }), string.Join(" / ", names));
+                var p1 = lp.FirstOrDefault(p => p.Name == "Penumbral eclipse begins"); var set = lp.FirstOrDefault(p => p.Name == "Moonset");
+                if (p1 != null) Check("Penumbral phase begins 01:23 UT (min)", (p1.Time.ToDateTimeUtc() - new DateTime(2026, 8, 28, 1, 23, 0)).TotalMinutes, 0, 3);
+                if (set != null) Check("Moonset in Stockholm 03:41 UT (min)", (set.Time.ToDateTimeUtc() - new DateTime(2026, 8, 28, 3, 41, 0)).TotalMinutes, 0, 3);
+            }
+            // the same moonset from the rise and set times (as on the Tonight tab), the upper limb on the horizon seen from the site
+            var moonRs = Events.BodyRiseSet(Body.Moon, stockholm, AstroTime.FromDateTime(new DateTime(2026, 8, 27, 12, 0, 0, DateTimeKind.Utc)));
+            CheckTrue("Moonset found", moonRs.Set.HasValue);
+            if (moonRs.Set.HasValue) Check("Moonset in Stockholm 2026-08-28 03:41 UT (min)", (moonRs.Set.Value.ToDateTimeUtc() - new DateTime(2026, 8, 28, 3, 41, 0)).TotalMinutes, 0, 2);
+            var list = Events.Eclipses(stockholm, AstroTime.CalendarToJd(2026, 8, 1), AstroTime.CalendarToJd(2027, 3, 1));
+            CheckTrue("Eclipses August 2026 to February 2027: total solar, partial lunar, annular solar, penumbral lunar",
+                list.Select(e => e.TypeName).SequenceEqual(new[] { "Total solar eclipse", "Partial lunar eclipse", "Annular solar eclipse", "Penumbral lunar eclipse" }), string.Join(" / ", list.Select(e => e.TypeName)));
+
             var tokyo = new Observer { Name = "Tokyo", LatitudeDeg = 35.6762, LongitudeDeg = 139.6503, ElevationM = 40 };
             var tokLunar = Events.LunarEclipses(tokyo, AstroTime.CalendarToJd(2026, 8, 20), AstroTime.CalendarToJd(2026, 9, 5));
             CheckTrue("Not visible from Tokyo", tokLunar.Count == 1 && tokLunar[0].Description == "Partial lunar eclipse (not visible from Tokyo)", string.Join(" / ", tokLunar));

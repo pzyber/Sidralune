@@ -251,6 +251,94 @@ msgstr "anderswo total"
 msgid "annular elsewhere"
 msgstr "anderswo ringförmig"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Finsternisse"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Finsternis"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Von Ihrem Standort"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Sonne bedeckt"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Höhe"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Jahre"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Sonnen- und Mondfinsternisse vom aktiven Standort. Eine Sonnenfinsternis steht bei ihrem Maximum dort, eine Mondfinsternis bei der größten Verfinsterung, die überall im selben Moment eintritt. Wählen Sie eine aus, um ihre Phasen mit der Höhe von Sonne oder Mond zu sehen; Am Himmel zeigen stellt die Zeit darauf ein."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Größte Finsternis auf der Erde"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Beginn der partiellen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Maximum der Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Ende der partiellen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Beginn der totalen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Beginn der ringförmigen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Ende der totalen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Ende der ringförmigen Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Sonnenaufgang"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Sonnenuntergang"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Größte Finsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Beginn der Halbschattenfinsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Ende der Halbschattenfinsternis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Mondaufgang"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Monduntergang"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sonne"

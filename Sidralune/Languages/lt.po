@@ -255,6 +255,94 @@ msgstr "kitur visiškas"
 msgid "annular elsewhere"
 msgstr "kitur žiedinis"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Užtemimai"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Užtemimas"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Iš jūsų vietos"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Saulės uždengimas"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Aukštis"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Metai"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Saulės ir Mėnulio užtemimai iš aktyvios vietos. Saulės užtemimas pateikiamas jo maksimumo ten metu, Mėnulio užtemimas – didžiausios fazės metu, tuo pačiu momentu visur. Pasirinkite vieną, kad matytumėte jo fazes su Saulės ar Mėnulio aukščiu; Rodyti danguje nustato laiką į jį."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Didžiausia fazė Žemėje"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Prasideda dalinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Užtemimo maksimumas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Baigiasi dalinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Prasideda visiškas užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Prasideda žiedinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Baigiasi visiškas užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Baigiasi žiedinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Saulėtekis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Saulėlydis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Didžiausia fazė"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Prasideda pusšešėlinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Baigiasi pusšešėlinis užtemimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Mėnulio patekėjimas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Mėnulio nusileidimas"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Saulė"

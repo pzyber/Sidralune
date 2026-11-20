@@ -38,7 +38,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Astrometry | Built-in blind plate solver with TAN-SIP fitting, ASTAP and astrometry.net bridges, annotation, framing and mosaic planner, exposure and SNR calculator |
 | Photometry | Ensemble differential photometry, AAVSO reports, Lomb-Scargle, BLS and PDM period searches, eclipse timing, O−C, transit fitting with MCMC, transit predictions |
 | Spectroscopy | Trace and optimal extraction, lamp wavelength calibration, line measurement, radial velocity, instrument response, temperature and spectral class, BeSS export |
-| Solar system | Ephemerides, minor-body browser with orbit diagram, Galilean moons, asteroid and lunar occultations, meteor showers, satellite passes, MPC astrometry reports |
+| Solar system | Ephemerides, minor-body browser with orbit diagram, Galilean moons, solar and lunar eclipses from your site, asteroid and lunar occultations, meteor showers, satellite passes, MPC astrometry reports |
 | Radio | Hydrogen-line spectra from SDR recordings or a live rtl_tcp server, waterfall, LSR velocities, kinematic distances, dish calculator, Jupiter storm predictions, drift scans, pulsar folding, SID detection |
 | Databases | Local catalogue search, Sesame, SIMBAD, VizieR, AAVSO VSX and NASA Exoplanet Archive queries, ADQL console, citizen-science directory |
 | Automation | C# scripting with access to the whole Sidralune API, data-analysis workbench, command palette for every action |
@@ -92,7 +92,7 @@ Each workspace is a button on the navigation rail on the left. Ctrl+1 to Ctrl+9 
 | Astrometry | Plate solving, framing and mosaics, exposure planner | [Astrometry and framing](https://github.com/pzyber/Sidralune/wiki/Astrometry-and-framing) |
 | Photometry | Measuring, light-curve analysis, transits, transit predictions | [Photometry and exoplanets](https://github.com/pzyber/Sidralune/wiki/Photometry-and-exoplanets) |
 | Spectra | 2D reduction and 1D analysis | [Spectroscopy](https://github.com/pzyber/Sidralune/wiki/Spectroscopy) |
-| Solar sys. | Ephemerides, minor bodies, moons, occultations, meteors, satellites, MPC reports | [Solar system](https://github.com/pzyber/Sidralune/wiki/Solar-system) |
+| Solar sys. | Ephemerides, minor bodies, moons, eclipses, occultations, meteors, satellites, MPC reports | [Solar system](https://github.com/pzyber/Sidralune/wiki/Solar-system) |
 | Radio | Hydrogen line, calculator, Jupiter, time-domain tools | [Radio astronomy](https://github.com/pzyber/Sidralune/wiki/Radio-astronomy) |
 | Databases | Local catalogues, online databases, citizen science | [Databases and citizen science](https://github.com/pzyber/Sidralune/wiki/Databases-and-citizen-science) |
 | Scripts | C# scripts and data analysis | [Scripting and data analysis](https://github.com/pzyber/Sidralune/wiki/Scripting-and-data-analysis) |
