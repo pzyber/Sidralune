@@ -299,7 +299,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | File | Covers |
 |---|---|
 | `AppStateTests.cs` | Settings saving and loading (including damaged files), profiles, time control, selection, background tasks |
-| `ScriptingTests.cs` | Script compilation and error lines, helper members, cancellation, every example, the Scripts workspace |
+| `ScriptingTests.cs` | Script compilation and error lines, helper members, cancellation, every example, the Scripts workspace (each run starts with an empty plot and table, `ClearTable()`, the batch example's missing folder) |
 | `PlannerAndSettingsTests.cs` | Observing lists, sites, night mode in sync everywhere and the night palette |
 | `ControlsTests.cs` | Buttons, tabs, collapsible sections, form grids, time fields, sliders, status pills, notifications, the property-grid adapter, the Jupiter and Saturn diagrams on Tonight (names clear of each other, everything inside the drawing), combo-box drop-down lists in night mode (opened, scrolled and redrawn without system colours, the cover over their scroll bar) |
 | `ColorManagementAppTests.cs` | Colour management in the interface: the Colour tab, the colour-managed image viewer (with a fixed target profile instead of the real monitor), night mode and false colour left alone, assign and convert in Process with undo, proofing and the gamut warning, large images drawn at screen size until zoomed in, the display stretch of opened images |

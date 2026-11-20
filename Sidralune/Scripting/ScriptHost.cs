@@ -59,6 +59,7 @@ namespace Sidralune.Scripting
             Plot(name, xs, xs.Select(f));
         }
 
+        public void ClearTable() => Host.Ui(() => { Host.Grid.Columns.Clear(); Host.Grid.Rows.Clear(); });
         public void Table(IList<string> columns, IEnumerable<IList<object>> rows)
         {
             var cols = columns.ToList(); var rs = rows.Select(r => r.ToArray()).ToList();
@@ -194,12 +195,12 @@ for (double h = 0; h <= 24; h += 0.1)
     alt.Add(Events.FixedAltitude(o.RaDeg * AstroMath.Deg2Rad, o.DecDeg * AstroMath.Deg2Rad, Site, t));
     sun.Add(Events.SunAltitudeFast(Site, t));
 }
-ClearPlot();
 PlotTitle(o.Name + "" altitude"", ""hours from now"", ""altitude (deg)"");
 Plot(o.Name, xs, alt);
 Plot(""Sun"", xs, sun);" },
 
             new[] { "Batch: FWHM and star count of a folder", @"string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), ""Sidralune"");
+if (!Directory.Exists(folder)) { Print(""Put some FITS files in {0}, or change the folder on the first line"", folder); return; }
 var rows = new List<IList<object>>();
 var xs = new List<double>(); var ys = new List<double>();
 int i = 0;
@@ -213,8 +214,9 @@ foreach (var f in Directory.GetFiles(folder, ""*.fit*"", SearchOption.AllDirecto
     rows.Add(new object[] { Path.GetFileName(f), stars.Count, fwhm.ToString(""0.00""), ecc.ToString(""0.00"") });
     xs.Add(i++); ys.Add(fwhm);
 }
+if (rows.Count == 0) { Print(""No FITS files in {0}"", folder); return; }
 Table(new[] { ""File"", ""Stars"", ""FWHM px"", ""Eccentricity"" }, rows);
-ClearPlot(); PlotTitle(""FWHM per frame"", ""frame"", ""FWHM (px)"");
+PlotTitle(""FWHM per frame"", ""frame"", ""FWHM (px)"");
 Plot(""FWHM"", xs, ys, true);" },
 
             new[] { "Simulated camera: capture and stretch", @"var cam = Devices.Camera;
@@ -231,7 +233,7 @@ var t = new List<double>(); var y = new List<double>();
 for (int i = 0; i < 300; i++) { double ti = rnd.NextDouble() * 30; t.Add(ti); y.Add(Math.Sin(2 * Math.PI * ti / 2.37) + rnd.NextDouble() * 0.5); }
 var pg = PeriodSearch.LombScargle(t, y, null, 0.5, 10);
 Print(""Best period {0:0.0000} d"", pg.BestPeriod);
-ClearPlot(); PlotTitle(""Lomb-Scargle"", ""frequency (1/d)"", ""power"");
+PlotTitle(""Lomb-Scargle"", ""frequency (1/d)"", ""power"");
 Plot(""power"", pg.Frequencies, pg.Power);" },
 
             new[] { "Helper methods (//@members)", @"for (int n = 1; n <= 10; n++) Print(""{0}! = {1}"", n, Factorial(n));

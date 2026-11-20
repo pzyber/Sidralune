@@ -130,6 +130,10 @@ namespace Sidralune.Views
                 MainForm.Instance.Toast(T("Compilation failed"), Icons.Warning, Theme.Current.Warning);
                 return;
             }
+            // each run starts with an empty plot and table, so the tabs only show this script's results (a script that
+            // doesn't compile leaves the last results in place while it is fixed)
+            _plot.Clear(); _plot.Title = T("Script plot"); _plot.XLabel = _plot.YLabel = null; _plot.InvertY = false;
+            _grid.Columns.Clear(); _grid.Rows.Clear();
             _console.AppendText(T("Compiled in {0} ms, running…{1}", sw.ElapsedMilliseconds, Environment.NewLine));
             var host = new ScriptHost { Plot = _plot, Grid = _grid };
             host.Output = s => MainForm.Instance.Post(() => _console.AppendText(s.Replace("\n", Environment.NewLine).Replace("\r\r", "\r")));
