@@ -483,6 +483,50 @@ namespace Sidralune.Tests
             CheckTrue("Solar eclipse in April 2024", solar.Count == 1, string.Join(" / ", solar));
             if (solar.Count == 1) Check("Total solar eclipse 2024-04-08 (min)", (solar[0].Time.ToDateTimeUtc() - new DateTime(2024, 4, 8, 18, 17, 21)).TotalMinutes, 0, 15);
 
+            // eclipses as seen from a site (timeanddate.com): 12 August 2026, total in Iceland and partial in Stockholm
+            var stockholm = new Observer { Name = "Stockholm", LatitudeDeg = 59.3293, LongitudeDeg = 18.0686, ElevationM = 30 };
+            var reykjavik = new Observer { Name = "Reykjavík", LatitudeDeg = 64.1466, LongitudeDeg = -21.9426, ElevationM = 20 };
+            var sydney = new Observer { Name = "Sydney", LatitudeDeg = -33.8688, LongitudeDeg = 151.2093, ElevationM = 20 };
+            var aug12 = Events.SolarEclipses(AstroTime.CalendarToJd(2026, 8, 1), AstroTime.CalendarToJd(2026, 8, 20));
+            CheckTrue("Solar eclipse on 12 August 2026", aug12.Count == 1, string.Join(" / ", aug12));
+            if (aug12.Count == 1)
+            {
+                var sto = Events.SolarEclipseAt(stockholm, aug12[0].Time);
+                CheckTrue("Partial and visible from Stockholm", sto.Covers && sto.Visible && sto.Kind == 0 && !sto.AtHorizon);
+                Check("Stockholm maximum 17:56 UT (min)", (sto.Time.ToDateTimeUtc() - new DateTime(2026, 8, 12, 17, 56, 0)).TotalMinutes, 0, 1.5);
+                Check("Stockholm magnitude 0.844", sto.Magnitude, 0.844, 0.01);
+                Check("Stockholm first contact 17:03 UT (min)", (sto.Start.Value.ToDateTimeUtc() - new DateTime(2026, 8, 12, 17, 3, 0)).TotalMinutes, 0, 1.5);
+                CheckTrue("Obscuration between magnitude² and magnitude", sto.Obscuration > sto.Magnitude * sto.Magnitude && sto.Obscuration < sto.Magnitude, sto.Obscuration.ToString("0.000"));
+                var rey = Events.SolarEclipseAt(reykjavik, aug12[0].Time);
+                CheckTrue("Visible from Reykjavík", rey.Covers && rey.Visible);
+                Check("Reykjavík maximum 17:48 UT (min)", (rey.Time.ToDateTimeUtc() - new DateTime(2026, 8, 12, 17, 48, 0)).TotalMinutes, 0, 1.5);
+                Check("Reykjavík magnitude 1.002 (total, on the edge of the path)", rey.Magnitude, 1.002, 0.01);
+                Check("Reykjavík first contact 16:47 UT (min)", (rey.Start.Value.ToDateTimeUtc() - new DateTime(2026, 8, 12, 16, 47, 0)).TotalMinutes, 0, 1.5);
+                CheckTrue("Not seen from Sydney", !Events.SolarEclipseAt(sydney, aug12[0].Time).Covers);
+            }
+            var stoSolar = Events.SolarEclipses(stockholm, AstroTime.CalendarToJd(2026, 8, 1), AstroTime.CalendarToJd(2026, 8, 20));
+            CheckTrue("Coming up from Stockholm: partial, the share of the Sun covered, total elsewhere",
+                stoSolar.Count == 1 && stoSolar[0].Description.StartsWith("Partial solar eclipse, 8") && stoSolar[0].Description.Contains("% of the Sun covered (total elsewhere)"), string.Join(" / ", stoSolar));
+            var sydSolar = Events.SolarEclipses(sydney, AstroTime.CalendarToJd(2026, 8, 1), AstroTime.CalendarToJd(2026, 8, 20));
+            CheckTrue("Coming up from Sydney: not visible, at greatest eclipse", sydSolar.Count == 1 && sydSolar[0].Description == "Total solar eclipse (not visible from Sydney)"
+                && aug12.Count == 1 && Math.Abs(sydSolar[0].Time.JdTT - aug12[0].Time.JdTT) < 1e-6, string.Join(" / ", sydSolar));
+
+            // 28 August 2026: partial lunar eclipse, greatest at 04:12 UT; the Moon sets in Stockholm at 03:41 UT during it, Tokyo has it in daytime
+            var aug28 = Events.LunarEclipses(stockholm, AstroTime.CalendarToJd(2026, 8, 20), AstroTime.CalendarToJd(2026, 9, 5));
+            CheckTrue("From Stockholm the Moon sets during the lunar eclipse", aug28.Count == 1 && aug28[0].Description.StartsWith("Partial lunar eclipse (umbral mag") && aug28[0].Description.EndsWith(", the Moon sets during the eclipse"), string.Join(" / ", aug28));
+            if (aug28.Count == 1)
+            {
+                Check("Greatest lunar eclipse 04:12 UT (min)", (aug28[0].Time.ToDateTimeUtc() - new DateTime(2026, 8, 28, 4, 12, 0)).TotalMinutes, 0, 3);
+                var l = Events.LunarEclipseAt(stockholm, aug28[0].Time);
+                Check("Partial phase begins 02:33 UT (min)", (l.Start.Value.ToDateTimeUtc() - new DateTime(2026, 8, 28, 2, 33, 0)).TotalMinutes, 0, 3);
+                Check("Partial phase ends 05:51 UT (min)", (l.End.Value.ToDateTimeUtc() - new DateTime(2026, 8, 28, 5, 51, 0)).TotalMinutes, 0, 3);
+            }
+            var tokyo = new Observer { Name = "Tokyo", LatitudeDeg = 35.6762, LongitudeDeg = 139.6503, ElevationM = 40 };
+            var tokLunar = Events.LunarEclipses(tokyo, AstroTime.CalendarToJd(2026, 8, 20), AstroTime.CalendarToJd(2026, 9, 5));
+            CheckTrue("Not visible from Tokyo", tokLunar.Count == 1 && tokLunar[0].Description == "Partial lunar eclipse (not visible from Tokyo)", string.Join(" / ", tokLunar));
+            Check("A disc covered by an equal one at no distance", Events.DiscOverlap(1, 1, 0), 1, 1e-12);
+            Check("Equal discs one radius apart: 39.1% covered", Events.DiscOverlap(1, 1, 1), 0.391, 0.001);
+
             var mars = Events.PlanetEvents(Body.Mars, AstroTime.CalendarToJd(2024, 12, 1), AstroTime.CalendarToJd(2025, 3, 1)).Where(e => e.Kind == EventKind.Opposition).ToList();
             CheckTrue("Mars opposition found", mars.Count == 1);
             if (mars.Count == 1) Check("Mars opposition 2025-01-16 (h)", (mars[0].Time.ToDateTimeUtc() - new DateTime(2025, 1, 16, 2, 38, 0)).TotalHours, 0, 6);
