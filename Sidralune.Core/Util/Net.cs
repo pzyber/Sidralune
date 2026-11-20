@@ -160,6 +160,7 @@ namespace Sidralune.Core.Util
         public static string Data => Ensure(Path.Combine(Root, "Data"));
         public static string Catalogs => Ensure(Path.Combine(Root, "Data", "Catalogs"));
         public static string Ephemerides => Ensure(Path.Combine(Root, "Data", "Ephemerides"));
+        public static string Maps => Ensure(Path.Combine(Root, "Data", "Maps"));
         public static string Settings => Ensure(Path.Combine(Root, "Settings"));
         public static string Logs => Ensure(Path.Combine(Root, "Logs"));
         public static string Scripts => Ensure(Path.Combine(Root, "Scripts"));

@@ -339,6 +339,118 @@ msgstr "Maansopkomst"
 msgid "Moonset"
 msgstr "Maansondergang"
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
+msgstr "Ongeveer 7.300 plaatsen, met hun naam op de verduisteringskaart naar grootte als je inzoomt."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Add as site"
+msgstr "Toevoegen als locatie"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
+msgstr "{0} is toegevoegd aan je locaties: stel tijdzone en hoogte in bij Instellingen → Locatie"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Begins or ends at sunrise or sunset"
+msgstr "Begint of eindigt bij zonsopkomst of zonsondergang"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Central line"
+msgstr "Centrale lijn"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Coastlines and islands for the eclipse map in Solar sys. → Eclipses, in more detail than the built-in map."
+msgstr "Kustlijnen en eilanden voor de verduisteringskaart in Zonnestelsel → Verduisteringen, gedetailleerder dan de ingebouwde kaart."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Country borders for the eclipse map."
+msgstr "Landsgrenzen voor de verduisteringskaart."
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of annularity: {0}"
+msgstr "Duur van de ringfase: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of totality: {0}"
+msgstr "Duur van de totaliteit: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse map"
+msgstr "Verduisteringskaart"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse site"
+msgstr "Verduisteringslocatie"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Lakes and reservoirs for the eclipse map."
+msgstr "Meren en stuwmeren voor de verduisteringskaart."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limit of the partial eclipse"
+msgstr "Grens van de gedeeltelijke verduistering"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of annularity"
+msgstr "Grenzen van de ringfase"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of totality"
+msgstr "Grenzen van de totaliteit"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Maximum at sunrise or sunset"
+msgstr "Maximum bij zonsopkomst of zonsondergang"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "No eclipse here"
+msgstr "Hier geen verduistering"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Part of the eclipse with the Moon up"
+msgstr "Een deel van de verduistering met de maan boven de horizon"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Path width {0:0} km · {1:0} km from the central line"
+msgstr "Breedte van de strook {0:0} km · {1:0} km van de centrale lijn"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Share of the Sun covered at maximum"
+msgstr "Deel van de zon bedekt bij het maximum"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The Moon on the horizon at a contact"
+msgstr "De maan aan de horizon bij een contact"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The whole eclipse with the Moon up"
+msgstr "De hele verduistering met de maan boven de horizon"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Whole eclipse"
+msgstr "Hele verduistering"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: borders (Natural Earth 1:50m)"
+msgstr "Wereldkaart: grenzen (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: cities and towns (Natural Earth 1:10m)"
+msgstr "Wereldkaart: steden en dorpen (Natural Earth 1:10m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: lakes (Natural Earth 1:50m)"
+msgstr "Wereldkaart: meren (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: land (Natural Earth 1:50m)"
+msgstr "Wereldkaart: land (Natural Earth 1:50m)"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "{0} min {1:0.0} s"
+msgstr "{0} min {1:0.0} s"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Zon"

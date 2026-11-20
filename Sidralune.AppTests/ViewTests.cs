@@ -179,6 +179,78 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestEclipseMap()
+        {
+            // the map beside the eclipse list: the selected eclipse's lines, zoom and move, a click shows the eclipse there,
+            // Add as site, and drawing by day and at night
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var start = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+            int sites = OnUi(() => AppState.Settings.Sites.Count);
+            try
+            {
+                var view = View<Sidralune.Views.SolarSystemView>("solarsystem");
+                var grid = Field<DataGridView>(view, "_eclGrid");
+                var map = Field<EclipseMap>(view, "_eclMap");
+                OnUi(() =>
+                {
+                    AppState.SetTime(Core.Time.AstroTime.FromDateTime(start));
+                    typeof(Sidralune.Views.SolarSystemView).GetMethod("ComputeEclipses", bf).Invoke(view, new object[] { 1 });
+                    App.Navigate("solarsystem");
+                    Field<TabbedPanel>(view, "_tabs").Select(3);
+                });
+                CheckTrue("Eclipses listed", WaitFor(() => OnUi(() => grid.Rows.Count >= 2), 60000));
+                OnUi(() => grid.CurrentCell = grid.Rows[0].Cells[0]);
+                CheckTrue("The total solar eclipse of 12 August 2026 drawn", WaitFor(() => OnUi(() => map.Data != null && map.Data.Solar), 60000));
+                var kinds = OnUi(() => map.Data.Lines.Where(l => l.Parts.Count > 0).Select(l => l.Kind).Distinct().ToList());
+                CheckTrue("Its central line, limits of totality and the edge of the partial eclipse", kinds.Contains(Core.Ephemeris.EclipseLineKind.CentralLine) && kinds.Contains(Core.Ephemeris.EclipseLineKind.CentralLimit) && kinds.Contains(Core.Ephemeris.EclipseLineKind.PenumbralLimit), string.Join(", ", kinds));
+                // seen at every longitude around the North Pole, so the whole world; greatest eclipse (north of Greenland) in view
+                CheckTrue("Greatest eclipse in view", OnUi(() => { var s = map.ToScreen(map.Data.GreatestPoint.Value.Lat, map.Data.GreatestPoint.Value.Lon); return s.X >= 0 && s.Y >= 0 && s.X <= map.Width && s.Y <= map.Height; }));
+                OnUi(() => map.ShowRegion(-40, 40, 10, 75));
+
+                // screen and map places back and forth, and zooming keeps the place under the cursor
+                var round = OnUi(() => { var s = map.ToScreen(64.15, -21.94); var g = map.ToGeo(Point.Round(s)); return Math.Abs(g.Lat - 64.15) + Math.Abs(g.Lon + 21.94); });
+                CheckTrue("A place drawn and read back", round < 2 / OnUi(() => map.Scale) + 1e-6, round.ToString("0.0000"));
+                var kept = OnUi(() => { var at = new Point(map.Width / 3, map.Height / 3); var before = map.ToGeo(at); map.ZoomAt(2, at); var after = map.ToGeo(at); return Math.Abs(after.Lat - before.Lat) + Math.Abs(after.Lon - before.Lon); });
+                CheckTrue("Zooming keeps the place under the cursor", kept < 0.05, kept.ToString("0.0000"));
+
+                // a click on the path near Reykjavík: total there, with the duration and the contacts
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(64.15, -21.94) }));
+                string info = OnUi(() => map.InfoText) ?? "";
+                CheckTrue("The popup: total, its duration, the path's width and the contacts in UT", info.Contains("Total solar eclipse") && info.Contains("Duration of totality:") && info.Contains("Path width") && info.Contains("Partial eclipse begins") && info.Contains("Time (UTC)"), info);
+                var local = OnUi(() => map.Data.Elements.Local(64.15, -21.94));
+                CheckTrue("The duration shown is the calculated one", info.Contains(Core.Util.Lang.T("{0} min {1:0.0} s", (int)(local.CentralSeconds / 60), local.CentralSeconds - 60 * (int)(local.CentralSeconds / 60))), info);
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-33.87, 151.21) }));
+                CheckTrue("No eclipse in Sydney", (OnUi(() => map.InfoText) ?? "").Contains("No eclipse here"), OnUi(() => map.InfoText));
+
+                // drawn without errors by day and at night
+                int mark = LogMark();
+                foreach (bool night in new[] { false, true })
+                    OnUi(() =>
+                    {
+                        Theme.SetNightMode(night); Theme.Apply(App);
+                        using (var bmp = new Bitmap(Math.Max(200, map.Width), Math.Max(200, map.Height))) map.DrawToBitmap(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                    });
+                OnUi(() => { Theme.SetNightMode(AppState.Settings.NightMode); Theme.Apply(App); });
+                CheckTrue("Drawn by day and at night without errors", ErrorsSince(mark).Count == 0, string.Join(" | ", ErrorsSince(mark)));
+
+                // the lunar eclipse: where the Moon is up
+                OnUi(() => grid.CurrentCell = grid.Rows[1].Cells[0]);
+                CheckTrue("The lunar eclipse of 28 August 2026 drawn with where it is visible", WaitFor(() => OnUi(() => map.Data != null && !map.Data.Solar && map.Data.Visibility != null), 60000));
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(59.33, 18.07) }));
+                CheckTrue("A click on Stockholm: the Moon sets during it", (OnUi(() => map.InfoText) ?? "").Contains("Moonset"), OnUi(() => map.InfoText));
+
+                // Add as site: the place joins the sites and opens in Settings → Location
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("AddEclipseSite", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-16.65373, 128.66009) }));
+                CheckTrue("Add as site adds the place", OnUi(() => AppState.Settings.Sites.Count == sites + 1 && Math.Abs(AppState.Settings.Sites.Last().LatitudeDeg + 16.65373) < 1e-6 && AppState.Settings.Sites.Last().ElevationM == 0));
+                CheckTrue("and opens Settings", OnUi(() => App.GetView<Sidralune.Views.SettingsView>("settings")?.Visible == true));
+            }
+            finally
+            {
+                OnUi(() => { while (AppState.Settings.Sites.Count > sites) AppState.Settings.Sites.RemoveAt(AppState.Settings.Sites.Count - 1); AppState.Save(); AppState.GoLive(); });
+            }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;

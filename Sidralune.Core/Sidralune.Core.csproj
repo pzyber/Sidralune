@@ -52,7 +52,9 @@
     <Compile Include="**\*.cs" Exclude="obj\**;bin\**" />
   </ItemGroup>
   <ItemGroup>
-
+    <EmbeddedResource Include="Resources\world110.bin">
+      <LogicalName>Sidralune.Core.Resources.world110.bin</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

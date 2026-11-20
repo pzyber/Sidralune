@@ -339,6 +339,118 @@ msgstr "Holdkelte"
 msgid "Moonset"
 msgstr "Holdnyugta"
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
+msgstr "Mintegy 7300 település, amelyek neve nagyításkor méret szerint jelenik meg a fogyatkozási térképen."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Add as site"
+msgstr "Hozzáadás helyként"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
+msgstr "{0} hozzáadva a helyeihez: állítsa be az időzónát és a magasságot a Beállítások → Hely alatt"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Begins or ends at sunrise or sunset"
+msgstr "Napkeltekor vagy napnyugtakor kezdődik vagy ér véget"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Central line"
+msgstr "Központi vonal"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Coastlines and islands for the eclipse map in Solar sys. → Eclipses, in more detail than the built-in map."
+msgstr "Partvonalak és szigetek a fogyatkozási térképhez a Naprendszer → Fogyatkozások alatt, a beépített térképnél részletesebben."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Country borders for the eclipse map."
+msgstr "Országhatárok a fogyatkozási térképhez."
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of annularity: {0}"
+msgstr "A gyűrűs szakasz időtartama: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of totality: {0}"
+msgstr "A teljes szakasz időtartama: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse map"
+msgstr "Fogyatkozási térkép"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse site"
+msgstr "Fogyatkozási hely"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Lakes and reservoirs for the eclipse map."
+msgstr "Tavak és víztározók a fogyatkozási térképhez."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limit of the partial eclipse"
+msgstr "A részleges fogyatkozás határa"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of annularity"
+msgstr "A gyűrűs szakasz határai"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of totality"
+msgstr "A teljes szakasz határai"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Maximum at sunrise or sunset"
+msgstr "Maximum napkeltekor vagy napnyugtakor"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "No eclipse here"
+msgstr "Itt nincs fogyatkozás"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Part of the eclipse with the Moon up"
+msgstr "A fogyatkozás egy része a horizont fölötti Holddal"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Path width {0:0} km · {1:0} km from the central line"
+msgstr "A sáv szélessége {0:0} km · {1:0} km a központi vonaltól"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Share of the Sun covered at maximum"
+msgstr "A Nap fedett része a maximumkor"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The Moon on the horizon at a contact"
+msgstr "A Hold a horizonton egy kontaktuskor"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The whole eclipse with the Moon up"
+msgstr "Az egész fogyatkozás a horizont fölötti Holddal"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Whole eclipse"
+msgstr "Az egész fogyatkozás"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: borders (Natural Earth 1:50m)"
+msgstr "Világtérkép: határok (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: cities and towns (Natural Earth 1:10m)"
+msgstr "Világtérkép: városok és települések (Natural Earth 1:10m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: lakes (Natural Earth 1:50m)"
+msgstr "Világtérkép: tavak (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: land (Natural Earth 1:50m)"
+msgstr "Világtérkép: szárazföld (Natural Earth 1:50m)"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "{0} min {1:0.0} s"
+msgstr "{0} perc {1:0.0} s"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Nap"

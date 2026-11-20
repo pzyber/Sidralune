@@ -343,6 +343,118 @@ msgstr "Izlazak Mjeseca"
 msgid "Moonset"
 msgstr "Zalazak Mjeseca"
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
+msgstr "Oko 7300 naselja, imenovanih na karti pomrčina prema veličini kad povećate prikaz."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Add as site"
+msgstr "Dodaj kao lokaciju"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
+msgstr "{0} dodano je vašim lokacijama: postavite vremensku zonu i nadmorsku visinu u Postavke → Lokacija"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Begins or ends at sunrise or sunset"
+msgstr "Počinje ili završava pri izlasku ili zalasku Sunca"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Central line"
+msgstr "Središnja linija"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Coastlines and islands for the eclipse map in Solar sys. → Eclipses, in more detail than the built-in map."
+msgstr "Obale i otoci za kartu pomrčina u Sunčev sust. → Pomrčine, detaljniji od ugrađene karte."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Country borders for the eclipse map."
+msgstr "Državne granice za kartu pomrčina."
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of annularity: {0}"
+msgstr "Trajanje prstenaste faze: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of totality: {0}"
+msgstr "Trajanje potpune faze: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse map"
+msgstr "Karta pomrčine"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse site"
+msgstr "Lokacija pomrčine"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Lakes and reservoirs for the eclipse map."
+msgstr "Jezera i akumulacije za kartu pomrčina."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limit of the partial eclipse"
+msgstr "Granica djelomične pomrčine"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of annularity"
+msgstr "Granice prstenaste faze"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of totality"
+msgstr "Granice potpune faze"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Maximum at sunrise or sunset"
+msgstr "Maksimum pri izlasku ili zalasku Sunca"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "No eclipse here"
+msgstr "Ovdje nema pomrčine"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Part of the eclipse with the Moon up"
+msgstr "Dio pomrčine s Mjesecom iznad obzora"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Path width {0:0} km · {1:0} km from the central line"
+msgstr "Širina pojasa {0:0} km · {1:0} km od središnje linije"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Share of the Sun covered at maximum"
+msgstr "Udio Sunca prekriven u maksimumu"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The Moon on the horizon at a contact"
+msgstr "Mjesec na obzoru pri kontaktu"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The whole eclipse with the Moon up"
+msgstr "Cijela pomrčina s Mjesecom iznad obzora"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Whole eclipse"
+msgstr "Cijela pomrčina"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: borders (Natural Earth 1:50m)"
+msgstr "Karta svijeta: granice (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: cities and towns (Natural Earth 1:10m)"
+msgstr "Karta svijeta: gradovi i mjesta (Natural Earth 1:10m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: lakes (Natural Earth 1:50m)"
+msgstr "Karta svijeta: jezera (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: land (Natural Earth 1:50m)"
+msgstr "Karta svijeta: kopno (Natural Earth 1:50m)"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "{0} min {1:0.0} s"
+msgstr "{0} min {1:0.0} s"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sunce"

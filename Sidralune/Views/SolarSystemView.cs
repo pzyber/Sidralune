@@ -598,16 +598,111 @@ namespace Sidralune.Views
             split.Panel2.Controls.Add(_eclPhases);
             bool placed = false;
             split.SizeChanged += (s, e) => { if (!placed && split.Height > 300) { placed = true; split.SplitterDistance = split.Height * 60 / 100; } };
-            panel.Controls.Add(split);
+            // the list and phases on the left, the map of the selected eclipse on the right
+            _eclMap = new EclipseMap { Dock = DockStyle.Fill };
+            _eclMap.PlaceClicked += ShowPlace;
+            _eclMap.AddSiteClicked += AddEclipseSite;
+            var outer = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Vertical, SplitterWidth = 6 };
+            outer.Panel1.Controls.Add(split);
+            outer.Panel2.Controls.Add(_eclMap);
+            bool outerPlaced = false;
+            outer.SizeChanged += (s, e) => { if (!outerPlaced && outer.Width > 800) { outerPlaced = true; outer.SplitterDistance = outer.Width * 42 / 100; } };
+            panel.Controls.Add(outer);
             panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 34, Tag = "dim", Text = T("Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it.") });
             panel.Controls.Add(Ui.Toolbar(new Label { Text = T("Years"), AutoSize = true, Margin = new Padding(0, 6, 2, 0) }, years, go, _eclJob.StopButton(), csv, show));
             // worked out when the tab is first shown, and again after the site changes
-            panel.VisibleChanged += (s, e) => { if (panel.Visible && !_eclComputed) ComputeEclipses((int)years.Value); };
-            EventHandler siteChanged = (s, e) => { _eclComputed = false; if (panel.Visible) ComputeEclipses((int)years.Value); };
+            panel.VisibleChanged += (s, e) =>
+            {
+                if (!panel.Visible) return;
+                _eclMap.ReloadWorld(); // the Natural Earth datasets may have been installed meanwhile
+                MarkSite();
+                if (!_eclComputed) ComputeEclipses((int)years.Value);
+            };
+            EventHandler siteChanged = (s, e) => { _eclComputed = false; MarkSite(); if (panel.Visible) ComputeEclipses((int)years.Value); };
             AppState.SiteChanged += siteChanged;
             // a closed view stops its search and no longer follows the site
-            panel.Disposed += (s, e) => { AppState.SiteChanged -= siteChanged; _eclJob.Cancel(); };
+            panel.Disposed += (s, e) => { AppState.SiteChanged -= siteChanged; _eclJob.Cancel(); _eclMapJob.Cancel(); };
             return panel;
+        }
+
+        private EclipseMap _eclMap;
+        private readonly JobSlot _eclMapJob = new JobSlot();
+        private readonly Dictionary<double, EclipseMapData> _eclMaps = new Dictionary<double, EclipseMapData>();
+
+        private void MarkSite() { if (_eclMap == null || _eclMap.IsDisposed) return; _eclMap.Site = new GeoPoint(AppState.Site.LatitudeDeg, AppState.Site.LongitudeDeg); _eclMap.SiteName = AppState.Site.Name; _eclMap.Invalidate(); }
+
+        /// <summary>The selected eclipse's lines on the map, worked out in the background the first time.</summary>
+        private void ShowEclipseMap(EclipseInfo x)
+        {
+            EclipseMapData cached;
+            if (_eclMaps.TryGetValue(x.Greatest.JdTT, out cached)) { _eclMap.Data = cached; return; }
+            EclipseMapData data = null;
+            _eclMapJob.Replace(T("Eclipse map"), t => data = x.Solar ? EclipseGeometry.Solar(x.Greatest, t.Cts.Token) : EclipseGeometry.Lunar(x.Greatest, t.Cts.Token), () =>
+            {
+                if (_eclMap.IsDisposed) return;
+                _eclMaps[x.Greatest.JdTT] = data;
+                if (SelectedEclipse == x) _eclMap.Data = data;
+            }, ex => { if (!_eclMap.IsDisposed) MainForm.Instance.Toast(T("Search failed: {0}", ex.Message), Icons.Warning); });
+        }
+
+        /// <summary>The eclipse at a clicked place: its contacts in UT with the Sun's (Moon's) altitude and azimuth.</summary>
+        private void ShowPlace(GeoPoint p)
+        {
+            var data = _eclMap.Data;
+            if (data == null) return;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(EclipseMap.FormatPlace(p));
+            Func<string, AstroTime, double, double, string> row = null;
+            int nameWidth = 0;
+            var rows = new List<Tuple<string, AstroTime, double, double>>();
+            if (data.Solar)
+            {
+                var l = data.Elements.Local(p.Lat, p.Lon);
+                if (!l.Covers) { sb.Append(T("No eclipse here")); _eclMap.ShowInfo(p, sb.ToString()); return; }
+                sb.AppendLine(AstroEvents.EclipseTypeName(true, l.Kind) + (l.Visible ? "" : " · " + T("Not visible")));
+                if (l.Kind != 0) sb.AppendLine((l.Kind == 1 ? T("Duration of totality: {0}", Duration(l.CentralSeconds)) : T("Duration of annularity: {0}", Duration(l.CentralSeconds))));
+                sb.AppendLine(T("Magnitude") + " " + F(l.Magnitude, "0.0000") + "  ·  " + T("Sun covered") + " " + F(l.Obscuration * 100, "0.0") + "%");
+                double width, fromCentral;
+                if (EclipseGeometry.PathAt(data, p, out width, out fromCentral))
+                    sb.AppendLine(T("Path width {0:0} km · {1:0} km from the central line", width, fromCentral));
+                Action<string, SolarContact> add = (name, c) => { if (c != null) rows.Add(Tuple.Create(name, c.Time, c.Altitude, c.Azimuth)); };
+                add(T("Partial eclipse begins"), l.C1);
+                add(l.Kind == 1 ? T("Total eclipse begins") : T("Annular eclipse begins"), l.C2);
+                add(T("Maximum eclipse"), l.Maximum);
+                add(l.Kind == 1 ? T("Total eclipse ends") : T("Annular eclipse ends"), l.C3);
+                add(T("Partial eclipse ends"), l.C4);
+            }
+            else
+            {
+                var o = new Observer { Name = "", LatitudeDeg = p.Lat, LongitudeDeg = p.Lon, ElevationM = 0 };
+                var phases = AstroEvents.LunarEclipsePhases(o, data.Greatest);
+                bool up = phases.Any(x => x.Altitude > -0.3);
+                sb.AppendLine(AstroEvents.EclipseTypeName(false, SelectedEclipse?.Kind ?? 0) + (up ? "" : " · " + T("Not visible")));
+                foreach (var ph in phases)
+                {
+                    var hz = new SkyContext(o, ph.Time).BodyPlace(Body.Moon).Horizontal;
+                    rows.Add(Tuple.Create(ph.Name, ph.Time, ph.Altitude, hz.AzDeg));
+                }
+            }
+            nameWidth = rows.Count == 0 ? 0 : rows.Max(r => r.Item1.Length) + 2;
+            row = (name, t, alt, az) => name.PadRight(nameWidth) + t.ToDateTimeUtc().ToString("HH:mm:ss.f", CultureInfo.InvariantCulture).PadRight(13) + (F(alt, "0.0") + "°").PadLeft(7) + (F(az, "000.0") + "°").PadLeft(9);
+            sb.AppendLine();
+            sb.AppendLine("".PadRight(nameWidth) + T("Time (UTC)").PadRight(13) + T("Altitude").PadLeft(7) + T("Azimuth").PadLeft(9));
+            foreach (var r in rows) sb.AppendLine(row(r.Item1, r.Item2, r.Item3, r.Item4));
+            _eclMap.ShowInfo(p, sb.ToString().TrimEnd());
+        }
+
+        private static string Duration(double seconds) => T("{0} min {1:0.0} s", (int)(seconds / 60), seconds - 60 * (int)(seconds / 60));
+
+        /// <summary>A clicked place added to the observing sites, opened in Settings to set its name, time zone and elevation.</summary>
+        private void AddEclipseSite(GeoPoint p)
+        {
+            var site = new Observer { Name = T("Eclipse site"), LatitudeDeg = Math.Round(p.Lat, 5), LongitudeDeg = Math.Round(p.Lon, 5), ElevationM = 0, TimeZoneId = AppState.Site.TimeZoneId };
+            AppState.Settings.Sites.Add(site);
+            AppState.Save();
+            MainForm.Instance.Toast(T("Added {0} to your sites: set its time zone and elevation in Settings → Location", site.Name));
+            MainForm.Instance.Navigate("settings");
+            MainForm.Instance.GetView<SettingsView>("settings")?.ShowSite(AppState.Settings.Sites.Count - 1);
         }
 
         private void ComputeEclipses(int years)
@@ -650,6 +745,7 @@ namespace Sidralune.Views
             _eclPhases.Rows.Clear();
             var x = SelectedEclipse;
             if (x == null) return;
+            ShowEclipseMap(x);
             var site = AppState.Site;
             var phases = x.Solar ? AstroEvents.SolarEclipsePhases(site, x.Greatest) : AstroEvents.LunarEclipsePhases(site, x.Greatest);
             foreach (var p in phases)

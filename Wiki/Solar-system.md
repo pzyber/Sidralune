@@ -6,6 +6,7 @@ The **Solar sys.** workspace gathers everything about the Sun's family: ephemeri
 - [Minor bodies](#minor-bodies)
 - [Planets & moons](#planets--moons)
 - [Eclipses](#eclipses)
+  - [The eclipse map](#the-eclipse-map)
 - [Occultations](#occultations)
 - [Meteors](#meteors)
 - [Satellites](#satellites)
@@ -98,6 +99,34 @@ Select an eclipse to see its phases below, in local time to the second, with the
 **Show in sky** (or double-clicking an eclipse) sets the program's time to the eclipse and shows the Sun or the Moon in the [Sky chart](Sky-chart). Click **Live** in the header to go back to the current time. **CSV…** saves the list.
 
 Solar eclipse times use the Moon's mean limb, so they can differ by a few seconds from predictions that follow the Moon's real profile; for 12 August 2026 the contacts and maximum agree with published local circumstances within about a minute and the magnitude within 0.01. The [Coming up](Tonight#coming-up) card on the Tonight tab shows the next eclipses in the same way.
+
+### The eclipse map
+
+The map beside the list shows where the selected eclipse can be seen, for planning a trip. It opens on the part of the world that sees the eclipse.
+
+**Zoom** with the mouse wheel (at the cursor), the **+** and **−** buttons or a double-click, and **drag** to move. **Whole eclipse** goes back to the first view. The cursor's latitude and longitude are shown in the lower right corner.
+
+**A solar eclipse** is drawn with these lines, and a marker at greatest eclipse on Earth:
+
+| Line | Meaning |
+|---|---|
+| **Central line** | Where the shadow's axis touches the Earth: the longest total or annular phase |
+| **Limits of totality** or **of annularity** | The edges of the path where the eclipse is total or annular |
+| **Limit of the partial eclipse** | Beyond it the Moon misses the Sun |
+| **Begins or ends at sunrise or sunset** | The eclipse is already under way at sunrise, or still under way at sunset |
+| **Maximum at sunrise or sunset** (dashed) | Maximum happens with the Sun on the horizon |
+| **Share of the Sun covered at maximum** (dotted, 25 %, 50 %, 75 %) | How much of the Sun's disc the Moon covers |
+
+**A lunar eclipse** is shaded where the Moon is up for the whole eclipse (darker) and for part of it (lighter). The lines show where the Moon is on the horizon at each contact (P1, U1, U2, U3, U4, P4), and dots mark where the Moon is overhead at each contact and at greatest eclipse.
+
+- **Click any place** for the eclipse there:
+  - for a solar eclipse: the type, the duration of totality or annularity, the magnitude, the share of the Sun covered, the path's width and the distance from the central line, and each contact in UT with the Sun's altitude and azimuth;
+  - for a lunar eclipse: each phase in UT with the Moon's altitude and azimuth, and any moonrise or moonset.
+
+  Times are in UT because the time zone of an arbitrary place isn't known; the phases list under the eclipse list keeps your site's local time.
+- **Add as site** in the box adds the place to your observing sites and opens it in **Settings → Location**, where you name it and set its time zone and elevation (it starts at 0 m, since the map has no terrain).
+
+The map works offline with a built-in Natural Earth world at 1:110 million. For more detail, install the **World map** datasets (land, lakes, borders, and cities and towns) in **Settings → Data**; see [Data and catalogues](Data-and-catalogues). The lines come from Besselian elements fitted to the same ephemeris as the rest of Sidralune; with DE440s installed, contacts agree with Xavier Jubier's mean-limb predictions within about a second. See [Algorithms and accuracy](Algorithms-and-accuracy).
 
 ## Occultations
 

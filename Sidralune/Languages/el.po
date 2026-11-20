@@ -339,6 +339,118 @@ msgstr "Ανατολή Σελήνης"
 msgid "Moonset"
 msgstr "Δύση Σελήνης"
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
+msgstr "Περίπου 7.300 οικισμοί, με ονόματα στον χάρτη εκλείψεων ανάλογα με το μέγεθος καθώς μεγεθύνετε."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Add as site"
+msgstr "Προσθήκη ως τοποθεσία"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
+msgstr "Το {0} προστέθηκε στις τοποθεσίες σας: ορίστε ζώνη ώρας και υψόμετρο στις Ρυθμίσεις → Τοποθεσία"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Begins or ends at sunrise or sunset"
+msgstr "Αρχίζει ή τελειώνει στην ανατολή ή τη δύση του Ηλίου"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Central line"
+msgstr "Κεντρική γραμμή"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Coastlines and islands for the eclipse map in Solar sys. → Eclipses, in more detail than the built-in map."
+msgstr "Ακτογραμμές και νησιά για τον χάρτη εκλείψεων στο Ηλιακό σύστ. → Εκλείψεις, λεπτομερέστερα από τον ενσωματωμένο χάρτη."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Country borders for the eclipse map."
+msgstr "Σύνορα χωρών για τον χάρτη εκλείψεων."
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of annularity: {0}"
+msgstr "Διάρκεια δακτυλιοειδούς φάσης: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Duration of totality: {0}"
+msgstr "Διάρκεια ολικής φάσης: {0}"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse map"
+msgstr "Χάρτης έκλειψης"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse site"
+msgstr "Τοποθεσία έκλειψης"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Lakes and reservoirs for the eclipse map."
+msgstr "Λίμνες και ταμιευτήρες για τον χάρτη εκλείψεων."
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limit of the partial eclipse"
+msgstr "Όριο της μερικής έκλειψης"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of annularity"
+msgstr "Όρια της δακτυλιοειδούς φάσης"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Limits of totality"
+msgstr "Όρια της ολικής φάσης"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Maximum at sunrise or sunset"
+msgstr "Μέγιστο στην ανατολή ή τη δύση του Ηλίου"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "No eclipse here"
+msgstr "Καμία έκλειψη εδώ"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Part of the eclipse with the Moon up"
+msgstr "Μέρος της έκλειψης με τη Σελήνη πάνω από τον ορίζοντα"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Path width {0:0} km · {1:0} km from the central line"
+msgstr "Πλάτος ζώνης {0:0} km · {1:0} km από την κεντρική γραμμή"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Share of the Sun covered at maximum"
+msgstr "Ποσοστό του Ηλίου που καλύπτεται στο μέγιστο"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The Moon on the horizon at a contact"
+msgstr "Η Σελήνη στον ορίζοντα σε μια επαφή"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "The whole eclipse with the Moon up"
+msgstr "Όλη η έκλειψη με τη Σελήνη πάνω από τον ορίζοντα"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Whole eclipse"
+msgstr "Όλη η έκλειψη"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: borders (Natural Earth 1:50m)"
+msgstr "Παγκόσμιος χάρτης: σύνορα (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: cities and towns (Natural Earth 1:10m)"
+msgstr "Παγκόσμιος χάρτης: πόλεις και χωριά (Natural Earth 1:10m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: lakes (Natural Earth 1:50m)"
+msgstr "Παγκόσμιος χάρτης: λίμνες (Natural Earth 1:50m)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World map: land (Natural Earth 1:50m)"
+msgstr "Παγκόσμιος χάρτης: ξηρά (Natural Earth 1:50m)"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "{0} min {1:0.0} s"
+msgstr "{0} λεπ. {1:0.0} s"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Ήλιος"
