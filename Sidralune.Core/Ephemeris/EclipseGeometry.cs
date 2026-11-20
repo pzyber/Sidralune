@@ -138,7 +138,7 @@ namespace Sidralune.Core.Ephemeris
                 }
             }
             foreach (double level in new[] { 0.25, 0.5, 0.75 })
-                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.Obscuration, Level = level, Parts = JoinEnds(WhereSunUp(be, Contour(obs, step, level)), 1e-4, true) });
+                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.Obscuration, Level = level, Parts = SplitAtDateLine(JoinEnds(WhereSunUp(be, Contour(obs, step, level)), 1e-4, true)) });
             if (lons.Count > 0) SetView(map, minLat, maxLat, lons);
             return map;
         }
@@ -235,7 +235,8 @@ namespace Sidralune.Core.Ephemeris
 
         /// <summary>
         /// Each line's ends carried on straight, in the direction of its last stretch, to where they first cross one of the
-        /// target lines, when that is within maxDeg (on a local flat map round the end, fine over so short a distance).
+        /// target lines, when that is within maxDeg (on a local flat map round the end, fine over so short a distance), or
+        /// to the nearest of the tips within maxDeg when there is one.
         /// </summary>
         private static void ExtendTo(List<List<GeoPoint>> lines, List<List<GeoPoint>> targets, double maxDeg, List<GeoPoint> tips = null)
         {
@@ -257,6 +258,15 @@ namespace Sidralune.Core.Ephemeris
                     var bk = local(back);
                     double len = Math.Sqrt(bk[0] * bk[0] + bk[1] * bk[1]);
                     if (len < 1e-9) continue;
+                    // a tip within reach is where the line ends (the limits of the partial eclipse end where they meet both
+                    // horizon curves, at the ends of the maximum-at-horizon curve): carried on straight, the line could cross
+                    // the other curve a little before it
+                    var tip = tips?.Where(p => Distance(p, end) < maxDeg).OrderBy(p => Distance(p, end)).Cast<GeoPoint?>().FirstOrDefault();
+                    if (tip.HasValue)
+                    {
+                        if (Distance(tip.Value, end) > 1e-7) { if (atEnd) line.Add(tip.Value); else line.Insert(0, tip.Value); }
+                        continue;
+                    }
                     double dx = -bk[0] / len, dy = -bk[1] / len, best = double.MaxValue;
                     foreach (var target in targets)
                         for (int i = 0; i + 1 < target.Count; i++)
@@ -269,12 +279,7 @@ namespace Sidralune.Core.Ephemeris
                             double s = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den;
                             if (u >= 0 && u <= 1 && s > 1e-9 && s < Math.Min(best, maxDeg)) best = s;
                         }
-                    if (best == double.MaxValue)
-                    {
-                        var tip = tips?.Where(p => Distance(p, end) < maxDeg && Distance(p, end) > 1e-7).OrderBy(p => Distance(p, end)).Cast<GeoPoint?>().FirstOrDefault();
-                        if (tip.HasValue) { if (atEnd) line.Add(tip.Value); else line.Insert(0, tip.Value); }
-                        continue;
-                    }
+                    if (best == double.MaxValue) continue;
                     var p2 = new GeoPoint(end.Lat + best * dy, AstroMath.NormalizeDeg180(end.Lon + best * dx / c));
                     if (atEnd) line.Add(p2); else line.Insert(0, p2);
                 }
@@ -738,7 +743,7 @@ namespace Sidralune.Core.Ephemeris
                         // both pieces run right up to the date line, so no gap is left there
                         var a = cur[cur.Count - 1]; var b = p[i];
                         double edge = a.Lon > 0 ? 180 : -180, bLon = b.Lon + (a.Lon > 0 ? 360 : -360);
-                        double k = (edge - a.Lon) / (bLon - a.Lon);
+                        double k = bLon == a.Lon ? 0 : (edge - a.Lon) / (bLon - a.Lon); // 0 when a is on the date line itself
                         double lat = a.Lat + k * (b.Lat - a.Lat);
                         cur.Add(new GeoPoint(lat, edge));
                         if (cur.Count > 1) res.Add(cur);

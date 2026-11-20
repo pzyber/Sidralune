@@ -178,12 +178,18 @@ namespace Sidralune.Tests
             CheckTrue("Two edges of the path, not joined across it", edges.Count == 2 && edges.All(e => e.Count > 100));
             CheckTrue("No line jumps across the map", map.Lines.SelectMany(l => l.Parts).All(p => p.Zip(p.Skip(1), (a, b) => EclipseGeometry.Distance(a, b)).All(d => d < 6)), "steps of up to 5° join pieces that meet");
 
-            foreach (var day in new[] { new DateTime(2027, 8, 2), new DateTime(2028, 7, 22) })
+            // 2035: two eclipses across the date line
+            foreach (var day in new[] { new DateTime(2027, 8, 2), new DateTime(2028, 7, 22), new DateTime(2035, 3, 9), new DateTime(2035, 9, 2) })
             {
                 var g = Greatest(day.Year, day.Month, day.Day);
+                CheckTrue("A solar eclipse on " + day.ToString("yyyy-MM-dd"), g.HasValue);
                 if (!g.HasValue) continue;
                 var m = day.Year == 2027 ? map : EclipseGeometry.Solar(g.Value);
                 string tag = day.ToString("yyyy-MM-dd") + ": ";
+                // every line is cut at the date line, none drawn straight across the map from one side to the other
+                var across = m.Lines.SelectMany(l => l.Parts.Select(p => Tuple.Create(l.Kind, p)))
+                    .Where(x => x.Item2.Zip(x.Item2.Skip(1), (a, b) => Math.Abs(a.Lon - b.Lon)).Any(d => d > 180 || double.IsNaN(d))).Select(x => x.Item1).ToList();
+                CheckTrue(tag + "no line crosses the date line uncut", across.Count == 0, string.Join(", ", across));
                 // every end of the limits and the central line is at the horizon (where the lines meet the sunrise and
                 // sunset curves), apart from where a line is cut at the date line for drawing
                 var ends = m.Lines.Where(l => l.Kind == EclipseLineKind.CentralLine || l.Kind == EclipseLineKind.CentralLimit || l.Kind == EclipseLineKind.PenumbralLimit)
@@ -199,16 +205,21 @@ namespace Sidralune.Tests
                 CheckTrue(tag + "the obscuration lines end with the Sun on the horizon", obsEnds.Count > 0 && offCurve.Count == 0, string.Join(" | ", offCurve.Take(5).Select(x => x.Item1 + " Sun " + x.Item2.ToString("0.00"))));
                 // and no line turns sharply (the ends were once snapped to the nearest point of the other curve, a kink)
                 double worst = 0; GeoPoint at = new GeoPoint();
-                foreach (var part in m.Lines.Where(l => l.Kind != EclipseLineKind.Obscuration).SelectMany(l => l.Parts))
-                {
-                    var pts = new List<GeoPoint> { part[0] };
-                    foreach (var p in part.Skip(1)) if (EclipseGeometry.Distance(pts[pts.Count - 1], p) > 0.05) pts.Add(p); // over steps long enough for a direction
-                    for (int i = 1; i + 1 < pts.Count; i++)
+                // apart from the sunrise/sunset loop round its tips (where the limits meet it), which can turn very tightly
+                // near the poles
+                var tips = m.Lines.Where(l => l.Kind == EclipseLineKind.MaximumAtHorizon).SelectMany(l => l.Parts).SelectMany(p => new[] { p[0], p[p.Count - 1] }).ToList();
+                foreach (var line in m.Lines.Where(l => l.Kind != EclipseLineKind.Obscuration))
+                    foreach (var part in line.Parts)
                     {
-                        double turn = Math.Abs(((EclipseGeometry.Bearing(pts[i], pts[i + 1]) - EclipseGeometry.Bearing(pts[i - 1], pts[i])) % 360 + 540) % 360 - 180);
-                        if (turn > worst) { worst = turn; at = pts[i]; }
+                        var pts = new List<GeoPoint> { part[0] };
+                        foreach (var p in part.Skip(1)) if (EclipseGeometry.Distance(pts[pts.Count - 1], p) > 0.05) pts.Add(p); // over steps long enough for a direction
+                        for (int i = 1; i + 1 < pts.Count; i++)
+                        {
+                            if (line.Kind == EclipseLineKind.ContactAtHorizon && tips.Any(t => EclipseGeometry.Distance(t, pts[i]) < 0.5)) continue;
+                            double turn = Math.Abs(((EclipseGeometry.Bearing(pts[i], pts[i + 1]) - EclipseGeometry.Bearing(pts[i - 1], pts[i])) % 360 + 540) % 360 - 180);
+                            if (turn > worst) { worst = turn; at = pts[i]; }
+                        }
                     }
-                }
                 CheckTrue(tag + "no line turns sharply", worst < 45, worst.ToString("0") + "° at " + at);
             }
         }
