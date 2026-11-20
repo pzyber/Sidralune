@@ -32,6 +32,8 @@ The right side has three tabs for results:
 | **Plot** | `Plot(...)`, `PlotTitle(...)` |
 | **Table** | `Table(...)` |
 
+Each run starts with all three tabs empty, so they only show the results of the script you just ran. A script that doesn't compile leaves the previous plot and table in place while you fix it.
+
 When a script finishes with only a few lines of output, the **Table** or **Plot** tab is brought forward automatically if the script filled it.
 
 ### The script API
@@ -50,7 +52,8 @@ These members can be used directly in a script:
 | `Sky` | A `SkyContext` for the site and current time: `Sky.BodyPlace(Body.Mars)`, `Sky.IcrsToHorizontal(ra, dec)`… |
 | `Catalogs` | The catalogue manager: `Catalogs.Find("M 31")`, `Catalogs.Search("Ring", 10)`, `Catalogs.DeepSkyList`, `Catalogs.ConstellationAt(ra, dec)` |
 | `Devices` | The device manager: `Devices.Telescope`, `Devices.Camera`, `Devices.Focuser`, `Devices.FilterWheel`, `Devices.Dome`, `Devices.Guider`… |
-| `ClearPlot()` | Clear the plot |
+| `ClearPlot()` | Clear the plot while the script runs, for example to redraw it (each run already starts with an empty plot) |
+| `ClearTable()` | Clear the table while the script runs (each run already starts with an empty table) |
 | `PlotTitle(title, xLabel, yLabel, invertY)` | Set the plot's title and axis labels; `invertY` for magnitudes |
 | `Plot(name, xs, ys, scatter)` | Add a series from two lists of numbers, as a line or points |
 | `Plot(name, f, x0, x1, n)` | Plot a function `f(x)` from `x0` to `x1` |
@@ -99,7 +102,7 @@ The examples list contains:
 |---|---|
 | **Hello sky: planets now** | Positions, magnitudes and sizes of the planets in a table |
 | **Altitude curve of the selection tonight** | The selected object's and the Sun's altitude over 24 hours as a plot |
-| **Batch: FWHM and star count of a folder** | Measuring every FITS file in a folder: star count, FWHM and eccentricity in a table and a plot, to spot frames with bad focus or tracking |
+| **Batch: FWHM and star count of a folder** | Measuring every FITS file in a folder: star count, FWHM and eccentricity in a table and a plot, to spot frames with bad focus or tracking. It reads `Pictures\Sidralune` and says so when that folder is missing or has no FITS files; change the folder on its first line |
 | **Simulated camera: capture and stretch** | Taking an exposure with the connected camera, stretching it and opening it in Process |
 | **Lomb-Scargle of a synthetic variable** | Generating a time series and finding its period |
 | **Helper methods (//@members)** | Defining helper methods |

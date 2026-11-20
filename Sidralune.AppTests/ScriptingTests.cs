@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sidralune.Scripting;
 using Sidralune.Tests;
+using Sidralune.UI;
 using Sidralune.Views;
 using static Sidralune.AppTests.AppHost;
 using static Sidralune.Tests.Checks;
@@ -97,6 +98,25 @@ namespace Sidralune.AppTests
             OnUi(() => view.RunScript(hello[1]));
             var grid = OnUi(() => Find<DataGridView>(view));
             CheckTrue("The planets example fills the table", WaitFor(() => console.Text.Contains("Finished") && grid.Rows.Count == 7, 60000), OnUi(() => console.Text + " / rows " + grid.Rows.Count));
+
+            // each run starts with an empty plot and table: the Lomb-Scargle plot is gone after the planets example, and its table after Lomb-Scargle
+            var plot = OnUi(() => Find<PlotControl>(view));
+            CheckTrue("A new run clears the last script's plot", OnUi(() => plot.Series.Count == 0 && plot.Title == "Script plot"), OnUi(() => plot.Series.Count + " series, " + plot.Title));
+            OnUi(() => view.RunScript(lomb[1]));
+            CheckTrue("A new run clears the last script's table", WaitFor(() => console.Text.Contains("Finished"), 20000) && OnUi(() => grid.Rows.Count == 0 && grid.Columns.Count == 0 && plot.Series.Count == 1), OnUi(() => grid.Rows.Count + " rows, " + plot.Series.Count + " series"));
+            // a script that doesn't compile leaves the results in place while it is fixed
+            OnUi(() => view.RunScript("int x = ;"));
+            CheckTrue("A compile error keeps the last plot", WaitFor(() => console.Text.Contains("error line 1")) && OnUi(() => plot.Series.Count == 1));
+            // ClearTable() empties the table while the script runs
+            OnUi(() => view.RunScript("Table(new[] { \"A\" }, new[] { new object[] { 1 } }); Sleep(0.3); ClearTable();"));
+            CheckTrue("ClearTable empties the table", WaitFor(() => console.Text.Contains("Finished")) && WaitFor(() => OnUi(() => grid.Columns.Count == 0)), OnUi(() => console.Text + " / columns " + grid.Columns.Count));
+
+            // the batch example says when its folder is missing instead of failing
+            var batch = ScriptExamples.All.First(e => e[0].StartsWith("Batch"));
+            string missing = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Sidralune no such folder");
+            string code = "string folder = @\"" + missing + "\";" + batch[1].Substring(batch[1].IndexOf('\n'));
+            OnUi(() => view.RunScript(code));
+            CheckTrue("The batch example names a missing folder", WaitFor(() => console.Text.Contains("Finished"), 20000) && OnUi(() => console.Text.Contains("Put some FITS files in " + missing) && !console.Text.Contains("Exception")), OnUi(() => console.Text));
         }
     }
 }

@@ -213,7 +213,9 @@ namespace Sidralune.AppTests
 
         [System.Runtime.InteropServices.DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
 
-        private static bool Cloaked(Form f) { int v; return DwmGetWindowAttribute(f.Handle, 14, out v, 4) == 0 && v != 0; } // DWMWA_CLOAKED
+        // DWMWA_CLOAKED, only the app's own cloak (DWM_CLOAKED_APP): Windows also cloaks windows itself (DWM_CLOAKED_SHELL),
+        // for example on another virtual desktop or while the session is locked, which made the test fail now and then
+        private static bool Cloaked(Form f) { int v; return DwmGetWindowAttribute(f.Handle, 14, out v, 4) == 0 && (v & 1) != 0; }
 
         [TestMethod]
         public void TestWindowsOpenWithoutFlash()
