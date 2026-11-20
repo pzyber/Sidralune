@@ -219,6 +219,38 @@ msgstr "Gyűrűs napfogyatkozás"
 msgid "{0} (visible somewhere on Earth)"
 msgstr "{0} (valahol a Földön látható)"
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr "{0} (nem látható innen: {1})"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr "a Hold a fogyatkozás alatt lenyugszik"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr "a Hold a fogyatkozás alatt felkel"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr "a Nap {0:0}%-a fedve"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr "napnyugtakor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr "napkeltekor"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr "máshol teljes"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr "máshol gyűrűs"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Nap"

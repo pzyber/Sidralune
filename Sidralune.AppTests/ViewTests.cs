@@ -121,6 +121,10 @@ namespace Sidralune.AppTests
                 var parsed = DateTime.ParseExact(when.Substring(when.IndexOf(' ') + 1) + " " + local.Year, "dd MMM HH:mm yyyy", Core.Util.Lang.DateNames);
                 if (parsed < local.AddDays(-1)) parsed = parsed.AddYears(1);
                 CheckTrue("Coming up starts after the new time", parsed >= local.AddMinutes(-1) && parsed < local.AddDays(400), when + " after " + local);
+                // the eclipses within a year are as seen from the site (2027: annular in February, total in August), not just "somewhere on Earth"
+                var eclipses = OnUi(() => grid.Rows.Cast<DataGridViewRow>().Select(r => (string)r.Cells[1].Value).Where(t => t.Contains("solar eclipse")).ToList());
+                CheckTrue("Coming up shows solar eclipses from the site", eclipses.Count > 0 && eclipses.All(t => !t.Contains("somewhere on Earth")
+                    && (t.Contains("% of the Sun covered") || t.Contains("(not visible from ") || t.StartsWith("Total solar eclipse"))), string.Join(" / ", eclipses));
             }
             finally { OnUi(() => { form.Close(); AppState.GoLive(); }); }
         }

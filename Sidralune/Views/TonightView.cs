@@ -240,8 +240,9 @@ namespace Sidralune.Views
                     var ev = new List<AstroEvent>();
                     ev.AddRange(AstroEvents.MoonPhases(j1, j2));
                     foreach (var b in new[] { Body.Mercury, Body.Venus, Body.Mars, Body.Jupiter, Body.Saturn }) ev.AddRange(AstroEvents.PlanetEvents(b, j1, j2));
-                    ev.AddRange(AstroEvents.LunarEclipses(j1, j1 + 400).Take(2));
-                    ev.AddRange(AstroEvents.SolarEclipses(j1, j1 + 400).Take(2));
+                    // eclipses as seen from the site: a solar eclipse at its local maximum and how much of the Sun is covered there
+                    ev.AddRange(AstroEvents.LunarEclipses(site, j1, j1 + 400).Take(2));
+                    ev.AddRange(AstroEvents.SolarEclipses(site, j1, j1 + 400).Take(2));
                     ev.AddRange(AstroEvents.MoonDistanceExtremes(j1, j2));
                     int year = now.ToDateTimeUtc().Year;
                     foreach (var ms in MeteorShowers.Major)

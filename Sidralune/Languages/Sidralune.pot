@@ -219,6 +219,38 @@ msgstr ""
 msgid "{0} (visible somewhere on Earth)"
 msgstr ""
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr ""
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr ""
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr ""

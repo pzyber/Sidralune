@@ -364,58 +364,109 @@ namespace Sidralune.Core.Ephemeris
             return list;
         }
 
+        /// <summary>The Moon against the Earth's shadow at time t (TT): its distance from the shadow axis, the umbra and penumbra radii (Danjon rule) and its own radius, degrees.</summary>
+        private static void Shadow(double t, out double s, out double umbra, out double penumbra, out double sM)
+        {
+            Vec3 e, v;
+            EphemerisManager.EarthHeliocentric(t, out e, out v);
+            var moon = LunarTheory.GeocentricEquatorialJ2000(t);
+            s = Vec3.AngleBetween(e.Normalized(), moon) * AstroMath.Rad2Deg;
+            double ml, mb, md;
+            LunarTheory.EclipticOfDate(t, out ml, out mb, out md);
+            double piM = Math.Asin(AstroMath.EarthRadius_km / md) * AstroMath.Rad2Deg;
+            double piS = 8.794 / 3600.0 / e.Length;
+            double sS = 959.63 / 3600.0 / e.Length;
+            sM = 0.2725076 * piM;
+            umbra = 1.02 * (piM + piS - sS);
+            penumbra = 1.02 * (piM + piS + sS);
+        }
+
+        private static double ShadowDistance(double t) { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return s; }
+
+        /// <summary>A lunar eclipse found by <see cref="FindLunarEclipses"/>: greatest eclipse (TT), kind (0 penumbral, 1 partial, 2 total) and magnitudes.</summary>
+        private class LunarFound { public double Jd; public int Kind; public double Umag, Pmag; }
+
+        private static List<LunarFound> FindLunarEclipses(double jd1, double jd2)
+        {
+            var list = new List<LunarFound>();
+            foreach (var fm in MoonPhases(jd1, jd2))
+            {
+                if (fm.Kind != EventKind.FullMoon) continue;
+                double jd = fm.Time.JdTT;
+                double tmin = Roots.GoldenMin(ShadowDistance, jd - 0.3, jd + 0.3, 1e-6);
+                double s, umbra, penumbra, sM;
+                Shadow(tmin, out s, out umbra, out penumbra, out sM);
+                if (s < penumbra + sM)
+                    list.Add(new LunarFound { Jd = tmin, Kind = s + sM < umbra ? 2 : s - sM < umbra ? 1 : 0, Umag = (umbra + sM - s) / (2 * sM), Pmag = (penumbra + sM - s) / (2 * sM) });
+            }
+            return list;
+        }
+
+        private static string LunarTypeName(int kind) => kind == 2 ? Lang.T("Total lunar eclipse") : kind == 1 ? Lang.T("Partial lunar eclipse") : Lang.T("Penumbral lunar eclipse");
+
+        private static AstroEvent LunarEvent(LunarFound f, string description) =>
+            new AstroEvent { Time = AstroTime.FromTT(f.Jd), Kind = EventKind.LunarEclipse, Value = f.Umag > 0 ? f.Umag : f.Pmag, Description = description };
+
         /// <summary>
         /// Lunar eclipses: at each full moon test the Moon's distance from the Earth's shadow axis (umbra/penumbra radii via Danjon rule).
         /// </summary>
         public static List<AstroEvent> LunarEclipses(double jd1, double jd2)
         {
             var list = new List<AstroEvent>();
-            foreach (var fm in MoonPhases(jd1, jd2))
+            foreach (var f in FindLunarEclipses(jd1, jd2))
+                list.Add(LunarEvent(f, Lang.T("{0} (umbral mag {1:0.000}, penumbral {2:0.000})", LunarTypeName(f.Kind), f.Umag, f.Pmag)));
+            return list;
+        }
+
+        /// <summary>
+        /// Lunar eclipses as seen from a site. Greatest eclipse is the same moment everywhere, so the time stays; the text says
+        /// when the Moon is below the horizon for the whole eclipse, or rises or sets during it.
+        /// </summary>
+        public static List<AstroEvent> LunarEclipses(Observer site, double jd1, double jd2)
+        {
+            var list = new List<AstroEvent>();
+            foreach (var f in FindLunarEclipses(jd1, jd2))
             {
-                if (fm.Kind != EventKind.FullMoon) continue;
-                double jd = fm.Time.JdTT;
-                Func<double, double> sep = t =>
-                {
-                    Vec3 e, v;
-                    EphemerisManager.EarthHeliocentric(t, out e, out v);
-                    var moon = LunarTheory.GeocentricEquatorialJ2000(t);
-                    var anti = e.Normalized();
-                    return Vec3.AngleBetween(anti, moon) * AstroMath.Rad2Deg;
-                };
-                double tmin = Roots.GoldenMin(sep, jd - 0.3, jd + 0.3, 1e-6);
-                double s = sep(tmin);
-                Vec3 ee, ev;
-                EphemerisManager.EarthHeliocentric(tmin, out ee, out ev);
-                double ml, mb, md;
-                LunarTheory.EclipticOfDate(tmin, out ml, out mb, out md);
-                double piM = Math.Asin(AstroMath.EarthRadius_km / md) * AstroMath.Rad2Deg;
-                double piS = 8.794 / 3600.0 / ee.Length;
-                double sS = 959.63 / 3600.0 / ee.Length;
-                double sM = 0.2725076 * piM;
-                double umbra = 1.02 * (piM + piS - sS);
-                double penumbra = 1.02 * (piM + piS + sS);
-                if (s < penumbra + sM)
-                {
-                    string type;
-                    double umag = (umbra + sM - s) / (2 * sM);
-                    double pmag = (penumbra + sM - s) / (2 * sM);
-                    if (s + sM < umbra) type = Lang.T("Total lunar eclipse");
-                    else if (s - sM < umbra) type = Lang.T("Partial lunar eclipse");
-                    else type = Lang.T("Penumbral lunar eclipse");
-                    list.Add(new AstroEvent
-                    {
-                        Time = AstroTime.FromTT(tmin), Kind = EventKind.LunarEclipse, Value = umag > 0 ? umag : pmag,
-                        Description = Lang.T("{0} (umbral mag {1:0.000}, penumbral {2:0.000})", type, umag, pmag)
-                    });
-                }
+                var l = LunarEclipseAt(site, AstroTime.FromTT(f.Jd));
+                string type = LunarTypeName(f.Kind);
+                string text = !l.Visible ? Lang.T("{0} (not visible from {1})", type, site.Name)
+                    : Lang.T("{0} (umbral mag {1:0.000}, penumbral {2:0.000})", type, f.Umag, f.Pmag)
+                      + (l.Horizon > 0 ? ", " + Lang.T("the Moon sets during the eclipse") : l.Horizon < 0 ? ", " + Lang.T("the Moon rises during the eclipse") : "");
+                list.Add(LunarEvent(f, text));
             }
             return list;
         }
 
-        /// <summary>Solar eclipses (geocentric test at new moon: Sun-Moon separation vs. sum of radii + parallax).</summary>
-        public static List<AstroEvent> SolarEclipses(double jd1, double jd2)
+        /// <summary>
+        /// A lunar eclipse from a site, from its greatest eclipse: the umbral phase (the penumbral one for a penumbral eclipse)
+        /// and whether the Moon is above the horizon during it.
+        /// </summary>
+        public static LocalEclipse LunarEclipseAt(Observer site, AstroTime greatest)
         {
-            var list = new List<AstroEvent>();
+            double tg = greatest.JdTT, s0, umbra0, penumbra0, sM0;
+            Shadow(tg, out s0, out umbra0, out penumbra0, out sM0);
+            bool umbral = s0 - sM0 < umbra0;
+            // inside the phase while the Moon's disc touches the umbra (penumbra)
+            Func<double, double> inside = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return (umbral ? u : p) + m - s; };
+            var res = new LocalEclipse { Time = greatest, Covers = true };
+            double c1 = Contact(inside, tg, -1), c4 = Contact(inside, tg, +1);
+            res.Start = AstroTime.FromTT(c1); res.End = AstroTime.FromTT(c4);
+            Func<double, bool> up = t =>
+            {
+                var ctx = new SkyContext(site, AstroTime.FromTT(t)) { ApplyRefraction = false };
+                var p = ctx.BodyPlace(Body.Moon);
+                return p.Horizontal.AltDeg > StandardAltitude(Body.Moon, p.Distance);
+            };
+            Visibility(up, c1, tg, c4, res);
+            return res;
+        }
+
+        /// <summary>A solar eclipse found by <see cref="FindSolarEclipses"/>: greatest eclipse (TT), kind (0 partial, 1 total, 2 annular) and the geocentric Sun-Moon separation.</summary>
+        private class SolarFound { public double Jd; public int Kind; public double Sep; }
+
+        private static List<SolarFound> FindSolarEclipses(double jd1, double jd2)
+        {
+            var list = new List<SolarFound>();
             foreach (var nm in MoonPhases(jd1, jd2))
             {
                 if (nm.Kind != EventKind.NewMoon) continue;
@@ -437,13 +488,152 @@ namespace Sidralune.Core.Ephemeris
                 double sS = 959.63 / 3600.0 / ee.Length;
                 double sM = 0.2725076 * piM;
                 if (s < piM + sS + sM)
-                {
-                    string type = Lang.T("Partial solar eclipse");
-                    if (s < piM - Math.Abs(sM - sS)) type = sM > sS ? Lang.T("Total solar eclipse") : Lang.T("Annular solar eclipse");
-                    list.Add(new AstroEvent { Time = AstroTime.FromTT(tmin), Kind = EventKind.SolarEclipse, Description = Lang.T("{0} (visible somewhere on Earth)", type), Value = s });
-                }
+                    list.Add(new SolarFound { Jd = tmin, Sep = s, Kind = s < piM - Math.Abs(sM - sS) ? (sM > sS ? 1 : 2) : 0 });
             }
             return list;
         }
+
+        private static string SolarTypeName(int kind) => kind == 1 ? Lang.T("Total solar eclipse") : kind == 2 ? Lang.T("Annular solar eclipse") : Lang.T("Partial solar eclipse");
+
+        /// <summary>Solar eclipses (geocentric test at new moon: Sun-Moon separation vs. sum of radii + parallax), at greatest eclipse.</summary>
+        public static List<AstroEvent> SolarEclipses(double jd1, double jd2)
+        {
+            var list = new List<AstroEvent>();
+            foreach (var f in FindSolarEclipses(jd1, jd2))
+                list.Add(new AstroEvent { Time = AstroTime.FromTT(f.Jd), Kind = EventKind.SolarEclipse, Description = Lang.T("{0} (visible somewhere on Earth)", SolarTypeName(f.Kind)), Value = f.Sep });
+            return list;
+        }
+
+        /// <summary>
+        /// Solar eclipses as seen from a site: at the local maximum (or the sunrise or sunset during the eclipse when the
+        /// maximum is below the horizon), with the local type and how much of the Sun is covered, and what it is elsewhere.
+        /// An eclipse not seen from the site keeps the time of greatest eclipse and says so.
+        /// </summary>
+        public static List<AstroEvent> SolarEclipses(Observer site, double jd1, double jd2)
+        {
+            var list = new List<AstroEvent>();
+            foreach (var f in FindSolarEclipses(jd1, jd2))
+            {
+                var l = SolarEclipseAt(site, AstroTime.FromTT(f.Jd));
+                string text;
+                if (!l.Visible) text = Lang.T("{0} (not visible from {1})", SolarTypeName(f.Kind), site.Name);
+                else
+                {
+                    text = SolarTypeName(l.Kind);
+                    if (l.Kind != 1) text += ", " + Lang.T("{0:0}% of the Sun covered", l.Obscuration * 100);
+                    if (l.AtHorizon) text += " " + (l.Horizon > 0 ? Lang.T("at sunset") : Lang.T("at sunrise"));
+                    if (f.Kind != 0 && f.Kind != l.Kind) text += " (" + (f.Kind == 1 ? Lang.T("total elsewhere") : Lang.T("annular elsewhere")) + ")";
+                }
+                list.Add(new AstroEvent { Time = l.Visible ? l.Time : AstroTime.FromTT(f.Jd), Kind = EventKind.SolarEclipse, Description = text, Value = l.Visible ? l.Magnitude : 0 });
+            }
+            return list;
+        }
+
+        /// <summary>The Sun and the Moon from a site at time t (TT): their separation and radii in degrees, and whether the Sun is above the horizon.</summary>
+        private static void SunAndMoon(Observer site, double t, out double sep, out double sS, out double sM, out bool sunUp)
+        {
+            var ctx = new SkyContext(site, AstroTime.FromTT(t)) { ApplyRefraction = false };
+            double lt;
+            var sun = ctx.TopocentricWithLightTime(jd => EphemerisManager.Position(Body.Sun, jd), out lt);
+            var moon = ctx.TopocentricWithLightTime(jd => EphemerisManager.Position(Body.Moon, jd), out lt);
+            sep = Vec3.AngleBetween(sun, moon) * AstroMath.Rad2Deg;
+            sS = 959.63 / 3600.0 / sun.Length;
+            sM = Math.Asin(0.2725076 * AstroMath.EarthRadius_km / (moon.Length * AstroMath.AU_km)) * AstroMath.Rad2Deg;
+            sunUp = ctx.TodToHorizontal(ctx.IcrsToApparentTod(sun.Normalized())).AltDeg > SunStandardAltitude;
+        }
+
+        /// <summary>
+        /// A solar eclipse from a site, from its greatest eclipse: the partial phase there (first and last contact), the local
+        /// maximum with its magnitude, the share of the Sun's disc covered and the local type, and whether the Sun is up.
+        /// </summary>
+        public static LocalEclipse SolarEclipseAt(Observer site, AstroTime greatest)
+        {
+            double tg = greatest.JdTT, step = 2 / 1440.0;
+            Func<double, double> sepAt = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return s; };
+            Func<double, double> overlap = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return a + b - s; };
+            // the local maximum is within a few hours of greatest eclipse: the closest approach in 2-minute steps, then refined
+            double tBest = tg, best = double.MaxValue;
+            for (double t = tg - 0.17; t <= tg + 0.17; t += step)
+            {
+                double s = sepAt(t);
+                if (s < best) { best = s; tBest = t; }
+            }
+            double tmax = Roots.GoldenMin(sepAt, tBest - step, tBest + step, 1e-7);
+            var res = new LocalEclipse { Time = AstroTime.FromTT(tmax) };
+            if (overlap(tmax) <= 0) return res; // the Moon passes by the Sun without covering it from here
+            res.Covers = true;
+            double c1 = Contact(overlap, tmax, -1), c4 = Contact(overlap, tmax, +1);
+            res.Start = AstroTime.FromTT(c1); res.End = AstroTime.FromTT(c4);
+            Func<double, bool> up = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return u; };
+            Visibility(up, c1, tmax, c4, res);
+            if (res.Visible && !up(tmax))
+            {
+                // the maximum is below the horizon: the most of it seen is at the sunrise after it or the sunset before it
+                double edge = up(c1) ? c1 : c4;
+                double lo = Math.Min(edge, tmax), hi = Math.Max(edge, tmax);
+                for (int i = 0; i < 40; i++) { double mid = (lo + hi) / 2; if (up(mid) == up(lo)) lo = mid; else hi = mid; }
+                res.Time = AstroTime.FromTT(up(lo) ? lo : hi);
+                res.AtHorizon = true;
+            }
+            double sep, sS, sM; bool sunUp;
+            SunAndMoon(site, res.Time.JdTT, out sep, out sS, out sM, out sunUp);
+            res.Magnitude = (sS + sM - sep) / (2 * sS);
+            res.Obscuration = DiscOverlap(sS, sM, sep);
+            res.Kind = sep <= sM - sS ? 1 : sep <= sS - sM ? 2 : 0;
+            return res;
+        }
+
+        /// <summary>The share of a disc of radius r1 covered by a disc of radius r2 whose centre is d away.</summary>
+        public static double DiscOverlap(double r1, double r2, double d)
+        {
+            if (d >= r1 + r2) return 0;
+            if (d <= Math.Abs(r1 - r2)) return r2 >= r1 ? 1 : (r2 * r2) / (r1 * r1);
+            double a1 = r1 * r1 * Math.Acos((d * d + r1 * r1 - r2 * r2) / (2 * d * r1));
+            double a2 = r2 * r2 * Math.Acos((d * d + r2 * r2 - r1 * r1) / (2 * d * r2));
+            double k = 0.5 * Math.Sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2));
+            return (a1 + a2 - k) / (Math.PI * r1 * r1);
+        }
+
+        /// <summary>The moment f falls to zero going from t0 (where f &gt; 0) in direction dir (−1 earlier, +1 later), within 6 hours.</summary>
+        private static double Contact(Func<double, double> f, double t0, int dir)
+        {
+            double step = 5 / 1440.0, a = t0, b = t0;
+            for (int i = 0; i < 72; i++) { b = a + dir * step; if (f(b) <= 0) break; a = b; }
+            for (int i = 0; i < 40; i++) { double mid = (a + b) / 2; if (f(mid) > 0) a = mid; else b = mid; }
+            return (a + b) / 2;
+        }
+
+        /// <summary>Whether the body is up at some minute between c1 and c4, and whether it rises (−1) or sets (+1) during that time.</summary>
+        private static void Visibility(Func<double, bool> up, double c1, double tmax, double c4, LocalEclipse res)
+        {
+            bool atStart = up(c1), atEnd = up(c4), any = atStart || atEnd || up(tmax);
+            for (double t = c1; !any && t < c4; t += 1 / 1440.0) any = up(t);
+            res.Visible = any;
+            res.Horizon = !any || (atStart && atEnd) ? 0 : atStart ? 1 : -1;
+        }
+    }
+
+    /// <summary>A solar or lunar eclipse as seen from one site.</summary>
+    public class LocalEclipse
+    {
+        /// <summary>Solar: the Moon covers part of the Sun from the site at some moment, whether the Sun is up or not. Lunar: always.</summary>
+        public bool Covers;
+        /// <summary>Part of the eclipse happens with the Sun (lunar: the Moon) above the site's horizon.</summary>
+        public bool Visible;
+        /// <summary>
+        /// Solar: the local maximum, or when that is below the horizon the sunrise or sunset during the eclipse (see AtHorizon).
+        /// Lunar: greatest eclipse, the same moment everywhere.
+        /// </summary>
+        public AstroTime Time;
+        /// <summary>The phase that counts: solar the partial phase at the site, lunar the umbral phase (the penumbral one for a penumbral eclipse).</summary>
+        public AstroTime? Start, End;
+        /// <summary>−1 the Sun (Moon) rises during the eclipse, +1 it sets during it, 0 it is up all through (or the eclipse is not visible).</summary>
+        public int Horizon;
+        /// <summary>Solar: Time is the sunrise or sunset, because the maximum is below the horizon.</summary>
+        public bool AtHorizon;
+        /// <summary>Solar at Time: the fraction of the Sun's diameter covered, and of its disc.</summary>
+        public double Magnitude, Obscuration;
+        /// <summary>Solar at Time: 0 partial, 1 total, 2 annular.</summary>
+        public int Kind;
     }
 }

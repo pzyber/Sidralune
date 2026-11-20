@@ -223,6 +223,38 @@ msgstr "Prstenasta pomrčina Sunca"
 msgid "{0} (visible somewhere on Earth)"
 msgstr "{0} (vidljiva negdje na Zemlji)"
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr "{0} (ne vidi se s lokacije {1})"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr "Mjesec zalazi tijekom pomrčine"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr "Mjesec izlazi tijekom pomrčine"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr "{0:0} % Sunca prekriveno"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr "pri zalasku Sunca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr "pri izlasku Sunca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr "drugdje potpuna"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr "drugdje prstenasta"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sunce"

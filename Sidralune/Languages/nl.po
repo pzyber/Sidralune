@@ -219,6 +219,38 @@ msgstr "Ringvormige zonsverduistering"
 msgid "{0} (visible somewhere on Earth)"
 msgstr "{0} (ergens op aarde zichtbaar)"
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr "{0} (niet zichtbaar vanuit {1})"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr "de maan gaat onder tijdens de verduistering"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr "de maan komt op tijdens de verduistering"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr "{0:0}% van de zon bedekt"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr "bij zonsondergang"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr "bij zonsopkomst"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr "elders totaal"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr "elders ringvormig"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Zon"

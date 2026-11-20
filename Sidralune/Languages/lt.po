@@ -223,6 +223,38 @@ msgstr "Žiedinis Saulės užtemimas"
 msgid "{0} (visible somewhere on Earth)"
 msgstr "{0} (matomas kur nors Žemėje)"
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr "{0} (nematomas vietovėje {1})"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr "Mėnulis nusileidžia užtemimo metu"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr "Mėnulis pateka užtemimo metu"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr "uždengta {0:0} % Saulės"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr "saulei leidžiantis"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr "saulei tekant"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr "kitur visiškas"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr "kitur žiedinis"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Saulė"

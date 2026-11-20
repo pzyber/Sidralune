@@ -74,7 +74,7 @@ Every calculation in Sidralune is based on published methods. This page lists th
 | Twilight | Sun at −6°, −12° and −18° |
 | Moon phases, perigee and apogee | Root finding on elongation and distance |
 | Conjunctions, oppositions, elongations | Root finding on the planets' ecliptic longitude difference from the Sun |
-| Eclipses | Lunar: the Moon's distance from the Earth's shadow axis at each full Moon, with umbra and penumbra radii from Danjon's rule. Solar: geocentric Sun-Moon separation against the sum of their radii plus parallax at each new Moon |
+| Eclipses | Lunar: the Moon's distance from the Earth's shadow axis at each full Moon, with umbra and penumbra radii from Danjon's rule. Solar: geocentric Sun-Moon separation against the sum of their radii plus parallax at each new Moon. From a site: the topocentric Sun and Moon (Moon radius k = 0.2725076 Earth radii, mean limb) give the contacts, the local maximum, the magnitude and the share of the Sun's disc covered (the overlap of two discs), and whether the Sun is up; a lunar eclipse's umbral phase is checked against moonrise and moonset. For 12 August 2026 the contacts and maximum agree with published local circumstances within about a minute, the magnitude within 0.01 |
 | Meteor shower peaks | Solar longitude of the peak (IMO calendar values, on the J2000.0 ecliptic and equinox as the IMO gives them) |
 
 ## Comets and asteroids

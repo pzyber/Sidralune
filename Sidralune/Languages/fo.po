@@ -219,6 +219,38 @@ msgstr "Ringsólarmyrking"
 msgid "{0} (visible somewhere on Earth)"
 msgstr "{0} (sæst onkustaðni á jørðini)"
 
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0} (not visible from {1})"
+msgstr "{0} (sæst ikki frá {1})"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon sets during the eclipse"
+msgstr "mánin fer niður undir myrkingini"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "the Moon rises during the eclipse"
+msgstr "mánin kemur upp undir myrkingini"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "{0:0}% of the Sun covered"
+msgstr "{0:0} % av sólini fjalt"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunset"
+msgstr "við sólsetur"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "at sunrise"
+msgstr "við sólarris"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "total elsewhere"
+msgstr "full aðrastaðni"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "annular elsewhere"
+msgstr "ringlaga aðrastaðni"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sólin"

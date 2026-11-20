@@ -68,8 +68,13 @@ The next 30 events over the coming weeks:
 - Moon phases (new, first quarter, full, last quarter),
 - conjunctions of the planets with the Sun (inferior and superior conjunctions for Mercury and Venus), oppositions of the outer planets and greatest elongations of Mercury and Venus,
 - lunar perigee and apogee,
-- the next lunar and solar eclipses within about a year,
+- the next lunar and solar eclipses within about a year, as seen from your site (see below),
 - peaks of the major meteor showers within 90 days, with their ZHR.
+
+Moon phases, planet events, perigee and apogee and meteor shower peaks happen at the same moment everywhere, so they are listed as they are in almanacs. Eclipses depend on where you are, so they are worked out for the active site:
+
+- **Solar eclipses** are listed at the maximum seen from your site, with the type there and how much of the Sun's disc the Moon covers, for example "Partial solar eclipse, 82% of the Sun covered (total elsewhere)". If the Sun rises or sets during the eclipse and the maximum is below the horizon, the time is the sunrise or sunset and the text says "at sunrise" or "at sunset". An eclipse that can't be seen from your site keeps the time of greatest eclipse and says "(not visible from …)". The times are those of the Moon's mean limb, so they can differ by a few seconds from predictions that use the Moon's real profile.
+- **Lunar eclipses** happen at the same moment everywhere, so they are listed at greatest eclipse. The text says whether the Moon sets or rises during the eclipse at your site, or "(not visible from …)" when it is below the horizon the whole time.
 
 The list starts at the time shown in the header, so it moves with the time you set like the other cards. While the time runs on its own, it is refreshed when you come back to Tonight after more than five minutes away. Times are local. For more detail on eclipses, occultations and meteors, see [Solar system](Solar-system).
 
