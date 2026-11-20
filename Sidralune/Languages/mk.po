@@ -251,6 +251,94 @@ msgstr "целосно на други места"
 msgid "annular elsewhere"
 msgstr "прстенесто на други места"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Затемнувања"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Затемнување"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Од вашето место"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Покриеност на Сонцето"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Височина"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Години"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Сончеви и месечеви затемнувања од активното место. Сончевото затемнување е дадено во неговиот максимум таму, месечевото во најголемата фаза, ист момент насекаде. Изберете едно за да ги видите неговите фази со височината на Сонцето или Месечината; Прикажи на небото го поставува времето на него."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Најголема фаза на Земјата"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Почеток на делумното затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Максимум на затемнувањето"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Крај на делумното затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Почеток на целосното затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Почеток на прстенестото затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Крај на целосното затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Крај на прстенестото затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Изгрејсонце"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Зајдисонце"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Најголема фаза"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Почеток на полусенковото затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Крај на полусенковото затемнување"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Изгрев на Месечината"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Залез на Месечината"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Сонцето"

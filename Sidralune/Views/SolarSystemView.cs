@@ -43,6 +43,7 @@ namespace Sidralune.Views
             _tabs.AddPage(T("Ephemeris"), BuildEphemeris());
             _tabs.AddPage(T("Minor bodies"), BuildMinor());
             _tabs.AddPage(T("Planets & moons"), BuildPlanets());
+            _tabs.AddPage(T("Eclipses"), BuildEclipses());
             _tabs.AddPage(T("Occultations"), BuildOccultations());
             _tabs.AddPage(T("Meteors"), BuildMeteors());
             _tabs.AddPage(T("Satellites"), BuildSatellites());
@@ -566,6 +567,102 @@ namespace Sidralune.Views
                     TextRenderer.DrawText(g, Moons[i].Name.Substring(0, 2), Theme.SmallFont, at[k], cols[i]);
                 }
             }
+        }
+
+        // ================================================================== eclipses
+
+        private readonly JobSlot _eclJob = new JobSlot();
+        private DataGridView _eclGrid, _eclPhases;
+        private bool _eclComputed, _eclFilling;
+
+        private Control BuildEclipses()
+        {
+            var panel = new Panel { Dock = DockStyle.Fill };
+            var years = Ui.Num(10, 1, 50);
+            _eclGrid = Ui.Grid();
+            foreach (var c in new[] { T("When"), T("Eclipse"), T("At your site"), T("Magnitude"), T("Sun covered") }) _eclGrid.Columns.Add(c, c);
+            _eclPhases = Ui.Grid();
+            foreach (var c in new[] { T("Phase"), T("When"), T("Altitude") }) _eclPhases.Columns.Add(c, c);
+            var go = new FlatButton(T("Compute"), Icons.Play, (s, e) => ComputeEclipses((int)years.Value)) { Kind = ButtonKind.Primary };
+            go.AutoSizeToText();
+            _eclJob.Guard(go);
+            var csv = new FlatButton(T("CSV…"), Icons.Save, (s, e) => GridToCsv(_eclGrid, "eclipses.csv")) { Kind = ButtonKind.Subtle };
+            csv.AutoSizeToText();
+            var show = new FlatButton(T("Show in sky"), Icons.Sky, (s, e) => ShowEclipse()) { Kind = ButtonKind.Subtle };
+            show.AutoSizeToText();
+            // after the current row has moved (SelectionChanged comes before it, with the old row still current)
+            _eclGrid.CurrentCellChanged += (s, e) => ShowEclipsePhases();
+            _eclGrid.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) ShowEclipse(); };
+            var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterWidth = 6 };
+            split.Panel1.Controls.Add(_eclGrid);
+            split.Panel2.Controls.Add(_eclPhases);
+            bool placed = false;
+            split.SizeChanged += (s, e) => { if (!placed && split.Height > 300) { placed = true; split.SplitterDistance = split.Height * 60 / 100; } };
+            panel.Controls.Add(split);
+            panel.Controls.Add(new Label { Dock = DockStyle.Top, Height = 34, Tag = "dim", Text = T("Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it.") });
+            panel.Controls.Add(Ui.Toolbar(new Label { Text = T("Years"), AutoSize = true, Margin = new Padding(0, 6, 2, 0) }, years, go, _eclJob.StopButton(), csv, show));
+            // worked out when the tab is first shown, and again after the site changes
+            panel.VisibleChanged += (s, e) => { if (panel.Visible && !_eclComputed) ComputeEclipses((int)years.Value); };
+            EventHandler siteChanged = (s, e) => { _eclComputed = false; if (panel.Visible) ComputeEclipses((int)years.Value); };
+            AppState.SiteChanged += siteChanged;
+            // a closed view stops its search and no longer follows the site
+            panel.Disposed += (s, e) => { AppState.SiteChanged -= siteChanged; _eclJob.Cancel(); };
+            return panel;
+        }
+
+        private void ComputeEclipses(int years)
+        {
+            _eclComputed = true;
+            var site = AppState.Site;
+            double j1 = AppState.Now.JdTT;
+            List<EclipseInfo> list = null;
+            _eclJob.Replace(T("Eclipses"), t => list = AstroEvents.Eclipses(site, j1, j1 + years * 365.25, t.Cts.Token), () =>
+            {
+                if (_eclGrid.IsDisposed) return;
+                _eclFilling = true; // the phases once the list is in, not for every row added
+                _eclGrid.Rows.Clear();
+                foreach (var x in list)
+                {
+                    var l = x.Local;
+                    string here, mag = "", covered = "";
+                    if (!l.Visible) here = T("Not visible");
+                    else if (x.Solar)
+                    {
+                        here = AstroEvents.EclipseTypeName(true, l.Kind) + (l.AtHorizon ? " " + (l.Horizon > 0 ? T("at sunset") : T("at sunrise")) : "");
+                        mag = F(l.Magnitude, "0.000");
+                        covered = F(l.Obscuration * 100, "0.0") + "%";
+                    }
+                    else here = T("Visible") + (l.Horizon > 0 ? ", " + T("the Moon sets during the eclipse") : l.Horizon < 0 ? ", " + T("the Moon rises during the eclipse") : "");
+                    if (!x.Solar) mag = F(x.Magnitude, "0.000");
+                    int i = _eclGrid.Rows.Add(Local(x.Solar && l.Visible ? l.Time : x.Greatest), x.TypeName, here, mag, covered);
+                    _eclGrid.Rows[i].Tag = x;
+                }
+                _eclFilling = false;
+                ShowEclipsePhases();
+            }, ex => { if (!_eclGrid.IsDisposed) MainForm.Instance.Toast(T("Search failed: {0}", ex.Message), Icons.Warning); });
+        }
+
+        private EclipseInfo SelectedEclipse => _eclGrid.CurrentRow?.Tag as EclipseInfo;
+
+        private void ShowEclipsePhases()
+        {
+            if (_eclFilling) return;
+            _eclPhases.Rows.Clear();
+            var x = SelectedEclipse;
+            if (x == null) return;
+            var site = AppState.Site;
+            var phases = x.Solar ? AstroEvents.SolarEclipsePhases(site, x.Greatest) : AstroEvents.LunarEclipsePhases(site, x.Greatest);
+            foreach (var p in phases)
+                _eclPhases.Rows.Add(p.Name, site.ToLocal(p.Time.ToDateTimeUtc()).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture), F(p.Altitude, "0.0") + "°");
+        }
+
+        /// <summary>The sky chart at the eclipse (the local maximum of a solar eclipse seen from the site), on the Sun or the Moon.</summary>
+        private void ShowEclipse()
+        {
+            var x = SelectedEclipse;
+            if (x == null) return;
+            AppState.SetTime(x.Solar && x.Local.Visible ? x.Local.Time : x.Greatest);
+            MainForm.Instance.ShowObject(SkyView.PlanetObject(x.Solar ? Body.Sun : Body.Moon));
         }
 
         // ================================================================== occultations

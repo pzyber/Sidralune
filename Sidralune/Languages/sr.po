@@ -255,6 +255,94 @@ msgstr "drugde potpuno"
 msgid "annular elsewhere"
 msgstr "drugde prstenasto"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Pomračenja"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Pomračenje"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Sa vaše lokacije"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Pokrivenost Sunca"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Visina"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Godine"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Pomračenja Sunca i Meseca sa aktivne lokacije. Pomračenje Sunca navedeno je u trenutku svog maksimuma tamo, pomračenje Meseca u trenutku najveće faze, istom trenutku svuda. Izaberite jedno da vidite njegove faze sa visinom Sunca ili Meseca; Prikaži na nebu postavlja vreme na njega."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Najveća faza na Zemlji"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Početak delimičnog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Maksimum pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Kraj delimičnog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Početak potpunog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Početak prstenastog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Kraj potpunog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Kraj prstenastog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Izlazak Sunca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Zalazak Sunca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Najveća faza"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Početak polusenčnog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Kraj polusenčnog pomračenja"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Izlazak Meseca"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Zalazak Meseca"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sunce"

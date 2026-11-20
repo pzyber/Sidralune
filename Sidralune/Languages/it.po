@@ -251,6 +251,94 @@ msgstr "totale altrove"
 msgid "annular elsewhere"
 msgstr "anulare altrove"
 
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipses"
+msgstr "Eclissi"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Eclipse"
+msgstr "Eclissi"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "At your site"
+msgstr "Dal tuo luogo"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Sun covered"
+msgstr "Sole coperto"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Altitude"
+msgstr "Altezza"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Years"
+msgstr "Anni"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Solar and lunar eclipses from the active site. A solar eclipse is timed at its maximum there, a lunar eclipse at greatest eclipse, the same moment everywhere. Select one for its phases with the Sun's or Moon's altitude; Show in sky sets the time to it."
+msgstr "Eclissi di Sole e di Luna dal luogo attivo. Un’eclissi di Sole è data al suo massimo lì, un’eclissi di Luna al massimo dell’eclissi, lo stesso istante ovunque. Selezionane una per vederne le fasi con l’altezza del Sole o della Luna; Mostra nel cielo imposta l’ora su di essa."
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse on Earth"
+msgstr "Massimo dell’eclissi sulla Terra"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse begins"
+msgstr "Inizio dell’eclissi parziale"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Maximum eclipse"
+msgstr "Massimo dell’eclissi"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Partial eclipse ends"
+msgstr "Fine dell’eclissi parziale"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse begins"
+msgstr "Inizio dell’eclissi totale"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse begins"
+msgstr "Inizio dell’eclissi anulare"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Total eclipse ends"
+msgstr "Fine dell’eclissi totale"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Annular eclipse ends"
+msgstr "Fine dell’eclissi anulare"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunrise"
+msgstr "Alba"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Sunset"
+msgstr "Tramonto"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Greatest eclipse"
+msgstr "Massimo dell’eclissi"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse begins"
+msgstr "Inizio dell’eclissi di penombra"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Penumbral eclipse ends"
+msgstr "Fine dell’eclissi di penombra"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonrise"
+msgstr "Sorgere della Luna"
+
+#: Sidralune.Core/Ephemeris/Events.cs
+msgid "Moonset"
+msgstr "Tramonto della Luna"
+
 #: Sidralune.Core/Ephemeris/Planets.cs Sidralune/Views/DatabaseView.cs
 msgid "Sun"
 msgstr "Sole"

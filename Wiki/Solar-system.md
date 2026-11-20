@@ -1,10 +1,11 @@
-The **Solar sys.** workspace gathers everything about the Sun's family: ephemerides for any planet, comet or asteroid; a browser of minor bodies with an orbit diagram; planetary physical data and Jupiter's moons; asteroid and lunar occultations; meteor showers; satellite passes; and measuring and reporting asteroid and comet positions to the Minor Planet Center.
+The **Solar sys.** workspace gathers everything about the Sun's family: ephemerides for any planet, comet or asteroid; a browser of minor bodies with an orbit diagram; planetary physical data and Jupiter's moons; solar and lunar eclipses; asteroid and lunar occultations; meteor showers; satellite passes; and measuring and reporting asteroid and comet positions to the Minor Planet Center.
 
 ## Contents
 
 - [Ephemeris](#ephemeris)
 - [Minor bodies](#minor-bodies)
 - [Planets & moons](#planets--moons)
+- [Eclipses](#eclipses)
 - [Occultations](#occultations)
 - [Meteors](#meteors)
 - [Satellites](#satellites)
@@ -76,6 +77,27 @@ A text report for the current time and site:
 The **Jupiter's Galilean moons** diagram at the top shows Io, Europa, Ganymede and Callisto east and west of Jupiter as in binoculars (north up, west right).
 
 **Galilean moon events (7 days)** lists the start and end of every transit (moon crossing Jupiter's disc) and occultation (moon hidden behind Jupiter) in the next week, in local time. Events marked ✓ happen with Jupiter higher than 10° in a sky darker than civil twilight.
+
+## Eclipses
+
+**Eclipses** lists every solar and lunar eclipse in the coming years (10 by default; change **Years** and click **Compute**), starting at the time shown in the header. It is worked out when you first open the tab and again when you change the observing site.
+
+| Column | Meaning |
+|---|---|
+| **When** | Local time. A solar eclipse seen from your site is timed at its maximum there (or the sunrise or sunset during it, when the maximum is below the horizon); one not seen from your site at greatest eclipse on Earth. A lunar eclipse is timed at greatest eclipse, the same moment everywhere |
+| **Eclipse** | The type of the eclipse as a whole: total, annular or partial solar eclipse; total, partial or penumbral lunar eclipse |
+| **At your site** | How it looks from your site: the local type of a solar eclipse, for example *Partial solar eclipse* when it is total elsewhere, with *at sunrise* or *at sunset* when the Sun rises or sets with the eclipse under way; for a lunar eclipse *Visible*, or that the Moon rises or sets during it; *Not visible* when the Sun (Moon) is below the horizon the whole time, or the Moon passes by the Sun without covering it from your site |
+| **Magnitude** | Solar: the fraction of the Sun's diameter covered at maximum. Lunar: the umbral magnitude (the penumbral magnitude for a penumbral eclipse) |
+| **Sun covered** | Solar: the share of the Sun's disc covered at maximum |
+
+Select an eclipse to see its phases below, in local time to the second, with the altitude of the Sun (solar) or the Moon (lunar) at each:
+
+- **Solar eclipses**: *Partial eclipse begins* (first contact), *Total* or *Annular eclipse begins* and *ends* when your site is in the path, *Maximum eclipse*, *Partial eclipse ends* (last contact), any *Sunrise* or *Sunset* in between, and *Greatest eclipse on Earth* for comparison with global predictions.
+- **Lunar eclipses**: *Penumbral eclipse begins*, *Partial eclipse begins*, *Total eclipse begins*, *Greatest eclipse*, and the same phases ending, with any *Moonrise* or *Moonset* in between. These moments are the same everywhere; only the altitudes depend on your site.
+
+**Show in sky** (or double-clicking an eclipse) sets the program's time to the eclipse and shows the Sun or the Moon in the [Sky chart](Sky-chart). Click **Live** in the header to go back to the current time. **CSV…** saves the list.
+
+Solar eclipse times use the Moon's mean limb, so they can differ by a few seconds from predictions that follow the Moon's real profile; for 12 August 2026 the contacts and maximum agree with published local circumstances within about a minute and the magnitude within 0.01. The [Coming up](Tonight#coming-up) card on the Tonight tab shows the next eclipses in the same way.
 
 ## Occultations
 

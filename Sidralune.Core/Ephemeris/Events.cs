@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sidralune.Core.Coordinates;
 using Sidralune.Core.Mathematics;
 using Sidralune.Core.Time;
@@ -58,8 +59,12 @@ namespace Sidralune.Core.Ephemeris
             if (b == Body.Sun) return SunStandardAltitude;
             if (b == Body.Moon)
             {
+                // the altitudes compared with this are topocentric (BodyPlace is seen from the site), so the parallax is already
+                // in them: the upper limb on the horizon is the centre one semidiameter (0.2725 × parallax) plus refraction below
+                // it. The almanac value 0.7275 × parallax − 0.5667° is for geocentric altitudes; used here it counted the
+                // parallax twice and put moonrise several minutes late and moonset early.
                 double hp = Math.Asin(AstroMath.EarthRadius_km / (distAu * AstroMath.AU_km)) * AstroMath.Rad2Deg;
-                return 0.7275 * hp - 0.5667;
+                return -0.2725 * hp - 0.5667;
             }
             return StarStandardAltitude;
         }
@@ -448,7 +453,7 @@ namespace Sidralune.Core.Ephemeris
             bool umbral = s0 - sM0 < umbra0;
             // inside the phase while the Moon's disc touches the umbra (penumbra)
             Func<double, double> inside = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return (umbral ? u : p) + m - s; };
-            var res = new LocalEclipse { Time = greatest, Covers = true };
+            var res = new LocalEclipse { Time = greatest, Maximum = greatest, Covers = true };
             double c1 = Contact(inside, tg, -1), c4 = Contact(inside, tg, +1);
             res.Start = AstroTime.FromTT(c1); res.End = AstroTime.FromTT(c4);
             Func<double, bool> up = t =>
@@ -559,7 +564,7 @@ namespace Sidralune.Core.Ephemeris
                 if (s < best) { best = s; tBest = t; }
             }
             double tmax = Roots.GoldenMin(sepAt, tBest - step, tBest + step, 1e-7);
-            var res = new LocalEclipse { Time = AstroTime.FromTT(tmax) };
+            var res = new LocalEclipse { Time = AstroTime.FromTT(tmax), Maximum = AstroTime.FromTT(tmax) };
             if (overlap(tmax) <= 0) return res; // the Moon passes by the Sun without covering it from here
             res.Covers = true;
             double c1 = Contact(overlap, tmax, -1), c4 = Contact(overlap, tmax, +1);
@@ -611,6 +616,149 @@ namespace Sidralune.Core.Ephemeris
             res.Visible = any;
             res.Horizon = !any || (atStart && atEnd) ? 0 : atStart ? 1 : -1;
         }
+
+        /// <summary>The name of an eclipse type: solar 0 partial, 1 total, 2 annular; lunar 0 penumbral, 1 partial, 2 total.</summary>
+        public static string EclipseTypeName(bool solar, int kind) => solar ? SolarTypeName(kind) : LunarTypeName(kind);
+
+        /// <summary>
+        /// Every solar and lunar eclipse between jd1 and jd2 (TT) in time order, each with its global type and as seen from the
+        /// site. Solar eclipses are sorted by greatest eclipse, like the lunar ones.
+        /// </summary>
+        public static List<EclipseInfo> Eclipses(Observer site, double jd1, double jd2, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken))
+        {
+            var list = new List<EclipseInfo>();
+            foreach (var f in FindSolarEclipses(jd1, jd2))
+            {
+                ct.ThrowIfCancellationRequested();
+                var g = AstroTime.FromTT(f.Jd);
+                list.Add(new EclipseInfo { Solar = true, Greatest = g, Kind = f.Kind, Local = SolarEclipseAt(site, g) });
+            }
+            foreach (var f in FindLunarEclipses(jd1, jd2))
+            {
+                ct.ThrowIfCancellationRequested();
+                var g = AstroTime.FromTT(f.Jd);
+                list.Add(new EclipseInfo { Solar = false, Greatest = g, Kind = f.Kind, Magnitude = f.Kind > 0 ? f.Umag : f.Pmag, Local = LunarEclipseAt(site, g) });
+            }
+            return list.OrderBy(e => e.Greatest.JdTT).ToList();
+        }
+
+        /// <summary>
+        /// The phases of a solar eclipse from a site, in time order, with the Sun's altitude at each: first contact, the total
+        /// or annular phase, the local maximum, last contact, any sunrise or sunset in between, and greatest eclipse on Earth.
+        /// </summary>
+        public static List<EclipsePhase> SolarEclipsePhases(Observer site, AstroTime greatest)
+        {
+            var l = SolarEclipseAt(site, greatest);
+            var list = new List<EclipsePhase>();
+            Func<string, double, EclipsePhase> phase = (name, t) => new EclipsePhase { Name = name, Time = AstroTime.FromTT(t), Altitude = Events.Altitude(site, Body.Sun, t) };
+            list.Add(phase(Lang.T("Greatest eclipse on Earth"), greatest.JdTT));
+            if (l.Covers)
+            {
+                double tmax = l.Maximum.JdTT;
+                list.Add(phase(Lang.T("Partial eclipse begins"), l.Start.Value.JdTT));
+                list.Add(phase(Lang.T("Maximum eclipse"), tmax));
+                list.Add(phase(Lang.T("Partial eclipse ends"), l.End.Value.JdTT));
+                double s0, sS0, sM0; bool u0;
+                SunAndMoon(site, tmax, out s0, out sS0, out sM0, out u0);
+                if (s0 < Math.Abs(sM0 - sS0))
+                {
+                    // the Moon's disc wholly inside the Sun's (annular) or over it (total)
+                    bool total = sM0 > sS0;
+                    Func<double, double> central = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return Math.Abs(b - a) - s; };
+                    list.Add(phase(total ? Lang.T("Total eclipse begins") : Lang.T("Annular eclipse begins"), Contact(central, tmax, -1)));
+                    list.Add(phase(total ? Lang.T("Total eclipse ends") : Lang.T("Annular eclipse ends"), Contact(central, tmax, +1)));
+                }
+                Func<double, bool> up = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return u; };
+                foreach (var x in HorizonCrossings(up, l.Start.Value.JdTT, l.End.Value.JdTT))
+                    list.Add(phase(x.Item2 ? Lang.T("Sunrise") : Lang.T("Sunset"), x.Item1));
+            }
+            return list.OrderBy(p => p.Time.JdTT).ToList();
+        }
+
+        /// <summary>
+        /// The phases of a lunar eclipse, in time order, with the Moon's altitude at the site at each: the penumbral, partial and
+        /// total phases, greatest eclipse, and any moonrise or moonset in between.
+        /// </summary>
+        public static List<EclipsePhase> LunarEclipsePhases(Observer site, AstroTime greatest)
+        {
+            double tg = greatest.JdTT, s0, u0, p0, m0;
+            Shadow(tg, out s0, out u0, out p0, out m0);
+            var list = new List<EclipsePhase>();
+            Func<string, double, EclipsePhase> phase = (name, t) => new EclipsePhase { Name = name, Time = AstroTime.FromTT(t), Altitude = Events.Altitude(site, Body.Moon, t) };
+            list.Add(phase(Lang.T("Greatest eclipse"), tg));
+            // inside each phase while the Moon's disc touches the penumbra, touches the umbra, or is wholly in the umbra
+            Func<double, double> penumbral = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return p + m - s; };
+            Func<double, double> partial = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return u + m - s; };
+            Func<double, double> total = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return u - m - s; };
+            double p1 = Contact(penumbral, tg, -1), p4 = Contact(penumbral, tg, +1);
+            list.Add(phase(Lang.T("Penumbral eclipse begins"), p1));
+            list.Add(phase(Lang.T("Penumbral eclipse ends"), p4));
+            if (partial(tg) > 0)
+            {
+                list.Add(phase(Lang.T("Partial eclipse begins"), Contact(partial, tg, -1)));
+                list.Add(phase(Lang.T("Partial eclipse ends"), Contact(partial, tg, +1)));
+            }
+            if (total(tg) > 0)
+            {
+                list.Add(phase(Lang.T("Total eclipse begins"), Contact(total, tg, -1)));
+                list.Add(phase(Lang.T("Total eclipse ends"), Contact(total, tg, +1)));
+            }
+            Func<double, bool> up = t =>
+            {
+                var ctx = new SkyContext(site, AstroTime.FromTT(t)) { ApplyRefraction = false };
+                var pl = ctx.BodyPlace(Body.Moon);
+                return pl.Horizontal.AltDeg > StandardAltitude(Body.Moon, pl.Distance);
+            };
+            foreach (var x in HorizonCrossings(up, p1, p4))
+                list.Add(phase(x.Item2 ? Lang.T("Moonrise") : Lang.T("Moonset"), x.Item1));
+            return list.OrderBy(p => p.Time.JdTT).ToList();
+        }
+
+        /// <summary>Observed (refracted) altitude of the Sun or Moon in degrees at time t (TT).</summary>
+        private static double Altitude(Observer site, Body b, double t) => new SkyContext(site, AstroTime.FromTT(t)).BodyPlace(b).Horizontal.AltDeg;
+
+        /// <summary>The moments between t1 and t2 when up changes, found in 2-minute steps and refined: (time, true for a rising).</summary>
+        private static List<Tuple<double, bool>> HorizonCrossings(Func<double, bool> up, double t1, double t2)
+        {
+            var list = new List<Tuple<double, bool>>();
+            double step = 2 / 1440.0, a = t1;
+            bool ua = up(a);
+            while (a < t2)
+            {
+                double b = Math.Min(a + step, t2);
+                bool ub = up(b);
+                if (ub != ua)
+                {
+                    double lo = a, hi = b;
+                    for (int i = 0; i < 30; i++) { double mid = (lo + hi) / 2; if (up(mid) == ua) lo = mid; else hi = mid; }
+                    list.Add(Tuple.Create((lo + hi) / 2, ub));
+                }
+                a = b; ua = ub;
+            }
+            return list;
+        }
+    }
+
+    /// <summary>An eclipse in a list from <see cref="Events.Eclipses"/>: its global type and how it looks from the site.</summary>
+    public class EclipseInfo
+    {
+        public bool Solar;
+        /// <summary>Greatest eclipse on Earth.</summary>
+        public AstroTime Greatest;
+        /// <summary>The global type: solar 0 partial, 1 total, 2 annular; lunar 0 penumbral, 1 partial, 2 total.</summary>
+        public int Kind;
+        /// <summary>Lunar: the umbral magnitude (the penumbral one for a penumbral eclipse). Solar: see Local.</summary>
+        public double Magnitude;
+        public LocalEclipse Local;
+        public string TypeName => Events.EclipseTypeName(Solar, Kind);
+    }
+
+    /// <summary>One phase of an eclipse from a site: what happens, when, and the Sun's (lunar: the Moon's) observed altitude then.</summary>
+    public class EclipsePhase
+    {
+        public string Name;
+        public AstroTime Time;
+        public double Altitude;
     }
 
     /// <summary>A solar or lunar eclipse as seen from one site.</summary>
@@ -625,6 +773,8 @@ namespace Sidralune.Core.Ephemeris
         /// Lunar: greatest eclipse, the same moment everywhere.
         /// </summary>
         public AstroTime Time;
+        /// <summary>Solar: the local maximum, whether the Sun is up then or not. Lunar: greatest eclipse.</summary>
+        public AstroTime Maximum;
         /// <summary>The phase that counts: solar the partial phase at the site, lunar the umbral phase (the penumbral one for a penumbral eclipse).</summary>
         public AstroTime? Start, End;
         /// <summary>−1 the Sun (Moon) rises during the eclipse, +1 it sets during it, 0 it is up all through (or the eclipse is not visible).</summary>

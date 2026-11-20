@@ -130,6 +130,55 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestSolarSystemEclipses()
+        {
+            // Solar sys. → Eclipses lists the eclipses from the time shown, each with its type and how it looks from the site,
+            // and the selected one's phases in time order; Show in sky goes to the Sun at the eclipse
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var start = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+            try
+            {
+                var view = View<Sidralune.Views.SolarSystemView>("solarsystem");
+                var grid = Field<DataGridView>(view, "_eclGrid");
+                var phases = Field<DataGridView>(view, "_eclPhases");
+                OnUi(() =>
+                {
+                    AppState.SetTime(Core.Time.AstroTime.FromDateTime(start));
+                    typeof(Sidralune.Views.SolarSystemView).GetMethod("ComputeEclipses", bf).Invoke(view, new object[] { 2 });
+                    App.Navigate("solarsystem");
+                    Field<TabbedPanel>(view, "_tabs").Select(3);
+                });
+                CheckTrue("Eclipses listed", WaitFor(() => OnUi(() => grid.Rows.Count >= 4), 60000), OnUi(() => grid.Rows.Count.ToString()));
+                var rows = OnUi(() => grid.Rows.Cast<DataGridViewRow>().Select(r => Enumerable.Range(0, 5).Select(i => (string)r.Cells[i].Value).ToArray()).ToList());
+                CheckTrue("The total solar eclipse of 12 August 2026 first, then the partial lunar eclipse of 28 August",
+                    rows[0][0].StartsWith("2026-08-12") && rows[0][1] == "Total solar eclipse" && rows[1][0].StartsWith("2026-08-28") && rows[1][1] == "Partial lunar eclipse", string.Join(" / ", rows.Take(2).Select(r => string.Join(", ", r))));
+                CheckTrue("Each says how it looks from the site", rows.All(r => !string.IsNullOrEmpty(r[2])) && rows.Where(r => r[1].Contains("lunar")).All(r => r[3].Length > 0));
+                CheckTrue("In time order", rows.Select(r => r[0]).SequenceEqual(rows.Select(r => r[0]).OrderBy(x => x)));
+
+                // the solar eclipse's phases: greatest eclipse on Earth at the global time, in time order
+                OnUi(() => grid.CurrentCell = grid.Rows[0].Cells[0]);
+                var global = Core.Ephemeris.Events.SolarEclipses(Core.Time.AstroTime.FromDateTime(start).JdTT, Core.Time.AstroTime.FromDateTime(start).JdTT + 30)[0].Time;
+                string greatest = OnUi(() => AppState.Site.ToLocal(global.ToDateTimeUtc()).ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+                var solar = OnUi(() => phases.Rows.Cast<DataGridViewRow>().Select(r => (string)r.Cells[0].Value + " " + (string)r.Cells[1].Value).ToList());
+                CheckTrue("The solar eclipse's phases include greatest eclipse on Earth", solar.Contains("Greatest eclipse on Earth " + greatest), string.Join(" / ", solar));
+                // the lunar eclipse: penumbral and partial phases and greatest eclipse, in time order
+                OnUi(() => grid.CurrentCell = grid.Rows[1].Cells[0]);
+                var lunar = OnUi(() => phases.Rows.Cast<DataGridViewRow>().Select(r => new[] { (string)r.Cells[0].Value, (string)r.Cells[1].Value }).ToList());
+                var names = lunar.Select(p => p[0]).ToList();
+                CheckTrue("The lunar eclipse's phases", new[] { "Penumbral eclipse begins", "Partial eclipse begins", "Greatest eclipse", "Partial eclipse ends", "Penumbral eclipse ends" }.All(names.Contains)
+                    && names.IndexOf("Penumbral eclipse begins") < names.IndexOf("Partial eclipse begins") && names.IndexOf("Partial eclipse begins") < names.IndexOf("Greatest eclipse")
+                    && lunar.Select(p => p[1]).SequenceEqual(lunar.Select(p => p[1]).OrderBy(x => x)), string.Join(" / ", lunar.Select(p => p[0] + " " + p[1])));
+
+                // Show in sky: the Moon at greatest eclipse
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowEclipse", bf).Invoke(view, null));
+                Settle(500);
+                CheckTrue("Show in sky sets the time to the eclipse and selects the Moon", OnUi(() => AppState.Selection != null && AppState.Selection.Planet == Core.Ephemeris.Body.Moon
+                    && Math.Abs((AppState.Now.ToDateTimeUtc() - new DateTime(2026, 8, 28, 4, 13, 0)).TotalMinutes) < 5), OnUi(() => AppState.Now + " " + AppState.Selection?.Name));
+            }
+            finally { OnUi(() => AppState.GoLive()); }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;
