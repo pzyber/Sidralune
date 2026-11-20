@@ -219,6 +219,10 @@ namespace Sidralune.AppTests
                 CheckTrue("The popup: total, its duration, the path's width and the contacts in UT", info.Contains("Total solar eclipse") && info.Contains("Duration of totality:") && info.Contains("Path width") && info.Contains("Partial eclipse begins") && info.Contains("Time (UTC)"), info);
                 var local = OnUi(() => map.Data.Elements.Local(64.15, -21.94));
                 CheckTrue("The duration shown is the calculated one", info.Contains(Core.Util.Lang.T("{0} min {1:0.0} s", (int)(local.CentralSeconds / 60), local.CentralSeconds - 60 * (int)(local.CentralSeconds / 60))), info);
+                // the close button in its own space: clear of the text and wholly inside the box, as is Add as site
+                var box = OnUi(() => new Rectangle(Point.Empty, map.InfoSize));
+                var text = OnUi(() => map.InfoTextBounds); var close = OnUi(() => map.InfoCloseBounds); var add = OnUi(() => map.InfoAddSiteBounds);
+                CheckTrue("The popup's close button clear of its text and inside it", !close.IntersectsWith(text) && box.Contains(close) && box.Contains(add) && box.Contains(text) && !add.IntersectsWith(text), "box " + box + ", text " + text + ", close " + close + ", add " + add);
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-33.87, 151.21) }));
                 CheckTrue("No eclipse in Sydney", (OnUi(() => map.InfoText) ?? "").Contains("No eclipse here"), OnUi(() => map.InfoText));
 
@@ -238,6 +242,22 @@ namespace Sidralune.AppTests
                 CheckTrue("The lunar eclipse of 28 August 2026 drawn with where it is visible", WaitFor(() => OnUi(() => map.Data != null && !map.Data.Solar && map.Data.Visibility != null), 60000));
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(59.33, 18.07) }));
                 CheckTrue("A click on Stockholm: the Moon sets during it", (OnUi(() => map.InfoText) ?? "").Contains("Moonset"), OnUi(() => map.InfoText));
+                // the shading worked out for the view, here zoomed in on the moonset line through Scandinavia: shaded on
+                // the side where the Moon is still up, clear beyond it
+                mark = LogMark();
+                var shade = OnUi(() =>
+                {
+                    map.ShowRegion(0, 50, 40, 70);
+                    using (var bmp = new Bitmap(map.Width, map.Height))
+                    {
+                        map.DrawToBitmap(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                        // the colour in the open sea west of Norway (up for part of it) against far east in Russia (not at all)
+                        var west = map.ToScreen(64, 2); var east = map.ToScreen(64, 38);
+                        return Tuple.Create(bmp.GetPixel((int)west.X, (int)west.Y), bmp.GetPixel((int)east.X, (int)east.Y));
+                    }
+                });
+                CheckTrue("The lunar map drawn zoomed in without errors", ErrorsSince(mark).Count == 0, string.Join(" | ", ErrorsSince(mark)));
+                CheckTrue("Shaded where the Moon is up for part of it, not beyond", shade.Item1 != shade.Item2, shade.Item1 + " / " + shade.Item2);
 
                 // Add as site: the place joins the sites and opens in Settings → Location
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("AddEclipseSite", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-16.65373, 128.66009) }));

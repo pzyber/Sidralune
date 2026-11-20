@@ -135,17 +135,46 @@ namespace Sidralune.Core.Ephemeris
         {
             double x, y, d, mu, l1, l2, dx, dy, dd, dmu;
             At(t, out x, out y, out d, out mu, out l1, out l2, out dx, out dy, out dd, out dmu);
+            return PlaneToEarth(t, x, y, out latDeg, out lonDeg);
+        }
+
+        /// <summary>
+        /// The place on the Earth's sunward side whose position on the fundamental plane is (ξ, η) at t hours from T0; false
+        /// beyond the Earth's limb. A point a hair outside the limb (rounding) is put on it.
+        /// </summary>
+        public bool PlaneToEarth(double t, double xi, double eta, out double latDeg, out double lonDeg)
+        {
+            double x, y, d, mu, l1, l2, dx, dy, dd, dmu;
+            At(t, out x, out y, out d, out mu, out l1, out l2, out dx, out dy, out dd, out dmu);
             double w = 1 / Math.Sqrt(1 - E2 * Math.Cos(d) * Math.Cos(d));
-            double y1 = w * y, b1 = w * Math.Sin(d), b2 = AxisRatio * w * Math.Cos(d);
-            double bb = 1 - x * x - y1 * y1;
+            double y1 = w * eta, b1 = w * Math.Sin(d), b2 = AxisRatio * w * Math.Cos(d);
+            double bb = 1 - xi * xi - y1 * y1;
             latDeg = lonDeg = double.NaN;
-            if (bb < 0) return false;
-            double b = Math.Sqrt(bb);
-            double phi1 = Math.Asin(b * b1 + y1 * b2);
-            double h = Math.Atan2(x, b * b2 - y1 * b1);
+            if (bb < -1e-9) return false;
+            double b = Math.Sqrt(Math.Max(0, bb));
+            double phi1 = Math.Asin(Math.Max(-1, Math.Min(1, b * b1 + y1 * b2)));
+            double h = Math.Atan2(xi, b * b2 - y1 * b1);
             latDeg = Math.Atan(Math.Tan(phi1) / AxisRatio) * AstroMath.Rad2Deg;
             lonDeg = AstroMath.NormalizeDeg180((h - mu) * AstroMath.Rad2Deg);
             return true;
+        }
+
+        /// <summary>The limb's scale in η at t hours (the Earth's outline on the fundamental plane is ξ² + (ω η)² = 1).</summary>
+        internal double LimbOmega(double t)
+        {
+            double d = Poly(D, t) * AstroMath.Deg2Rad;
+            return 1 / Math.Sqrt(1 - E2 * Math.Cos(d) * Math.Cos(d));
+        }
+
+        /// <summary>
+        /// A place at sea level against the shadow at t hours: its offset from the axis (u, v) and their rates (a, b), the
+        /// penumbra's and umbra's radii there, and ζ (above zero when the Sun is up, geometrically).
+        /// </summary>
+        internal void Relative(double t, double latDeg, double lonDeg, out double u, out double v, out double a, out double b, out double L1, out double L2, out double zeta)
+        {
+            double rs, rc, h, d;
+            Geocentric(latDeg, 0, out rs, out rc);
+            Against(t, rs, rc, lonDeg, out u, out v, out a, out b, out L1, out L2, out zeta, out h, out d);
         }
 
         /// <summary>An observer's place on the Earth: ρ sin φ′ and ρ cos φ′ from geodetic latitude and elevation.</summary>
@@ -185,8 +214,15 @@ namespace Sidralune.Core.Ephemeris
             Geocentric(latDeg, elevationM, out rs, out rc);
             var res = new SolarLocalCircumstances { Latitude = latDeg, Longitude = lonDeg };
             double u, v, a, b, L1, L2, zeta, h, d;
-            // the maximum: closest approach to the shadow axis
-            double t = 0;
+            // the maximum: closest approach to the shadow axis, from the closest of a coarse scan (starting at T0 can settle
+            // on the wrong minimum for places that see the eclipse near its beginning or end)
+            double t = 0, best = double.MaxValue;
+            for (double s = -Span; s <= Span + 1e-9; s += 1 / 3.0)
+            {
+                Against(s, rs, rc, lonDeg, out u, out v, out a, out b, out L1, out L2, out zeta, out h, out d);
+                double mm = u * u + v * v;
+                if (mm < best) { best = mm; t = s; }
+            }
             for (int i = 0; i < 20; i++)
             {
                 Against(t, rs, rc, lonDeg, out u, out v, out a, out b, out L1, out L2, out zeta, out h, out d);

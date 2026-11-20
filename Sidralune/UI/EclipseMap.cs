@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using Sidralune.Core.Ephemeris;
+using Sidralune.Core.Mathematics;
 using Sidralune.Core.Util;
 using static Sidralune.Core.Util.Lang;
 
@@ -200,10 +201,14 @@ namespace Sidralune.UI
         {
             _clicked = at;
             _popupText.Text = text;
+            // the text on the left, the close button in its own column on the right, Add as site below
             var sz = _popupText.PreferredSize;
-            _closePopup.Location = new Point(Math.Max(sz.Width + 14, _addSite.Width + 10) - 18, 2);
-            _addSite.Location = new Point(8, 8 + sz.Height + 8);
-            _popup.Size = new Size(Math.Max(sz.Width + 24, _addSite.Width + 50), sz.Height + _addSite.Height + 26);
+            _popupText.Location = new Point(10, 8);
+            int width = Math.Max(10 + sz.Width + 8 + _closePopup.Width + 6, 8 + _addSite.Width + 10);
+            _closePopup.Location = new Point(width - _closePopup.Width - 6, 6);
+            int top = Math.Max(8 + sz.Height, _closePopup.Bottom) + 8;
+            _addSite.Location = new Point(8, top);
+            _popup.Size = new Size(width, top + _addSite.Height + 8);
             _popup.Visible = true;
             _popup.BringToFront();
             PlacePopup();
@@ -211,6 +216,12 @@ namespace Sidralune.UI
         }
 
         public void HideInfo() { _popup.Visible = false; _clicked = null; Invalidate(); }
+
+        /// <summary>The popup's text, close button and Add as site, in the popup's coordinates, for tests.</summary>
+        public Rectangle InfoTextBounds => new Rectangle(_popupText.Location, _popupText.PreferredSize);
+        public Rectangle InfoCloseBounds => _closePopup.Bounds;
+        public Rectangle InfoAddSiteBounds => _addSite.Bounds;
+        public Size InfoSize => _popup.Size;
 
         /// <summary>The popup's text, for tests.</summary>
         public string InfoText => _popup.Visible ? _popupText.Text : null;
@@ -354,30 +365,76 @@ namespace Sidralune.UI
             }
         }
 
+        private string _visibilityKey;
+
+        /// <summary>
+        /// Where the Moon is up for the whole eclipse (darker) and for part of it, worked out for the view itself (every
+        /// other pixel, smoothed) from the circles where the Moon is up at each contact, so its edges follow the lines at
+        /// any zoom.
+        /// </summary>
         private void DrawVisibility(Graphics g, List<double> offsets)
         {
-            if (_data.Visibility == null) return;
-            if (_visibility == null)
+            if (_data.MoonUp == null || _data.MoonUp.Count == 0 || Width < 2 || Height < 2) return;
+            int w = (Width + 1) / 2, h = (Height + 1) / 2;
+            var accent = Theme.Current.Accent;
+            string key = string.Join("|", _lon0, _lat0, _scale, Width, Height, accent.ToArgb());
+            if (_visibility == null || key != _visibilityKey)
             {
-                var c = Theme.Current.Accent;
-                _visibility = new Bitmap(360, 180, PixelFormat.Format32bppArgb);
-                for (int r = 0; r < 180; r++)
-                    for (int col = 0; col < 360; col++)
-                    {
-                        byte v = _data.Visibility[r, col];
-                        _visibility.SetPixel(col, r, v == 0 ? Color.Transparent : Color.FromArgb(v == 2 ? 80 : 36, c));
-                    }
+                _visibility?.Dispose();
+                _visibility = ShadeView(w, h, accent);
+                _visibilityKey = key;
             }
             var old = g.InterpolationMode;
-            g.InterpolationMode = InterpolationMode.NearestNeighbor;
-            g.PixelOffsetMode = PixelOffsetMode.Half;
-            foreach (double off in offsets)
+            g.InterpolationMode = InterpolationMode.Bilinear;
+            using (var attr = new ImageAttributes())
             {
-                var tl = ToScreen(90, -180 + off); var br = ToScreen(-90, 180 + off);
-                g.DrawImage(_visibility, RectangleF.FromLTRB(tl.X, tl.Y, br.X, br.Y));
+                attr.SetWrapMode(WrapMode.TileFlipXY); // no faint seam at the bitmap's edges
+                g.DrawImage(_visibility, new Rectangle(0, 0, w * 2, h * 2), 0, 0, w, h, GraphicsUnit.Pixel, attr);
             }
             g.InterpolationMode = old;
-            g.PixelOffsetMode = PixelOffsetMode.Default;
+        }
+
+        private Bitmap ShadeView(int w, int h, Color accent)
+        {
+            var caps = _data.MoonUp;
+            int n = caps.Count;
+            double[] cx = new double[n], cy = new double[n], cz = new double[n], cosR = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                double f = caps[i].Item2.Lat * AstroMath.Deg2Rad, l = caps[i].Item2.Lon * AstroMath.Deg2Rad;
+                cx[i] = Math.Cos(f) * Math.Cos(l); cy[i] = Math.Cos(f) * Math.Sin(l); cz[i] = Math.Sin(f);
+                cosR[i] = Math.Cos(caps[i].Item3 * AstroMath.Deg2Rad);
+            }
+            int from = caps.FindIndex(c => c.Item1 == _data.WholeFrom), to = caps.FindIndex(c => c.Item1 == _data.WholeTo), max = caps.FindIndex(c => c.Item1 == "MAX");
+            var cosL = new double[w]; var sinL = new double[w];
+            for (int x = 0; x < w; x++)
+            {
+                double lon = (_lon0 + (2 * x + 1 - Width / 2.0) / _scale) * AstroMath.Deg2Rad;
+                cosL[x] = Math.Cos(lon); sinL[x] = Math.Sin(lon);
+            }
+            int whole = Color.FromArgb(80, accent).ToArgb(), part = Color.FromArgb(36, accent).ToArgb();
+            var px = new int[w * h];
+            var up = new bool[n];
+            for (int y = 0; y < h; y++)
+            {
+                double lat = _lat0 - (2 * y + 1 - Height / 2.0) / _scale;
+                if (lat > 90 || lat < -90) continue;
+                double f = lat * AstroMath.Deg2Rad, cf = Math.Cos(f), sf = Math.Sin(f);
+                for (int x = 0; x < w; x++)
+                {
+                    double vx = cf * cosL[x], vy = cf * sinL[x];
+                    bool any = false;
+                    for (int i = 0; i < n; i++) { up[i] = vx * cx[i] + vy * cy[i] + sf * cz[i] > cosR[i]; any |= up[i]; }
+                    if (!any) continue;
+                    bool all = (from < 0 || up[from]) && (to < 0 || up[to]) && (max < 0 || up[max]);
+                    px[y * w + x] = all ? whole : part;
+                }
+            }
+            var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+            var data = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            for (int y = 0; y < h; y++) System.Runtime.InteropServices.Marshal.Copy(px, y * w, data.Scan0 + y * data.Stride, w);
+            bmp.UnlockBits(data);
+            return bmp;
         }
 
         private void DrawPlaces(Graphics g, Palette pal, List<double> offsets)

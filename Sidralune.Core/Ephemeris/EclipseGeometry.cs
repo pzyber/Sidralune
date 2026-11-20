@@ -63,6 +63,12 @@ namespace Sidralune.Core.Ephemeris
         /// of it, 0 none.
         /// </summary>
         public byte[,] Visibility;
+        /// <summary>
+        /// Lunar: for each contact, the circle within which the Moon is up then (label, centre, angular radius in degrees),
+        /// for shading at any zoom; the whole eclipse is seen inside the circles of WholeFrom, WholeTo and MAX.
+        /// </summary>
+        public List<Tuple<string, GeoPoint, double>> MoonUp = new List<Tuple<string, GeoPoint, double>>();
+        public string WholeFrom, WholeTo;
         /// <summary>The part of the world worth showing first (west, south, east, north in degrees; east can exceed 180).</summary>
         public double West = -180, South = -90, East = 180, North = 90;
     }
@@ -80,41 +86,43 @@ namespace Sidralune.Core.Ephemeris
             double gl, gn;
             if (be.AxisOnEarth(be.Hours(greatest.JdTT), out gl, out gn)) map.GreatestPoint = new GeoPoint(gl, gn);
 
-            // the central line every 30 seconds, and the edges of the path across it
-            var central = new EclipseLine { Kind = EclipseLineKind.CentralLine };
-            var north = new EclipseLine { Kind = EclipseLineKind.CentralLimit };
-            var south = new EclipseLine { Kind = EclipseLineKind.CentralLimit };
-            List<GeoPoint> part = null;
-            for (double t = -BesselianElements.Span; t <= BesselianElements.Span + 1e-9; t += 1 / 120.0)
+            // every line solved on the fundamental plane, minute by minute, at the geometric horizon (the Sun's centre),
+            // so they meet where they should: the central line ends on the maximum-at-horizon curve, the limits on the
+            // sunrise and sunset curves
+            Func<double, List<GeoPoint>> axis = t =>
             {
                 double lat, lon;
-                bool on = be.AxisOnEarth(t, out lat, out lon) && be.Local(lat, lon).Kind != 0;
-                if (on) { if (part == null) { part = new List<GeoPoint>(); central.Parts.Add(part); } part.Add(new GeoPoint(lat, lon)); }
-                else part = null;
-            }
-            foreach (var cp in central.Parts)
+                // a place right under the axis is in the central phase at that moment, by definition
+                return be.AxisOnEarth(t, out lat, out lon) ? new List<GeoPoint> { new GeoPoint(lat, lon) } : new List<GeoPoint>();
+            };
+            var central = Sweep(axis, 1 / 120.0, ct, 0);
+            bool isCentral = central.Count > 0;
+            // both limits at once, joined into lines by continuity (near the horizon which side a point is on is ambiguous)
+            var penumbral = Sweep(t => Limits(be, t, true), 1 / 60.0, ct, 5);
+            var umbral = isCentral ? Sweep(t => Limits(be, t, false), 1 / 60.0, ct, 0.5) : new List<List<GeoPoint>>();
+            var contactHorizon = Sweep(t => OnTheLimb(be, t, false), 1 / 60.0, ct, 5, true);
+            var maxHorizon = Sweep(t => OnTheLimb(be, t, true), 1 / 60.0, ct, 5);
+            // right at the horizon a line's last stretch is too short to sample: each is carried on in its own direction to
+            // the curve it ends on (the edges of the path and the central line on the maximum-at-horizon curve, the
+            // partial-eclipse limits at the tips of the sunrise and sunset loops), when that is close
+            ExtendTo(umbral, maxHorizon, 1);
+            ExtendTo(central, maxHorizon, 1);
+            // (or, where a limit runs into the narrow tip of a loop and its straight course just misses it, at the tip
+            // itself: the end of the maximum-at-horizon curve)
+            ExtendTo(penumbral, contactHorizon, 1, maxHorizon.SelectMany(l => new[] { l[0], l[l.Count - 1] }).ToList());
+            if (isCentral)
             {
-                ct.ThrowIfCancellationRequested();
-                List<GeoPoint> np = null, sp = null;
-                for (int i = 0; i < cp.Count; i++)
-                {
-                    var a = cp[Math.Max(0, i - 1)]; var b = cp[Math.Min(cp.Count - 1, i + 1)];
-                    if (cp.Count < 2) break;
-                    double bearing = Bearing(a, b);
-                    var n = Edge(be, cp[i], bearing - 90);
-                    var s = Edge(be, cp[i], bearing + 90);
-                    if (n.HasValue) { if (np == null) { np = new List<GeoPoint>(); north.Parts.Add(np); } np.Add(n.Value); } else np = null;
-                    if (s.HasValue) { if (sp == null) { sp = new List<GeoPoint>(); south.Parts.Add(sp); } sp.Add(s.Value); } else sp = null;
-                }
+                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.CentralLimit, Parts = SplitAtDateLine(umbral) });
+                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.CentralLine, Parts = SplitAtDateLine(central) });
             }
-            foreach (var l in new[] { central, north, south }) l.Parts = SplitAtDateLine(l.Parts);
-            if (central.Parts.Count > 0) { north.Parts.AddRange(south.Parts); map.Lines.Add(north); map.Lines.Add(central); }
+            map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.PenumbralLimit, Parts = SplitAtDateLine(penumbral) });
+            map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.ContactAtHorizon, Parts = SplitAtDateLine(contactHorizon) });
+            map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.MaximumAtHorizon, Parts = SplitAtDateLine(maxHorizon) });
 
-            // the penumbral limits, the sunrise and sunset curves and the obscuration lines from a 0.5° grid
+            // the obscuration lines from a 0.5° grid, kept where the Sun is up at maximum, and the part of the world to show
             const double step = 0.5;
             int rows = (int)(180 / step) + 1, cols = (int)(360 / step) + 1;
-            var pen = new double[rows, cols]; var c1 = new double[rows, cols]; var c4 = new double[rows, cols];
-            var mx = new double[rows, cols]; var obs = new double[rows, cols];
+            var obs = new double[rows, cols];
             double minLat = 90, maxLat = -90;
             var lons = new List<double>();
             for (int r = 0; r < rows; r++)
@@ -125,24 +133,453 @@ namespace Sidralune.Core.Ephemeris
                 {
                     double lon = -180 + c * step;
                     var l = be.Local(lat, lon);
-                    double zeta = Math.Sin(l.Maximum.Altitude * AstroMath.Deg2Rad);
-                    pen[r, c] = zeta > -0.05 ? l.PenumbraRadius - l.AxisDistance : double.NaN;
-                    c1[r, c] = l.Covers && l.C1 != null ? l.C1.Altitude - Events.SunStandardAltitude : double.NaN;
-                    c4[r, c] = l.Covers && l.C4 != null ? l.C4.Altitude - Events.SunStandardAltitude : double.NaN;
-                    mx[r, c] = l.Covers ? l.Maximum.Altitude - Events.SunStandardAltitude : double.NaN;
-                    obs[r, c] = l.Covers && l.Maximum.SunUp ? l.Obscuration : double.NaN;
+                    obs[r, c] = l.Covers ? l.Obscuration : double.NaN;
                     if (l.Visible) { minLat = Math.Min(minLat, lat); maxLat = Math.Max(maxLat, lat); lons.Add(lon); }
                 }
             }
-            map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.PenumbralLimit, Parts = Contour(pen, step, 0) });
-            var horizon = new EclipseLine { Kind = EclipseLineKind.ContactAtHorizon, Parts = Contour(c1, step, 0) };
-            horizon.Parts.AddRange(Contour(c4, step, 0));
-            map.Lines.Add(horizon);
-            map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.MaximumAtHorizon, Parts = Contour(mx, step, 0) });
             foreach (double level in new[] { 0.25, 0.5, 0.75 })
-                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.Obscuration, Level = level, Parts = Contour(obs, step, level) });
+                map.Lines.Add(new EclipseLine { Kind = EclipseLineKind.Obscuration, Level = level, Parts = JoinEnds(WhereSunUp(be, Contour(obs, step, level)), 1e-4, true) });
             if (lons.Count > 0) SetView(map, minLat, maxLat, lons);
             return map;
+        }
+
+        /// <summary>
+        /// The northern and southern limits at t hours: the places on the Sun-facing side whose maximum is now, at the edge
+        /// of the penumbra (or umbra). On the fundamental plane they are on the circle of the shadow's radius round the axis,
+        /// where the place's motion relative to the shadow runs along the circle, found as roots around the circle.
+        /// </summary>
+        private static List<GeoPoint> Limits(BesselianElements be, double t, bool penumbral)
+        {
+            double x, y, d, mu, l1, l2, dx, dy, dd, dmu;
+            be.At(t, out x, out y, out d, out mu, out l1, out l2, out dx, out dy, out dd, out dmu);
+            var res = new List<GeoPoint>();
+            // the place at angle th on the circle, its radius settled for the place's own ζ; NaN off the Earth
+            double limbW = be.LimbOmega(t);
+            Func<double, double[]> place = th =>
+            {
+                double r = penumbral ? l1 : Math.Abs(l2), lat = 0, lon = 0, u = 0, v = 0, a = 0, b = 0, zeta = 0;
+                for (int i = 0; i < 3; i++)
+                {
+                    double L1, L2;
+                    // the radius settled for the place's height above the fundamental plane can take a point next to the
+                    // outline just over it: such a point is put on the outline, so the search works right up to the edge
+                    double xi = x + r * Math.Cos(th), eta = y + r * Math.Sin(th), q = Math.Sqrt(xi * xi + limbW * limbW * eta * eta);
+                    if (q > 1 && q < 1 + 1e-3) { xi /= q; eta /= q; }
+                    if (!be.PlaneToEarth(t, xi, eta, out lat, out lon)) return null;
+                    be.Relative(t, lat, lon, out u, out v, out a, out b, out L1, out L2, out zeta);
+                    r = penumbral ? L1 : Math.Abs(L2);
+                }
+                return new[] { lat, lon, u * a + v * b, zeta };
+            };
+            Func<double, double> g = th => { var p = place(th); return p == null ? double.NaN : p[2]; };
+            // only the arcs of the circle on the Earth are searched, each in many steps however short it is: just after
+            // sunrise and before sunset only a sliver of the circle is on the Earth, which steps round the whole circle miss
+            double w = be.LimbOmega(t), r0 = penumbral ? l1 : Math.Abs(l2);
+            Func<double, double> outside = th => { double xi = x + r0 * Math.Cos(th), eta = y + r0 * Math.Sin(th); return xi * xi + w * w * eta * eta - 1; };
+            foreach (var arc in Arcs(outside, 720))
+                foreach (var th in Roots(g, arc.Item1, arc.Item2, 120))
+                {
+                    var p = place(th);
+                    if (p == null || p[3] < -1e-6) continue; // the night side
+                    res.Add(new GeoPoint(p[0], p[1]));
+                }
+            return res;
+        }
+
+        /// <summary>
+        /// The parts of lines where the Sun is up at maximum, cut exactly where it is on the horizon (on the
+        /// maximum-at-horizon curve): the obscuration lines come from a grid, which on its own would stop a cell short.
+        /// </summary>
+        private static List<List<GeoPoint>> WhereSunUp(BesselianElements be, List<List<GeoPoint>> lines)
+        {
+            Func<GeoPoint, double> alt = p => be.Local(p.Lat, p.Lon).Maximum.Altitude;
+            // the place where the altitude passes zero between a and b; null when it jumps there instead (a place can have
+            // two nearly equal closest approaches to the axis, one with the Sun up and one with it down, and which is
+            // nearer changes from place to place: that is no horizon)
+            Func<GeoPoint, GeoPoint, GeoPoint?> crossing = (a, b) =>
+            {
+                double fa = alt(a);
+                double dl = b.Lon - a.Lon; if (dl > 180) dl -= 360; else if (dl < -180) dl += 360;
+                Func<double, GeoPoint> at = m => new GeoPoint(a.Lat + m * (b.Lat - a.Lat), AstroMath.NormalizeDeg180(a.Lon + m * dl));
+                double lo = 0, hi = 1;
+                for (int k = 0; k < 30; k++)
+                {
+                    double m = (lo + hi) / 2;
+                    if ((alt(at(m)) > 0) == (fa > 0)) lo = m; else hi = m;
+                }
+                if (Math.Abs(alt(at(lo))) > 0.5 || Math.Abs(alt(at(hi))) > 0.5) return null;
+                return at((lo + hi) / 2);
+            };
+            var res = new List<List<GeoPoint>>();
+            foreach (var line in lines)
+            {
+                List<GeoPoint> cur = null;
+                bool prevUp = false;
+                for (int i = 0; i < line.Count; i++)
+                {
+                    bool up = alt(line[i]) > 0;
+                    if (i > 0 && up != prevUp)
+                    {
+                        var x = crossing(line[i - 1], line[i]);
+                        if (!x.HasValue) up = prevUp; // a jump, not the horizon: the line goes on as it was
+                        else if (cur != null) { cur.Add(x.Value); if (cur.Count > 1) res.Add(cur); cur = null; }
+                        else cur = new List<GeoPoint> { x.Value };
+                    }
+                    if (up) { if (cur == null) cur = new List<GeoPoint>(); cur.Add(line[i]); }
+                    prevUp = up;
+                }
+                if (cur != null && cur.Count > 1) res.Add(cur);
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Each line's ends carried on straight, in the direction of its last stretch, to where they first cross one of the
+        /// target lines, when that is within maxDeg (on a local flat map round the end, fine over so short a distance).
+        /// </summary>
+        private static void ExtendTo(List<List<GeoPoint>> lines, List<List<GeoPoint>> targets, double maxDeg, List<GeoPoint> tips = null)
+        {
+            foreach (var line in lines)
+            {
+                if (line.Count < 3) continue;
+                foreach (bool atEnd in new[] { false, true })
+                {
+                    var end = atEnd ? line[line.Count - 1] : line[0];
+                    // the direction from a point a little way back (the last few points can be very close together)
+                    GeoPoint back = end;
+                    for (int k = 1; k < line.Count; k++)
+                    {
+                        back = atEnd ? line[line.Count - 1 - k] : line[k];
+                        if (Distance(back, end) > 0.02) break;
+                    }
+                    double c = Math.Cos(end.Lat * AstroMath.Deg2Rad);
+                    Func<GeoPoint, double[]> local = p => { double dl = p.Lon - end.Lon; if (dl > 180) dl -= 360; else if (dl < -180) dl += 360; return new[] { dl * c, p.Lat - end.Lat }; };
+                    var bk = local(back);
+                    double len = Math.Sqrt(bk[0] * bk[0] + bk[1] * bk[1]);
+                    if (len < 1e-9) continue;
+                    double dx = -bk[0] / len, dy = -bk[1] / len, best = double.MaxValue;
+                    foreach (var target in targets)
+                        for (int i = 0; i + 1 < target.Count; i++)
+                        {
+                            var a = local(target[i]); var b = local(target[i + 1]);
+                            if (Math.Min(Math.Abs(a[0]), Math.Abs(b[0])) > maxDeg + 1 && Math.Min(Math.Abs(a[1]), Math.Abs(b[1])) > maxDeg + 1) continue;
+                            // the ray s·(dx, dy) against the segment a + u·(b − a)
+                            double ex = b[0] - a[0], ey = b[1] - a[1], den = dx * ey - dy * ex;
+                            if (Math.Abs(den) < 1e-12) continue;
+                            double s = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den;
+                            if (u >= 0 && u <= 1 && s > 1e-9 && s < Math.Min(best, maxDeg)) best = s;
+                        }
+                    if (best == double.MaxValue)
+                    {
+                        var tip = tips?.Where(p => Distance(p, end) < maxDeg && Distance(p, end) > 1e-7).OrderBy(p => Distance(p, end)).Cast<GeoPoint?>().FirstOrDefault();
+                        if (tip.HasValue) { if (atEnd) line.Add(tip.Value); else line.Insert(0, tip.Value); }
+                        continue;
+                    }
+                    var p2 = new GeoPoint(end.Lat + best * dy, AstroMath.NormalizeDeg180(end.Lon + best * dx / c));
+                    if (atEnd) line.Add(p2); else line.Insert(0, p2);
+                }
+            }
+        }
+
+        /// <summary>The ranges of angle (from, to; to may pass 2π) where f is below zero, found in n steps and refined.</summary>
+        private static List<Tuple<double, double>> Arcs(Func<double, double> f, int n)
+        {
+            var res = new List<Tuple<double, double>>();
+            double step = 2 * Math.PI / n;
+            var inside = new bool[n];
+            for (int i = 0; i < n; i++) inside[i] = f(i * step) < 0;
+            if (inside.All(b => b)) { res.Add(Tuple.Create(0.0, 2 * Math.PI)); return res; }
+            Func<double, double, double> edge = (a, b) => { for (int k = 0; k < 50; k++) { double m = (a + b) / 2; if ((f(m) < 0) == (f(a) < 0)) a = m; else b = m; } return (a + b) / 2; };
+            int start = Array.FindIndex(inside, b => !b); // begin outside, so every arc is seen whole
+            for (int k = 1; k <= n; k++)
+            {
+                int i = (start + k) % n, prev = (start + k - 1) % n;
+                if (inside[i] && !inside[prev])
+                {
+                    double from = edge((start + k - 1) * step, (start + k) * step);
+                    int j = k;
+                    while (j <= n && inside[(start + j) % n]) j++;
+                    double to = edge((start + j - 1) * step, (start + j) * step);
+                    res.Add(Tuple.Create(from, to));
+                    k = j;
+                }
+            }
+            // an arc too short for the steps (the circle only just touching the outline) is looked for near the step
+            // closest to inside
+            if (res.Count == 0)
+            {
+                int best = 0;
+                for (int i = 1; i < n; i++) if (f(i * step) < f(best * step)) best = i;
+                double lo = (best - 1) * step, hi = (best + 1) * step;
+                var fine = Enumerable.Range(0, 201).Select(i => lo + (hi - lo) * i / 200).Where(th => f(th) < 0).ToList();
+                if (fine.Count > 0) res.Add(Tuple.Create(fine.First(), fine.Last()));
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// The angles between from and to where f changes sign, found in n steps and refined by bisection. The steps are
+        /// close together near the ends (on the Earth's outline), where a limit is born in a pair with another root that
+        /// runs out to the horizon: the two are only told apart by steps finer than the distance between them.
+        /// </summary>
+        private static List<double> Roots(Func<double, double> f, double from, double to, int n)
+        {
+            var res = new List<double>();
+            const double eps = 1e-9; // just inside the ends, which are on the Earth's outline
+            double a = from + eps, fa = f(a);
+            for (int i = 1; i <= n; i++)
+            {
+                double b = i == n ? to - eps : from + (to - from) * (0.5 - 0.5 * Math.Cos(Math.PI * i / n)), fb = f(b);
+                if (!double.IsNaN(fa) && !double.IsNaN(fb) && (fa < 0) != (fb < 0))
+                {
+                    double lo = a, hi = b, flo = fa;
+                    for (int k = 0; k < 50; k++) { double mid = (lo + hi) / 2, fm = f(mid); if (double.IsNaN(fm)) break; if ((fm < 0) == (flo < 0)) { lo = mid; flo = fm; } else hi = mid; }
+                    res.Add((lo + hi) / 2);
+                }
+                a = b; fa = fb;
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// The lines a function of time traces (it gives the points on them at each moment), over the elements' span: every
+        /// step, halved down to about a second wherever the number of points changes, so each line runs right up to where
+        /// it begins and ends (where it meets the others).
+        /// </summary>
+        private static List<List<GeoPoint>> Sweep(Func<double, List<GeoPoint>> f, double step, CancellationToken ct, double joinDeg, bool closeRings = false)
+        {
+            var tracker = new Tracker();
+            double t0 = -BesselianElements.Span;
+            var prev = f(t0);
+            tracker.Step(prev);
+            for (double t = t0 + step; t <= BesselianElements.Span + 1e-9; t += step)
+            {
+                ct.ThrowIfCancellationRequested();
+                prev = Refine(f, t - step, prev, tb: t, tracker: tracker);
+            }
+            return JoinEnds(tracker.Lines.Where(l => l.Count > 1).ToList(), joinDeg, closeRings).Select(Despike).Where(l => l.Count > 1).ToList();
+        }
+
+        /// <summary>
+        /// A line without the short back-and-forth steps that tracking two nearly equal roots near a fold leaves (a point
+        /// where the line turns back by more than 120° over less than 1° is dropped, until none is left), nor repeated points.
+        /// </summary>
+        private static List<GeoPoint> Despike(List<GeoPoint> line)
+        {
+            var l = new List<GeoPoint>();
+            foreach (var p in line) if (l.Count == 0 || Distance(l[l.Count - 1], p) > 1e-7) l.Add(p);
+            bool changed = true;
+            while (changed && l.Count > 2)
+            {
+                changed = false;
+                for (int i = 1; i + 1 < l.Count; i++)
+                {
+                    double ab = Distance(l[i - 1], l[i]), bc = Distance(l[i], l[i + 1]);
+                    if (Math.Min(ab, bc) >= 1) continue;
+                    double turn = Math.Abs(((Bearing(l[i], l[i + 1]) - Bearing(l[i - 1], l[i])) % 360 + 540) % 360 - 180);
+                    if (turn > 120) { l.RemoveAt(i); changed = true; i--; }
+                }
+            }
+            return l;
+        }
+
+        /// <summary>
+        /// Lines whose ends are within maxDeg of each other joined into one, nearest ends first: near the horizon two
+        /// pieces of one curve can run towards each other in time and meet, which the step-by-step tracking leaves apart.
+        /// </summary>
+        private static List<List<GeoPoint>> JoinEnds(List<List<GeoPoint>> lines, double maxDeg, bool closeRings)
+        {
+            var res = lines.Select(l => l.ToList()).ToList();
+            while (true)
+            {
+                int bi = -1, bj = -1; bool bEndI = false, bEndJ = false; double bd = maxDeg;
+                for (int i = 0; i < res.Count; i++)
+                    for (int j = i + 1; j < res.Count; j++)
+                        foreach (bool ei in new[] { false, true })
+                            foreach (bool ej in new[] { false, true })
+                            {
+                                var a = ei ? res[i][res[i].Count - 1] : res[i][0];
+                                var b = ej ? res[j][res[j].Count - 1] : res[j][0];
+                                double d = Distance(a, b);
+                                if (d < bd) { bd = d; bi = i; bj = j; bEndI = ei; bEndJ = ej; }
+                            }
+                if (bi < 0)
+                {
+                    // a loop whose two ends nearly meet (the tip of a sunrise or sunset curve) is closed
+                    if (closeRings)
+                        foreach (var l in res)
+                            if (l.Count > 10 && Distance(l[0], l[l.Count - 1]) < maxDeg) l.Add(l[0]);
+                    return res;
+                }
+                // line i ending at the joined end, followed by line j starting there
+                var first = res[bi]; var second = res[bj];
+                if (!bEndI) first.Reverse();
+                if (bEndJ) second.Reverse();
+                first.AddRange(second);
+                res.RemoveAt(bj);
+            }
+        }
+
+        /// <summary>Steps the tracker to tb, halving the step where points appear or vanish or move far (fast near the horizon).</summary>
+        private static List<GeoPoint> Refine(Func<double, List<GeoPoint>> f, double ta, List<GeoPoint> pa, double tb, Tracker tracker)
+        {
+            var pb = f(tb);
+            // where a line begins or ends or moves far, down to a hundred-thousandth of a second (near the horizon a tiny
+            // step on the fundamental plane is a long way on the ground: a line rushes inland from it, and is followed)
+            bool appear = pb.Count != pa.Count;
+            bool far = !appear && pb.Any(p => pa.Min(q => Distance(p, q)) > 1);
+            if ((appear || far) && tb - ta > 1 / 3.6e8)
+            {
+                double tm = (ta + tb) / 2;
+                var pm = Refine(f, ta, pa, tm, tracker);
+                return Refine(f, tm, pm, tb, tracker);
+            }
+            tracker.Step(pb);
+            return pb;
+        }
+
+        /// <summary>
+        /// The places on the Earth's limb (the Sun's centre on the horizon) at t hours where the penumbra's edge is (first
+        /// or last contact at sunrise or sunset), or with maxima true where the maximum is (inside the penumbra).
+        /// </summary>
+        private static List<GeoPoint> OnTheLimb(BesselianElements be, double t, bool maxima)
+        {
+            List<GeoPoint> c, m;
+            OnTheLimb(be, t, out c, out m, maxima);
+            return maxima ? m : c;
+        }
+
+        private static void OnTheLimb(BesselianElements be, double t, out List<GeoPoint> contacts, out List<GeoPoint> maxima, bool findMaxima)
+        {
+            double x, y, d, mu, l1, l2, dx, dy, dd, dmu;
+            be.At(t, out x, out y, out d, out mu, out l1, out l2, out dx, out dy, out dd, out dmu);
+            double w = be.LimbOmega(t);
+            Func<double, double> limbX = th => Math.Cos(th), limbY = th => Math.Sin(th) / w;
+            Func<double, double> edge = th => { double ex = limbX(th) - x, ey = limbY(th) - y; return ex * ex + ey * ey - l1 * l1; };
+            Func<double, double> max = th =>
+            {
+                double lat, lon, u, v, a, b, L1, L2, zeta;
+                if (!be.PlaneToEarth(t, limbX(th), limbY(th), out lat, out lon)) return double.NaN;
+                be.Relative(t, lat, lon, out u, out v, out a, out b, out L1, out L2, out zeta);
+                return u * a + v * b;
+            };
+            contacts = new List<GeoPoint>(); maxima = new List<GeoPoint>();
+            // the penumbra reaches the limb only when its centre is within its radius of the outline
+            double r = Math.Sqrt(x * x + y * y);
+            if (r > 1 + l1 + 0.05) return;
+            if (!findMaxima) { foreach (var root in Roots(edge, 720)) Add(be, t, limbX(root), limbY(root), contacts); return; }
+            foreach (var root in Roots(max, 720))
+            {
+                double ex = limbX(root) - x, ey = limbY(root) - y;
+                if (ex * ex + ey * ey < l1 * l1) Add(be, t, limbX(root), limbY(root), maxima);
+            }
+        }
+
+        private static void Add(BesselianElements be, double t, double xi, double eta, List<GeoPoint> to)
+        {
+            double lat, lon;
+            if (be.PlaneToEarth(t, xi, eta, out lat, out lon)) to.Add(new GeoPoint(lat, lon));
+        }
+
+        /// <summary>The angles (0 to 2π) where f changes sign, found in n steps and refined by bisection.</summary>
+        private static List<double> Roots(Func<double, double> f, int n)
+        {
+            var res = new List<double>();
+            double step = 2 * Math.PI / n, a = 0, fa = f(0);
+            for (int i = 1; i <= n; i++)
+            {
+                double b = i * step, fb = f(b);
+                double lo = a, hi = b, flo = fa, fhi = fb;
+                // one end off the Earth: the root may lie between the other end and the Earth's edge, so find the edge
+                if (double.IsNaN(flo) != double.IsNaN(fhi))
+                {
+                    double valid = double.IsNaN(flo) ? hi : lo, invalid = double.IsNaN(flo) ? lo : hi, fv = double.IsNaN(flo) ? fhi : flo;
+                    double edge = valid, fe = fv;
+                    for (int k = 0; k < 40; k++)
+                    {
+                        double mid = (valid + invalid) / 2, fm = f(mid);
+                        if (double.IsNaN(fm)) invalid = mid; else { valid = mid; edge = mid; fe = fm; }
+                    }
+                    if (double.IsNaN(flo)) { lo = edge; flo = fe; } else { hi = edge; fhi = fe; }
+                }
+                if (!double.IsNaN(flo) && !double.IsNaN(fhi) && (flo < 0) != (fhi < 0))
+                {
+                    for (int k = 0; k < 40; k++) { double mid = (lo + hi) / 2, fm = f(mid); if (double.IsNaN(fm)) break; if ((fm < 0) == (flo < 0)) { lo = mid; flo = fm; } else hi = mid; }
+                    res.Add((lo + hi) / 2);
+                }
+                a = b; fa = fb;
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// Builds polylines from points found step by step: each new point continues the line whose last point is nearest
+        /// (within a few degrees), or starts a new one; lines not continued are finished.
+        /// </summary>
+        private sealed class Tracker
+        {
+            private readonly List<List<GeoPoint>> _active = new List<List<GeoPoint>>();
+            public readonly List<List<GeoPoint>> Lines = new List<List<GeoPoint>>();
+            private const double MaxJump = 8;
+
+            public void Step(List<GeoPoint> points)
+            {
+                // each line's next point foreseen from its last two, and the pairing of points with lines that keeps the
+                // total distance from those smallest (lines close together, like the edges of a narrow path, stay apart)
+                var lines = _active.ToList();
+                var predicted = lines.Select(Predict).ToList();
+                int[] best = null; double bestCost = double.MaxValue;
+                foreach (var pairing in Pairings(points.Count, lines.Count))
+                {
+                    double cost = 0; bool ok = true;
+                    for (int i = 0; i < points.Count && ok; i++)
+                    {
+                        if (pairing[i] < 0) { cost += MaxJump; continue; } // a new line costs as much as the longest join
+                        double dd = Distance(predicted[pairing[i]], points[i]);
+                        if (dd > MaxJump) ok = false; else cost += dd;
+                    }
+                    if (ok && cost < bestCost) { bestCost = cost; best = pairing; }
+                }
+                var next = new List<List<GeoPoint>>();
+                for (int i = 0; i < points.Count; i++)
+                {
+                    if (best != null && best[i] >= 0) { lines[best[i]].Add(points[i]); next.Add(lines[best[i]]); }
+                    else { var line = new List<GeoPoint> { points[i] }; Lines.Add(line); next.Add(line); }
+                }
+                _active.Clear(); _active.AddRange(next);
+            }
+
+            private static GeoPoint Predict(List<GeoPoint> line)
+            {
+                var a = line[line.Count - 1];
+                if (line.Count < 2) return a;
+                var b = line[line.Count - 2];
+                double dlon = a.Lon - b.Lon;
+                if (dlon > 180) dlon -= 360; else if (dlon < -180) dlon += 360;
+                return new GeoPoint(Math.Max(-90, Math.Min(90, 2 * a.Lat - b.Lat)), AstroMath.NormalizeDeg180(a.Lon + dlon));
+            }
+
+            /// <summary>Every way to give each of n points a different one of m lines, or none (−1).</summary>
+            private static IEnumerable<int[]> Pairings(int n, int m)
+            {
+                var cur = new int[n];
+                var used = new bool[m];
+                return Fill(0, n, m, cur, used);
+            }
+
+            private static IEnumerable<int[]> Fill(int i, int n, int m, int[] cur, bool[] used)
+            {
+                if (i == n) { yield return (int[])cur.Clone(); yield break; }
+                cur[i] = -1;
+                foreach (var p in Fill(i + 1, n, m, cur, used)) yield return p;
+                for (int j = 0; j < m; j++)
+                {
+                    if (used[j]) continue;
+                    used[j] = true; cur[i] = j;
+                    foreach (var p in Fill(i + 1, n, m, cur, used)) yield return p;
+                    used[j] = false;
+                }
+            }
         }
 
         /// <summary>The edge of the central path from a point of the central line along a bearing (degrees), within 1000 km.</summary>
@@ -203,6 +640,7 @@ namespace Sidralune.Core.Ephemeris
                 var sub = SubLunar(c.Item2, out radius);
                 map.SubLunar.Add(Tuple.Create(c.Item1, sub));
                 circles.Add(Tuple.Create(sub, radius));
+                map.MoonUp.Add(Tuple.Create(c.Item1, sub, radius));
                 if (c.Item1 == "MAX") continue;
                 var line = new EclipseLine { Kind = EclipseLineKind.MoonHorizon, Label = c.Item1 };
                 var ring = new List<GeoPoint>();
@@ -213,6 +651,7 @@ namespace Sidralune.Core.Ephemeris
             // the whole eclipse visible where the Moon is up at its first and last contact (umbral, or penumbral for a penumbral eclipse)
             var phase = contacts.Where(c => c.Item1 != "MAX").ToList();
             var first = phase.Any(c => c.Item1 == "U1") ? "U1" : "P1"; var last = phase.Any(c => c.Item1 == "U4") ? "U4" : "P4";
+            map.WholeFrom = first; map.WholeTo = last;
             map.Visibility = new byte[180, 360];
             for (int r = 0; r < 180; r++)
                 for (int col = 0; col < 360; col++)
@@ -294,7 +733,17 @@ namespace Sidralune.Core.Ephemeris
                 var cur = new List<GeoPoint>();
                 for (int i = 0; i < p.Count; i++)
                 {
-                    if (cur.Count > 0 && Math.Abs(p[i].Lon - cur[cur.Count - 1].Lon) > 180) { if (cur.Count > 1) res.Add(cur); cur = new List<GeoPoint>(); }
+                    if (cur.Count > 0 && Math.Abs(p[i].Lon - cur[cur.Count - 1].Lon) > 180)
+                    {
+                        // both pieces run right up to the date line, so no gap is left there
+                        var a = cur[cur.Count - 1]; var b = p[i];
+                        double edge = a.Lon > 0 ? 180 : -180, bLon = b.Lon + (a.Lon > 0 ? 360 : -360);
+                        double k = (edge - a.Lon) / (bLon - a.Lon);
+                        double lat = a.Lat + k * (b.Lat - a.Lat);
+                        cur.Add(new GeoPoint(lat, edge));
+                        if (cur.Count > 1) res.Add(cur);
+                        cur = new List<GeoPoint> { new GeoPoint(lat, -edge) };
+                    }
                     cur.Add(p[i]);
                 }
                 if (cur.Count > 1) res.Add(cur);
