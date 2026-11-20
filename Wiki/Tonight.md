@@ -71,7 +71,7 @@ The next 30 events over the coming weeks:
 - the next lunar and solar eclipses within about a year,
 - peaks of the major meteor showers within 90 days, with their ZHR.
 
-Times are local. For more detail on eclipses, occultations and meteors, see [Solar system](Solar-system).
+The list starts at the time shown in the header, so it moves with the time you set like the other cards. While the time runs on its own, it is refreshed when you come back to Tonight after more than five minutes away. Times are local. For more detail on eclipses, occultations and meteors, see [Solar system](Solar-system).
 
 ## Jupiter's moons
 

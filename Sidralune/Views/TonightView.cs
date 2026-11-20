@@ -67,7 +67,8 @@ namespace Sidralune.Views
                 g.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0 && ((DataGridView)s).Rows[e.RowIndex].Tag is SelectedObject) MainForm.Instance.ShowObject((SelectedObject)((DataGridView)s).Rows[e.RowIndex].Tag); };
             _targets.Subtitle = T("double-click to show in the sky chart");
             AppState.SiteChanged += (s, e) => Refresh(true);
-            AppState.TimeChanged += (s, e) => Refresh(false);
+            // a time the user sets also moves Coming up (about 0.1 s more); the minute timer leaves it to the 5-minute refresh
+            AppState.TimeChanged += (s, e) => Refresh(true);
             CatalogManager.Instance.CatalogsChanged += (s, e) => { if (IsHandleCreated) BeginInvoke(new Action(() => Refresh(true))); };
             MinorBodyStore.Instance.Changed += (s, e) => { if (IsHandleCreated) BeginInvoke(new Action(() => Refresh(true))); };
             var t = new Timer { Interval = 60000 };

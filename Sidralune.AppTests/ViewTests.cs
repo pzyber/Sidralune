@@ -90,6 +90,42 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestTonightComingUpFollowsTime()
+        {
+            // Coming up lists the events after the time the user sets, like the other cards, not those after the time the tab opened
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var start = new DateTime(2026, 11, 20, 12, 0, 0, DateTimeKind.Utc);
+            var form = OnUi(() => new Form { StartPosition = FormStartPosition.Manual, Location = new Point(-3000, 0), ShowInTaskbar = false, Size = new Size(1500, 900) });
+            try
+            {
+                var view = OnUi(() =>
+                {
+                    AppState.SetTime(Core.Time.AstroTime.FromDateTime(start));
+                    var v = new Sidralune.Views.TonightView { Dock = DockStyle.Fill };
+                    form.Controls.Add(v);
+                    form.Show();
+                    typeof(Sidralune.Views.TonightView).GetMethod("Refresh", bf, null, new[] { typeof(bool) }, null).Invoke(v, new object[] { true });
+                    return v;
+                });
+                var grid = Field<DataGridView>(view, "_eventGrid");
+                Func<string> first = () => OnUi(() => grid.Rows.Count > 0 ? (string)grid.Rows[0].Cells[0].Value : null);
+                CheckTrue("Coming up lists events", WaitFor(() => first() != null, 60000));
+                string before = first();
+
+                var later = start.AddDays(60);
+                OnUi(() => AppState.SetTime(Core.Time.AstroTime.FromDateTime(later)));
+                CheckTrue("Coming up changes with the time", WaitFor(() => first() != before, 60000), before);
+                // the first event is now after the new time ("Tue 19 Jan 04:12", in the site's time zone and the language's month names)
+                var local = OnUi(() => AppState.Site.ToLocal(later));
+                string when = first();
+                var parsed = DateTime.ParseExact(when.Substring(when.IndexOf(' ') + 1) + " " + local.Year, "dd MMM HH:mm yyyy", Core.Util.Lang.DateNames);
+                if (parsed < local.AddDays(-1)) parsed = parsed.AddYears(1);
+                CheckTrue("Coming up starts after the new time", parsed >= local.AddMinutes(-1) && parsed < local.AddDays(400), when + " after " + local);
+            }
+            finally { OnUi(() => { form.Close(); AppState.GoLive(); }); }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;
