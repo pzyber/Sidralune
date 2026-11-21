@@ -123,15 +123,61 @@ namespace Sidralune.UI
             if (!string.IsNullOrEmpty(Icon))
             {
                 var isz = TextRenderer.MeasureText(Icon, Theme.IconFont);
-                int ix = hasText ? x : (Width - isz.Width) / 2 + 2;
-                TextRenderer.DrawText(g, Icon, Theme.IconFont, new Point(ix, (Height - isz.Height) / 2 + 1), fg, TextFormatFlags.NoPadding);
-                x = ix + isz.Width + 2;
+                if (hasText)
+                {
+                    TextRenderer.DrawText(g, Icon, Theme.IconFont, new Point(x, (Height - isz.Height) / 2 + 1), fg, TextFormatFlags.NoPadding);
+                    x += isz.Width + 2;
+                }
+                else
+                {
+                    // alone, the glyph's own ink is put in the middle: the font's spacing round it is not even
+                    var ink = InkOf(Icon, Theme.IconFont, g);
+                    TextRenderer.DrawText(g, Icon, Theme.IconFont, new Point((Width - ink.Width) / 2 - ink.X, (Height - ink.Height) / 2 - ink.Y), fg, TextFormatFlags.NoPadding);
+                }
             }
             if (hasText)
             {
                 var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis | (string.IsNullOrEmpty(Icon) ? TextFormatFlags.HorizontalCenter : TextFormatFlags.Left);
                 var tr = string.IsNullOrEmpty(Icon) ? new Rectangle(0, 0, Width, Height) : new Rectangle(x, 0, Width - x - 4, Height);
                 TextRenderer.DrawText(g, Text, Font, tr, fg, flags);
+            }
+        }
+
+        private static readonly Dictionary<string, Rectangle> _inks = new Dictionary<string, Rectangle>();
+
+        /// <summary>
+        /// Where a glyph's ink is when drawn at (0, 0) without padding, at the DPI of g: found once by drawing it, then kept.
+        /// </summary>
+        private static Rectangle InkOf(string glyph, Font font, Graphics g)
+        {
+            string key = glyph + "|" + font.Name + "|" + font.SizeInPoints + "|" + g.DpiX + "|" + g.DpiY;
+            lock (_inks)
+            {
+                Rectangle ink;
+                if (_inks.TryGetValue(key, out ink)) return ink;
+                var sz = TextRenderer.MeasureText(glyph, font, Size.Empty, TextFormatFlags.NoPadding);
+                const int m = 4;
+                ink = new Rectangle(0, 0, sz.Width, sz.Height);
+                using (var bmp = new Bitmap(sz.Width + 2 * m, sz.Height + 2 * m, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+                {
+                    bmp.SetResolution(g.DpiX, g.DpiY);
+                    using (var bg = Graphics.FromImage(bmp))
+                    {
+                        bg.Clear(Color.White);
+                        TextRenderer.DrawText(bg, glyph, font, new Point(m, m), Color.Black, Color.White, TextFormatFlags.NoPadding);
+                    }
+                    int x0 = int.MaxValue, y0 = int.MaxValue, x1 = -1, y1 = -1;
+                    for (int y = 0; y < bmp.Height; y++)
+                        for (int x = 0; x < bmp.Width; x++)
+                        {
+                            var c = bmp.GetPixel(x, y);
+                            if (c.R + c.G + c.B > 3 * 160) continue; // background, or the faintest edge of anti-aliasing
+                            x0 = Math.Min(x0, x); x1 = Math.Max(x1, x); y0 = Math.Min(y0, y); y1 = Math.Max(y1, y);
+                        }
+                    if (x1 >= 0) ink = new Rectangle(x0 - m, y0 - m, x1 - x0 + 1, y1 - y0 + 1);
+                }
+                _inks[key] = ink;
+                return ink;
             }
         }
 
