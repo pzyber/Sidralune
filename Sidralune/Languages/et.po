@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Liida märgitud kaadrid"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Näita liidetud pilti"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Salvesta liidetud pilt…"
 

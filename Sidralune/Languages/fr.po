@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Empiler les images cochées"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Afficher l’image empilée"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Enregistrer l'image empilée…"
 

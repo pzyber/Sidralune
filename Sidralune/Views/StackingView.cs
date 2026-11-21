@@ -38,7 +38,7 @@ namespace Sidralune.Views
         {
             var left = new Panel { Dock = DockStyle.Left, Width = 240, Padding = new Padding(0, 0, 8, 0), AutoScroll = true };
             var actions = new FlowLayoutPanel { Dock = DockStyle.Top, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true };
-            Action<string, string, Action, ButtonKind> act = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Width = 225, Kind = k, Margin = new Padding(0, 0, 0, 4) }; actions.Controls.Add(b); };
+            Func<string, string, Action, ButtonKind, FlatButton> act = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Width = 225, Kind = k, Margin = new Padding(0, 0, 0, 4) }; actions.Controls.Add(b); return b; };
             actions.Controls.Add(Header(T("Frames")));
             act(T("Light frames…"), Icons.Open, () => AddFiles(FrameKind.Light), ButtonKind.Normal);
             act(T("Dark frames…"), Icons.Open, () => AddFiles(FrameKind.Dark), ButtonKind.Normal);
@@ -58,8 +58,13 @@ namespace Sidralune.Views
             act(T("Mark comet in selected frame"), Icons.Comet, () => { _markComet = true; MainForm.Instance.Toast(T("Click the comet nucleus in the preview")); }, ButtonKind.Subtle);
             act(T("Use selected as reference"), Icons.Star, UseAsReference, ButtonKind.Subtle);
             act(T("Stack checked frames"), Icons.Stack, Stack, ButtonKind.Primary);
-            act(T("Save stacked image…"), Icons.Save, SaveResult, ButtonKind.Normal);
-            act(T("Open in Process"), Icons.Process, () => { if (_result != null) { MainForm.Instance.Navigate("processing"); MainForm.Instance.GetView<ProcessingView>("processing")?.OpenImage(CurrentResult(), T("Stacked image")); } }, ButtonKind.Subtle);
+            // these act on the stacked image: greyed out until there is one (and while a job runs)
+            _resultButtons = new[]
+            {
+                act(T("Show stacked image"), Icons.Eye, ShowResult, ButtonKind.Normal),
+                act(T("Save stacked image…"), Icons.Save, SaveResult, ButtonKind.Normal),
+                act(T("Open in Process"), Icons.Process, OpenResultInProcess, ButtonKind.Subtle),
+            };
             left.Controls.Add(actions);
 
             _grid.ReadOnly = false;
@@ -108,7 +113,8 @@ namespace Sidralune.Views
             // Stop, after Stack checked frames, ends registering or stacking; the other actions wait for the job
             var stop = _job.StopButton(n => n == T("Registering") || n == T("Stacking"));
             stop.Width = 225; stop.Margin = new Padding(0, 0, 0, 4);
-            _job.Guard(actions.Controls.Cast<Control>().Concat(new Control[] { post }).ToArray());
+            _job.Guard(actions.Controls.Cast<Control>().Except(_resultButtons).Concat(new Control[] { post }).ToArray());
+            UpdateResultButtons();
             actions.Controls.Add(stop);
             actions.Controls.SetChildIndex(stop, actions.Controls.IndexOf(actions.Controls.OfType<FlatButton>().First(b => b.Text == T("Stack checked frames"))) + 1);
             _job.Changed += () =>
@@ -117,6 +123,7 @@ namespace Sidralune.Views
                 // the frame list stays visible for previews, but its check boxes wait for the job
                 _grid.ReadOnly = _job.Busy;
                 if (!_job.Busy) for (int i = 0; i < _grid.Columns.Count; i++) _grid.Columns[i].ReadOnly = i > 0;
+                UpdateResultButtons();
             };
             var right = new Panel { Dock = DockStyle.Right, Width = 340, Padding = new Padding(8, 0, 0, 0) };
             right.Controls.Add(settingsCard);
@@ -287,6 +294,7 @@ namespace Sidralune.Views
             {
                 _result = result;
                 _resultBase = result.Image;
+                UpdateResultButtons();
                 _black.Value = 0; _mid.Value = 50; _sat.Value = 100;
                 _viewer.SetImage(_result.Image);
                 RefreshGrid();
@@ -313,6 +321,41 @@ namespace Sidralune.Views
             var img = CurrentResult();
             _viewer.Stretch = _black.Value == 0 && _mid.Value == 50 ? DisplayStretch.AutoLinked : DisplayStretch.None;
             _viewer.SetImage(img, false);
+        }
+
+        /// <summary>
+        /// The stacked image back in the viewer after looking at frames, with its adjustments; the frame selection is
+        /// cleared so it is plain what is shown, and selecting any frame previews it again.
+        /// </summary>
+        public void ShowResult()
+        {
+            if (_resultBase == null) { MainForm.Instance.Toast(T("Nothing stacked yet"), Icons.Warning); return; }
+            _filling = true;
+            try { _grid.ClearSelection(); }
+            finally { _filling = false; }
+            _previewFrame = null; // the frame that was shown can be selected again
+            ApplyPost();
+        }
+
+        /// <summary>The stacked image is what the viewer shows (tests).</summary>
+        public bool ShowingResult => _viewer.Image != null && _viewer.Image != _preview && _resultBase != null;
+
+        private FlatButton[] _resultButtons;
+
+        /// <summary>Show, Save and Open in Process: usable when there is a stacked image and no job is running.</summary>
+        private void UpdateResultButtons()
+        {
+            if (_resultButtons == null) return;
+            bool on = _resultBase != null && !_job.Busy;
+            foreach (var b in _resultButtons) b.Enabled = on;
+        }
+
+        private void OpenResultInProcess()
+        {
+            var img = CurrentResult();
+            if (img == null) { MainForm.Instance.Toast(T("Nothing stacked yet"), Icons.Warning); return; }
+            MainForm.Instance.Navigate("processing");
+            MainForm.Instance.GetView<ProcessingView>("processing")?.OpenImage(img, T("Stacked image"));
         }
 
         private void SaveResult()

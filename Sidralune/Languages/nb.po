@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Stable merkede bilder"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Vis stablet bilde"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Lagre stablet bilde…"
 

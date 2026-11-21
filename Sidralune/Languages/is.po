@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Stafla hökuðum myndum"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Sýna staflaða mynd"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Vista staflaða mynd…"
 

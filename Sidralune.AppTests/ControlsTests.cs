@@ -130,6 +130,86 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestDisabledChecksStayVisible()
+        {
+            // a check box that cannot be changed (a read-only grid while Deep sky registers, a disabled check box) still shows
+            // whether it is checked, by day and at night; enabled ones are unchanged
+            bool night = OnUi(() => Theme.Current.IsNight);
+            try
+            {
+                foreach (bool n in new[] { false, true })
+                {
+                    OnUi(() => Theme.SetNightMode(n));
+                    Func<bool, bool, Bitmap> draw = (isChecked, enabled) => OnUi(() =>
+                    {
+                        var bmp = new Bitmap(24, 24);
+                        using (var g = Graphics.FromImage(bmp))
+                        {
+                            g.Clear(Theme.Current.Surface);
+                            Theme.DrawCheckGlyph(g, new Rectangle(4, 4, 15, 15), isChecked, enabled);
+                        }
+                        return bmp;
+                    });
+                    // how much a checked box's tick stands out from an unchecked box (summed colour difference inside the box)
+                    Func<bool, double> contrast = enabled =>
+                    {
+                        using (var on = draw(true, enabled))
+                        using (var off = draw(false, enabled))
+                        {
+                            double sum = 0;
+                            for (int y = 6; y < 18; y++)
+                                for (int x = 6; x < 18; x++)
+                                {
+                                    Color a = on.GetPixel(x, y), b = off.GetPixel(x, y);
+                                    sum += Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);
+                                }
+                            return sum / (12 * 12 * 3);
+                        }
+                    };
+                    double enabledDiff = contrast(true), disabledDiff = contrast(false);
+                    CheckTrue((n ? "Night" : "Day") + ": a disabled checked box looks checked", disabledDiff > 15, disabledDiff.ToString("0.0"));
+                    CheckTrue((n ? "Night" : "Day") + ": an enabled checked box still stands out more", enabledDiff > disabledDiff, enabledDiff.ToString("0.0") + " / " + disabledDiff.ToString("0.0"));
+                }
+            }
+            finally { OnUi(() => Theme.SetNightMode(night)); }
+        }
+
+        [TestMethod]
+        public void TestGridRedrawnWhenReadOnlyChanges()
+        {
+            // a grid's tick boxes are drawn greyed while it (or their column) is read-only; when that changes, the whole grid
+            // is redrawn, not only some cells (Deep sky's frame list showed a mix while registering)
+            var result = OnUi(() =>
+            {
+                using (var form = new Form { ShowInTaskbar = false, Size = new Size(400, 300), StartPosition = FormStartPosition.Manual, Location = new Point(-2000, 0) })
+                {
+                    var grid = Ui.Grid();
+                    grid.Dock = DockStyle.Fill;
+                    grid.ReadOnly = false; // editable to begin with, as Deep sky's frame list (grids start read-only)
+                    grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "On" });
+                    grid.Columns.Add("Name", "Name");
+                    form.Controls.Add(grid);
+                    Theme.Apply(form);
+                    form.Show();
+                    for (int i = 0; i < 5; i++) grid.Rows.Add(true, "Frame " + i);
+                    Application.DoEvents();
+                    var whole = new List<string>();
+                    InvalidateEventHandler h = (s, e) => { if (e.InvalidRect.Contains(grid.ClientRectangle)) whole.Add("redrawn"); };
+                    grid.Invalidated += h;
+                    var steps = new List<string>();
+                    Action<string, Action> step = (name, a) => { whole.Clear(); a(); steps.Add(name + (whole.Count > 0 ? ": redrawn" : ": NOT redrawn")); };
+                    step("grid read-only", () => grid.ReadOnly = true);
+                    step("grid editable", () => grid.ReadOnly = false);
+                    step("column read-only", () => grid.Columns[0].ReadOnly = true);
+                    step("column editable", () => grid.Columns[0].ReadOnly = false);
+                    grid.Invalidated -= h;
+                    return steps;
+                }
+            });
+            CheckTrue("The whole grid redrawn when it or its tick-box column turns read-only or editable", result.All(s => s.EndsWith(": redrawn")), string.Join(" | ", result));
+        }
+
+        [TestMethod]
         public void TestIconButtonsCentred()
         {
             // a button with only an icon has the icon in its middle, whatever the glyph's own spacing (the map's zoom, fit,

@@ -7477,6 +7477,10 @@ msgid "Stack checked frames"
 msgstr "Stivuiește cadrele bifate"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Arată imaginea stivuită"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Salvează imaginea stivuită…"
 

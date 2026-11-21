@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Aangevinkte opnamen stapelen"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Gestapelde afbeelding tonen"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Gestapelde afbeelding opslaan…"
 

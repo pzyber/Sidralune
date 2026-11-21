@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Bejelölt képek összeadása"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Összeadott kép megjelenítése"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Összeadott kép mentése…"
 

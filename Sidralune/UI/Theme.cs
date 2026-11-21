@@ -795,8 +795,12 @@ namespace Sidralune.UI
             var p = Current;
             var old = g.SmoothingMode;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using (var fill = new SolidBrush(isChecked && enabled ? p.Accent : p.SurfaceRaised))
-            using (var pen = new Pen(isChecked && enabled ? p.Accent : (enabled ? p.TextDim : p.TextFaint)))
+            // checked: filled in the accent with a tick in its text colour; checked but disabled (a read-only grid while a job
+            // runs): filled in the faint text colour with the tick in the box colour, so it still reads as checked
+            Color fillColor = isChecked ? (enabled ? p.Accent : p.TextFaint) : p.SurfaceRaised;
+            Color tickColor = enabled ? p.AccentText : p.SurfaceRaised;
+            using (var fill = new SolidBrush(fillColor))
+            using (var pen = new Pen(isChecked ? fillColor : (enabled ? p.TextDim : p.TextFaint)))
             {
                 if (radio)
                 {
@@ -809,7 +813,7 @@ namespace Sidralune.UI
                     g.FillRectangle(fill, box);
                     g.DrawRectangle(pen, box);
                     if (isChecked)
-                        using (var tick = new Pen(p.AccentText, Math.Max(1.6f, box.Width / 7f)))
+                        using (var tick = new Pen(tickColor, Math.Max(1.6f, box.Width / 7f)))
                             g.DrawLines(tick, new[] { new PointF(box.X + box.Width * 0.22f, box.Y + box.Height * 0.52f), new PointF(box.X + box.Width * 0.42f, box.Y + box.Height * 0.72f), new PointF(box.X + box.Width * 0.78f, box.Y + box.Height * 0.3f) });
                 }
             }
@@ -941,6 +945,11 @@ namespace Sidralune.UI
             // a click on a tick box changes its value at once: the grid would otherwise keep the edit, and show the old
             // tick, until another cell is chosen
             g.CurrentCellDirtyStateChanged += (s, e) => { if (g.IsCurrentCellDirty && g.CurrentCell is DataGridViewCheckBoxCell) g.CommitEdit(DataGridViewDataErrorContexts.Commit); };
+            // tick boxes are drawn greyed when the grid or their column is read-only (a frame list while a job runs); the
+            // grid redraws only some cells when that changes, leaving the rest as they were until each is redrawn, so all of
+            // it is redrawn then
+            g.ReadOnlyChanged += (s, e) => g.Invalidate();
+            g.ColumnStateChanged += (s, e) => { if (e.StateChanged == DataGridViewElementStates.ReadOnly) g.Invalidate(); };
             // cells hold text, which sorts alphabetically ("9.2" after "14.0", "-04:25" after "+19:24"); numbers, angles and
             // times sort by value instead, and empty cells come after them
             g.SortCompare += (s, e) =>
