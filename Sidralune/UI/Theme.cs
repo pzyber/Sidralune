@@ -795,8 +795,12 @@ namespace Sidralune.UI
             var p = Current;
             var old = g.SmoothingMode;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            using (var fill = new SolidBrush(isChecked && enabled ? p.Accent : p.SurfaceRaised))
-            using (var pen = new Pen(isChecked && enabled ? p.Accent : (enabled ? p.TextDim : p.TextFaint)))
+            // checked: filled in the accent with a tick in its text colour; checked but disabled (a read-only grid while a job
+            // runs): filled in the faint text colour with the tick in the box colour, so it still reads as checked
+            Color fillColor = isChecked ? (enabled ? p.Accent : p.TextFaint) : p.SurfaceRaised;
+            Color tickColor = enabled ? p.AccentText : p.SurfaceRaised;
+            using (var fill = new SolidBrush(fillColor))
+            using (var pen = new Pen(isChecked ? fillColor : (enabled ? p.TextDim : p.TextFaint)))
             {
                 if (radio)
                 {
@@ -809,7 +813,7 @@ namespace Sidralune.UI
                     g.FillRectangle(fill, box);
                     g.DrawRectangle(pen, box);
                     if (isChecked)
-                        using (var tick = new Pen(p.AccentText, Math.Max(1.6f, box.Width / 7f)))
+                        using (var tick = new Pen(tickColor, Math.Max(1.6f, box.Width / 7f)))
                             g.DrawLines(tick, new[] { new PointF(box.X + box.Width * 0.22f, box.Y + box.Height * 0.52f), new PointF(box.X + box.Width * 0.42f, box.Y + box.Height * 0.72f), new PointF(box.X + box.Width * 0.78f, box.Y + box.Height * 0.3f) });
                 }
             }

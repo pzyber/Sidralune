@@ -130,6 +130,51 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestDisabledChecksStayVisible()
+        {
+            // a check box that cannot be changed (a read-only grid while Deep sky registers, a disabled check box) still shows
+            // whether it is checked, by day and at night; enabled ones are unchanged
+            bool night = OnUi(() => Theme.Current.IsNight);
+            try
+            {
+                foreach (bool n in new[] { false, true })
+                {
+                    OnUi(() => Theme.SetNightMode(n));
+                    Func<bool, bool, Bitmap> draw = (isChecked, enabled) => OnUi(() =>
+                    {
+                        var bmp = new Bitmap(24, 24);
+                        using (var g = Graphics.FromImage(bmp))
+                        {
+                            g.Clear(Theme.Current.Surface);
+                            Theme.DrawCheckGlyph(g, new Rectangle(4, 4, 15, 15), isChecked, enabled);
+                        }
+                        return bmp;
+                    });
+                    // how much a checked box's tick stands out from an unchecked box (summed colour difference inside the box)
+                    Func<bool, double> contrast = enabled =>
+                    {
+                        using (var on = draw(true, enabled))
+                        using (var off = draw(false, enabled))
+                        {
+                            double sum = 0;
+                            for (int y = 6; y < 18; y++)
+                                for (int x = 6; x < 18; x++)
+                                {
+                                    Color a = on.GetPixel(x, y), b = off.GetPixel(x, y);
+                                    sum += Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B);
+                                }
+                            return sum / (12 * 12 * 3);
+                        }
+                    };
+                    double enabledDiff = contrast(true), disabledDiff = contrast(false);
+                    CheckTrue((n ? "Night" : "Day") + ": a disabled checked box looks checked", disabledDiff > 15, disabledDiff.ToString("0.0"));
+                    CheckTrue((n ? "Night" : "Day") + ": an enabled checked box still stands out more", enabledDiff > disabledDiff, enabledDiff.ToString("0.0") + " / " + disabledDiff.ToString("0.0"));
+                }
+            }
+            finally { OnUi(() => Theme.SetNightMode(night)); }
+        }
+
+        [TestMethod]
         public void TestIconButtonsCentred()
         {
             // a button with only an icon has the icon in its middle, whatever the glyph's own spacing (the map's zoom, fit,
