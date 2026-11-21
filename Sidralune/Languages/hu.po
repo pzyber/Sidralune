@@ -343,6 +343,30 @@ msgstr "Holdnyugta"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Mintegy 7300 település, amelyek neve nagyításkor méret szerint jelenik meg a fogyatkozási térképen."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "A világ domborzata (ETOPO1, 1 ívperc)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "A szárazföld magassága mindenhol, körülbelül 1,85 km-enként, így a fogyatkozási térképen kijelölt hely begépelés nélkül megkapja a magasságát."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "A Hold domborzata (LRO LOLA, fokonként 16 képpont)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Magasságok a Holdon körülbelül 1,9 km-enként a teljes vagy gyűrűs szakasz kezdetéhez és végéhez, a Hold peremének hegyeivel és völgyeivel (a holdperem-profil)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "A Hold domborzata (LRO LOLA, fokonként 64 képpont)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Ugyanez körülbelül 0,47 km-enként a részletesebb holdperem-profilhoz; telepítve a fokonként 16 képpontos helyett használja."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Hozzáadás helyként"
@@ -375,9 +399,13 @@ msgstr "Szélesség és hosszúság, pl. 58.4887, 13.3348 vagy 58°29′N 13°20
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Ez nem olvasható helyként. Pl. 58.4887, 13.3348 vagy 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "forrás: {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} hozzáadva a helyeihez: állítsa be az időzónát és a magasságot a Beállítások → Hely alatt"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} hozzáadva a helyeihez: állítsa be a nevét és az időzónát a Beállítások → Hely alatt"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "A fogyatkozás egy része a horizont fölötti Holddal"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "A sáv szélessége {0:0} km · {1:0} km a központi vonaltól"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(átlagos perem: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(átlagos perem {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Holdperem-profil: LRO LOLA, fokonként {0} képpont"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

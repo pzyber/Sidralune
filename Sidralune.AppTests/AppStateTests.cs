@@ -176,6 +176,27 @@ namespace Sidralune.AppTests
             c.Cts.Cancel();
             CheckTrue("A cancelled task ends without the success call", WaitFor(() => c.Done) && c.Status == "Cancelled" && !cancelledDone);
             CheckTrue("Finished tasks leave the running list", WaitFor(() => { lock (Tasks.Running) return !Tasks.Running.Contains(t) && !Tasks.Running.Contains(f) && !Tasks.Running.Contains(c); }));
+
+            // progress reported thousands of times while the interface is busy (a fast download reports every 64 KB): the
+            // updates do not queue up behind each other, and the last progress is what is shown
+            int shown = 0, mostWaiting = 0;
+            Action count = () => shown++;
+            Tasks.Changed += count;
+            try
+            {
+                var busy = new ManualResetEventSlim();
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                long freedAt = 0;
+                App.BeginInvoke(new Action(() => { busy.Set(); Thread.Sleep(1500); freedAt = clock.ElapsedMilliseconds; })); // the interface held up for 1.5 s
+                busy.Wait();
+                var flood = new BackgroundTask { Name = "Flood" };
+                for (int i = 1; i <= 5000; i++) { Tasks.Report(flood, i / 5000.0, "chunk"); mostWaiting = Math.Max(mostWaiting, Tasks.ReportsWaiting); }
+                OnUi(() => 0); // the interface answers as soon as it is free
+                long late = clock.ElapsedMilliseconds - freedAt;
+                CheckTrue("5000 progress reports: one waits at a time and the interface answers at once", mostWaiting == 1 && late < 200 && WaitFor(() => Tasks.ReportsWaiting == 0) && shown <= 3 && flood.Progress == 1,
+                    "waiting " + mostWaiting + ", shown " + shown + ", answered " + late + " ms after it was free");
+            }
+            finally { Tasks.Changed -= count; }
             int failedToasts = Toasts().Count(x => x.StartsWith("Quiet failure failed"));
             Tasks.Run("Quiet failure", bt => { throw new Exception("shown"); });
             CheckTrue("A failure without a handler is shown as a notification", WaitFor(() => Toasts().Count(x => x.StartsWith("Quiet failure failed: shown")) > failedToasts));

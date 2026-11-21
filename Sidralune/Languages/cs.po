@@ -347,6 +347,30 @@ msgstr "Západ Měsíce"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Asi 7 300 obydlených míst, pojmenovaných na mapě zatmění podle velikosti při přibližování."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Nadmořská výška světa (ETOPO1, 1 úhlová minuta)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Výška pevniny všude, po zhruba 1,85 km, takže místo kliknuté na mapě zatmění dostane svou nadmořskou výšku bez zadávání."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografie Měsíce (LRO LOLA, 16 pixelů na stupeň)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Výšky na Měsíci po zhruba 1,9 km pro začátek a konec úplné nebo prstencové fáze s horami a údolími na okraji Měsíce (profil měsíčního okraje)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografie Měsíce (LRO LOLA, 64 pixelů na stupeň)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Totéž po zhruba 0,47 km pro podrobnější profil měsíčního okraje; je-li nainstalováno, použije se místo verze s 16 pixely na stupeň."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Přidat jako místo"
@@ -379,9 +403,13 @@ msgstr "Zeměpisná šířka a délka, např. 58.4887, 13.3348 nebo 58°29′N 1
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Toto nelze přečíst jako místo. Např. 58.4887, 13.3348 nebo 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "z {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} přidáno k vašim místům: nastavte časové pásmo a nadmořskou výšku v Nastavení → Poloha"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} přidáno k vašim místům: nastavte název a časové pásmo v Nastavení → Poloha"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -446,6 +474,18 @@ msgstr "Část zatmění s Měsícem nad obzorem"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Šířka pásu {0:0} km · {1:0} km od centrální čáry"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(střední okraj: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(střední okraj {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profil měsíčního okraje: LRO LOLA, {0} pixelů na stupeň"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

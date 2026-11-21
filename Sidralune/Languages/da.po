@@ -343,6 +343,30 @@ msgstr "Månenedgang"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Omkring 7.300 byer og bebyggelser, navngivet på formørkelseskortet efter størrelse, når du zoomer ind."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Højder i hele verden (ETOPO1, 1 bueminut)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Landets højde overalt med ca. 1,85 km mellemrum, så et sted, der klikkes på formørkelseskortet, får sin højde uden at den skal tastes ind."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Månens topografi (LRO LOLA, 16 pixel pr. grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Højder på Månen med ca. 1,9 km mellemrum, til begyndelsen og slutningen af den totale eller ringformede fase med bjergene og dalene på Månens rand (månerandprofilen)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Månens topografi (LRO LOLA, 64 pixel pr. grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Det samme med ca. 0,47 km mellemrum for en mere detaljeret månerandprofil; bruges i stedet for den med 16 pixel pr. grad, når den er installeret."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Tilføj som sted"
@@ -375,9 +399,13 @@ msgstr "Bredde- og længdegrad, f.eks. 58.4887, 13.3348 eller 58°29′N 13°20�
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Det kan ikke læses som et sted. Prøv 58.4887, 13.3348 eller 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "fra {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} er føjet til dine steder: angiv tidszone og højde i Indstillinger → Sted"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} er føjet til dine steder: angiv navn og tidszone i Indstillinger → Sted"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "En del af formørkelsen med Månen over horisonten"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Stribens bredde {0:0} km · {1:0} km fra centrallinjen"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(middelrand: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(middelrand {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Månerandprofil: LRO LOLA, {0} pixel pr. grad"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

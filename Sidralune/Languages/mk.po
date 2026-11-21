@@ -343,6 +343,30 @@ msgstr "Залез на Месечината"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Околу 7.300 населени места, именувани на картата на затемнувањата според големината кога зумирате."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Надморски височини во светот (ETOPO1, 1 лачна минута)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Височината на копното насекаде, на околу 1,85 km растојание, така што место кликнато на картата на затемнувањето ја добива својата надморска височина без внесување."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Топографија на Месечината (LRO LOLA, 16 пиксели по степен)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Височини на Месечината на околу 1,9 km растојание, за почетокот и крајот на целосната или прстенестата фаза со планините и долините на работ на Месечината (профилот на месечевиот раб)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Топографија на Месечината (LRO LOLA, 64 пиксели по степен)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Истото на околу 0,47 km растојание, за подетален профил на месечевиот раб; кога е инсталирано, се користи наместо она со 16 пиксели по степен."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Додај како место"
@@ -375,9 +399,13 @@ msgstr "Географска ширина и должина, на пр. 58.4887,
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Не може да се прочита како место. На пр. 58.4887, 13.3348 или 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "од {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} е додадено во вашите места: поставете временска зона и надморска височина во Поставки → Локација"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} е додадено во вашите места: поставете име и временска зона во Поставки → Локација"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Дел од затемнувањето со Месечината над 
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Ширина на појасот {0:0} km · {1:0} km од централната линија"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(среден раб: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(среден раб {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Профил на месечевиот раб: LRO LOLA, {0} пиксели по степен"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

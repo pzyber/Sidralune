@@ -347,6 +347,30 @@ msgstr "Mėnulio nusileidimas"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Apie 7300 gyvenviečių, kurių pavadinimai užtemimų žemėlapyje rodomi pagal dydį, kai didinate."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Pasaulio aukščiai (ETOPO1, 1 lanko minutė)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Sausumos aukštis visur maždaug kas 1,85 km, kad užtemimo žemėlapyje spustelėta vieta gautų savo aukštį jo neįvedant."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Mėnulio topografija (LRO LOLA, 16 pikselių laipsniui)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Mėnulio aukščiai maždaug kas 1,9 km visiškos ar žiedinės fazės pradžiai ir pabaigai su kalnais ir slėniais Mėnulio krašte (Mėnulio krašto profilis)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Mėnulio topografija (LRO LOLA, 64 pikselių laipsniui)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Tas pats maždaug kas 0,47 km tikslesniam Mėnulio krašto profiliui; įdiegus naudojama vietoj 16 pikselių laipsniui versijos."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Pridėti kaip vietą"
@@ -379,9 +403,13 @@ msgstr "Platuma ir ilguma, pvz., 58.4887, 13.3348 arba 58°29′N 13°20′E"
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Neatpažinta kaip vieta. Pvz., 58.4887, 13.3348 arba 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "iš {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} pridėta prie jūsų vietų: nustatykite laiko juostą ir aukštį skiltyje Nustatymai → Vieta"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} pridėta prie jūsų vietų: nustatykite pavadinimą ir laiko juostą skiltyje Nustatymai → Vieta"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -446,6 +474,18 @@ msgstr "Dalis užtemimo, kai Mėnulis virš horizonto"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Juostos plotis {0:0} km · {1:0} km nuo centrinės linijos"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(vidutinis kraštas: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(vidutinis kraštas {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Mėnulio krašto profilis: LRO LOLA, {0} pikselių laipsniui"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

@@ -602,6 +602,7 @@ namespace Sidralune.Views
             _eclMap = new EclipseMap { Dock = DockStyle.Fill };
             _eclMap.PlaceClicked += ShowPlace;
             _eclMap.AddSiteClicked += AddEclipseSite;
+            _eclMap.ElevationChanged += ShowPlace;
             var outer = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Vertical, SplitterWidth = 6 };
             outer.Panel1.Controls.Add(split);
             outer.Panel2.Controls.Add(_eclMap);
@@ -655,26 +656,38 @@ namespace Sidralune.Views
             Func<string, AstroTime, double, double, string> row = null;
             int nameWidth = 0;
             var rows = new List<Tuple<string, AstroTime, double, double>>();
+            double elevation = _eclMap.ElevationFor(p);
+            LunarLimb limb = null;
             if (data.Solar)
             {
-                var l = data.Elements.Local(p.Lat, p.Lon);
+                limb = LunarLimb.Current;
+                var l = data.Elements.Local(p.Lat, p.Lon, elevation, limb);
                 if (!l.Covers) { sb.Append(T("No eclipse here")); _eclMap.ShowInfo(p, sb.ToString()); return; }
-                sb.AppendLine(AstroEvents.EclipseTypeName(true, l.Kind) + (l.Visible ? "" : " · " + T("Not visible")));
-                if (l.Kind != 0) sb.AppendLine((l.Kind == 1 ? T("Duration of totality: {0}", Duration(l.CentralSeconds)) : T("Duration of annularity: {0}", Duration(l.CentralSeconds))));
+                // with the Moon's real edge (its topography installed) the total or annular phase follows it, the mean limb's
+                // in brackets
+                bool real = l.LimbCorrected;
+                int kind = real ? l.KindLimb : l.Kind;
+                double seconds = real ? l.LimbSeconds : l.CentralSeconds;
+                var c2 = real ? l.C2Limb : l.C2; var c3 = real ? l.C3Limb : l.C3;
+                sb.AppendLine(AstroEvents.EclipseTypeName(true, kind) + (real && kind != l.Kind ? " " + T("(mean limb: {0})", AstroEvents.EclipseTypeName(true, l.Kind)) : "") + (l.Visible ? "" : " · " + T("Not visible")));
+                if (kind != 0)
+                    sb.AppendLine((kind == 1 ? T("Duration of totality: {0}", Duration(seconds)) : T("Duration of annularity: {0}", Duration(seconds)))
+                        + (real && l.Kind == kind ? " " + T("(mean limb {0})", Duration(l.CentralSeconds)) : ""));
                 sb.AppendLine(T("Magnitude") + " " + F(l.Magnitude, "0.0000") + "  ·  " + T("Sun covered") + " " + F(l.Obscuration * 100, "0.0") + "%");
                 double width, fromCentral;
                 if (EclipseGeometry.PathAt(data, p, out width, out fromCentral))
                     sb.AppendLine(T("Path width {0:0} km · {1:0} km from the central line", width, fromCentral));
                 Action<string, SolarContact> add = (name, c) => { if (c != null) rows.Add(Tuple.Create(name, c.Time, c.Altitude, c.Azimuth)); };
                 add(T("Partial eclipse begins"), l.C1);
-                add(l.Kind == 1 ? T("Total eclipse begins") : T("Annular eclipse begins"), l.C2);
+                add(kind == 1 ? T("Total eclipse begins") : T("Annular eclipse begins"), kind != 0 ? c2 : null);
                 add(T("Maximum eclipse"), l.Maximum);
-                add(l.Kind == 1 ? T("Total eclipse ends") : T("Annular eclipse ends"), l.C3);
+                add(kind == 1 ? T("Total eclipse ends") : T("Annular eclipse ends"), kind != 0 ? c3 : null);
                 add(T("Partial eclipse ends"), l.C4);
+                if (!real) limb = null;
             }
             else
             {
-                var o = new Observer { Name = "", LatitudeDeg = p.Lat, LongitudeDeg = p.Lon, ElevationM = 0 };
+                var o = new Observer { Name = "", LatitudeDeg = p.Lat, LongitudeDeg = p.Lon, ElevationM = elevation };
                 var phases = AstroEvents.LunarEclipsePhases(o, data.Greatest);
                 bool up = phases.Any(x => x.Altitude > -0.3);
                 sb.AppendLine(AstroEvents.EclipseTypeName(false, SelectedEclipse?.Kind ?? 0) + (up ? "" : " · " + T("Not visible")));
@@ -689,6 +702,7 @@ namespace Sidralune.Views
             sb.AppendLine();
             sb.AppendLine("".PadRight(nameWidth) + T("Time (UTC)").PadRight(13) + T("Altitude").PadLeft(7) + T("Azimuth").PadLeft(9));
             foreach (var r in rows) sb.AppendLine(row(r.Item1, r.Item2, r.Item3, r.Item4));
+            if (limb != null) { sb.AppendLine(); sb.AppendLine(T("Lunar limb profile: LRO LOLA, {0} pixels per degree", limb.PixelsPerDegree)); }
             _eclMap.ShowInfo(p, sb.ToString().TrimEnd());
         }
 
@@ -697,10 +711,10 @@ namespace Sidralune.Views
         /// <summary>A clicked place added to the observing sites, opened in Settings to set its name, time zone and elevation.</summary>
         private void AddEclipseSite(GeoPoint p)
         {
-            var site = new Observer { Name = T("Eclipse site"), LatitudeDeg = Math.Round(p.Lat, 5), LongitudeDeg = Math.Round(p.Lon, 5), ElevationM = 0, TimeZoneId = AppState.Site.TimeZoneId };
+            var site = new Observer { Name = T("Eclipse site"), LatitudeDeg = Math.Round(p.Lat, 5), LongitudeDeg = Math.Round(p.Lon, 5), ElevationM = Math.Round(_eclMap.ElevationFor(p)), TimeZoneId = AppState.Site.TimeZoneId };
             AppState.Settings.Sites.Add(site);
             AppState.Save();
-            MainForm.Instance.Toast(T("Added {0} to your sites: set its time zone and elevation in Settings → Location", site.Name));
+            MainForm.Instance.Toast(T("Added {0} to your sites: set its name and time zone in Settings → Location", site.Name));
             MainForm.Instance.Navigate("settings");
             MainForm.Instance.GetView<SettingsView>("settings")?.ShowSite(AppState.Settings.Sites.Count - 1);
         }

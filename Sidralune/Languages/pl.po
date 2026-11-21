@@ -347,6 +347,30 @@ msgstr "Zachód Księżyca"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Około 7300 miejscowości, podpisanych na mapie zaćmień według wielkości, gdy przybliżasz."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Wysokości na świecie (ETOPO1, 1 minuta kątowa)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Wysokość lądu wszędzie, co około 1,85 km, dzięki czemu miejsce kliknięte na mapie zaćmienia dostaje swoją wysokość bez wpisywania."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografia Księżyca (LRO LOLA, 16 pikseli na stopień)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Wysokości na Księżycu co około 1,9 km, dla początku i końca fazy całkowitej lub obrączkowej z górami i dolinami na brzegu Księżyca (profil brzegu Księżyca)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografia Księżyca (LRO LOLA, 64 piksele na stopień)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "To samo co około 0,47 km, dla dokładniejszego profilu brzegu Księżyca; po zainstalowaniu używane zamiast wersji z 16 pikselami na stopień."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Dodaj jako miejsce"
@@ -379,9 +403,13 @@ msgstr "Szerokość i długość geograficzna, np. 58.4887, 13.3348 lub 58°29�
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Nie można odczytać jako miejsca. Np. 58.4887, 13.3348 lub 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "z {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} dodano do twoich miejsc: ustaw strefę czasową i wysokość w Ustawienia → Lokalizacja"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} dodano do twoich miejsc: ustaw nazwę i strefę czasową w Ustawienia → Lokalizacja"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -446,6 +474,18 @@ msgstr "Część zaćmienia z Księżycem nad horyzontem"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Szerokość pasa {0:0} km · {1:0} km od linii centralnej"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(średni brzeg: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(średni brzeg {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profil brzegu Księżyca: LRO LOLA, {0} pikseli na stopień"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"
