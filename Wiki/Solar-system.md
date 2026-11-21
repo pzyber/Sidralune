@@ -151,7 +151,7 @@ The times above treat the Moon as a smooth ball, the "mean limb" most prediction
 
 The 16 pixels per degree data (33 MB) gives heights about 1.9 km apart, good for contacts to about half a second; the 64 pixels per degree data (531 MB download) is more detailed and is used when installed. The map's lines stay the mean-limb ones. See [Algorithms and accuracy](Algorithms-and-accuracy).
 
-The map works offline with a built-in Natural Earth world at 1:110 million. For more detail, install the **World map** datasets (land, lakes, borders, and cities and towns) in **Settings → Data**; see [Data and catalogues](Data-and-catalogues). The lines come from Besselian elements fitted to the same ephemeris as the rest of Sidralune; with DE440s installed, contacts agree with Xavier Jubier's mean-limb predictions within about a second. See [Algorithms and accuracy](Algorithms-and-accuracy).
+The map works offline with a built-in Natural Earth world at 1:110 million. For more detail, install the **World map** datasets (land, lakes, borders, and cities and towns) in **Settings → Data**; see [Data and catalogues](Data-and-catalogues). The lines come from Besselian elements fitted to the same ephemeris as the rest of Sidralune. See [Algorithms and accuracy](Algorithms-and-accuracy).
 
 ## Occultations
 
