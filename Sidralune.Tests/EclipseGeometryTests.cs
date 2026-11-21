@@ -225,6 +225,30 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestSiteMaximumAsMap()
+        {
+            // a site's maximum in the eclipse list and its phases is the eclipse map's (closest to the shadow's axis), to the
+            // tenth of a second shown: a partial eclipse, where the centres looking closest comes seconds apart, and a total one
+            var cases = new[]
+            {
+                new { Day = new DateTime(2027, 8, 2), Site = new Observer { Name = "Stockholm", LatitudeDeg = 59.33, LongitudeDeg = 18.07, ElevationM = 30 } },
+                new { Day = new DateTime(2026, 8, 12), Site = new Observer { Name = "Reykjavík", LatitudeDeg = 64.15, LongitudeDeg = -21.94, ElevationM = 20 } },
+            };
+            foreach (var c in cases)
+            {
+                var g = Greatest(c.Day.Year, c.Day.Month, c.Day.Day);
+                CheckTrue("A solar eclipse on " + c.Day.ToString("yyyy-MM-dd"), g.HasValue);
+                if (!g.HasValue) continue;
+                var map = BesselianElements.Compute(g.Value).Local(c.Site.LatitudeDeg, c.Site.LongitudeDeg, c.Site.ElevationM);
+                var site = Events.SolarEclipseAt(c.Site, g.Value);
+                var phase = Events.SolarEclipsePhases(c.Site, g.Value).FirstOrDefault(p => p.Name == "Maximum eclipse");
+                double dList = (site.Maximum.JdTT - map.Maximum.Time.JdTT) * 86400, dPhase = phase == null ? double.NaN : (phase.Time.JdTT - map.Maximum.Time.JdTT) * 86400;
+                CheckTrue(c.Site.Name + " " + c.Day.ToString("yyyy-MM-dd") + ": the list's and the phases' maximum are the map's", site.Covers && Math.Abs(dList) < 0.05 && Math.Abs(dPhase) < 0.05,
+                    dList.ToString("0.000") + " / " + dPhase.ToString("0.000") + " s");
+            }
+        }
+
+        [TestMethod]
         public void TestParsePlace()
         {
             // a place as people copy it from map sites and elsewhere, for Go to coordinates on the eclipse map
