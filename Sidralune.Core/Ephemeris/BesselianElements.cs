@@ -417,6 +417,10 @@ namespace Sidralune.Core.Ephemeris
         public double Altitude, Azimuth;
         /// <summary>The Sun's upper limb is above the horizon (refraction included).</summary>
         public bool SunUp => Altitude > Events.SunStandardAltitude;
+
+        /// <summary>The Sun's altitude as seen, with atmospheric refraction (degrees), as the phase lists show it.</summary>
+        public double ApparentAltitude(double pressureHpa = 1010, double tempC = 10) =>
+            Altitude + Transforms.RefractionFromTrue(Altitude * AstroMath.Deg2Rad, pressureHpa, tempC) * AstroMath.Rad2Deg;
     }
 
     /// <summary>A solar eclipse at one place on the Earth, from the Besselian elements.</summary>

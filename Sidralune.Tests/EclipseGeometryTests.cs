@@ -225,27 +225,54 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
-        public void TestSiteMaximumAsMap()
+        public void TestSiteAsMap()
         {
-            // a site's maximum in the eclipse list and its phases is the eclipse map's (closest to the shadow's axis), to the
-            // tenth of a second shown: a partial eclipse, where the centres looking closest comes seconds apart, and a total one
-            var cases = new[]
+            // a site's eclipse in the eclipse list and its phases is the eclipse map's, to the tenth of a second shown: every
+            // contact, the maximum (closest to the shadow's axis, seconds from the centres looking closest in a shallow
+            // partial eclipse), the total or annular phase (with the umbral radius, not the Moon's mean one), the type and
+            // magnitude, and the Sun's altitude with refraction; for a total, a partial and an annular eclipse
+            Core.Ephemeris.LunarLimb.UseInstalled = false; // the same with the Moon's topography installed or not
+            try
             {
-                new { Day = new DateTime(2027, 8, 2), Site = new Observer { Name = "Stockholm", LatitudeDeg = 59.33, LongitudeDeg = 18.07, ElevationM = 30 } },
-                new { Day = new DateTime(2026, 8, 12), Site = new Observer { Name = "Reykjavík", LatitudeDeg = 64.15, LongitudeDeg = -21.94, ElevationM = 20 } },
-            };
-            foreach (var c in cases)
-            {
-                var g = Greatest(c.Day.Year, c.Day.Month, c.Day.Day);
-                CheckTrue("A solar eclipse on " + c.Day.ToString("yyyy-MM-dd"), g.HasValue);
-                if (!g.HasValue) continue;
-                var map = BesselianElements.Compute(g.Value).Local(c.Site.LatitudeDeg, c.Site.LongitudeDeg, c.Site.ElevationM);
-                var site = Events.SolarEclipseAt(c.Site, g.Value);
-                var phase = Events.SolarEclipsePhases(c.Site, g.Value).FirstOrDefault(p => p.Name == "Maximum eclipse");
-                double dList = (site.Maximum.JdTT - map.Maximum.Time.JdTT) * 86400, dPhase = phase == null ? double.NaN : (phase.Time.JdTT - map.Maximum.Time.JdTT) * 86400;
-                CheckTrue(c.Site.Name + " " + c.Day.ToString("yyyy-MM-dd") + ": the list's and the phases' maximum are the map's", site.Covers && Math.Abs(dList) < 0.05 && Math.Abs(dPhase) < 0.05,
-                    dList.ToString("0.000") + " / " + dPhase.ToString("0.000") + " s");
+                var cases = new[]
+                {
+                    new { Day = new DateTime(2026, 8, 12), Site = new Observer { Name = "Reykjavík", LatitudeDeg = 64.15, LongitudeDeg = -21.94, ElevationM = 20 } },
+                    new { Day = new DateTime(2027, 8, 2), Site = new Observer { Name = "Luxor", LatitudeDeg = 25.69, LongitudeDeg = 32.64, ElevationM = 80 } },
+                    new { Day = new DateTime(2027, 8, 2), Site = new Observer { Name = "Stockholm", LatitudeDeg = 59.33, LongitudeDeg = 18.07, ElevationM = 30 } },
+                    new { Day = new DateTime(2028, 1, 26), Site = new Observer { Name = "Ecuador", LatitudeDeg = -1.0, LongitudeDeg = -80.4, ElevationM = 10 } },
+                    new { Day = new DateTime(2027, 2, 6), Site = new Observer { Name = "Chile", LatitudeDeg = -40.0, LongitudeDeg = -73.5, ElevationM = 100 } },
+                };
+                foreach (var c in cases)
+                {
+                    var g = Greatest(c.Day.Year, c.Day.Month, c.Day.Day);
+                    CheckTrue("A solar eclipse on " + c.Day.ToString("yyyy-MM-dd"), g.HasValue);
+                    if (!g.HasValue) continue;
+                    string tag = c.Site.Name + " " + c.Day.ToString("yyyy-MM-dd") + ": ";
+                    var map = BesselianElements.Compute(g.Value).Local(c.Site.LatitudeDeg, c.Site.LongitudeDeg, c.Site.ElevationM);
+                    var site = Events.SolarEclipseAt(c.Site, g.Value);
+                    var phases = Events.SolarEclipsePhases(c.Site, g.Value);
+                    Func<string, EclipsePhase> named = n => phases.FirstOrDefault(p => p.Name == n);
+                    string central = map.Kind == 2 ? "Annular eclipse" : "Total eclipse";
+                    var pairs = new[]
+                    {
+                        Tuple.Create("Partial eclipse begins", map.C1), Tuple.Create(central + " begins", map.C2), Tuple.Create("Maximum eclipse", map.Maximum),
+                        Tuple.Create(central + " ends", map.C3), Tuple.Create("Partial eclipse ends", map.C4),
+                    };
+                    var off = new List<string>();
+                    foreach (var pr in pairs)
+                    {
+                        var ph = named(pr.Item1);
+                        if (pr.Item2 == null && ph == null) continue;
+                        if (pr.Item2 == null || ph == null) { off.Add(pr.Item1 + " only in " + (ph == null ? "the map" : "the list")); continue; }
+                        double dt = (ph.Time.JdTT - pr.Item2.Time.JdTT) * 86400, dalt = ph.Altitude - pr.Item2.ApparentAltitude(c.Site.PressureHpa, c.Site.TemperatureC);
+                        if (Math.Abs(dt) > 0.05 || Math.Abs(dalt) > 0.05) off.Add(string.Format("{0} {1:+0.000;-0.000} s, altitude {2:+0.000;-0.000}°", pr.Item1, dt, dalt));
+                    }
+                    CheckTrue(tag + "every phase and its altitude as on the map", site.Covers && off.Count == 0, string.Join(" | ", off));
+                    CheckTrue(tag + "the type, start, end and magnitude as on the map", site.Kind == map.Kind && Math.Abs((site.Start.Value.JdTT - map.C1.Time.JdTT) * 86400) < 0.05 && Math.Abs((site.End.Value.JdTT - map.C4.Time.JdTT) * 86400) < 0.05 && Math.Abs(site.Magnitude - map.Magnitude) < 1e-6,
+                        site.Kind + " / " + map.Kind + ", magnitude " + site.Magnitude.ToString("0.0000") + " / " + map.Magnitude.ToString("0.0000"));
+                }
             }
+            finally { Core.Ephemeris.LunarLimb.UseInstalled = true; }
         }
 
         [TestMethod]

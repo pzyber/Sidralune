@@ -677,7 +677,11 @@ namespace Sidralune.Views
                 double width, fromCentral;
                 if (EclipseGeometry.PathAt(data, p, out width, out fromCentral))
                     sb.AppendLine(T("Path width {0:0} km · {1:0} km from the central line", width, fromCentral));
-                Action<string, SolarContact> add = (name, c) => { if (c != null) rows.Add(Tuple.Create(name, c.Time, c.Altitude, c.Azimuth)); };
+                // altitudes as seen, with refraction, as in the phases list: with the site's pressure and temperature at the
+                // site, standard ones elsewhere
+                bool atSite = p.Lat == AppState.Site.LatitudeDeg && p.Lon == AppState.Site.LongitudeDeg;
+                double hpa = atSite ? AppState.Site.PressureHpa : 1010, tc = atSite ? AppState.Site.TemperatureC : 10;
+                Action<string, SolarContact> add = (name, c) => { if (c != null) rows.Add(Tuple.Create(name, c.Time, c.ApparentAltitude(hpa, tc), c.Azimuth)); };
                 add(T("Partial eclipse begins"), l.C1);
                 add(kind == 1 ? T("Total eclipse begins") : T("Annular eclipse begins"), kind != 0 ? c2 : null);
                 add(T("Maximum eclipse"), l.Maximum);
