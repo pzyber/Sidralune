@@ -58,6 +58,7 @@ namespace Sidralune.Views
             act(T("Mark comet in selected frame"), Icons.Comet, () => { _markComet = true; MainForm.Instance.Toast(T("Click the comet nucleus in the preview")); }, ButtonKind.Subtle);
             act(T("Use selected as reference"), Icons.Star, UseAsReference, ButtonKind.Subtle);
             act(T("Stack checked frames"), Icons.Stack, Stack, ButtonKind.Primary);
+            act(T("Show stacked image"), Icons.Eye, ShowResult, ButtonKind.Normal);
             act(T("Save stacked image…"), Icons.Save, SaveResult, ButtonKind.Normal);
             act(T("Open in Process"), Icons.Process, () => { if (_result != null) { MainForm.Instance.Navigate("processing"); MainForm.Instance.GetView<ProcessingView>("processing")?.OpenImage(CurrentResult(), T("Stacked image")); } }, ButtonKind.Subtle);
             left.Controls.Add(actions);
@@ -314,6 +315,23 @@ namespace Sidralune.Views
             _viewer.Stretch = _black.Value == 0 && _mid.Value == 50 ? DisplayStretch.AutoLinked : DisplayStretch.None;
             _viewer.SetImage(img, false);
         }
+
+        /// <summary>
+        /// The stacked image back in the viewer after looking at frames, with its adjustments; the frame selection is
+        /// cleared so it is plain what is shown, and selecting any frame previews it again.
+        /// </summary>
+        public void ShowResult()
+        {
+            if (_resultBase == null) { MainForm.Instance.Toast(T("Nothing stacked yet"), Icons.Warning); return; }
+            _filling = true;
+            try { _grid.ClearSelection(); }
+            finally { _filling = false; }
+            _previewFrame = null; // the frame that was shown can be selected again
+            ApplyPost();
+        }
+
+        /// <summary>The stacked image is what the viewer shows (tests).</summary>
+        public bool ShowingResult => _viewer.Image != null && _viewer.Image != _preview && _resultBase != null;
 
         private void SaveResult()
         {

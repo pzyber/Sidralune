@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Mblidh kuadrot e shënuara"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Shfaq imazhin e mbledhur"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Ruaj imazhin e mbledhur…"
 

@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Собери ги штиклираните кадри"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Прикажи ја собраната слика"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Зачувај ја собраната слика…"
 

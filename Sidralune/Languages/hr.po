@@ -7477,6 +7477,10 @@ msgid "Stack checked frames"
 msgstr "Složi označene snimke"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Prikaži složenu sliku"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Spremi složenu sliku…"
 

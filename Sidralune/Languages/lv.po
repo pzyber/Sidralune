@@ -7477,6 +7477,10 @@ msgid "Stack checked frames"
 msgstr "Sakraut atzīmētos kadrus"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Rādīt sakrauto attēlu"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Saglabāt sakrauto attēlu…"
 

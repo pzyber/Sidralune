@@ -243,6 +243,43 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestShowStackedImage()
+        {
+            // after stacking, a frame selected in the list is previewed in place of the stacked image; Show stacked image
+            // brings it back (with its adjustments) and clears the selection, so any frame can be previewed again
+            var stacking = View<StackingView>("stacking");
+            var viewer = Field<ImageViewer>(stacking, "_viewer");
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var type = typeof(StackingView);
+            var resultBefore = OnUi(() => type.GetField("_resultBase", bf).GetValue(stacking));
+            try
+            {
+                OnUi(() => type.GetField("_resultBase", bf).SetValue(stacking, null));
+                OnUi(() => Button(stacking, "Show stacked image").PerformClick());
+                CheckTrue("Nothing stacked yet: said so", WaitFor(() => Toasts().Any(t => t.StartsWith("Nothing stacked yet"))));
+
+                AstroImage stacked = Stars(11), frame = Stars(12);
+                OnUi(() =>
+                {
+                    type.GetField("_resultBase", bf).SetValue(stacking, stacked);
+                    type.GetField("_preview", bf).SetValue(stacking, frame);
+                    viewer.SetImage(frame); // a frame previewed after stacking
+                });
+                CheckTrue("A frame previewed in place of the stacked image", OnUi(() => viewer.Image == frame && !stacking.ShowingResult));
+                var buttons = OnUi(() => Button(stacking, "Stack checked frames").Parent.Controls.Cast<Control>().ToList());
+                CheckTrue("Show stacked image after Stop, before Save stacked image", OnUi(() =>
+                {
+                    int show = buttons.IndexOf(Button(stacking, "Show stacked image")), save = buttons.IndexOf(Button(stacking, "Save stacked image…")), stop = buttons.IndexOf(Button(stacking, "Stop"));
+                    return show > stop && show < save && Button(stacking, "Show stacked image").Enabled;
+                }));
+                OnUi(() => Button(stacking, "Show stacked image").PerformClick());
+                CheckTrue("Show stacked image: the stacked image back, no frame selected", OnUi(() => viewer.Image == stacked && stacking.ShowingResult && Field<DataGridView>(stacking, "_grid").SelectedRows.Count == 0
+                    && type.GetField("_previewFrame", bf).GetValue(stacking) == null));
+            }
+            finally { OnUi(() => type.GetField("_resultBase", bf).SetValue(stacking, resultBefore)); }
+        }
+
+        [TestMethod]
         public void TestOtherWorkspacesWaitForTheirJobs()
         {
             var stacking = View<StackingView>("stacking");

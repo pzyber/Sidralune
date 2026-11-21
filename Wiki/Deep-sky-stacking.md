@@ -211,6 +211,7 @@ The stacked image is linear (unstretched) 32-bit floating point data. The previe
 
 | Button | Action |
 |---|---|
+| **Show stacked image** | Bring the stacked image back into view, with its adjustments, after clicking a frame in the list to preview it. The frame selection is cleared, so any frame can be previewed again |
 | **Save stacked image…** | Save as 32-bit FITS (`Autosave.fits` by default), XISF or TIFF to keep the full data, or as PNG or JPEG with the preview stretch applied |
 | **Open in Process** | Send the result to the [Process](Image-processing) workspace for background extraction, stretching and so on |
 

@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Imagines notatas acerva"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Imaginem acervatam monstra"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Imaginem acervatam serva…"
 

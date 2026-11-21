@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Сумиране на отметнатите кадри"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Показване на сумираното изображение"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Запазване на сумираното изображение…"
 

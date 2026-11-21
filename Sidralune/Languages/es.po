@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Apilar tomas marcadas"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Mostrar imagen apilada"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Guardar imagen apilada…"
 

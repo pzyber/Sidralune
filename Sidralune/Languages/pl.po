@@ -7477,6 +7477,10 @@ msgid "Stack checked frames"
 msgstr "Składaj zaznaczone klatki"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Pokaż złożony obraz"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Zapisz złożony obraz…"
 

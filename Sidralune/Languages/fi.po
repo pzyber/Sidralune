@@ -7448,6 +7448,10 @@ msgid "Stack checked frames"
 msgstr "Pinoa valitut kuvat"
 
 #: Sidralune/Views/StackingView.cs
+msgid "Show stacked image"
+msgstr "Näytä pinottu kuva"
+
+#: Sidralune/Views/StackingView.cs
 msgid "Save stacked image…"
 msgstr "Tallenna pinottu kuva…"
 
