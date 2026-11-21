@@ -130,6 +130,41 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestIconButtonsCentred()
+        {
+            // a button with only an icon has the icon in its middle, whatever the glyph's own spacing (the map's zoom, fit,
+            // go-to, close and copy buttons, the planner's small buttons)
+            var icons = new[] { Icons.Zoom, Icons.ZoomOut, Icons.Fit, Icons.Target, Icons.Close, Icons.Copy, Icons.Add, Icons.Remove, Icons.Settings };
+            foreach (var size in new[] { new Size(32, 32), new Size(30, 30), new Size(34, 30) })
+                foreach (var icon in icons)
+                {
+                    string off = OnUi(() =>
+                    {
+                        using (var b = new FlatButton { Icon = icon, Size = size })
+                        using (var bmp = new Bitmap(size.Width, size.Height))
+                        {
+                            b.DrawToBitmap(bmp, new Rectangle(Point.Empty, size));
+                            // the glyph: pixels unlike the button's face, inside its border
+                            var face = bmp.GetPixel(size.Width / 2, 3);
+                            int x0 = int.MaxValue, x1 = -1, y0 = int.MaxValue, y1 = -1;
+                            for (int y = 3; y < size.Height - 3; y++)
+                                for (int x = 3; x < size.Width - 3; x++)
+                                {
+                                    var c = bmp.GetPixel(x, y);
+                                    if (Math.Abs(c.R - face.R) + Math.Abs(c.G - face.G) + Math.Abs(c.B - face.B) < 90) continue;
+                                    x0 = Math.Min(x0, x); x1 = Math.Max(x1, x); y0 = Math.Min(y0, y); y1 = Math.Max(y1, y);
+                                }
+                            if (x1 < 0) return "no glyph drawn";
+                            // the space left and right of the glyph, and above and below, differ by at most a pixel
+                            int dx = (x0 - 0) - (size.Width - 1 - x1), dy = (y0 - 0) - (size.Height - 1 - y1);
+                            return Math.Abs(dx) <= 1 && Math.Abs(dy) <= 1 ? null : string.Format("glyph at {0}–{1} × {2}–{3} in {4}×{5}: {6:+0;-0} px across, {7:+0;-0} px down", x0, x1, y0, y1, size.Width, size.Height, dx / 2.0, dy / 2.0);
+                        }
+                    });
+                    CheckTrue(string.Format("Icon U+{0:X4} centred in a {1}×{2} button", (int)icon[0], size.Width, size.Height), off == null, off);
+                }
+        }
+
+        [TestMethod]
         public void TestLayoutControls()
         {
             OnUi(() =>
