@@ -403,6 +403,18 @@ msgstr "Kann ikki lesast sum eitt stað. T.d. 58.4887, 13.3348 ella 58°29′N 1
 msgid "from {0}"
 msgstr "frá {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Títt stað"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Títt stað: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "títt stað"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} er lagt afturat tínum støðum: set navn og tíðarzonu í Stillingar → Staður"

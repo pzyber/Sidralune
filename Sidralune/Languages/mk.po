@@ -403,6 +403,18 @@ msgstr "Не може да се прочита како место. На пр. 5
 msgid "from {0}"
 msgstr "од {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Вашето место"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Вашето место: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "вашето место"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} е додадено во вашите места: поставете име и временска зона во Поставки → Локација"

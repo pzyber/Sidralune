@@ -403,6 +403,18 @@ msgstr "Nuk lexohet si vend. P.sh. 58.4887, 13.3348 ose 58°29′N 13°20′E"
 msgid "from {0}"
 msgstr "nga {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Vendi juaj"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Vendi juaj: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "vendi juaj"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} u shtua te vendet tuaja: caktoni emrin dhe zonën kohore te Cilësimet → Vendndodhja"

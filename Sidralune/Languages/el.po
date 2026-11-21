@@ -403,6 +403,18 @@ msgstr "Δεν αναγνωρίζεται ως τόπος. Π.χ. 58.4887, 13.33
 msgid "from {0}"
 msgstr "από {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Η τοποθεσία σας"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Η τοποθεσία σας: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "η τοποθεσία σας"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "Το {0} προστέθηκε στις τοποθεσίες σας: ορίστε όνομα και ζώνη ώρας στις Ρυθμίσεις → Τοποθεσία"

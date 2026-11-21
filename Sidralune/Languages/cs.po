@@ -407,6 +407,18 @@ msgstr "Toto nelze přečíst jako místo. Např. 58.4887, 13.3348 nebo 58°29�
 msgid "from {0}"
 msgstr "z {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Vaše místo"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Vaše místo: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "vaše místo"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} přidáno k vašim místům: nastavte název a časové pásmo v Nastavení → Poloha"

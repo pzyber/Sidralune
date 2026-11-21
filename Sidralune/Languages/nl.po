@@ -403,6 +403,18 @@ msgstr "Niet te lezen als plaats. Bijvoorbeeld 58.4887, 13.3348 of 58°29′N 13
 msgid "from {0}"
 msgstr "uit {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Je locatie"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Je locatie: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "je locatie"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} is toegevoegd aan je locaties: stel naam en tijdzone in bij Instellingen → Locatie"

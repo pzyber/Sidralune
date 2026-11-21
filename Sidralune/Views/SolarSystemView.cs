@@ -630,7 +630,7 @@ namespace Sidralune.Views
         private readonly JobSlot _eclMapJob = new JobSlot();
         private readonly Dictionary<double, EclipseMapData> _eclMaps = new Dictionary<double, EclipseMapData>();
 
-        private void MarkSite() { if (_eclMap == null || _eclMap.IsDisposed) return; _eclMap.Site = new GeoPoint(AppState.Site.LatitudeDeg, AppState.Site.LongitudeDeg); _eclMap.SiteName = AppState.Site.Name; _eclMap.Invalidate(); }
+        private void MarkSite() { if (_eclMap == null || _eclMap.IsDisposed) return; _eclMap.Site = new GeoPoint(AppState.Site.LatitudeDeg, AppState.Site.LongitudeDeg); _eclMap.SiteName = AppState.Site.Name; _eclMap.SiteElevation = AppState.Site.ElevationM; _eclMap.Invalidate(); }
 
         /// <summary>The selected eclipse's lines on the map, worked out in the background the first time.</summary>
         private void ShowEclipseMap(EclipseInfo x)
