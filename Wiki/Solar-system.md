@@ -7,6 +7,7 @@ The **Solar sys.** workspace gathers everything about the Sun's family: ephemeri
 - [Planets & moons](#planets--moons)
 - [Eclipses](#eclipses)
   - [The eclipse map](#the-eclipse-map)
+    - [The Moon's real edge](#the-moons-real-edge)
 - [Occultations](#occultations)
 - [Meteors](#meteors)
 - [Satellites](#satellites)
@@ -127,6 +128,7 @@ The map beside the list shows where the selected eclipse can be seen, for planni
 - **Add as site** in the box adds the place to your observing sites and opens it in **Settings → Location**, where you name it and set its time zone and elevation (it starts at 0 m, since the map has no terrain).
 - **Open in Google Maps** shows the place in Google Maps in your web browser, to look at roads, terrain or where to stay. The place is sent to Google only when you click it.
 - **Copy** (the button after it) puts the latitude and longitude on the clipboard in decimal degrees, such as `58.488667, 13.334811`.
+- **Elevation (m)** is the place's height, which moves the contacts a little (up to about a second at 1,000–2,000 m). It is 0 to begin with, or the land's height there when **World elevation (ETOPO1)** is installed in **Settings → Data** ("from ETOPO1" beside it). Type another value and the eclipse is worked out again for it; **Add as site** uses it too. ETOPO1's heights are about 1.85 km apart, so on mountains they can be a few hundred metres off, a tenth of a second or two. The map's lines, the path width and the distance from the central line are for sea level.
 
 **Go to coordinates** (the fourth button, under **Whole eclipse**, or Ctrl+G) opens a field for a latitude and longitude. Press Enter or **Go**, and the map moves there, zooms in and shows the eclipse at that place, as if you had clicked it. If the clipboard holds a place, the field starts with it. You can also click the map and press Ctrl+V to go straight to a place on the clipboard. The field reads the forms that places are usually copied in:
 
@@ -139,6 +141,15 @@ The map beside the list shows where the selected eclipse can be seen, for planni
 | A map link with the place in it | a Google Maps link with `@58.4887,13.3348` or `query=58.4887,13.3348`, or `geo:58.4887,13.3348` |
 
 Without letters, latitude comes first and south and west are negative. Besides N, S, E and W, the compass letters of the interface language are read too, such as Ö and V in Swedish. If the field can't read the text, it says so and stays open.
+
+#### The Moon's real edge
+
+The times above treat the Moon as a smooth ball, the "mean limb" most predictions use. The Moon's edge has mountains and valleys a few kilometres high, which move the start and end of totality or annularity by typically 1–3 seconds, and by more near the edges of the path, where they decide how long (or whether) the Sun is wholly hidden. With **Moon's topography (LRO LOLA)** installed in **Settings → Data**, Sidralune works out the Moon's outline as seen from the Earth at that moment (its limb profile) and uses it:
+
+- the box for a clicked place shows the total or annular phase with the real edge, the mean limb's duration beside it ("Duration of totality: 4 min 35.6 s (mean limb 4 min 35.3 s)"), and which data the profile came from. If the edge changes the type (a short totality only thanks to a mountain, or none because a valley lets the Sun through), the type says so;
+- the phases list for your site gets the same correction.
+
+The 16 pixels per degree data (33 MB) gives heights about 1.9 km apart, good for contacts to about half a second; the 64 pixels per degree data (531 MB download) is more detailed and is used when installed. The map's lines stay the mean-limb ones. See [Algorithms and accuracy](Algorithms-and-accuracy).
 
 The map works offline with a built-in Natural Earth world at 1:110 million. For more detail, install the **World map** datasets (land, lakes, borders, and cities and towns) in **Settings → Data**; see [Data and catalogues](Data-and-catalogues). The lines come from Besselian elements fitted to the same ephemeris as the rest of Sidralune; with DE440s installed, contacts agree with Xavier Jubier's mean-limb predictions within about a second. See [Algorithms and accuracy](Algorithms-and-accuracy).
 

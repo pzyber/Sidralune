@@ -129,10 +129,32 @@ namespace Sidralune.Core.Ephemeris
                 case Body.Uranus: ra0 = 257.311; dec0 = -15.175; W = 203.81 - 501.1600928 * d; break;
                 case Body.Neptune: ra0 = 299.36; dec0 = 43.46; W = 249.978 + 541.1397757 * d; break;
                 case Body.Pluto: ra0 = 132.993; dec0 = -6.163; W = 302.695 + 56.3625225 * d; break;
-                case Body.Moon: ra0 = 269.9949 + 0.0031 * T; dec0 = 66.5392 + 0.0130 * T; W = 38.3213 + 13.17635815 * d; break;
+                case Body.Moon: MoonRotation(d, T, out ra0, out dec0, out W); break;
                 default: ra0 = 0; dec0 = 90; W = 0; break;
             }
             W = AstroMath.NormalizeDeg(W);
+        }
+
+        /// <summary>
+        /// The Moon's pole and prime meridian with the periodic terms of the IAU WGCCRE model (Archinal et al. 2011): the
+        /// mean Earth/polar axis frame that lunar maps (LRO LOLA) use, to well under 0.1°. Without the terms the pole and
+        /// meridian can be off by several degrees.
+        /// </summary>
+        private static void MoonRotation(double d, double T, out double ra0, out double dec0, out double W)
+        {
+            Func<double, double> rad = x => AstroMath.NormalizeDeg(x) * AstroMath.Deg2Rad;
+            double e1 = rad(125.045 - 0.0529921 * d), e2 = rad(250.089 - 0.1059842 * d), e3 = rad(260.008 + 13.0120009 * d),
+                e4 = rad(176.625 + 13.3407154 * d), e5 = rad(357.529 + 0.9856003 * d), e6 = rad(311.589 + 26.4057084 * d),
+                e7 = rad(134.963 + 13.0649930 * d), e8 = rad(276.617 + 0.3287146 * d), e9 = rad(34.226 + 1.7484877 * d),
+                e10 = rad(15.134 - 0.1589763 * d), e11 = rad(119.743 + 0.0036096 * d), e12 = rad(239.961 + 0.1643573 * d),
+                e13 = rad(25.053 + 12.9590088 * d);
+            ra0 = 269.9949 + 0.0031 * T - 3.8787 * Math.Sin(e1) - 0.1204 * Math.Sin(e2) + 0.0700 * Math.Sin(e3) - 0.0172 * Math.Sin(e4)
+                + 0.0072 * Math.Sin(e6) - 0.0052 * Math.Sin(e10) + 0.0043 * Math.Sin(e13);
+            dec0 = 66.5392 + 0.0130 * T + 1.5419 * Math.Cos(e1) + 0.0239 * Math.Cos(e2) - 0.0278 * Math.Cos(e3) + 0.0068 * Math.Cos(e4)
+                - 0.0029 * Math.Cos(e6) + 0.0009 * Math.Cos(e7) + 0.0008 * Math.Cos(e10) - 0.0009 * Math.Cos(e13);
+            W = 38.3213 + 13.17635815 * d - 1.4e-12 * d * d + 3.5610 * Math.Sin(e1) + 0.1208 * Math.Sin(e2) - 0.0642 * Math.Sin(e3)
+                + 0.0158 * Math.Sin(e4) + 0.0252 * Math.Sin(e5) - 0.0066 * Math.Sin(e6) - 0.0047 * Math.Sin(e7) - 0.0046 * Math.Sin(e8)
+                + 0.0028 * Math.Sin(e9) + 0.0052 * Math.Sin(e10) + 0.0040 * Math.Sin(e11) + 0.0019 * Math.Sin(e12) - 0.0044 * Math.Sin(e13);
         }
 
         /// <summary>

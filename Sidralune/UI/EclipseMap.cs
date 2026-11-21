@@ -37,9 +37,17 @@ namespace Sidralune.UI
         private readonly TextBox _goBox = new TextBox { Width = 300 };
         private readonly FlatButton _goButton;
         private readonly Timer _copied = new Timer { Interval = 1500 };
+        // the place's elevation: from the elevation data when installed, or typed in; a short pause before recomputing
+        private readonly Label _elevLabel = new Label { AutoSize = true }, _elevNote = new Label { AutoSize = true, Tag = "dim" };
+        private readonly NumericUpDown _elevBox = new NumericUpDown { Width = 80, Minimum = -500, Maximum = 9000, Increment = 10, DecimalPlaces = 0, TextAlign = HorizontalAlignment.Right };
+        private readonly Timer _elevPause = new Timer { Interval = 400 };
+        private GeoPoint? _elevPlace;
+        private bool _settingElev, _noteShown;
 
         /// <summary>A place was clicked (not dragged): show what happens there with <see cref="ShowInfo"/>.</summary>
         public event Action<GeoPoint> PlaceClicked;
+        /// <summary>The elevation in the popup was changed: show the place again with <see cref="ElevationFor"/>'s new value.</summary>
+        public event Action<GeoPoint> ElevationChanged;
         /// <summary>Add as site in the popup.</summary>
         public event Action<GeoPoint> AddSiteClicked;
 
@@ -59,7 +67,12 @@ namespace Sidralune.UI
             _copied.Tick += (s, e) => { _copied.Stop(); _copy.Icon = Icons.Copy; _copy.Invalidate(); };
             _closePopup = new FlatButton { Icon = Icons.Close, Width = 30, ToolTipText = T("Close") };
             _closePopup.Click += (s, e) => HideInfo();
-            _popup.Controls.Add(_popupText); _popup.Controls.Add(_addSite); _popup.Controls.Add(_openMaps); _popup.Controls.Add(_copy); _popup.Controls.Add(_closePopup);
+            _elevLabel.Text = T("Elevation (m)");
+            _elevBox.ValueChanged += (s, e) => { if (_settingElev) return; _noteShown = false; _elevNote.Visible = false; _elevPause.Stop(); _elevPause.Start(); };
+            _elevBox.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; _elevPause.Stop(); RaiseElevation(); } };
+            _elevPause.Tick += (s, e) => { _elevPause.Stop(); RaiseElevation(); };
+            _popup.Controls.Add(_popupText); _popup.Controls.Add(_elevLabel); _popup.Controls.Add(_elevBox); _popup.Controls.Add(_elevNote);
+            _popup.Controls.Add(_addSite); _popup.Controls.Add(_openMaps); _popup.Controls.Add(_copy); _popup.Controls.Add(_closePopup);
             _popup.Paint += (s, e) => { using (var p = new Pen(Theme.Current.BorderStrong)) e.Graphics.DrawRectangle(p, 0, 0, _popup.Width - 1, _popup.Height - 1); };
             Controls.Add(_popup);
             _zoomIn = OverlayButton(Icons.Zoom, T("Zoom in"), (s, e) => ZoomAt(2, new Point(Width / 2, Height / 2)));
@@ -84,7 +97,7 @@ namespace Sidralune.UI
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _copied.Dispose();
+            if (disposing) { _copied.Dispose(); _elevPause.Dispose(); }
             base.Dispose(disposing);
         }
 
@@ -231,12 +244,19 @@ namespace Sidralune.UI
         {
             _clicked = at;
             _popupText.Text = text;
-            // the text on the left, the close button in its own column on the right, Add as site, Google Maps and Copy below
+            // the text on the left, the close button in its own column on the right, the elevation below, then Add as site,
+            // Google Maps and Copy
             var sz = _popupText.PreferredSize;
             _popupText.Location = new Point(10, 8);
-            int width = Math.Max(10 + sz.Width + 8 + _closePopup.Width + 6, 8 + _addSite.Width + 6 + _openMaps.Width + 6 + _copy.Width + 10);
+            _elevLabel.Size = _elevLabel.PreferredSize; _elevNote.Size = _elevNote.PreferredSize;
+            int elevRow = 10 + _elevLabel.Width + 6 + _elevBox.Width + (_noteShown ? 8 + _elevNote.Width : 0) + 10;
+            int width = Math.Max(Math.Max(10 + sz.Width + 8 + _closePopup.Width + 6, 8 + _addSite.Width + 6 + _openMaps.Width + 6 + _copy.Width + 10), elevRow);
             _closePopup.Location = new Point(width - _closePopup.Width - 6, 6);
             int top = Math.Max(8 + sz.Height, _closePopup.Bottom) + 8;
+            _elevBox.Location = new Point(10 + _elevLabel.Width + 6, top);
+            _elevLabel.Location = new Point(10, top + (_elevBox.Height - _elevLabel.Height) / 2);
+            _elevNote.Location = new Point(_elevBox.Right + 8, top + (_elevBox.Height - _elevNote.Height) / 2);
+            top = _elevBox.Bottom + 8;
             _addSite.Location = new Point(8, top);
             _openMaps.Location = new Point(_addSite.Right + 6, top);
             _copy.Location = new Point(_openMaps.Right + 6, top);
@@ -248,7 +268,39 @@ namespace Sidralune.UI
             Invalidate();
         }
 
-        public void HideInfo() { _popup.Visible = false; _clicked = null; Invalidate(); }
+        public void HideInfo() { _popup.Visible = false; _clicked = null; _elevPlace = null; _elevPause.Stop(); Invalidate(); }
+
+        /// <summary>
+        /// The elevation to use for a place, in metres: for a new place its height from the elevation data when installed
+        /// (noted beside the field), else 0; for the place already shown, what the field holds (it may have been typed in).
+        /// </summary>
+        public double ElevationFor(GeoPoint p)
+        {
+            if (_elevPlace.HasValue && _elevPlace.Value.Lat == p.Lat && _elevPlace.Value.Lon == p.Lon) return (double)_elevBox.Value;
+            _elevPlace = p;
+            _elevPause.Stop();
+            var source = Elevation.Current;
+            double? h = source?.MetresAt(p.Lat, p.Lon);
+            _settingElev = true;
+            _elevBox.Value = (decimal)Math.Max((double)_elevBox.Minimum, Math.Min((double)_elevBox.Maximum, Math.Round(h ?? 0)));
+            _settingElev = false;
+            _elevNote.Text = h.HasValue ? T("from {0}", source.Source) : "";
+            _noteShown = h.HasValue; _elevNote.Visible = _noteShown;
+            return (double)_elevBox.Value;
+        }
+
+        /// <summary>The elevation in the popup, metres; setting it shows the place again at once (tests).</summary>
+        public double ElevationMetres
+        {
+            get { return (double)_elevBox.Value; }
+            set { _elevBox.Value = (decimal)value; _elevPause.Stop(); RaiseElevation(); }
+        }
+
+        /// <summary>"from ETOPO1" beside the elevation, or null when it was typed in or there is no elevation data.</summary>
+        public string ElevationNote => _noteShown ? _elevNote.Text : null;
+        public Rectangle InfoElevationBounds => Rectangle.Union(_elevLabel.Bounds, _elevBox.Bounds);
+
+        private void RaiseElevation() { if (_clicked.HasValue && _popup.Visible) ElevationChanged?.Invoke(_clicked.Value); }
 
         /// <summary>The popup's text, close button and Add as site, in the popup's coordinates, for tests.</summary>
         public Rectangle InfoTextBounds => new Rectangle(_popupText.Location, _popupText.PreferredSize);

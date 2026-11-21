@@ -343,6 +343,30 @@ msgstr "Coucher de la Lune"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Environ 7 300 localités, nommées sur la carte des éclipses selon leur taille quand vous zoomez."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Altitudes du monde (ETOPO1, 1 minute d’arc)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "La hauteur des terres partout, tous les 1,85 km environ, pour qu’un lieu cliqué sur la carte de l’éclipse reçoive son altitude sans la saisir."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topographie de la Lune (LRO LOLA, 16 pixels par degré)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Altitudes sur la Lune tous les 1,9 km environ, pour le début et la fin de la phase totale ou annulaire avec les montagnes et les vallées du bord de la Lune (le profil du limbe lunaire)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topographie de la Lune (LRO LOLA, 64 pixels par degré)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "La même tous les 0,47 km environ, pour un profil du limbe lunaire plus détaillé ; utilisée à la place de celle à 16 pixels par degré une fois installée."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Ajouter comme lieu"
@@ -375,9 +399,13 @@ msgstr "Latitude et longitude, par exemple 58.4887, 13.3348 ou 58°29′N 13°20
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Ce n’est pas un lieu lisible. Par exemple 58.4887, 13.3348 ou 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "d’après {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} a été ajouté à vos lieux : réglez son fuseau horaire et son altitude dans Paramètres → Lieu"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} a été ajouté à vos lieux : réglez son nom et son fuseau horaire dans Paramètres → Lieu"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Une partie de l’éclipse avec la Lune levée"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Largeur de la bande {0:0} km · {1:0} km de la ligne de centralité"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(limbe moyen : {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(limbe moyen {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profil du limbe lunaire : LRO LOLA, {0} pixels par degré"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

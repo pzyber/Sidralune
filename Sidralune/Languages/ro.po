@@ -347,6 +347,30 @@ msgstr "Apusul Lunii"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Aproximativ 7.300 de localități, denumite pe harta eclipselor după mărime când măriți."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Altitudinile lumii (ETOPO1, 1 minut de arc)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Înălțimea uscatului peste tot, la aproximativ 1,85 km distanță, astfel încât un loc ales pe harta eclipsei să primească altitudinea fără a o introduce."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografia Lunii (LRO LOLA, 16 pixeli pe grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Înălțimi pe Lună la aproximativ 1,9 km distanță, pentru începutul și sfârșitul fazei totale sau inelare cu munții și văile de pe marginea Lunii (profilul limbului lunar)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografia Lunii (LRO LOLA, 64 pixeli pe grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Același lucru la aproximativ 0,47 km distanță, pentru un profil mai detaliat al limbului lunar; folosit în locul celui cu 16 pixeli pe grad când este instalat."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Adăugați ca loc"
@@ -379,9 +403,13 @@ msgstr "Latitudine și longitudine, de exemplu 58.4887, 13.3348 sau 58°29′N 1
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Nu poate fi citit ca loc. De exemplu 58.4887, 13.3348 sau 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "din {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} a fost adăugat la locurile dvs.: setați fusul orar și altitudinea în Setări → Locație"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} a fost adăugat la locurile dvs.: setați numele și fusul orar în Setări → Locație"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -446,6 +474,18 @@ msgstr "O parte a eclipsei cu Luna deasupra orizontului"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Lățimea benzii {0:0} km · {1:0} km de linia centrală"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(limb mediu: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(limb mediu {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profilul limbului lunar: LRO LOLA, {0} pixeli pe grad"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

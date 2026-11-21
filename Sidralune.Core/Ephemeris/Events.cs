@@ -645,8 +645,9 @@ namespace Sidralune.Core.Ephemeris
         /// <summary>
         /// The phases of a solar eclipse from a site, in time order, with the Sun's altitude at each: first contact, the total
         /// or annular phase, the local maximum, last contact, any sunrise or sunset in between, and greatest eclipse on Earth.
+        /// The total or annular phase follows the Moon's real edge when its topography is installed (limbProfile).
         /// </summary>
-        public static List<EclipsePhase> SolarEclipsePhases(Observer site, AstroTime greatest)
+        public static List<EclipsePhase> SolarEclipsePhases(Observer site, AstroTime greatest, bool limbProfile = true)
         {
             var l = SolarEclipseAt(site, greatest);
             var list = new List<EclipsePhase>();
@@ -660,13 +661,37 @@ namespace Sidralune.Core.Ephemeris
                 list.Add(phase(Lang.T("Partial eclipse ends"), l.End.Value.JdTT));
                 double s0, sS0, sM0; bool u0;
                 SunAndMoon(site, tmax, out s0, out sS0, out sM0, out u0);
+                bool total = sM0 > sS0;
+                double c2 = double.NaN, c3 = double.NaN;
                 if (s0 < Math.Abs(sM0 - sS0))
                 {
                     // the Moon's disc wholly inside the Sun's (annular) or over it (total)
-                    bool total = sM0 > sS0;
                     Func<double, double> central = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return Math.Abs(b - a) - s; };
-                    list.Add(phase(total ? Lang.T("Total eclipse begins") : Lang.T("Annular eclipse begins"), Contact(central, tmax, -1)));
-                    list.Add(phase(total ? Lang.T("Total eclipse ends") : Lang.T("Annular eclipse ends"), Contact(central, tmax, +1)));
+                    c2 = Contact(central, tmax, -1); c3 = Contact(central, tmax, +1);
+                }
+                // with the Moon's topography installed, the total or annular phase with its real edge: the topocentric
+                // contacts moved by the limb profile's correction from the Besselian elements (or the profile's own
+                // contacts where only the mountains make it total, and none where its valleys let the Sun through)
+                var limb = limbProfile ? LunarLimb.Current : null;
+                if (limb != null && s0 < Math.Abs(sM0 - sS0) + 0.01 * Math.Max(sM0, sS0))
+                {
+                    var be = BesselianElements.Compute(greatest);
+                    var loc = be.Local(site.LatitudeDeg, site.LongitudeDeg, site.ElevationM, limb);
+                    if (loc.LimbCorrected)
+                    {
+                        if (loc.KindLimb == 0 || loc.C2Limb == null || loc.C3Limb == null) c2 = c3 = double.NaN;
+                        else if (!double.IsNaN(c2) && loc.C2 != null && loc.C3 != null)
+                        {
+                            c2 += loc.C2Limb.Time.JdTT - loc.C2.Time.JdTT;
+                            c3 += loc.C3Limb.Time.JdTT - loc.C3.Time.JdTT;
+                        }
+                        else if (loc.C2Limb != null && loc.C3Limb != null) { c2 = loc.C2Limb.Time.JdTT; c3 = loc.C3Limb.Time.JdTT; total = loc.KindLimb == 1; }
+                    }
+                }
+                if (!double.IsNaN(c2) && !double.IsNaN(c3))
+                {
+                    list.Add(phase(total ? Lang.T("Total eclipse begins") : Lang.T("Annular eclipse begins"), c2));
+                    list.Add(phase(total ? Lang.T("Total eclipse ends") : Lang.T("Annular eclipse ends"), c3));
                 }
                 Func<double, bool> up = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return u; };
                 foreach (var x in HorizonCrossings(up, l.Start.Value.JdTT, l.End.Value.JdTT))

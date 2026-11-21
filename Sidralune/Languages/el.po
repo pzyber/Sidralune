@@ -343,6 +343,30 @@ msgstr "Δύση Σελήνης"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Περίπου 7.300 οικισμοί, με ονόματα στον χάρτη εκλείψεων ανάλογα με το μέγεθος καθώς μεγεθύνετε."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Υψόμετρο όλου του κόσμου (ETOPO1, 1 λεπτό τόξου)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Το ύψος της ξηράς παντού, ανά περίπου 1,85 km, ώστε ένα σημείο που επιλέγεται στον χάρτη της έκλειψης να παίρνει το υψόμετρό του χωρίς πληκτρολόγηση."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Τοπογραφία της Σελήνης (LRO LOLA, 16 εικονοστοιχεία ανά μοίρα)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Υψόμετρα στη Σελήνη ανά περίπου 1,9 km, για την αρχή και το τέλος της ολικής ή δακτυλιοειδούς φάσης με τα βουνά και τις κοιλάδες στο χείλος της Σελήνης (το προφίλ του σεληνιακού χείλους)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Τοπογραφία της Σελήνης (LRO LOLA, 64 εικονοστοιχεία ανά μοίρα)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Το ίδιο ανά περίπου 0,47 km, για πιο λεπτομερές προφίλ του σεληνιακού χείλους· χρησιμοποιείται αντί για εκείνο των 16 εικονοστοιχείων ανά μοίρα όταν είναι εγκατεστημένο."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Προσθήκη ως τοποθεσία"
@@ -375,9 +399,13 @@ msgstr "Γεωγραφικό πλάτος και μήκος, π.χ. 58.4887, 13.
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Δεν αναγνωρίζεται ως τόπος. Π.χ. 58.4887, 13.3348 ή 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "από {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "Το {0} προστέθηκε στις τοποθεσίες σας: ορίστε ζώνη ώρας και υψόμετρο στις Ρυθμίσεις → Τοποθεσία"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "Το {0} προστέθηκε στις τοποθεσίες σας: ορίστε όνομα και ζώνη ώρας στις Ρυθμίσεις → Τοποθεσία"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Μέρος της έκλειψης με τη Σελήνη πάνω απ�
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Πλάτος ζώνης {0:0} km · {1:0} km από την κεντρική γραμμή"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(μέσο χείλος: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(μέσο χείλος {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Προφίλ σεληνιακού χείλους: LRO LOLA, {0} εικονοστοιχεία ανά μοίρα"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

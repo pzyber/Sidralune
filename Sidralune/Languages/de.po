@@ -343,6 +343,30 @@ msgstr "Monduntergang"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Rund 7.300 Orte, auf der Finsterniskarte beim Vergrößern nach Größe beschriftet."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Höhen der Welt (ETOPO1, 1 Bogenminute)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Die Höhe des Landes überall im Abstand von etwa 1,85 km, damit ein auf der Finsterniskarte angeklickter Ort seine Höhe erhält, ohne sie einzutippen."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografie des Mondes (LRO LOLA, 16 Pixel pro Grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Höhen auf dem Mond im Abstand von etwa 1,9 km, für Beginn und Ende der totalen oder ringförmigen Phase mit den Bergen und Tälern am Mondrand (das Mondrandprofil)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografie des Mondes (LRO LOLA, 64 Pixel pro Grad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Dasselbe im Abstand von etwa 0,47 km für ein genaueres Mondrandprofil; wird statt der Version mit 16 Pixel pro Grad verwendet, wenn installiert."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Als Standort hinzufügen"
@@ -375,9 +399,13 @@ msgstr "Breite und Länge, etwa 58.4887, 13.3348 oder 58°29′N 13°20′E"
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Nicht als Ort lesbar. Zum Beispiel 58.4887, 13.3348 oder 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "aus {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} wurde Ihren Standorten hinzugefügt: Legen Sie Zeitzone und Höhe unter Einstellungen → Standort fest"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} wurde Ihren Standorten hinzugefügt: Legen Sie Name und Zeitzone unter Einstellungen → Standort fest"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Teil der Finsternis mit dem Mond über dem Horizont"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Breite der Zone {0:0} km · {1:0} km von der Zentrallinie"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(mittlerer Mondrand: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(mittlerer Mondrand {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Mondrandprofil: LRO LOLA, {0} Pixel pro Grad"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

@@ -343,6 +343,30 @@ msgstr "Perëndimi i Hënës"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Rreth 7.300 vendbanime, me emrat në hartën e eklipseve sipas madhësisë kur zmadhoni."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Lartësitë e botës (ETOPO1, 1 minutë harku)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Lartësia e tokës kudo, çdo rreth 1,85 km, që një vend i klikuar në hartën e eklipsit të marrë lartësinë pa e shkruar."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografia e Hënës (LRO LOLA, 16 piksela për gradë)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Lartësitë në Hënë çdo rreth 1,9 km, për fillimin dhe fundin e fazës së plotë ose unazore me malet dhe luginat në buzë të Hënës (profili i buzës së Hënës)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografia e Hënës (LRO LOLA, 64 piksela për gradë)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "E njëjta çdo rreth 0,47 km, për një profil më të hollësishëm të buzës së Hënës; përdoret në vend të asaj me 16 piksela për gradë kur është instaluar."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Shtoje si vend"
@@ -375,9 +399,13 @@ msgstr "Gjerësia dhe gjatësia, p.sh. 58.4887, 13.3348 ose 58°29′N 13°20′
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Nuk lexohet si vend. P.sh. 58.4887, 13.3348 ose 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "nga {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} u shtua te vendet tuaja: caktoni zonën kohore dhe lartësinë te Cilësimet → Vendndodhja"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} u shtua te vendet tuaja: caktoni emrin dhe zonën kohore te Cilësimet → Vendndodhja"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Pjesë e eklipsit me Hënën mbi horizont"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Gjerësia e brezit {0:0} km · {1:0} km nga vija qendrore"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(buza mesatare: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(buza mesatare {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profili i buzës së Hënës: LRO LOLA, {0} piksela për gradë"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

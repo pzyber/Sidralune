@@ -186,6 +186,8 @@ namespace Sidralune.AppTests
             var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
             var start = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
             int sites = OnUi(() => AppState.Settings.Sites.Count);
+            // the same results whether or not the elevation and lunar topography datasets are installed here
+            Core.Util.Elevation.UseInstalled = false; Core.Ephemeris.LunarLimb.UseInstalled = false;
             try
             {
                 var view = View<Sidralune.Views.SolarSystemView>("solarsystem");
@@ -230,15 +232,32 @@ namespace Sidralune.AppTests
                 OnUi(() => { var was = map.OpenUrl; map.OpenUrl = u => opened = u; Field<FlatButton>(map, "_openMaps").PerformClick(); map.OpenUrl = was; });
                 CheckTrue("Google Maps opened at the place", opened == "https://www.google.com/maps/search/?api=1&query=64.15%2C-21.94", opened);
                 // Copy: the place in decimal degrees on the clipboard (what was there put back)
+                // (another program can hold the clipboard for a moment: each step is tried a few times)
+                Func<Func<string>, string> retry = f =>
+                {
+                    for (int i = 0; ; i++)
+                        try { return f(); }
+                        catch (System.Runtime.InteropServices.ExternalException) when (i < 20) { System.Threading.Thread.Sleep(50); }
+                };
                 string copied = OnUi(() =>
                 {
-                    string before = Clipboard.ContainsText() ? Clipboard.GetText() : null;
-                    map.CopyPlace();
-                    string got = Clipboard.GetText();
-                    if (before != null) Clipboard.SetText(before); else Clipboard.Clear();
-                    return got;
+                    try
+                    {
+                        string before = retry(() => Clipboard.ContainsText() ? Clipboard.GetText() : null);
+                        string got = null;
+                        for (int i = 0; i < 20 && got != "64.15, -21.94"; i++)
+                        {
+                            map.CopyPlace(); // gives up quietly when the clipboard is busy
+                            got = retry(() => Clipboard.GetText());
+                            if (got != "64.15, -21.94") System.Threading.Thread.Sleep(50);
+                        }
+                        retry(() => { if (before != null) Clipboard.SetDataObject(before, true, 10, 50); else Clipboard.Clear(); return null; });
+                        return got;
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException) { return "(clipboard unavailable)"; }
                 });
-                CheckTrue("The place copied", copied == "64.15, -21.94", copied);
+                if (copied == "(clipboard unavailable)") Info("The clipboard could not be opened (another program holds it): Copy not checked");
+                else CheckTrue("The place copied", copied == "64.15, -21.94", copied);
 
                 // Go to coordinates: a field beside its button under the zoom buttons; what it can't read is said, a
                 // place is gone to with the eclipse there shown
@@ -266,6 +285,48 @@ namespace Sidralune.AppTests
                     });
                     CheckTrue("The popup clear of the place" + (width > 0 ? " in a narrow map" : ""), covers == null, covers);
                 }
+
+                // the elevation: in its own row of the popup, 0 without elevation data; typed in, the eclipse is worked out there
+                Action<Core.Ephemeris.GeoPoint> show = pt => OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { pt }));
+                var reykjavik = new Core.Ephemeris.GeoPoint(64.15, -21.94);
+                Func<double, string> durationAt = m => { var l = OnUi(() => map.Data.Elements.Local(64.15, -21.94, m)); return Core.Util.Lang.T("{0} min {1:0.0} s", (int)(l.CentralSeconds / 60), l.CentralSeconds - 60 * (int)(l.CentralSeconds / 60)); };
+                OnUi(() => map.HideInfo());
+                show(reykjavik);
+                var elev = OnUi(() => map.InfoElevationBounds);
+                box = OnUi(() => new Rectangle(Point.Empty, map.InfoSize)); text = OnUi(() => map.InfoTextBounds); add = OnUi(() => map.InfoAddSiteBounds);
+                CheckTrue("The elevation row inside the popup, between the text and the buttons", box.Contains(elev) && elev.Top >= text.Bottom && elev.Bottom <= add.Top && !elev.IntersectsWith(OnUi(() => map.InfoCloseBounds)), "elevation " + elev + ", text " + text + ", buttons " + add + ", box " + box);
+                CheckTrue("0 m without elevation data, no note", OnUi(() => map.ElevationMetres) == 0 && OnUi(() => map.ElevationNote) == null);
+                OnUi(() => map.ElevationMetres = 1200);
+                CheckTrue("1200 m typed in: the eclipse there", (OnUi(() => map.InfoText) ?? "").Contains(durationAt(1200)) && durationAt(1200) != durationAt(0), durationAt(0) + " → " + durationAt(1200) + ": " + OnUi(() => map.InfoText));
+                show(reykjavik);
+                CheckTrue("Kept when the same place is shown again", OnUi(() => map.ElevationMetres) == 1200);
+
+                // with elevation data (a stand-in, 750 m everywhere): a new place starts with its height, noted beside the field
+                string elevFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SidraluneAppTests-elevation.sltg");
+                var heights = new System.IO.MemoryStream();
+                using (var w = new System.IO.BinaryWriter(heights, System.Text.Encoding.ASCII, true)) for (int i = 0; i < 361 * 181; i++) w.Write((short)750);
+                heights.Position = 0;
+                Core.Util.Elevation.Write(elevFile, 361, 181, -180, 90, 1, heights);
+                Core.Util.Elevation.Override = Core.Util.Elevation.Open(elevFile);
+                show(new Core.Ephemeris.GeoPoint(64.2, -21.9));
+                CheckTrue("A new place: its height from the data, \"from ETOPO1\"", OnUi(() => map.ElevationMetres) == 750 && (OnUi(() => map.ElevationNote) ?? "").Contains("ETOPO1"), OnUi(() => map.ElevationMetres) + " / " + OnUi(() => map.ElevationNote));
+                OnUi(() => map.ElevationMetres = 800);
+                CheckTrue("Changed by hand: the note goes", OnUi(() => map.ElevationNote) == null);
+
+                // with the Moon's topography (a stand-in as round as the mean limb, 1 pixel per degree): the limb-corrected
+                // duration, the mean limb's beside it, and the profile named
+                string lolaFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SidraluneAppTests-lola1.sltg");
+                short dn = (short)Math.Round((Core.Ephemeris.BesselianElements.K2 * Core.Mathematics.AstroMath.EarthRadius_km - Core.Ephemeris.LunarLimb.RadiusKm) * 2000);
+                var moon = new System.IO.MemoryStream();
+                using (var w = new System.IO.BinaryWriter(moon, System.Text.Encoding.ASCII, true)) for (int i = 0; i < 360 * 180; i++) w.Write(dn);
+                moon.Position = 0;
+                Core.Ephemeris.LunarLimb.Write(lolaFile, 1, moon);
+                Core.Ephemeris.LunarLimb.Override = Core.Ephemeris.LunarLimb.Open(lolaFile);
+                show(new Core.Ephemeris.GeoPoint(64.15, -21.9));
+                string withLimb = OnUi(() => map.InfoText) ?? "";
+                CheckTrue("With the Moon's topography: the mean limb's duration beside it, and the profile named", withLimb.Contains("Duration of totality:") && withLimb.Contains("(mean limb ") && withLimb.Contains("Lunar limb profile: LRO LOLA, 1 pixels per degree"), withLimb);
+                Core.Ephemeris.LunarLimb.Override = null;
+
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-33.87, 151.21) }));
                 CheckTrue("No eclipse in Sydney", (OnUi(() => map.InfoText) ?? "").Contains("No eclipse here"), OnUi(() => map.InfoText));
 
@@ -304,11 +365,13 @@ namespace Sidralune.AppTests
 
                 // Add as site: the place joins the sites and opens in Settings → Location
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("AddEclipseSite", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-16.65373, 128.66009) }));
-                CheckTrue("Add as site adds the place", OnUi(() => AppState.Settings.Sites.Count == sites + 1 && Math.Abs(AppState.Settings.Sites.Last().LatitudeDeg + 16.65373) < 1e-6 && AppState.Settings.Sites.Last().ElevationM == 0));
+                CheckTrue("Add as site adds the place, with its height from the elevation data", OnUi(() => AppState.Settings.Sites.Count == sites + 1 && Math.Abs(AppState.Settings.Sites.Last().LatitudeDeg + 16.65373) < 1e-6 && AppState.Settings.Sites.Last().ElevationM == 750), OnUi(() => AppState.Settings.Sites.Last().ElevationM.ToString()));
                 CheckTrue("and opens Settings", OnUi(() => App.GetView<Sidralune.Views.SettingsView>("settings")?.Visible == true));
             }
             finally
             {
+                Core.Util.Elevation.Override = null; Core.Ephemeris.LunarLimb.Override = null;
+                Core.Util.Elevation.UseInstalled = true; Core.Ephemeris.LunarLimb.UseInstalled = true;
                 OnUi(() => { while (AppState.Settings.Sites.Count > sites) AppState.Settings.Sites.RemoveAt(AppState.Settings.Sites.Count - 1); AppState.Save(); AppState.GoLive(); });
             }
         }

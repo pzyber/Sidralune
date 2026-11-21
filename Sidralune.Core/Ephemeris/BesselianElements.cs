@@ -208,7 +208,138 @@ namespace Sidralune.Core.Ephemeris
         /// The eclipse at a place on the Earth: contacts, maximum, magnitude, the share of the Sun covered, the local type and
         /// the Sun's place at each contact, whether the Sun is up or not (Covers false when the Moon misses the Sun there).
         /// </summary>
-        public SolarLocalCircumstances Local(double latDeg, double lonDeg, double elevationM = 0)
+        public SolarLocalCircumstances Local(double latDeg, double lonDeg, double elevationM = 0) => Local(latDeg, lonDeg, elevationM, (LunarLimb)null);
+
+        /// <summary>
+        /// As <see cref="Local(double, double, double)"/>, and with the Moon's topography the beginning and end of the total
+        /// or annular phase with its real edge (<see cref="SolarLocalCircumstances.C2Limb"/>, C3Limb, KindLimb).
+        /// </summary>
+        public SolarLocalCircumstances Local(double latDeg, double lonDeg, double elevationM, LunarLimb limb)
+        {
+            var res = MeanLocal(latDeg, lonDeg, elevationM);
+            // only near or in the path: the Moon's highest mountains reach about 11 km above 1737.4 km
+            if (limb != null && res.Covers && res.Centrality > -12 / AstroMath.EarthRadius_km)
+                ApplyProfile(res, elevationM, ProfileAt(limb, Hours(res.Maximum.Time.JdTT)));
+            return res;
+        }
+
+        /// <summary>As <see cref="Local(double, double, double)"/> with a given limb profile (tests).</summary>
+        public SolarLocalCircumstances Local(double latDeg, double lonDeg, double elevationM, LimbProfile profile)
+        {
+            var res = MeanLocal(latDeg, lonDeg, elevationM);
+            if (profile != null && res.Covers) ApplyProfile(res, elevationM, profile);
+            return res;
+        }
+
+        // the limb profile changes slowly (the libration by about 0.01° an hour), so one a minute serves every place
+        private readonly System.Collections.Generic.Dictionary<long, LimbProfile> _profiles = new System.Collections.Generic.Dictionary<long, LimbProfile>();
+        private LunarLimb _profilesOf;
+
+        /// <summary>The limb profile seen along the shadow axis at t hours (from every place in the shadow alike, within 0.03°).</summary>
+        public LimbProfile ProfileAt(LunarLimb limb, double t)
+        {
+            long key = (long)Math.Round(t * 60);
+            lock (_profiles)
+            {
+                if (_profilesOf != limb) { _profiles.Clear(); _profilesOf = limb; }
+                LimbProfile p;
+                if (_profiles.TryGetValue(key, out p)) return p;
+                Vec3 view, north, east;
+                AxisFrame(key / 60.0, out view, out north, out east);
+                p = limb.Profile(view, north, east, AstroTime.FromTT(JdTT(key / 60.0)).JdTDB);
+                _profiles[key] = p;
+                return p;
+            }
+        }
+
+        /// <summary>
+        /// The shadow axis (from the Moon towards the Sun, so the way an observer in the shadow looks) and the fundamental
+        /// plane's north and east, as ICRF unit vectors, at t hours.
+        /// </summary>
+        public void AxisFrame(double t, out Vec3 view, out Vec3 north, out Vec3 east)
+        {
+            double x, y, d, mu, l1, l2, dx, dy, dd, dmu;
+            At(t, out x, out y, out d, out mu, out l1, out l2, out dx, out dy, out dd, out dmu);
+            var time = AstroTime.FromTT(JdTT(t));
+            double a = time.Gast - mu;
+            var back = Precession.NpbMatrix(time.T).Transpose(); // true equator of date to ICRF
+            double sa = Math.Sin(a), ca = Math.Cos(a), sd = Math.Sin(d), cd = Math.Cos(d);
+            view = back * new Vec3(cd * ca, cd * sa, sd);
+            east = back * new Vec3(-sa, ca, 0);
+            north = back * new Vec3(-sd * ca, -sd * sa, cd);
+        }
+
+        /// <summary>
+        /// The total (or annular) phase with the Moon's real edge: the Moon covers the whole Sun while, at every position
+        /// angle A, its outline R_M + δ(A) reaches beyond the Sun's edge e(A) in that direction (and the other way round for
+        /// the annular phase). Quantities on the fundamental plane at the observer, where the Sun and Moon's radii are
+        /// (L1 + L2)/2 and (L1 − L2)/2 and the Sun's centre is at −(u, v) from the Moon's.
+        /// </summary>
+        private void ApplyProfile(SolarLocalCircumstances res, double elevationM, LimbProfile profile)
+        {
+            double rs, rc;
+            Geocentric(res.Latitude, elevationM, out rs, out rc);
+            double tm = Hours(res.Maximum.Time.JdTT);
+            double u0, v0, a0, b0, L10, L20, z0, h0, d0;
+            Against(tm, rs, rc, res.Longitude, out u0, out v0, out a0, out b0, out L10, out L20, out z0, out h0, out d0);
+            bool total = L20 < 0; // the Moon looks bigger than the Sun
+            int n = LimbProfile.Samples;
+            var sinA = new double[n]; var cosA = new double[n]; var dk = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                double A = i * profile.StepDeg * AstroMath.Deg2Rad;
+                sinA[i] = Math.Sin(A); cosA[i] = Math.Cos(A);
+                dk[i] = (LunarLimb.RadiusKm + profile.Heights[i]) / AstroMath.EarthRadius_km; // the outline, in Earth radii
+            }
+            // the margin by which the Sun is wholly hidden (total) or the Moon wholly inside it (annular); above 0 during the phase
+            Func<double, double> margin = t =>
+            {
+                double u, v, a, b, L1, L2, zeta, h, d;
+                Against(t, rs, rc, res.Longitude, out u, out v, out a, out b, out L1, out L2, out zeta, out h, out d);
+                double s = (L1 - L2) / (K1 + K2);  // the plane's scale for lengths at the Moon (1 + its distance / the Sun's)
+                double sun = L1 - K1 * s, cx = -u, cy = -v, worst = double.MaxValue;
+                for (int i = 0; i < n; i++)
+                {
+                    double ex = sinA[i], ey = cosA[i];
+                    double cross = cx * ey - cy * ex, disc = sun * sun - cross * cross;
+                    if (disc < 0) continue;
+                    double e = cx * ex + cy * ey + Math.Sqrt(disc); // the Sun's edge in direction A
+                    double m = total ? dk[i] * s - e : e - dk[i] * s;
+                    if (m < worst) worst = m;
+                }
+                return worst;
+            };
+            res.LimbCorrected = true;
+            res.LimbProfileMaxKm = profile.MaxKm;
+            if (margin(tm) <= 0) { res.KindLimb = 0; return; }
+            res.KindLimb = total ? 1 : 2;
+            res.C2Limb = LimbContact(margin, tm, -1, res.Latitude, rs, rc, res.Longitude);
+            res.C3Limb = LimbContact(margin, tm, +1, res.Latitude, rs, rc, res.Longitude);
+        }
+
+        /// <summary>The edge of the phase from maximum outward: 2 s steps until the margin is gone, then bisection to 1 ms.</summary>
+        private SolarContact LimbContact(Func<double, double> margin, double tm, int dir, double latDeg, double rs, double rc, double lonDeg)
+        {
+            double step = 2 / 3600.0, inside = tm, outside = double.NaN;
+            for (int k = 1; k < 600; k++) // 20 minutes at most
+            {
+                double t = tm + dir * k * step;
+                if (margin(t) <= 0) { outside = t; break; }
+                inside = t;
+            }
+            if (double.IsNaN(outside)) return null;
+            while (Math.Abs(outside - inside) > 1 / 3.6e6)
+            {
+                double mid = (inside + outside) / 2;
+                if (margin(mid) > 0) inside = mid; else outside = mid;
+            }
+            double tc = (inside + outside) / 2;
+            double u, v, a, b, L1, L2, zeta, h, d;
+            Against(tc, rs, rc, lonDeg, out u, out v, out a, out b, out L1, out L2, out zeta, out h, out d);
+            return SunAt(tc, latDeg, h, d, zeta);
+        }
+
+        private SolarLocalCircumstances MeanLocal(double latDeg, double lonDeg, double elevationM)
         {
             double rs, rc;
             Geocentric(latDeg, elevationM, out rs, out rc);
@@ -309,5 +440,15 @@ namespace Sidralune.Core.Ephemeris
         public double Centrality => Math.Abs(UmbraRadius) - AxisDistance;
         /// <summary>Some of the eclipse happens with the Sun up.</summary>
         public bool Visible => Covers && (C1 != null && C1.SunUp || C4 != null && C4.SunUp || Maximum.SunUp);
+
+        /// <summary>The Moon's real edge (a lunar limb profile) was taken into account: C2Limb, C3Limb and KindLimb are set.</summary>
+        public bool LimbCorrected;
+        /// <summary>With the Moon's real edge: the beginning and end of the total or annular phase (null when there is none) and the local type.</summary>
+        public SolarContact C2Limb, C3Limb;
+        public int KindLimb;
+        /// <summary>The highest point of the limb profile used, km above 1737.4 km.</summary>
+        public double LimbProfileMaxKm;
+        /// <summary>The total or annular phase with the Moon's real edge, seconds (0 when there is none).</summary>
+        public double LimbSeconds => C2Limb != null && C3Limb != null ? (C3Limb.Time.JdTT - C2Limb.Time.JdTT) * 86400 : 0;
     }
 }

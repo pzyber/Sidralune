@@ -351,6 +351,30 @@ msgstr "Lunin zahod"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Približno 7300 naselij, poimenovanih na zemljevidu mrkov glede na velikost, ko povečate prikaz."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Nadmorske višine sveta (ETOPO1, 1 kotna minuta)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "Višina kopnega povsod, na približno 1,85 km, tako da kraj, kliknjen na zemljevidu mrka, dobi svojo nadmorsko višino brez vnašanja."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografija Lune (LRO LOLA, 16 slikovnih pik na stopinjo)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Višine na Luni na približno 1,9 km za začetek in konec popolne ali obročaste faze z gorami in dolinami na Luninem robu (profil Luninega roba)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografija Lune (LRO LOLA, 64 slikovnih pik na stopinjo)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Enako na približno 0,47 km za podrobnejši profil Luninega roba; ko je nameščeno, se uporabi namesto različice s 16 slikovnimi pikami na stopinjo."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Dodaj kot lokacijo"
@@ -383,9 +407,13 @@ msgstr "Zemljepisna širina in dolžina, npr. 58.4887, 13.3348 ali 58°29′N 13
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Tega ni mogoče prebrati kot kraj. Npr. 58.4887, 13.3348 ali 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "iz {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} je dodano med vaše lokacije: nastavite časovni pas in nadmorsko višino v Nastavitve → Lokacija"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} je dodano med vaše lokacije: nastavite ime in časovni pas v Nastavitve → Lokacija"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -450,6 +478,18 @@ msgstr "Del mrka z Luno nad obzorjem"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Širina pasu {0:0} km · {1:0} km od osrednje črte"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(srednji rob: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(srednji rob {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Profil Luninega roba: LRO LOLA, {0} slikovnih pik na stopinjo"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

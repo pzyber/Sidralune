@@ -343,6 +343,30 @@ msgstr "Maansondergang"
 msgid "About 7,300 populated places, named on the eclipse map by size as you zoom in."
 msgstr "Ongeveer 7.300 plaatsen, met hun naam op de verduisteringskaart naar grootte als je inzoomt."
 
+#: Sidralune.Core/Util/DataManager.cs
+msgid "World elevation (ETOPO1, 1 arc-minute)"
+msgstr "Hoogtes van de wereld (ETOPO1, 1 boogminuut)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The height of the land everywhere, about 1.85 km apart, so a place clicked on the eclipse map gets its elevation without typing it in."
+msgstr "De hoogte van het land overal, om de 1,85 km ongeveer, zodat een plaats die op de eclipskaart wordt aangeklikt haar hoogte krijgt zonder die in te typen."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 16 pixels per degree)"
+msgstr "Topografie van de maan (LRO LOLA, 16 pixels per graad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Heights on the Moon about 1.9 km apart, for the start and end of totality or annularity with the Moon's mountains and valleys on its edge (the lunar limb profile)."
+msgstr "Hoogtes op de maan om de 1,9 km ongeveer, voor het begin en einde van de totale of ringvormige fase met de bergen en dalen op de maanrand (het maanrandprofiel)."
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "Moon's topography (LRO LOLA, 64 pixels per degree)"
+msgstr "Topografie van de maan (LRO LOLA, 64 pixels per graad)"
+
+#: Sidralune.Core/Util/DataManager.cs
+msgid "The same about 0.47 km apart, for a more detailed lunar limb profile; used instead of the 16 pixels per degree one when installed."
+msgstr "Hetzelfde om de 0,47 km ongeveer, voor een gedetailleerder maanrandprofiel; wordt gebruikt in plaats van die met 16 pixels per graad wanneer geïnstalleerd."
+
 #: Sidralune/UI/EclipseMap.cs
 msgid "Add as site"
 msgstr "Toevoegen als locatie"
@@ -375,9 +399,13 @@ msgstr "Breedte- en lengtegraad, bijvoorbeeld 58.4887, 13.3348 of 58°29′N 13�
 msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
 msgstr "Niet te lezen als plaats. Bijvoorbeeld 58.4887, 13.3348 of 58°29′N 13°20′E"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "from {0}"
+msgstr "uit {0}"
+
 #: Sidralune/Views/SolarSystemView.cs
-msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
-msgstr "{0} is toegevoegd aan je locaties: stel tijdzone en hoogte in bij Instellingen → Locatie"
+msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
+msgstr "{0} is toegevoegd aan je locaties: stel naam en tijdzone in bij Instellingen → Locatie"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Begins or ends at sunrise or sunset"
@@ -442,6 +470,18 @@ msgstr "Een deel van de verduistering met de maan boven de horizon"
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Path width {0:0} km · {1:0} km from the central line"
 msgstr "Breedte van de strook {0:0} km · {1:0} km van de centrale lijn"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb: {0})"
+msgstr "(gemiddelde rand: {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "(mean limb {0})"
+msgstr "(gemiddelde rand {0})"
+
+#: Sidralune/Views/SolarSystemView.cs
+msgid "Lunar limb profile: LRO LOLA, {0} pixels per degree"
+msgstr "Maanrandprofiel: LRO LOLA, {0} pixels per graad"
 
 #: Sidralune/UI/EclipseMap.cs
 msgid "Share of the Sun covered at maximum"

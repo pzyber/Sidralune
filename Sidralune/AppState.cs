@@ -276,12 +276,22 @@ namespace Sidralune
             return t;
         }
 
+        /// <summary>
+        /// A job's progress. Shown once the interface is free: while an update is still waiting to be shown, more do not
+        /// queue up behind it (a fast download reports every 64 KB, thousands of times, which used to stall the interface).
+        /// </summary>
         public static void Report(BackgroundTask t, double progress, string status = null)
         {
             t.Progress = progress;
             if (status != null) t.Status = status;
-            Post(() => Changed?.Invoke());
+            if (Interlocked.Exchange(ref _reportWaiting, 1) == 1) return; // the waiting update will show this too
+            Post(() => { Interlocked.Exchange(ref _reportWaiting, 0); Changed?.Invoke(); });
         }
+
+        private static int _reportWaiting;
+
+        /// <summary>How many progress updates are waiting to be shown (0 or 1; tests).</summary>
+        public static int ReportsWaiting => _reportWaiting;
 
         public static void Post(Action a)
         {
