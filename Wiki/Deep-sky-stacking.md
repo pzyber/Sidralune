@@ -215,6 +215,8 @@ The stacked image is linear (unstretched) 32-bit floating point data. The previe
 | **Save stacked image…** | Save as 32-bit FITS (`Autosave.fits` by default), XISF or TIFF to keep the full data, or as PNG or JPEG with the preview stretch applied |
 | **Open in Process** | Send the result to the [Process](Image-processing) workspace for background extraction, stretching and so on |
 
+These three buttons are greyed out until an image has been stacked, and while registering or stacking runs.
+
 Keep the 32-bit linear file: all processing should start from it.
 
 ## File lists

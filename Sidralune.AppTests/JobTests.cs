@@ -252,19 +252,28 @@ namespace Sidralune.AppTests
             var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
             var type = typeof(StackingView);
             var resultBefore = OnUi(() => type.GetField("_resultBase", bf).GetValue(stacking));
+            var resultButtons = new[] { "Show stacked image", "Save stacked image…", "Open in Process" };
+            Func<bool> anyEnabled = () => OnUi(() => resultButtons.Any(b => Button(stacking, b).Enabled));
+            Func<bool> allEnabled = () => OnUi(() => resultButtons.All(b => Button(stacking, b).Enabled));
             try
             {
-                OnUi(() => type.GetField("_resultBase", bf).SetValue(stacking, null));
-                OnUi(() => Button(stacking, "Show stacked image").PerformClick());
-                CheckTrue("Nothing stacked yet: said so", WaitFor(() => Toasts().Any(t => t.StartsWith("Nothing stacked yet"))));
+                // Show, Save and Open in Process are greyed out until there is a stacked image
+                OnUi(() => { type.GetField("_resultBase", bf).SetValue(stacking, null); Call(stacking, "UpdateResultButtons"); });
+                CheckTrue("Nothing stacked yet: Show, Save and Open in Process greyed out", !anyEnabled());
+                OnUi(() => Call(stacking, "OpenResultInProcess"));
+                CheckTrue("Open in Process without a stacked image says so (if reached at all)", WaitFor(() => Toasts().Any(t => t.StartsWith("Nothing stacked yet"))));
 
                 AstroImage stacked = Stars(11), frame = Stars(12);
                 OnUi(() =>
                 {
                     type.GetField("_resultBase", bf).SetValue(stacking, stacked);
+                    Call(stacking, "UpdateResultButtons"); // as when stacking finishes
                     type.GetField("_preview", bf).SetValue(stacking, frame);
                     viewer.SetImage(frame); // a frame previewed after stacking
                 });
+                CheckTrue("With a stacked image: Show, Save and Open in Process usable", allEnabled());
+                WhileBusy(Field<JobSlot>(stacking, "_job"), () => CheckTrue("While registering or stacking: greyed out", !anyEnabled()));
+                CheckTrue("After the job: usable again", allEnabled());
                 CheckTrue("A frame previewed in place of the stacked image", OnUi(() => viewer.Image == frame && !stacking.ShowingResult));
                 var buttons = OnUi(() => Button(stacking, "Stack checked frames").Parent.Controls.Cast<Control>().ToList());
                 CheckTrue("Show stacked image after Stop, before Save stacked image", OnUi(() =>
