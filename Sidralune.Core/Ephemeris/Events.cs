@@ -550,9 +550,10 @@ namespace Sidralune.Core.Ephemeris
         /// <summary>
         /// A solar eclipse from a site, from its greatest eclipse: the partial phase there (first and last contact), the local
         /// maximum with its magnitude, the share of the Sun's disc covered and the local type, and whether the Sun is up.
-        /// The maximum is the moment the site is closest to the shadow's axis, as on the eclipse map.
+        /// The contacts, the maximum (the moment the site is closest to the shadow's axis) and the type come from the
+        /// Besselian elements, as on the eclipse map, with the Moon's real edge when its topography is installed (limbProfile).
         /// </summary>
-        public static LocalEclipse SolarEclipseAt(Observer site, AstroTime greatest)
+        public static LocalEclipse SolarEclipseAt(Observer site, AstroTime greatest, bool limbProfile = true)
         {
             double tg = greatest.JdTT, step = 2 / 1440.0;
             Func<double, double> sepAt = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return s; };
@@ -568,17 +569,25 @@ namespace Sidralune.Core.Ephemeris
             var res = new LocalEclipse { Time = AstroTime.FromTT(tmax), Maximum = AstroTime.FromTT(tmax) };
             if (overlap(tmax) <= 0) return res; // the Moon passes by the Sun without covering it from here
             res.Covers = true;
-            // the maximum as local circumstances define it (the Explanatory Supplement, NASA's and Xavier Jubier's
-            // predictions, the eclipse map): the moment the place is closest to the shadow's axis. The centres looking
-            // closest comes a few seconds apart in a partial eclipse, whose closest approach is shallow, as the Moon's
-            // distance from the place changes with the Earth's turning
-            var axis = BesselianElements.Compute(greatest).Local(site.LatitudeDeg, site.LongitudeDeg, site.ElevationM);
-            if (axis.Covers && Math.Abs(axis.Maximum.Time.JdTT - tmax) < 10 / 1440.0 && overlap(axis.Maximum.Time.JdTT) > 0)
+            // the eclipse as local circumstances define it (the Explanatory Supplement, NASA's and Xavier Jubier's
+            // predictions, the eclipse map): the contacts, the maximum (the moment the place is closest to the shadow's
+            // axis), its magnitude and the local type from the Besselian elements, with the Moon's real edge when its
+            // topography is installed, so every view of a site agrees with the map to the tenth of a second. The search
+            // above only finds whether and about when: the centres looking closest comes a few seconds from that maximum
+            // in a shallow partial eclipse, and its Moon of mean radius makes a total phase seconds longer than the
+            // umbral radius (k = 0.272281) predictions use
+            var limb = limbProfile ? LunarLimb.Current : null;
+            var axis = BesselianElements.Compute(greatest).Local(site.LatitudeDeg, site.LongitudeDeg, site.ElevationM, limb);
+            bool fromAxis = axis.Covers && axis.C1 != null && axis.C4 != null && Math.Abs(axis.Maximum.Time.JdTT - tmax) < 10 / 1440.0;
+            double c1, c4;
+            if (fromAxis)
             {
+                res.Circumstances = axis;
                 tmax = axis.Maximum.Time.JdTT;
                 res.Time = res.Maximum = AstroTime.FromTT(tmax);
+                c1 = axis.C1.Time.JdTT; c4 = axis.C4.Time.JdTT;
             }
-            double c1 = Contact(overlap, tmax, -1), c4 = Contact(overlap, tmax, +1);
+            else { c1 = Contact(overlap, tmax, -1); c4 = Contact(overlap, tmax, +1); }
             res.Start = AstroTime.FromTT(c1); res.End = AstroTime.FromTT(c4);
             Func<double, bool> up = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return u; };
             Visibility(up, c1, tmax, c4, res);
@@ -591,6 +600,14 @@ namespace Sidralune.Core.Ephemeris
                 res.Time = AstroTime.FromTT(up(lo) ? lo : hi);
                 res.AtHorizon = true;
             }
+            if (fromAxis && !res.AtHorizon)
+            {
+                res.Magnitude = axis.Magnitude;
+                res.Obscuration = axis.Obscuration;
+                res.Kind = axis.LimbCorrected ? axis.KindLimb : axis.Kind;
+                return res;
+            }
+            // at the sunrise or sunset during the eclipse (or without the elements): as seen at that moment
             double sep, sS, sM; bool sunUp;
             SunAndMoon(site, res.Time.JdTT, out sep, out sS, out sM, out sunUp);
             res.Magnitude = (sS + sM - sep) / (2 * sS);
@@ -660,7 +677,7 @@ namespace Sidralune.Core.Ephemeris
         /// </summary>
         public static List<EclipsePhase> SolarEclipsePhases(Observer site, AstroTime greatest, bool limbProfile = true)
         {
-            var l = SolarEclipseAt(site, greatest);
+            var l = SolarEclipseAt(site, greatest, limbProfile);
             var list = new List<EclipsePhase>();
             Func<string, double, EclipsePhase> phase = (name, t) => new EclipsePhase { Name = name, Time = AstroTime.FromTT(t), Altitude = Events.Altitude(site, Body.Sun, t) };
             list.Add(phase(Lang.T("Greatest eclipse on Earth"), greatest.JdTT));
@@ -670,33 +687,28 @@ namespace Sidralune.Core.Ephemeris
                 list.Add(phase(Lang.T("Partial eclipse begins"), l.Start.Value.JdTT));
                 list.Add(phase(Lang.T("Maximum eclipse"), tmax));
                 list.Add(phase(Lang.T("Partial eclipse ends"), l.End.Value.JdTT));
-                double s0, sS0, sM0; bool u0;
-                SunAndMoon(site, tmax, out s0, out sS0, out sM0, out u0);
-                bool total = sM0 > sS0;
+                // the total or annular phase as on the eclipse map: from the Besselian elements with the umbral radius,
+                // and with the Moon's real edge when its topography is installed (which can make a short total phase where
+                // the smooth Moon gives none, or none where a valley lets the Sun through)
+                var c = l.Circumstances;
                 double c2 = double.NaN, c3 = double.NaN;
-                if (s0 < Math.Abs(sM0 - sS0))
+                bool total = false;
+                if (c != null)
                 {
-                    // the Moon's disc wholly inside the Sun's (annular) or over it (total)
-                    Func<double, double> central = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return Math.Abs(b - a) - s; };
-                    c2 = Contact(central, tmax, -1); c3 = Contact(central, tmax, +1);
+                    int kind = c.LimbCorrected ? c.KindLimb : c.Kind;
+                    var b = c.LimbCorrected ? c.C2Limb : c.C2; var e = c.LimbCorrected ? c.C3Limb : c.C3;
+                    if (kind != 0 && b != null && e != null) { c2 = b.Time.JdTT; c3 = e.Time.JdTT; total = kind == 1; }
                 }
-                // with the Moon's topography installed, the total or annular phase with its real edge: the topocentric
-                // contacts moved by the limb profile's correction from the Besselian elements (or the profile's own
-                // contacts where only the mountains make it total, and none where its valleys let the Sun through)
-                var limb = limbProfile ? LunarLimb.Current : null;
-                if (limb != null && s0 < Math.Abs(sM0 - sS0) + 0.01 * Math.Max(sM0, sS0))
+                else
                 {
-                    var be = BesselianElements.Compute(greatest);
-                    var loc = be.Local(site.LatitudeDeg, site.LongitudeDeg, site.ElevationM, limb);
-                    if (loc.LimbCorrected)
+                    // without the elements: topocentric, the Moon's disc wholly inside the Sun's (annular) or over it (total)
+                    double s0, sS0, sM0; bool u0;
+                    SunAndMoon(site, tmax, out s0, out sS0, out sM0, out u0);
+                    total = sM0 > sS0;
+                    if (s0 < Math.Abs(sM0 - sS0))
                     {
-                        if (loc.KindLimb == 0 || loc.C2Limb == null || loc.C3Limb == null) c2 = c3 = double.NaN;
-                        else if (!double.IsNaN(c2) && loc.C2 != null && loc.C3 != null)
-                        {
-                            c2 += loc.C2Limb.Time.JdTT - loc.C2.Time.JdTT;
-                            c3 += loc.C3Limb.Time.JdTT - loc.C3.Time.JdTT;
-                        }
-                        else if (loc.C2Limb != null && loc.C3Limb != null) { c2 = loc.C2Limb.Time.JdTT; c3 = loc.C3Limb.Time.JdTT; total = loc.KindLimb == 1; }
+                        Func<double, double> central = t => { double s, a, bb; bool u; SunAndMoon(site, t, out s, out a, out bb, out u); return Math.Abs(bb - a) - s; };
+                        c2 = Contact(central, tmax, -1); c3 = Contact(central, tmax, +1);
                     }
                 }
                 if (!double.IsNaN(c2) && !double.IsNaN(c3))
@@ -838,5 +850,7 @@ namespace Sidralune.Core.Ephemeris
         public double Magnitude, Obscuration;
         /// <summary>Solar at Time: 0 partial, 1 total, 2 annular.</summary>
         public int Kind;
+        /// <summary>Solar: the eclipse at the site from the Besselian elements, which its times come from (null if they could not be used).</summary>
+        public SolarLocalCircumstances Circumstances;
     }
 }
