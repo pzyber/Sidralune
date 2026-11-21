@@ -47,6 +47,10 @@ Open **Settings → Data** to download these. The first seven are recommended an
 | MPCORB | `MPCORB.DAT` | 70 MB (gzip download) | MPC | The complete minor planet orbit file. Asteroids brighter than absolute magnitude H = 15.5 are loaded, which keeps memory use reasonable |
 | Bright satellites | `visual.tle` | 30 KB | CelesTrak | Two-line elements for about 150 visually bright satellites |
 | Space stations | `stations.tle` | 10 KB | CelesTrak | ISS, Tiangong and other crewed stations |
+| World map: land | `ne_50m_land.geojson` | 1.6 MB | Public domain (Natural Earth) | Coastlines and islands at 1:50 million for the [eclipse map](Solar-system#the-eclipse-map), in more detail than the built-in 1:110 million map |
+| World map: lakes | `ne_50m_lakes.geojson` | 0.9 MB | Public domain (Natural Earth) | Lakes and reservoirs for the eclipse map |
+| World map: borders | `ne_50m_admin_0_boundary_lines_land.geojson` | 0.8 MB | Public domain (Natural Earth) | Country borders for the eclipse map |
+| World map: cities and towns | `ne_10m_populated_places_simple.geojson` | 4.9 MB | Public domain (Natural Earth) | About 7,300 populated places, named on the eclipse map by size as you zoom in |
 
 When a dataset is installed, it replaces the corresponding built-in data. HYG replaces the 114 built-in stars. OpenNGC replaces the built-in NGC, IC and Messier entries; built-in showpieces from other catalogues (Sharpless objects, the Magellanic Clouds and so on) are kept, and any Messier object missing from OpenNGC is added back.
 

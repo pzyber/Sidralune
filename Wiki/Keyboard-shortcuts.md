@@ -44,6 +44,24 @@ Click the chart first so that it has the keyboard focus.
 | Double-click | Centre on that point |
 | Right-click | Context menu |
 
+## Eclipse map
+
+In **Solar sys. → Eclipses**; click the map first so that it has the keyboard focus. See [The eclipse map](Solar-system#the-eclipse-map).
+
+| Keys | Action |
+|---|---|
+| Ctrl+G | Go to coordinates |
+| Ctrl+V | Go to the place on the clipboard |
+| Enter | (in the Go to field) Go there |
+| Esc | (in the Go to field) Close it |
+
+| Mouse | Action |
+|---|---|
+| Wheel | Zoom at the cursor |
+| Drag | Move |
+| Click | The eclipse at that place |
+| Double-click | Zoom in there |
+
 ## Image viewers
 
 In Process, Deep sky, Planetary, Astrometry, Spectra, the Observatory and MPC astrometry.

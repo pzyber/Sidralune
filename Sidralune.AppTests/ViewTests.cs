@@ -179,6 +179,141 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestEclipseMap()
+        {
+            // the map beside the eclipse list: the selected eclipse's lines, zoom and move, a click shows the eclipse there,
+            // Add as site, and drawing by day and at night
+            var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var start = new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+            int sites = OnUi(() => AppState.Settings.Sites.Count);
+            try
+            {
+                var view = View<Sidralune.Views.SolarSystemView>("solarsystem");
+                var grid = Field<DataGridView>(view, "_eclGrid");
+                var map = Field<EclipseMap>(view, "_eclMap");
+                OnUi(() =>
+                {
+                    AppState.SetTime(Core.Time.AstroTime.FromDateTime(start));
+                    typeof(Sidralune.Views.SolarSystemView).GetMethod("ComputeEclipses", bf).Invoke(view, new object[] { 1 });
+                    App.Navigate("solarsystem");
+                    Field<TabbedPanel>(view, "_tabs").Select(3);
+                });
+                CheckTrue("Eclipses listed", WaitFor(() => OnUi(() => grid.Rows.Count >= 2), 60000));
+                OnUi(() => grid.CurrentCell = grid.Rows[0].Cells[0]);
+                CheckTrue("The total solar eclipse of 12 August 2026 drawn", WaitFor(() => OnUi(() => map.Data != null && map.Data.Solar), 60000));
+                var kinds = OnUi(() => map.Data.Lines.Where(l => l.Parts.Count > 0).Select(l => l.Kind).Distinct().ToList());
+                CheckTrue("Its central line, limits of totality and the edge of the partial eclipse", kinds.Contains(Core.Ephemeris.EclipseLineKind.CentralLine) && kinds.Contains(Core.Ephemeris.EclipseLineKind.CentralLimit) && kinds.Contains(Core.Ephemeris.EclipseLineKind.PenumbralLimit), string.Join(", ", kinds));
+                // seen at every longitude around the North Pole, so the whole world; greatest eclipse (north of Greenland) in view
+                CheckTrue("Greatest eclipse in view", OnUi(() => { var s = map.ToScreen(map.Data.GreatestPoint.Value.Lat, map.Data.GreatestPoint.Value.Lon); return s.X >= 0 && s.Y >= 0 && s.X <= map.Width && s.Y <= map.Height; }));
+                OnUi(() => map.ShowRegion(-40, 40, 10, 75));
+
+                // screen and map places back and forth, and zooming keeps the place under the cursor
+                var round = OnUi(() => { var s = map.ToScreen(64.15, -21.94); var g = map.ToGeo(Point.Round(s)); return Math.Abs(g.Lat - 64.15) + Math.Abs(g.Lon + 21.94); });
+                CheckTrue("A place drawn and read back", round < 2 / OnUi(() => map.Scale) + 1e-6, round.ToString("0.0000"));
+                var kept = OnUi(() => { var at = new Point(map.Width / 3, map.Height / 3); var before = map.ToGeo(at); map.ZoomAt(2, at); var after = map.ToGeo(at); return Math.Abs(after.Lat - before.Lat) + Math.Abs(after.Lon - before.Lon); });
+                CheckTrue("Zooming keeps the place under the cursor", kept < 0.05, kept.ToString("0.0000"));
+
+                // a click on the path near Reykjavík: total there, with the duration and the contacts
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(64.15, -21.94) }));
+                string info = OnUi(() => map.InfoText) ?? "";
+                CheckTrue("The popup: total, its duration, the path's width and the contacts in UT", info.Contains("Total solar eclipse") && info.Contains("Duration of totality:") && info.Contains("Path width") && info.Contains("Partial eclipse begins") && info.Contains("Time (UTC)"), info);
+                var local = OnUi(() => map.Data.Elements.Local(64.15, -21.94));
+                CheckTrue("The duration shown is the calculated one", info.Contains(Core.Util.Lang.T("{0} min {1:0.0} s", (int)(local.CentralSeconds / 60), local.CentralSeconds - 60 * (int)(local.CentralSeconds / 60))), info);
+                // the close button in its own space: clear of the text and wholly inside the box, as is Add as site
+                var box = OnUi(() => new Rectangle(Point.Empty, map.InfoSize));
+                var text = OnUi(() => map.InfoTextBounds); var close = OnUi(() => map.InfoCloseBounds); var add = OnUi(() => map.InfoAddSiteBounds);
+                CheckTrue("The popup's close button clear of its text and inside it", !close.IntersectsWith(text) && box.Contains(close) && box.Contains(add) && box.Contains(text) && !add.IntersectsWith(text), "box " + box + ", text " + text + ", close " + close + ", add " + add);
+                // Open in Google Maps and Copy in a row with Add as site, inside the box and clear of each other
+                var maps = OnUi(() => map.InfoOpenMapsBounds); var copy = OnUi(() => map.InfoCopyBounds);
+                CheckTrue("Google Maps and Copy beside Add as site", box.Contains(maps) && box.Contains(copy) && !maps.IntersectsWith(add) && !copy.IntersectsWith(maps) && !maps.IntersectsWith(text) && maps.Top == add.Top && copy.Top == add.Top, "add " + add + ", maps " + maps + ", copy " + copy + ", box " + box);
+                string opened = null;
+                OnUi(() => { var was = map.OpenUrl; map.OpenUrl = u => opened = u; Field<FlatButton>(map, "_openMaps").PerformClick(); map.OpenUrl = was; });
+                CheckTrue("Google Maps opened at the place", opened == "https://www.google.com/maps/search/?api=1&query=64.15%2C-21.94", opened);
+                // Copy: the place in decimal degrees on the clipboard (what was there put back)
+                string copied = OnUi(() =>
+                {
+                    string before = Clipboard.ContainsText() ? Clipboard.GetText() : null;
+                    map.CopyPlace();
+                    string got = Clipboard.GetText();
+                    if (before != null) Clipboard.SetText(before); else Clipboard.Clear();
+                    return got;
+                });
+                CheckTrue("The place copied", copied == "64.15, -21.94", copied);
+
+                // Go to coordinates: a field beside its button under the zoom buttons; what it can't read is said, a
+                // place is gone to with the eclipse there shown
+                OnUi(() => map.ShowGoTo());
+                var goButton = OnUi(() => map.GoToButtonBounds); var goPanel = OnUi(() => map.GoToPanelBounds);
+                CheckTrue("The Go to field opens beside its button", OnUi(() => map.GoToOpen) && goPanel.Left > goButton.Right && goPanel.Top == goButton.Top && goPanel.Right <= OnUi(() => map.Width), "button " + goButton + ", field " + goPanel);
+                string hint = OnUi(() => map.GoToHint);
+                bool wentBad = OnUi(() => { map.GoToText = "Reykjavik"; return map.TryGoTo(); });
+                CheckTrue("Text that is no place: said so, the field stays open", !wentBad && OnUi(() => map.GoToOpen) && OnUi(() => map.GoToHint) != hint, OnUi(() => map.GoToHint));
+                bool went = OnUi(() => { map.GoToText = "64°09′N 21°56′W"; return map.TryGoTo(); });
+                CheckTrue("Gone to 64°09′N 21°56′W: centred, the field closed, the eclipse there shown", went && !OnUi(() => map.GoToOpen) && Math.Abs(OnUi(() => map.CenterLat) - 64.15) < 1 && Math.Abs(OnUi(() => map.CenterLon) + 21.93) < 0.01 && (OnUi(() => map.InfoText) ?? "").Contains("Total solar eclipse"), OnUi(() => map.InfoText));
+                // the popup beside, below or above the place, never over its marker (also in a narrow map)
+                foreach (int width in new[] { 0, 520 })
+                {
+                    var covers = OnUi(() =>
+                    {
+                        int h = map.Height;
+                        if (width > 0) { map.Dock = DockStyle.None; map.Size = new Size(width, h); }
+                        map.GoTo(new Core.Ephemeris.GeoPoint(64.15, -21.94));
+                        var at = Point.Round(map.ToScreen(64.15, -21.94));
+                        var r = map.InfoBounds; r.Inflate(6, 6);
+                        string res = r.Contains(at) ? "over the place at " + at + ": " + map.InfoBounds + " in " + map.Size : null;
+                        if (width > 0) map.Dock = DockStyle.Fill;
+                        return res;
+                    });
+                    CheckTrue("The popup clear of the place" + (width > 0 ? " in a narrow map" : ""), covers == null, covers);
+                }
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-33.87, 151.21) }));
+                CheckTrue("No eclipse in Sydney", (OnUi(() => map.InfoText) ?? "").Contains("No eclipse here"), OnUi(() => map.InfoText));
+
+                // drawn without errors by day and at night
+                int mark = LogMark();
+                foreach (bool night in new[] { false, true })
+                    OnUi(() =>
+                    {
+                        Theme.SetNightMode(night); Theme.Apply(App);
+                        using (var bmp = new Bitmap(Math.Max(200, map.Width), Math.Max(200, map.Height))) map.DrawToBitmap(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                    });
+                OnUi(() => { Theme.SetNightMode(AppState.Settings.NightMode); Theme.Apply(App); });
+                CheckTrue("Drawn by day and at night without errors", ErrorsSince(mark).Count == 0, string.Join(" | ", ErrorsSince(mark)));
+
+                // the lunar eclipse: where the Moon is up
+                OnUi(() => grid.CurrentCell = grid.Rows[1].Cells[0]);
+                CheckTrue("The lunar eclipse of 28 August 2026 drawn with where it is visible", WaitFor(() => OnUi(() => map.Data != null && !map.Data.Solar && map.Data.Visibility != null), 60000));
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(59.33, 18.07) }));
+                CheckTrue("A click on Stockholm: the Moon sets during it", (OnUi(() => map.InfoText) ?? "").Contains("Moonset"), OnUi(() => map.InfoText));
+                // the shading worked out for the view, here zoomed in on the moonset line through Scandinavia: shaded on
+                // the side where the Moon is still up, clear beyond it
+                mark = LogMark();
+                var shade = OnUi(() =>
+                {
+                    map.ShowRegion(0, 50, 40, 70);
+                    using (var bmp = new Bitmap(map.Width, map.Height))
+                    {
+                        map.DrawToBitmap(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                        // the colour in the open sea west of Norway (up for part of it) against far east in Russia (not at all)
+                        var west = map.ToScreen(64, 2); var east = map.ToScreen(64, 38);
+                        return Tuple.Create(bmp.GetPixel((int)west.X, (int)west.Y), bmp.GetPixel((int)east.X, (int)east.Y));
+                    }
+                });
+                CheckTrue("The lunar map drawn zoomed in without errors", ErrorsSince(mark).Count == 0, string.Join(" | ", ErrorsSince(mark)));
+                CheckTrue("Shaded where the Moon is up for part of it, not beyond", shade.Item1 != shade.Item2, shade.Item1 + " / " + shade.Item2);
+
+                // Add as site: the place joins the sites and opens in Settings → Location
+                OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("AddEclipseSite", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-16.65373, 128.66009) }));
+                CheckTrue("Add as site adds the place", OnUi(() => AppState.Settings.Sites.Count == sites + 1 && Math.Abs(AppState.Settings.Sites.Last().LatitudeDeg + 16.65373) < 1e-6 && AppState.Settings.Sites.Last().ElevationM == 0));
+                CheckTrue("and opens Settings", OnUi(() => App.GetView<Sidralune.Views.SettingsView>("settings")?.Visible == true));
+            }
+            finally
+            {
+                OnUi(() => { while (AppState.Settings.Sites.Count > sites) AppState.Settings.Sites.RemoveAt(AppState.Settings.Sites.Count - 1); AppState.Save(); AppState.GoLive(); });
+            }
+        }
+
+        [TestMethod]
         public void TestNightModeAndSmallWindow()
         {
             var views = AllViews;

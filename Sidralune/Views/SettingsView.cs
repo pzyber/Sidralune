@@ -104,8 +104,14 @@ namespace Sidralune.Views
             del.Click += (s, e) => { if (AppState.Settings.Sites.Count > 1 && list.SelectedIndex >= 0) { AppState.Settings.Sites.RemoveAt(list.SelectedIndex); AppState.Settings.ActiveSite = 0; reload(); list.SelectedIndex = 0; AppState.NotifySiteChanged(); } };
             use.Click += (s, e) => { if (list.SelectedIndex >= 0) { AppState.Settings.ActiveSite = list.SelectedIndex; int sel = list.SelectedIndex; reload(); list.SelectedIndex = sel; AppState.NotifySiteChanged(); MainForm.Instance.Toast(T("Active site: {0}", AppState.Site.Name)); } };
             reload();
+            _showSite = i => { _tabs.Select(0); reload(); if (i >= 0 && i < list.Items.Count) list.SelectedIndex = i; };
             return panel;
         }
+
+        private Action<int> _showSite;
+
+        /// <summary>Opens Location with a site selected (one added elsewhere, such as from the eclipse map).</summary>
+        public void ShowSite(int index) => _showSite?.Invoke(index);
 
         // ------------------------------------------------------------------ equipment
 

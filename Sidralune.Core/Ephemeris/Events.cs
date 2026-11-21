@@ -714,6 +714,23 @@ namespace Sidralune.Core.Ephemeris
             return list.OrderBy(p => p.Time.JdTT).ToList();
         }
 
+        /// <summary>
+        /// The contacts of a lunar eclipse, the same moments everywhere: P1, U1, U2, MAX, U3, U4, P4 (those there are), in
+        /// time order.
+        /// </summary>
+        public static List<Tuple<string, AstroTime>> LunarContacts(AstroTime greatest)
+        {
+            double tg = greatest.JdTT;
+            Func<double, double> penumbral = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return p + m - s; };
+            Func<double, double> partial = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return u + m - s; };
+            Func<double, double> total = t => { double s, u, p, m; Shadow(t, out s, out u, out p, out m); return u - m - s; };
+            var list = new List<Tuple<string, double>> { Tuple.Create("MAX", tg) };
+            if (penumbral(tg) > 0) { list.Add(Tuple.Create("P1", Contact(penumbral, tg, -1))); list.Add(Tuple.Create("P4", Contact(penumbral, tg, +1))); }
+            if (partial(tg) > 0) { list.Add(Tuple.Create("U1", Contact(partial, tg, -1))); list.Add(Tuple.Create("U4", Contact(partial, tg, +1))); }
+            if (total(tg) > 0) { list.Add(Tuple.Create("U2", Contact(total, tg, -1))); list.Add(Tuple.Create("U3", Contact(total, tg, +1))); }
+            return list.OrderBy(x => x.Item2).Select(x => Tuple.Create(x.Item1, AstroTime.FromTT(x.Item2))).ToList();
+        }
+
         /// <summary>Observed (refracted) altitude of the Sun or Moon in degrees at time t (TT).</summary>
         private static double Altitude(Observer site, Body b, double t) => new SkyContext(site, AstroTime.FromTT(t)).BodyPlace(b).Horizontal.AltDeg;
 

@@ -1344,7 +1344,8 @@ namespace Sidralune.UI
             Fit = "", Undo = "", Redo = "", Up = "", Down = "", Left = "", Right = "", Connect = "",
             Camera = "", Target = "", Clock = "", Location = "", Info = "", Warning = "", Check = "",
             Close = "", More = "", Filter = "", Chart = "", Export = "", Download = "", List = "",
-            Calendar = "", Eye = "", Grid = "", Layers = "", Moon = "", Star = "", Lock = "";
+            Calendar = "", Eye = "", Grid = "", Layers = "", Moon = "", Star = "", Lock = "",
+            Copy = "", OpenInNew = "";
     }
 
     public class DarkToolStripRenderer : ToolStripProfessionalRenderer
