@@ -351,6 +351,34 @@ msgstr "Asi 7 300 obydlených míst, pojmenovaných na mapě zatmění podle vel
 msgid "Add as site"
 msgstr "Přidat jako místo"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Otevřít v Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Zobrazit toto místo v Google Maps ve webovém prohlížeči"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Kopírovat zeměpisnou šířku a délku"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Přejít na souřadnice"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Přejít"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Zeměpisná šířka a délka, např. 58.4887, 13.3348 nebo 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Toto nelze přečíst jako místo. Např. 58.4887, 13.3348 nebo 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} přidáno k vašim místům: nastavte časové pásmo a nadmořskou výšku v Nastavení → Poloha"

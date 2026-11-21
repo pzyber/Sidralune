@@ -29,8 +29,14 @@ namespace Sidralune.UI
         private Bitmap _visibility;
         private readonly Panel _popup = new Panel { Visible = false, Padding = new Padding(10, 8, 10, 8) };
         private readonly Label _popupText = new Label { AutoSize = true, Font = Theme.MonoFont, Location = new Point(10, 8) };
-        private readonly FlatButton _addSite, _closePopup;
-        private readonly FlatButton _zoomIn, _zoomOut, _fit;
+        private readonly FlatButton _addSite, _openMaps, _copy, _closePopup;
+        private readonly FlatButton _zoomIn, _zoomOut, _fit, _goTo;
+        // Go to coordinates: a field next to its button
+        private readonly Panel _goPanel = new Panel { Visible = false };
+        private readonly Label _goHint = new Label { AutoSize = true, Tag = "dim", Location = new Point(10, 8) };
+        private readonly TextBox _goBox = new TextBox { Width = 300 };
+        private readonly FlatButton _goButton;
+        private readonly Timer _copied = new Timer { Interval = 1500 };
 
         /// <summary>A place was clicked (not dragged): show what happens there with <see cref="ShowInfo"/>.</summary>
         public event Action<GeoPoint> PlaceClicked;
@@ -46,16 +52,40 @@ namespace Sidralune.UI
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
             _addSite = new FlatButton(T("Add as site"), Icons.Location, (s, e) => { if (_clicked.HasValue) AddSiteClicked?.Invoke(_clicked.Value); });
             _addSite.AutoSizeToText();
+            _openMaps = new FlatButton(T("Open in Google Maps"), Icons.OpenInNew, (s, e) => { if (_clicked.HasValue) OpenUrl?.Invoke(GoogleMapsUrl(_clicked.Value)); }) { ToolTipText = T("Show this place in Google Maps in the web browser") };
+            _openMaps.AutoSizeToText();
+            _copy = new FlatButton { Icon = Icons.Copy, Width = 30, Height = _addSite.Height, ToolTipText = T("Copy the latitude and longitude") };
+            _copy.Click += (s, e) => CopyPlace();
+            _copied.Tick += (s, e) => { _copied.Stop(); _copy.Icon = Icons.Copy; _copy.Invalidate(); };
             _closePopup = new FlatButton { Icon = Icons.Close, Width = 30, ToolTipText = T("Close") };
             _closePopup.Click += (s, e) => HideInfo();
-            _popup.Controls.Add(_popupText); _popup.Controls.Add(_addSite); _popup.Controls.Add(_closePopup);
+            _popup.Controls.Add(_popupText); _popup.Controls.Add(_addSite); _popup.Controls.Add(_openMaps); _popup.Controls.Add(_copy); _popup.Controls.Add(_closePopup);
             _popup.Paint += (s, e) => { using (var p = new Pen(Theme.Current.BorderStrong)) e.Graphics.DrawRectangle(p, 0, 0, _popup.Width - 1, _popup.Height - 1); };
             Controls.Add(_popup);
             _zoomIn = OverlayButton(Icons.Zoom, T("Zoom in"), (s, e) => ZoomAt(2, new Point(Width / 2, Height / 2)));
             _zoomOut = OverlayButton(Icons.ZoomOut, T("Zoom out"), (s, e) => ZoomAt(0.5, new Point(Width / 2, Height / 2)));
             _fit = OverlayButton(Icons.Fit, T("Whole eclipse"), (s, e) => FitData());
-            _zoomIn.Location = new Point(8, 8); _zoomOut.Location = new Point(8, 44); _fit.Location = new Point(8, 80);
+            _goTo = OverlayButton(Icons.Target, T("Go to coordinates"), (s, e) => { if (_goPanel.Visible) HideGoTo(); else ShowGoTo(); });
+            _zoomIn.Location = new Point(8, 8); _zoomOut.Location = new Point(8, 44); _fit.Location = new Point(8, 80); _goTo.Location = new Point(8, 116);
+
+            // the Go to field: a hint (or what was wrong) above it, Enter or Go to go, Escape to close
+            _goButton = new FlatButton(T("Go"), Icons.Right, (s, e) => TryGoTo());
+            _goButton.AutoSizeToText();
+            _goBox.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; TryGoTo(); }
+                else if (e.KeyCode == Keys.Escape) { e.SuppressKeyPress = true; HideGoTo(); }
+            };
+            _goPanel.Controls.Add(_goHint); _goPanel.Controls.Add(_goBox); _goPanel.Controls.Add(_goButton);
+            _goPanel.Paint += (s, e) => { using (var p = new Pen(Theme.Current.BorderStrong)) e.Graphics.DrawRectangle(p, 0, 0, _goPanel.Width - 1, _goPanel.Height - 1); };
+            Controls.Add(_goPanel);
             _world = WorldMap.Current;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _copied.Dispose();
+            base.Dispose(disposing);
         }
 
         private FlatButton OverlayButton(string icon, string tip, EventHandler click)
@@ -201,13 +231,16 @@ namespace Sidralune.UI
         {
             _clicked = at;
             _popupText.Text = text;
-            // the text on the left, the close button in its own column on the right, Add as site below
+            // the text on the left, the close button in its own column on the right, Add as site, Google Maps and Copy below
             var sz = _popupText.PreferredSize;
             _popupText.Location = new Point(10, 8);
-            int width = Math.Max(10 + sz.Width + 8 + _closePopup.Width + 6, 8 + _addSite.Width + 10);
+            int width = Math.Max(10 + sz.Width + 8 + _closePopup.Width + 6, 8 + _addSite.Width + 6 + _openMaps.Width + 6 + _copy.Width + 10);
             _closePopup.Location = new Point(width - _closePopup.Width - 6, 6);
             int top = Math.Max(8 + sz.Height, _closePopup.Bottom) + 8;
             _addSite.Location = new Point(8, top);
+            _openMaps.Location = new Point(_addSite.Right + 6, top);
+            _copy.Location = new Point(_openMaps.Right + 6, top);
+            _copy.Icon = Icons.Copy; _copied.Stop();
             _popup.Size = new Size(width, top + _addSite.Height + 8);
             _popup.Visible = true;
             _popup.BringToFront();
@@ -221,7 +254,107 @@ namespace Sidralune.UI
         public Rectangle InfoTextBounds => new Rectangle(_popupText.Location, _popupText.PreferredSize);
         public Rectangle InfoCloseBounds => _closePopup.Bounds;
         public Rectangle InfoAddSiteBounds => _addSite.Bounds;
+        public Rectangle InfoOpenMapsBounds => _openMaps.Bounds;
+        public Rectangle InfoCopyBounds => _copy.Bounds;
         public Size InfoSize => _popup.Size;
+        public Rectangle InfoBounds => _popup.Bounds;
+
+        /// <summary>Opens a link in the web browser; replaced in tests.</summary>
+        public Action<string> OpenUrl { get; set; } = url => { try { System.Diagnostics.Process.Start(url); } catch { } };
+
+        /// <summary>Google Maps at a place (its Maps URLs, which need no key): a pin there, the satellite view a click away.</summary>
+        public static string GoogleMapsUrl(GeoPoint p) =>
+            "https://www.google.com/maps/search/?api=1&query=" + p.Lat.ToString("0.######", CultureInfo.InvariantCulture) + "%2C" + p.Lon.ToString("0.######", CultureInfo.InvariantCulture);
+
+        /// <summary>The clicked place's latitude and longitude to the clipboard, in decimal degrees as map sites read them.</summary>
+        public void CopyPlace()
+        {
+            if (!_clicked.HasValue) return;
+            try { Clipboard.SetText(_clicked.Value.ToDecimalString()); } catch (System.Runtime.InteropServices.ExternalException) { return; } // the clipboard busy
+            // a tick on the button for a moment says it was copied
+            _copy.Icon = Icons.Check; _copy.Invalidate();
+            _copied.Stop(); _copied.Start();
+        }
+
+        // ------------------------------------------------------------------ go to coordinates
+
+        /// <summary>Opens the Go to field, with the clipboard's text in it when that is a place.</summary>
+        public void ShowGoTo()
+        {
+            _goHint.Text = T("Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E");
+            _goHint.ForeColor = Theme.Current.TextDim;
+            GeoPoint p;
+            string clip = null;
+            try { if (Clipboard.ContainsText()) clip = Clipboard.GetText(); } catch (System.Runtime.InteropServices.ExternalException) { }
+            if (clip != null && clip.Length < 2000 && GeoPoint.TryParse(clip, out p)) _goBox.Text = clip.Trim();
+            LayoutGoTo();
+            _goPanel.BackColor = BackColor;
+            _goPanel.Visible = true;
+            _goPanel.BringToFront();
+            _goBox.Focus(); _goBox.SelectAll();
+        }
+
+        /// <summary>The field sized for its hint or message, beside its button.</summary>
+        private void LayoutGoTo()
+        {
+            var hint = _goHint.PreferredSize;
+            int w = Math.Max(hint.Width, _goBox.Width + 6 + _goButton.Width);
+            _goBox.Location = new Point(10, 8 + hint.Height + 6);
+            _goButton.Location = new Point(_goBox.Right + 6, _goBox.Top + (_goBox.Height - _goButton.Height) / 2);
+            _goPanel.Size = new Size(10 + w + 10, Math.Max(_goBox.Bottom, _goButton.Bottom) + 10);
+            _goPanel.Location = new Point(_goTo.Right + 6, _goTo.Top);
+            _goPanel.Invalidate();
+        }
+
+        public void HideGoTo() { _goPanel.Visible = false; Focus(); }
+
+        /// <summary>The Go to field, for tests.</summary>
+        public bool GoToOpen => _goPanel.Visible;
+        public string GoToText { get { return _goBox.Text; } set { _goBox.Text = value; } }
+        public string GoToHint => _goHint.Text;
+        public Rectangle GoToButtonBounds => _goTo.Bounds;
+        public Rectangle GoToPanelBounds => _goPanel.Bounds;
+
+        /// <summary>Goes to the place in the field, or says what it reads.</summary>
+        public bool TryGoTo()
+        {
+            GeoPoint p;
+            if (!GeoPoint.TryParse(_goBox.Text, out p))
+            {
+                _goHint.Text = T("Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E");
+                _goHint.ForeColor = Theme.Current.Danger;
+                LayoutGoTo();
+                _goBox.Focus(); _goBox.SelectAll();
+                return false;
+            }
+            HideGoTo();
+            GoTo(p);
+            return true;
+        }
+
+        /// <summary>Centres the map on a place, zoomed in to see the country round it, and shows the eclipse there.</summary>
+        public void GoTo(GeoPoint p)
+        {
+            _scale = Math.Max(MinScale, Math.Max(_scale, Math.Min(MaxScale, Math.Min(Width, Height) / 10.0))); // at least about 10° across
+            _lon0 = p.Lon; _lat0 = p.Lat;
+            Clamp();
+            _clicked = p;
+            Invalidate();
+            PlaceClicked?.Invoke(p);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Ctrl+V on the map goes straight to a place on the clipboard; Ctrl+G opens the field
+            if (keyData == (Keys.Control | Keys.V) && Focused)
+            {
+                GeoPoint p; string clip = null;
+                try { if (Clipboard.ContainsText()) clip = Clipboard.GetText(); } catch (System.Runtime.InteropServices.ExternalException) { }
+                if (clip != null && clip.Length < 2000 && GeoPoint.TryParse(clip, out p)) { GoTo(p); return true; }
+            }
+            if (keyData == (Keys.Control | Keys.G) && (Focused || ContainsFocus)) { ShowGoTo(); return true; }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
 
         /// <summary>The popup's text, for tests.</summary>
         public string InfoText => _popup.Visible ? _popupText.Text : null;
@@ -232,6 +365,12 @@ namespace Sidralune.UI
             var p = ToScreen(_clicked.Value.Lat, Nearest(_clicked.Value.Lon));
             int x = (int)p.X + 14, y = (int)p.Y - _popup.Height / 2;
             if (x + _popup.Width > Width - 4) x = (int)p.X - 14 - _popup.Width;
+            if (x < 4)
+            {
+                // no room on either side: below the place, or above it, so the marker stays in sight
+                x = (int)p.X - _popup.Width / 2;
+                y = p.Y + 14 + _popup.Height <= Height - 4 ? (int)p.Y + 14 : (int)p.Y - 14 - _popup.Height;
+            }
             _popup.Location = new Point(Math.Max(4, Math.Min(Width - _popup.Width - 4, x)), Math.Max(4, Math.Min(Height - _popup.Height - 4, y)));
         }
 

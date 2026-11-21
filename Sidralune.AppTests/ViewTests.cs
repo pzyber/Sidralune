@@ -223,6 +223,49 @@ namespace Sidralune.AppTests
                 var box = OnUi(() => new Rectangle(Point.Empty, map.InfoSize));
                 var text = OnUi(() => map.InfoTextBounds); var close = OnUi(() => map.InfoCloseBounds); var add = OnUi(() => map.InfoAddSiteBounds);
                 CheckTrue("The popup's close button clear of its text and inside it", !close.IntersectsWith(text) && box.Contains(close) && box.Contains(add) && box.Contains(text) && !add.IntersectsWith(text), "box " + box + ", text " + text + ", close " + close + ", add " + add);
+                // Open in Google Maps and Copy in a row with Add as site, inside the box and clear of each other
+                var maps = OnUi(() => map.InfoOpenMapsBounds); var copy = OnUi(() => map.InfoCopyBounds);
+                CheckTrue("Google Maps and Copy beside Add as site", box.Contains(maps) && box.Contains(copy) && !maps.IntersectsWith(add) && !copy.IntersectsWith(maps) && !maps.IntersectsWith(text) && maps.Top == add.Top && copy.Top == add.Top, "add " + add + ", maps " + maps + ", copy " + copy + ", box " + box);
+                string opened = null;
+                OnUi(() => { var was = map.OpenUrl; map.OpenUrl = u => opened = u; Field<FlatButton>(map, "_openMaps").PerformClick(); map.OpenUrl = was; });
+                CheckTrue("Google Maps opened at the place", opened == "https://www.google.com/maps/search/?api=1&query=64.15%2C-21.94", opened);
+                // Copy: the place in decimal degrees on the clipboard (what was there put back)
+                string copied = OnUi(() =>
+                {
+                    string before = Clipboard.ContainsText() ? Clipboard.GetText() : null;
+                    map.CopyPlace();
+                    string got = Clipboard.GetText();
+                    if (before != null) Clipboard.SetText(before); else Clipboard.Clear();
+                    return got;
+                });
+                CheckTrue("The place copied", copied == "64.15, -21.94", copied);
+
+                // Go to coordinates: a field beside its button under the zoom buttons; what it can't read is said, a
+                // place is gone to with the eclipse there shown
+                OnUi(() => map.ShowGoTo());
+                var goButton = OnUi(() => map.GoToButtonBounds); var goPanel = OnUi(() => map.GoToPanelBounds);
+                CheckTrue("The Go to field opens beside its button", OnUi(() => map.GoToOpen) && goPanel.Left > goButton.Right && goPanel.Top == goButton.Top && goPanel.Right <= OnUi(() => map.Width), "button " + goButton + ", field " + goPanel);
+                string hint = OnUi(() => map.GoToHint);
+                bool wentBad = OnUi(() => { map.GoToText = "Reykjavik"; return map.TryGoTo(); });
+                CheckTrue("Text that is no place: said so, the field stays open", !wentBad && OnUi(() => map.GoToOpen) && OnUi(() => map.GoToHint) != hint, OnUi(() => map.GoToHint));
+                bool went = OnUi(() => { map.GoToText = "64°09′N 21°56′W"; return map.TryGoTo(); });
+                CheckTrue("Gone to 64°09′N 21°56′W: centred, the field closed, the eclipse there shown", went && !OnUi(() => map.GoToOpen) && Math.Abs(OnUi(() => map.CenterLat) - 64.15) < 1 && Math.Abs(OnUi(() => map.CenterLon) + 21.93) < 0.01 && (OnUi(() => map.InfoText) ?? "").Contains("Total solar eclipse"), OnUi(() => map.InfoText));
+                // the popup beside, below or above the place, never over its marker (also in a narrow map)
+                foreach (int width in new[] { 0, 520 })
+                {
+                    var covers = OnUi(() =>
+                    {
+                        int h = map.Height;
+                        if (width > 0) { map.Dock = DockStyle.None; map.Size = new Size(width, h); }
+                        map.GoTo(new Core.Ephemeris.GeoPoint(64.15, -21.94));
+                        var at = Point.Round(map.ToScreen(64.15, -21.94));
+                        var r = map.InfoBounds; r.Inflate(6, 6);
+                        string res = r.Contains(at) ? "over the place at " + at + ": " + map.InfoBounds + " in " + map.Size : null;
+                        if (width > 0) map.Dock = DockStyle.Fill;
+                        return res;
+                    });
+                    CheckTrue("The popup clear of the place" + (width > 0 ? " in a narrow map" : ""), covers == null, covers);
+                }
                 OnUi(() => typeof(Sidralune.Views.SolarSystemView).GetMethod("ShowPlace", bf).Invoke(view, new object[] { new Core.Ephemeris.GeoPoint(-33.87, 151.21) }));
                 CheckTrue("No eclipse in Sydney", (OnUi(() => map.InfoText) ?? "").Contains("No eclipse here"), OnUi(() => map.InfoText));
 

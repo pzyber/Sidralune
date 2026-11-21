@@ -347,6 +347,34 @@ msgstr "Noin 7 300 asutusta, joiden nimet näkyvät pimennyskartalla koon mukaan
 msgid "Add as site"
 msgstr "Lisää paikaksi"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Avaa Google Mapsissa"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Näytä paikka Google Mapsissa verkkoselaimessa"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Kopioi leveys- ja pituusaste"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Siirry koordinaatteihin"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Siirry"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Leveys- ja pituusaste, esim. 58.4887, 13.3348 tai 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Tätä ei voi lukea paikaksi. Esim. 58.4887, 13.3348 tai 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} lisättiin paikkoihisi: aseta aikavyöhyke ja korkeus kohdassa Asetukset → Sijainti"

@@ -38,7 +38,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Astrometry | Built-in blind plate solver with TAN-SIP fitting, ASTAP and astrometry.net bridges, annotation, framing and mosaic planner, exposure and SNR calculator |
 | Photometry | Ensemble differential photometry, AAVSO reports, Lomb-Scargle, BLS and PDM period searches, eclipse timing, O−C, transit fitting with MCMC, transit predictions |
 | Spectroscopy | Trace and optimal extraction, lamp wavelength calibration, line measurement, radial velocity, instrument response, temperature and spectral class, BeSS export |
-| Solar system | Ephemerides, minor-body browser with orbit diagram, Galilean moons, solar and lunar eclipses from your site with an eclipse map (paths, limits and the circumstances at any place), asteroid and lunar occultations, meteor showers, satellite passes, MPC astrometry reports |
+| Solar system | Ephemerides, minor-body browser with orbit diagram, Galilean moons, solar and lunar eclipses from your site with an eclipse map (paths, limits and the circumstances at any place, go to pasted coordinates, open a place in Google Maps), asteroid and lunar occultations, meteor showers, satellite passes, MPC astrometry reports |
 | Radio | Hydrogen-line spectra from SDR recordings or a live rtl_tcp server, waterfall, LSR velocities, kinematic distances, dish calculator, Jupiter storm predictions, drift scans, pulsar folding, SID detection |
 | Databases | Local catalogue search, Sesame, SIMBAD, VizieR, AAVSO VSX and NASA Exoplanet Archive queries, ADQL console, citizen-science directory |
 | Automation | C# scripting with access to the whole Sidralune API, data-analysis workbench, command palette for every action |

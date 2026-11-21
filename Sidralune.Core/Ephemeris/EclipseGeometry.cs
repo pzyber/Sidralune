@@ -14,6 +14,145 @@ namespace Sidralune.Core.Ephemeris
         public double Lat, Lon;
         public GeoPoint(double lat, double lon) { Lat = lat; Lon = lon; }
         public override string ToString() => Lat.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture) + ", " + Lon.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>Decimal degrees to six places (about 0.1 m), as map sites write them: "58.488667, 13.334811".</summary>
+        public string ToDecimalString() => Lat.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + ", " + Lon.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture);
+
+        /// <summary>
+        /// Reads a latitude and longitude as people copy them: decimal degrees ("58.48866654226863, 13.334811397822232",
+        /// also with decimal commas "58,4887 13,3348"), degrees, minutes and seconds ("58°29′19.2″N 13°20′05.3″E",
+        /// "N 58° 29.32′ E 13° 20.09′", "58 29 19 N, 13 20 05 E"), or a map link with the place in it (Google Maps'
+        /// "@58.4887,13.3348" or "query=58.4887,13.3348", a "geo:58.4887,13.3348" link). Latitude comes first unless the
+        /// letters say otherwise; besides N, S, E and W the compass letters of the interface language are read.
+        /// </summary>
+        public static bool TryParse(string text, out GeoPoint p)
+        {
+            p = new GeoPoint();
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            const string num = @"[-+−]?\d+(?:\.\d+)?";
+            // a link: the place after @, query=, q=, ll= or geo:
+            var link = System.Text.RegularExpressions.Regex.Match(text, @"(?:@|[?&](?:query|q|ll|center)=|geo:)\s*(" + num + @")\s*(?:,|%2C)\s*(" + num + ")", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (link.Success)
+                return Make(double.Parse(link.Groups[1].Value.Replace("−", "-"), inv), double.Parse(link.Groups[2].Value.Replace("−", "-"), inv), out p);
+
+            string s = text.Trim().ToUpperInvariant().Replace("−", "-").Replace("–", "-");
+            // decimal commas: two numbers each with one ("58,4887 13,3348" or "58,4887; 13,3348"), when there is no point
+            if (!s.Contains(".") && System.Text.RegularExpressions.Regex.Matches(s, @"\d,\d").Count == 2)
+                s = System.Text.RegularExpressions.Regex.Replace(s, @"(\d),(\d)", "$1.$2");
+            // units to one sign each, and the letters of the compass (the interface language's too)
+            s = s.Replace("º", "°").Replace("˚", "°").Replace("''", "″").Replace("\"", "″").Replace("”", "″").Replace("’’", "″")
+                 .Replace("'", "′").Replace("’", "′").Replace("´", "′");
+            var letters = new Dictionary<char, char> { { 'N', 'N' }, { 'S', 'S' }, { 'E', 'E' }, { 'W', 'W' } };
+            var local = new[] { Tuple.Create(Util.Lang.Tc("compass", "N"), 'N'), Tuple.Create(Util.Lang.Tc("compass", "S"), 'S'), Tuple.Create(Util.Lang.Tc("compass", "E"), 'E'), Tuple.Create(Util.Lang.Tc("compass", "W"), 'W') };
+            foreach (var l in local)
+            {
+                string u = l.Item1.ToUpperInvariant();
+                if (u.Length == 1 && !letters.ContainsKey(u[0])) letters[u[0]] = l.Item2;
+            }
+
+            // the items: numbers with their unit, compass letters and separators
+            var items = new List<Tuple<char, double, char>>(); // kind ('n' number, 'h' letter, ',' separator), value, unit or letter
+            int i = 0;
+            while (i < s.Length)
+            {
+                char c = s[i];
+                var m = System.Text.RegularExpressions.Regex.Match(s.Substring(i), "^" + num);
+                if (m.Success && (char.IsDigit(c) || ((c == '-' || c == '+') && i + 1 < s.Length && char.IsDigit(s[i + 1]))))
+                {
+                    i += m.Length;
+                    while (i < s.Length && s[i] == ' ') i++;
+                    char unit = i < s.Length && (s[i] == '°' || s[i] == '′' || s[i] == '″' || s[i] == ':') ? s[i] : ' ';
+                    if (unit != ' ') i++;
+                    items.Add(Tuple.Create('n', double.Parse(m.Value, inv), unit));
+                }
+                else if (letters.ContainsKey(c) && (i + 1 >= s.Length || !char.IsLetter(s[i + 1])) && (i == 0 || !char.IsLetter(s[i - 1])))
+                { items.Add(Tuple.Create('h', 0.0, letters[c])); i++; }
+                else if (c == ',' || c == ';' || c == '/') { items.Add(Tuple.Create(',', 0.0, c)); i++; }
+                else if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '(' || c == ')') i++;
+                else return false; // something else: not a place
+            }
+            var nums = items.Where(x => x.Item1 == 'n').ToList();
+            var hemis = items.Where(x => x.Item1 == 'h').ToList();
+            if (nums.Count < 2 || nums.Count > 6 || hemis.Count > 2) return false;
+
+            // into the two coordinates
+            var groups = new List<List<Tuple<char, double, char>>>();
+            char[] hemi = new char[2];
+            if (hemis.Count == 2)
+            {
+                // the letters before their numbers ("N 58 29, E 13 20") or after them ("58 29 N 13 20 E")
+                bool prefix = items[0].Item1 == 'h';
+                List<Tuple<char, double, char>> cur = null;
+                int g = -1;
+                foreach (var x in items)
+                {
+                    if (x.Item1 == 'h')
+                    {
+                        if (prefix) { g++; cur = new List<Tuple<char, double, char>>(); groups.Add(cur); hemi[g] = x.Item3; }
+                        else { if (cur == null) return false; g++; hemi[g] = x.Item3; cur = null; }
+                    }
+                    else if (x.Item1 == 'n')
+                    {
+                        if (cur == null) { if (prefix) return false; cur = new List<Tuple<char, double, char>>(); groups.Add(cur); }
+                        cur.Add(x);
+                    }
+                }
+                if (groups.Count != 2 || g != 1) return false;
+            }
+            else if (hemis.Count == 0)
+            {
+                int sep = items.FindIndex(x => x.Item1 == ',');
+                if (sep > 0 && items.Count(x => x.Item1 == ',') == 1)
+                {
+                    groups.Add(items.Take(sep).Where(x => x.Item1 == 'n').ToList());
+                    groups.Add(items.Skip(sep + 1).Where(x => x.Item1 == 'n').ToList());
+                }
+                else if (nums.Count(x => x.Item3 == '°') == 2)
+                {
+                    // each coordinate begins with its degrees
+                    foreach (var x in nums) { if (x.Item3 == '°' || groups.Count == 0) groups.Add(new List<Tuple<char, double, char>>()); groups[groups.Count - 1].Add(x); }
+                }
+                else if (nums.Count % 2 == 0)
+                {
+                    groups.Add(nums.Take(nums.Count / 2).ToList());
+                    groups.Add(nums.Skip(nums.Count / 2).ToList());
+                }
+                if (groups.Count != 2) return false;
+            }
+            else return false; // one letter only: which number it belongs to is a guess
+
+            // each coordinate: degrees, minutes and seconds, with its sign or letter
+            var vals = new double[2];
+            for (int k = 0; k < 2; k++)
+            {
+                var gr = groups[k];
+                if (gr.Count < 1 || gr.Count > 3) return false;
+                double v = 0;
+                bool neg = gr[0].Item2 < 0;
+                for (int j = 0; j < gr.Count; j++)
+                {
+                    double a = Math.Abs(gr[j].Item2);
+                    if (j > 0 && (a >= 60 || gr[j].Item2 < 0 || gr[j - 1].Item2 != Math.Floor(gr[j - 1].Item2))) return false; // 58.5 29 is no angle
+                    v += a / Math.Pow(60, j);
+                }
+                if (hemi[k] == 'S' || hemi[k] == 'W') { if (neg) return false; neg = true; }
+                vals[k] = neg ? -v : v;
+            }
+            // the letters may put longitude first
+            bool lonFirst = hemis.Count == 2 && (hemi[0] == 'E' || hemi[0] == 'W');
+            if (hemis.Count == 2 && (hemi[0] == 'E' || hemi[0] == 'W') == (hemi[1] == 'E' || hemi[1] == 'W')) return false; // two latitudes
+            return lonFirst ? Make(vals[1], vals[0], out p) : Make(vals[0], vals[1], out p);
+        }
+
+        private static bool Make(double lat, double lon, out GeoPoint p)
+        {
+            p = new GeoPoint();
+            if (double.IsNaN(lat) || double.IsNaN(lon) || Math.Abs(lat) > 90 || lon < -180 || lon > 360) return false;
+            if (lon > 180) lon -= 360;
+            p = new GeoPoint(lat, lon);
+            return true;
+        }
     }
 
     /// <summary>The kinds of line on an eclipse map.</summary>

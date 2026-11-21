@@ -351,6 +351,34 @@ msgstr "Aproximativ 7.300 de localități, denumite pe harta eclipselor după m�
 msgid "Add as site"
 msgstr "Adăugați ca loc"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Deschide în Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Arată acest loc în Google Maps în browser"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Copiază latitudinea și longitudinea"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Mergi la coordonate"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Mergi"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Latitudine și longitudine, de exemplu 58.4887, 13.3348 sau 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Nu poate fi citit ca loc. De exemplu 58.4887, 13.3348 sau 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} a fost adăugat la locurile dvs.: setați fusul orar și altitudinea în Setări → Locație"

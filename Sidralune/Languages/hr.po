@@ -351,6 +351,34 @@ msgstr "Oko 7300 naselja, imenovanih na karti pomrčina prema veličini kad pove
 msgid "Add as site"
 msgstr "Dodaj kao lokaciju"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Otvori u Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Prikaži ovo mjesto u Google Maps u web-pregledniku"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Kopiraj geografsku širinu i dužinu"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Idi na koordinate"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Idi"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Geografska širina i dužina, npr. 58.4887, 13.3348 ili 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Ne može se pročitati kao mjesto. Npr. 58.4887, 13.3348 ili 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} dodano je vašim lokacijama: postavite vremensku zonu i nadmorsku visinu u Postavke → Lokacija"

@@ -347,6 +347,34 @@ msgstr "Ongeveer 7.300 plaatsen, met hun naam op de verduisteringskaart naar gro
 msgid "Add as site"
 msgstr "Toevoegen als locatie"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Openen in Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Deze plek in Google Maps tonen in de webbrowser"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Breedte- en lengtegraad kopiëren"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Naar coördinaten"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Ga"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Breedte- en lengtegraad, bijvoorbeeld 58.4887, 13.3348 of 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Niet te lezen als plaats. Bijvoorbeeld 58.4887, 13.3348 of 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} is toegevoegd aan je locaties: stel tijdzone en hoogte in bij Instellingen → Locatie"

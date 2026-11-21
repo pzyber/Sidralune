@@ -347,6 +347,34 @@ msgstr "Circa 7.300 località, con il nome sulla mappa delle eclissi in base all
 msgid "Add as site"
 msgstr "Aggiungi come luogo"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Apri in Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Mostra questo luogo in Google Maps nel browser"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Copia latitudine e longitudine"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Vai alle coordinate"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Vai"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Latitudine e longitudine, ad esempio 58.4887, 13.3348 o 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Non si riconosce come luogo. Ad esempio 58.4887, 13.3348 o 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} è stato aggiunto ai tuoi luoghi: imposta fuso orario e altitudine in Impostazioni → Posizione"

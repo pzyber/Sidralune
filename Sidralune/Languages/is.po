@@ -347,6 +347,34 @@ msgstr "Um 7.300 þéttbýlisstaðir, nefndir á myrkvakortinu eftir stærð þe
 msgid "Add as site"
 msgstr "Bæta við sem stað"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Opna í Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Sýna staðinn í Google Maps í vafranum"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Afrita breidd og lengd"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Fara á hnit"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Fara"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Breidd og lengd, t.d. 58.4887, 13.3348 eða 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Ekki hægt að lesa sem stað. T.d. 58.4887, 13.3348 eða 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} var bætt við staðina þína: stilltu tímabelti og hæð í Stillingar → Staðsetning"

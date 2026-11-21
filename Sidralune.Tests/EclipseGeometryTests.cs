@@ -225,6 +225,71 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestParsePlace()
+        {
+            // a place as people copy it from map sites and elsewhere, for Go to coordinates on the eclipse map
+            double dmsLat = 58 + 29 / 60.0 + 19.2 / 3600, dmsLon = 13 + 20 / 60.0 + 5.3 / 3600;
+            var cases = new[]
+            {
+                Tuple.Create("58.48866654226863, 13.334811397822232", 58.48866654226863, 13.334811397822232),
+                Tuple.Create("58.48866654226863 13.334811397822232", 58.48866654226863, 13.334811397822232),
+                Tuple.Create(" -33.8688,151.2093 ", -33.8688, 151.2093),
+                Tuple.Create("64.15, -21.94", 64.15, -21.94),
+                Tuple.Create("58,4887 13,3348", 58.4887, 13.3348),
+                Tuple.Create("58,4887; 13,3348", 58.4887, 13.3348),
+                Tuple.Create("58°29′19.2″N 13°20′05.3″E", dmsLat, dmsLon),
+                Tuple.Create("58°29'19.2\"N 13°20'05.3\"E", dmsLat, dmsLon),
+                Tuple.Create("58°29'19.2\"N, 13°20'05.3\"E", dmsLat, dmsLon),
+                Tuple.Create("58° 29' 19.2'' N 13° 20' 05.3'' E", dmsLat, dmsLon),
+                Tuple.Create("58 29 19.2 N, 13 20 05.3 E", dmsLat, dmsLon),
+                Tuple.Create("58:29:19.2, 13:20:05.3", dmsLat, dmsLon),
+                Tuple.Create("58°29′19.2″ 13°20′05.3″", dmsLat, dmsLon),
+                Tuple.Create("13°20′05.3″E 58°29′19.2″N", dmsLat, dmsLon),
+                Tuple.Create("N 58° 29.32′ E 13° 20.09′", 58 + 29.32 / 60, 13 + 20.09 / 60),
+                Tuple.Create("n58 29.32 e13 20.09", 58 + 29.32 / 60, 13 + 20.09 / 60),
+                Tuple.Create("33°52′S 151°12′E", -(33 + 52 / 60.0), 151.2),
+                Tuple.Create("64°09′N 21°56′W", 64.15, -(21 + 56 / 60.0)),
+                Tuple.Create("-33 52, 151 12", -(33 + 52 / 60.0), 151.2),
+                Tuple.Create("10, 200", 10.0, -160.0),
+                Tuple.Create("https://www.google.com/maps/place/Lidk%C3%B6ping/@58.4886665,13.3348114,17z/data=!3m1", 58.4886665, 13.3348114),
+                Tuple.Create("https://www.google.com/maps/search/?api=1&query=58.4887%2C13.3348", 58.4887, 13.3348),
+                Tuple.Create("https://maps.google.com/?q=-33.8688,151.2093", -33.8688, 151.2093),
+                Tuple.Create("geo:58.4887,13.3348", 58.4887, 13.3348),
+            };
+            foreach (var c in cases)
+            {
+                GeoPoint p;
+                bool ok = GeoPoint.TryParse(c.Item1, out p);
+                CheckTrue("Read: " + c.Item1, ok && Math.Abs(p.Lat - c.Item2) < 1e-9 && Math.Abs(p.Lon - c.Item3) < 1e-9, ok ? p.ToDecimalString() : "not read");
+            }
+            foreach (var bad in new[] { "", "  ", "Stockholm", "58.5", "95, 10", "10, 400", "58.5 29 N 13 E", "58N 13N", "13E 58W", "58 13 N", "58°70′N 13°E", "-58 S 13 E", "58, 13, 14", "58.4 x 13.3" })
+            {
+                GeoPoint p;
+                CheckTrue("Not a place: \"" + bad + "\"", !GeoPoint.TryParse(bad, out p), p.ToDecimalString());
+            }
+            CheckTrue("Written to six places", new GeoPoint(58.48866654226863, 13.334811397822232).ToDecimalString() == "58.488667, 13.334811" && new GeoPoint(-33.5, 151).ToDecimalString() == "-33.5, 151");
+
+            // the compass letters of the interface language: Swedish Ö (east) and V (west)
+            string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "SidraluneTests", "PlaceLanguages");
+            System.IO.Directory.CreateDirectory(folder);
+            string saved = Core.Util.Lang.Folder;
+            try
+            {
+                System.IO.File.WriteAllText(System.IO.Path.Combine(folder, "sv.po"), "msgctxt \"compass\"\nmsgid \"E\"\nmsgstr \"Ö\"\n\nmsgctxt \"compass\"\nmsgid \"W\"\nmsgstr \"V\"\n", new System.Text.UTF8Encoding(false));
+                Core.Util.Lang.Folder = folder;
+                Core.Util.Lang.Use("sv");
+                GeoPoint p, q;
+                CheckTrue("Swedish letters: 58°29′N 13°20′Ö and 64°09′N 21°56′V", GeoPoint.TryParse("58°29′N 13°20′Ö", out p) && GeoPoint.TryParse("64°09′ n 21°56′ v", out q) && Math.Abs(p.Lon - (13 + 20 / 60.0)) < 1e-9 && Math.Abs(q.Lon + 21 + 56 / 60.0) < 1e-9, p.ToDecimalString());
+                CheckTrue("And the English ones still", GeoPoint.TryParse("58°29′N 13°20′E", out p) && Math.Abs(p.Lon - (13 + 20 / 60.0)) < 1e-9);
+            }
+            finally
+            {
+                Core.Util.Lang.Folder = saved;
+                Core.Util.Lang.Use("en");
+            }
+        }
+
+        [TestMethod]
         public void TestWorldMap()
         {
             // the built-in Natural Earth 1:110m map

@@ -347,6 +347,34 @@ msgstr "Omkring 7 300 orter, namngivna på förmörkelsekartan efter storlek nä
 msgid "Add as site"
 msgstr "Lägg till som plats"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Öppna i Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Visa platsen i Google Maps i webbläsaren"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Kopiera latitud och longitud"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Gå till koordinater"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Gå"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Latitud och longitud, till exempel 58.4887, 13.3348 eller 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Kan inte läsas som en plats. Prova 58.4887, 13.3348 eller 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} har lagts till bland dina platser: ställ in tidszon och höjd i Inställningar → Plats"

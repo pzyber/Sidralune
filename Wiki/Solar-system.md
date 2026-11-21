@@ -125,6 +125,20 @@ The map beside the list shows where the selected eclipse can be seen, for planni
 
   Times are in UT because the time zone of an arbitrary place isn't known; the phases list under the eclipse list keeps your site's local time.
 - **Add as site** in the box adds the place to your observing sites and opens it in **Settings → Location**, where you name it and set its time zone and elevation (it starts at 0 m, since the map has no terrain).
+- **Open in Google Maps** shows the place in Google Maps in your web browser, to look at roads, terrain or where to stay. The place is sent to Google only when you click it.
+- **Copy** (the button after it) puts the latitude and longitude on the clipboard in decimal degrees, such as `58.488667, 13.334811`.
+
+**Go to coordinates** (the fourth button, under **Whole eclipse**, or Ctrl+G) opens a field for a latitude and longitude. Press Enter or **Go**, and the map moves there, zooms in and shows the eclipse at that place, as if you had clicked it. If the clipboard holds a place, the field starts with it. You can also click the map and press Ctrl+V to go straight to a place on the clipboard. The field reads the forms that places are usually copied in:
+
+| Form | Example |
+|---|---|
+| Decimal degrees, latitude first (as Google Maps copies them) | `58.48866654226863, 13.334811397822232`, `-33.8688 151.2093` |
+| Decimal commas | `58,4887 13,3348` |
+| Degrees, minutes and seconds, with N, S, E or W before or after | `58°29′19.2″N 13°20′05.3″E`, `58 29 19.2 N, 13 20 05.3 E` |
+| Degrees and decimal minutes | `N 58° 29.32′ E 13° 20.09′` |
+| A map link with the place in it | a Google Maps link with `@58.4887,13.3348` or `query=58.4887,13.3348`, or `geo:58.4887,13.3348` |
+
+Without letters, latitude comes first and south and west are negative. Besides N, S, E and W, the compass letters of the interface language are read too, such as Ö and V in Swedish. If the field can't read the text, it says so and stays open.
 
 The map works offline with a built-in Natural Earth world at 1:110 million. For more detail, install the **World map** datasets (land, lakes, borders, and cities and towns) in **Settings → Data**; see [Data and catalogues](Data-and-catalogues). The lines come from Besselian elements fitted to the same ephemeris as the rest of Sidralune; with DE440s installed, contacts agree with Xavier Jubier's mean-limb predictions within about a second. See [Algorithms and accuracy](Algorithms-and-accuracy).
 

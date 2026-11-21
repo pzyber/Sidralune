@@ -351,6 +351,34 @@ msgstr "Około 7300 miejscowości, podpisanych na mapie zaćmień według wielko
 msgid "Add as site"
 msgstr "Dodaj jako miejsce"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Open in Google Maps"
+msgstr "Otwórz w Google Maps"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Show this place in Google Maps in the web browser"
+msgstr "Pokaż to miejsce w Google Maps w przeglądarce"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Copy the latitude and longitude"
+msgstr "Kopiuj szerokość i długość geograficzną"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go to coordinates"
+msgstr "Przejdź do współrzędnych"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Go"
+msgstr "Przejdź"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Latitude and longitude, such as 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Szerokość i długość geograficzna, np. 58.4887, 13.3348 lub 58°29′N 13°20′E"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Can't read that as a place. Try 58.4887, 13.3348 or 58°29′N 13°20′E"
+msgstr "Nie można odczytać jako miejsca. Np. 58.4887, 13.3348 lub 58°29′N 13°20′E"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its time zone and elevation in Settings → Location"
 msgstr "{0} dodano do twoich miejsc: ustaw strefę czasową i wysokość w Ustawienia → Lokalizacja"
