@@ -945,6 +945,11 @@ namespace Sidralune.UI
             // a click on a tick box changes its value at once: the grid would otherwise keep the edit, and show the old
             // tick, until another cell is chosen
             g.CurrentCellDirtyStateChanged += (s, e) => { if (g.IsCurrentCellDirty && g.CurrentCell is DataGridViewCheckBoxCell) g.CommitEdit(DataGridViewDataErrorContexts.Commit); };
+            // tick boxes are drawn greyed when the grid or their column is read-only (a frame list while a job runs); the
+            // grid redraws only some cells when that changes, leaving the rest as they were until each is redrawn, so all of
+            // it is redrawn then
+            g.ReadOnlyChanged += (s, e) => g.Invalidate();
+            g.ColumnStateChanged += (s, e) => { if (e.StateChanged == DataGridViewElementStates.ReadOnly) g.Invalidate(); };
             // cells hold text, which sorts alphabetically ("9.2" after "14.0", "-04:25" after "+19:24"); numbers, angles and
             // times sort by value instead, and empty cells come after them
             g.SortCompare += (s, e) =>

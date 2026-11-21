@@ -175,6 +175,41 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestGridRedrawnWhenReadOnlyChanges()
+        {
+            // a grid's tick boxes are drawn greyed while it (or their column) is read-only; when that changes, the whole grid
+            // is redrawn, not only some cells (Deep sky's frame list showed a mix while registering)
+            var result = OnUi(() =>
+            {
+                using (var form = new Form { ShowInTaskbar = false, Size = new Size(400, 300), StartPosition = FormStartPosition.Manual, Location = new Point(-2000, 0) })
+                {
+                    var grid = Ui.Grid();
+                    grid.Dock = DockStyle.Fill;
+                    grid.ReadOnly = false; // editable to begin with, as Deep sky's frame list (grids start read-only)
+                    grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "On" });
+                    grid.Columns.Add("Name", "Name");
+                    form.Controls.Add(grid);
+                    Theme.Apply(form);
+                    form.Show();
+                    for (int i = 0; i < 5; i++) grid.Rows.Add(true, "Frame " + i);
+                    Application.DoEvents();
+                    var whole = new List<string>();
+                    InvalidateEventHandler h = (s, e) => { if (e.InvalidRect.Contains(grid.ClientRectangle)) whole.Add("redrawn"); };
+                    grid.Invalidated += h;
+                    var steps = new List<string>();
+                    Action<string, Action> step = (name, a) => { whole.Clear(); a(); steps.Add(name + (whole.Count > 0 ? ": redrawn" : ": NOT redrawn")); };
+                    step("grid read-only", () => grid.ReadOnly = true);
+                    step("grid editable", () => grid.ReadOnly = false);
+                    step("column read-only", () => grid.Columns[0].ReadOnly = true);
+                    step("column editable", () => grid.Columns[0].ReadOnly = false);
+                    grid.Invalidated -= h;
+                    return steps;
+                }
+            });
+            CheckTrue("The whole grid redrawn when it or its tick-box column turns read-only or editable", result.All(s => s.EndsWith(": redrawn")), string.Join(" | ", result));
+        }
+
+        [TestMethod]
         public void TestIconButtonsCentred()
         {
             // a button with only an icon has the icon in its middle, whatever the glyph's own spacing (the map's zoom, fit,
