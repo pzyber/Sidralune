@@ -52,8 +52,17 @@ namespace Sidralune.UI
         public event Action<GeoPoint> AddSiteClicked;
 
         /// <summary>The active site, marked on the map.</summary>
-        public GeoPoint? Site { get; set; }
-        public string SiteName { get; set; }
+        public GeoPoint? Site { get { return _site; } set { _site = value; if (_home != null) _home.Enabled = value.HasValue; } }
+        public string SiteName
+        {
+            get { return _siteName; }
+            set { _siteName = value; if (_home != null) _home.ToolTipText = string.IsNullOrEmpty(value) ? T("Your site") : T("Your site: {0}", value); }
+        }
+        /// <summary>The active site's elevation, metres: used in the popup for the site itself.</summary>
+        public double? SiteElevation { get; set; }
+        private GeoPoint? _site;
+        private string _siteName;
+        private readonly FlatButton _home;
 
         public EclipseMap()
         {
@@ -79,7 +88,9 @@ namespace Sidralune.UI
             _zoomOut = OverlayButton(Icons.ZoomOut, T("Zoom out"), (s, e) => ZoomAt(0.5, new Point(Width / 2, Height / 2)));
             _fit = OverlayButton(Icons.Fit, T("Whole eclipse"), (s, e) => FitData());
             _goTo = OverlayButton(Icons.Target, T("Go to coordinates"), (s, e) => { if (_goPanel.Visible) HideGoTo(); else ShowGoTo(); });
-            _zoomIn.Location = new Point(8, 8); _zoomOut.Location = new Point(8, 44); _fit.Location = new Point(8, 80); _goTo.Location = new Point(8, 116);
+            _home = OverlayButton(Icons.Home, T("Your site"), (s, e) => GoToSite());
+            _home.Enabled = false; // until the site is known
+            _zoomIn.Location = new Point(8, 8); _zoomOut.Location = new Point(8, 44); _fit.Location = new Point(8, 80); _goTo.Location = new Point(8, 116); _home.Location = new Point(8, 152);
 
             // the Go to field: a hint (or what was wrong) above it, Enter or Go to go, Escape to close
             _goButton = new FlatButton(T("Go"), Icons.Right, (s, e) => TryGoTo());
@@ -219,15 +230,48 @@ namespace Sidralune.UI
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (_pressed && !_dragging && e.Button == MouseButtons.Left)
-            {
-                var p = ToGeo(e.Location);
-                if (Math.Abs(p.Lat) <= 90) { _clicked = p; PlaceClicked?.Invoke(p); }
-            }
+            if (_pressed && !_dragging && e.Button == MouseButtons.Left) ClickAt(e.Location);
+            else if (e.Button == MouseButtons.Right && !_dragging) RightClickAt(e.Location);
             _pressed = _dragging = false;
             Cursor = Cursors.Default;
             base.OnMouseUp(e);
         }
+
+        /// <summary>A click at a point of the map: exactly the place there, even right next to the site (a neighbour's).</summary>
+        public void ClickAt(Point at)
+        {
+            var p = ToGeo(at);
+            if (Math.Abs(p.Lat) <= 90) { _clicked = p; PlaceClicked?.Invoke(p); }
+        }
+
+        /// <summary>A right click on or next to the site's marker or name: the site itself, at its exact place.</summary>
+        public void RightClickAt(Point at)
+        {
+            var site = SiteAt(at);
+            if (site.HasValue) { _clicked = site; PlaceClicked?.Invoke(site.Value); }
+        }
+
+        /// <summary>The site when a point is on its marker or name, else null.</summary>
+        private GeoPoint? SiteAt(Point at)
+        {
+            if (!_site.HasValue) return null;
+            var s = ToScreen(_site.Value.Lat, Nearest(_site.Value.Lon));
+            double dx = at.X - s.X, dy = at.Y - s.Y;
+            if (dx * dx + dy * dy <= 10 * 10) return _site;
+            if (!string.IsNullOrEmpty(_siteName))
+            {
+                var sz = TextRenderer.MeasureText(_siteName, Theme.SmallFont);
+                if (new RectangleF(s.X + 8, s.Y - 6, sz.Width, sz.Height).Contains(at)) return _site;
+            }
+            return null;
+        }
+
+        /// <summary>Goes to the active site and shows the eclipse there, with the site's own elevation.</summary>
+        public void GoToSite() { if (_site.HasValue) GoTo(_site.Value); }
+
+        /// <summary>The Your site button, for tests.</summary>
+        public Rectangle SiteButtonBounds => _home.Bounds;
+        public string SiteButtonTip => _home.ToolTipText;
 
         protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
@@ -279,12 +323,14 @@ namespace Sidralune.UI
             if (_elevPlace.HasValue && _elevPlace.Value.Lat == p.Lat && _elevPlace.Value.Lon == p.Lon) return (double)_elevBox.Value;
             _elevPlace = p;
             _elevPause.Stop();
-            var source = Elevation.Current;
-            double? h = source?.MetresAt(p.Lat, p.Lon);
+            // the site itself: its own elevation from Settings; elsewhere the elevation data's
+            bool site = _site.HasValue && _site.Value.Lat == p.Lat && _site.Value.Lon == p.Lon && SiteElevation.HasValue;
+            var source = site ? null : Elevation.Current;
+            double? h = site ? SiteElevation : source?.MetresAt(p.Lat, p.Lon);
             _settingElev = true;
             _elevBox.Value = (decimal)Math.Max((double)_elevBox.Minimum, Math.Min((double)_elevBox.Maximum, Math.Round(h ?? 0)));
             _settingElev = false;
-            _elevNote.Text = h.HasValue ? T("from {0}", source.Source) : "";
+            _elevNote.Text = site ? T("your site") : h.HasValue ? T("from {0}", source.Source) : "";
             _noteShown = h.HasValue; _elevNote.Visible = _noteShown;
             return (double)_elevBox.Value;
         }
@@ -405,6 +451,7 @@ namespace Sidralune.UI
                 if (clip != null && clip.Length < 2000 && GeoPoint.TryParse(clip, out p)) { GoTo(p); return true; }
             }
             if (keyData == (Keys.Control | Keys.G) && (Focused || ContainsFocus)) { ShowGoTo(); return true; }
+            if (keyData == Keys.Home && Focused) { GoToSite(); return true; }
             return base.ProcessCmdKey(ref msg, keyData);
         }
 

@@ -269,6 +269,25 @@ namespace Sidralune.AppTests
                 CheckTrue("Text that is no place: said so, the field stays open", !wentBad && OnUi(() => map.GoToOpen) && OnUi(() => map.GoToHint) != hint, OnUi(() => map.GoToHint));
                 bool went = OnUi(() => { map.GoToText = "64°09′N 21°56′W"; return map.TryGoTo(); });
                 CheckTrue("Gone to 64°09′N 21°56′W: centred, the field closed, the eclipse there shown", went && !OnUi(() => map.GoToOpen) && Math.Abs(OnUi(() => map.CenterLat) - 64.15) < 1 && Math.Abs(OnUi(() => map.CenterLon) + 21.93) < 0.01 && (OnUi(() => map.InfoText) ?? "").Contains("Total solar eclipse"), OnUi(() => map.InfoText));
+                // Your site: the fifth button, under Go to coordinates and named after the site, goes to the site with its own
+                // elevation from Settings; a right click on or next to the site's marker is the site itself, exactly, while a
+                // left click there is the place clicked (a neighbour's)
+                var siteButton = OnUi(() => map.SiteButtonBounds);
+                string siteName = OnUi(() => AppState.Site.Name);
+                CheckTrue("Your site under Go to coordinates, named after the site", siteButton.Left == goButton.Left && siteButton.Top > goButton.Bottom && (OnUi(() => map.SiteButtonTip) ?? "").Contains(siteName), siteButton + " / " + OnUi(() => map.SiteButtonTip));
+                var home = OnUi(() => new Core.Ephemeris.GeoPoint(AppState.Site.LatitudeDeg, AppState.Site.LongitudeDeg));
+                double homeElevation = OnUi(() => Math.Round(AppState.Site.ElevationM));
+                string homeText = EclipseMap.FormatPlace(home);
+                OnUi(() => { map.HideInfo(); map.GoToSite(); });
+                CheckTrue("Your site: the eclipse there, with the site's elevation", (OnUi(() => map.InfoText) ?? "").StartsWith(homeText) && OnUi(() => map.ElevationMetres) == homeElevation && (OnUi(() => map.ElevationNote) ?? "").Contains("your site"),
+                    OnUi(() => map.ElevationMetres) + " m, " + OnUi(() => map.ElevationNote) + ": " + OnUi(() => map.InfoText));
+                OnUi(() => { map.HideInfo(); var s = Point.Round(map.ToScreen(home.Lat, home.Lon)); map.RightClickAt(new Point(s.X + 5, s.Y + 4)); });
+                CheckTrue("A right click 6 px from the site's marker: the site exactly", (OnUi(() => map.InfoText) ?? "").StartsWith(homeText) && (OnUi(() => map.ElevationNote) ?? "").Contains("your site"), OnUi(() => map.InfoText));
+                OnUi(() => { map.HideInfo(); var s = Point.Round(map.ToScreen(home.Lat, home.Lon)); map.ClickAt(new Point(s.X + 5, s.Y + 4)); });
+                CheckTrue("A left click there: the place clicked, not the site", !(OnUi(() => map.InfoText) ?? "").StartsWith(homeText) && OnUi(() => map.ElevationNote) == null, OnUi(() => map.InfoText));
+                OnUi(() => { map.HideInfo(); var s = Point.Round(map.ToScreen(home.Lat, home.Lon)); map.RightClickAt(new Point(s.X - 40, s.Y + 30)); });
+                CheckTrue("A right click away from the site: nothing", OnUi(() => map.InfoText) == null, OnUi(() => map.InfoText));
+
                 // the popup beside, below or above the place, never over its marker (also in a narrow map)
                 foreach (int width in new[] { 0, 520 })
                 {

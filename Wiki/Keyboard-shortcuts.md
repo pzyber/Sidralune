@@ -52,6 +52,7 @@ In **Solar sys. → Eclipses**; click the map first so that it has the keyboard 
 |---|---|
 | Ctrl+G | Go to coordinates |
 | Ctrl+V | Go to the place on the clipboard |
+| Home | Go to your site |
 | Enter | (in the Go to field) Go there |
 | Esc | (in the Go to field) Close it |
 
@@ -60,6 +61,7 @@ In **Solar sys. → Eclipses**; click the map first so that it has the keyboard 
 | Wheel | Zoom at the cursor |
 | Drag | Move |
 | Click | The eclipse at that place |
+| Right-click on or next to your site's marker | The eclipse at your site, exactly |
 | Double-click | Zoom in there |
 
 ## Image viewers

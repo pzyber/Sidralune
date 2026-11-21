@@ -411,6 +411,18 @@ msgstr "Tega ni mogoče prebrati kot kraj. Npr. 58.4887, 13.3348 ali 58°29′N 
 msgid "from {0}"
 msgstr "iz {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Vaša lokacija"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Vaša lokacija: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "vaša lokacija"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} je dodano med vaše lokacije: nastavite ime in časovni pas v Nastavitve → Lokacija"

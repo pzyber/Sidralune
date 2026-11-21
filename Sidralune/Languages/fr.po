@@ -403,6 +403,18 @@ msgstr "Ce n’est pas un lieu lisible. Par exemple 58.4887, 13.3348 ou 58°29�
 msgid "from {0}"
 msgstr "d’après {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Votre lieu"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Votre lieu : {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "votre lieu"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} a été ajouté à vos lieux : réglez son nom et son fuseau horaire dans Paramètres → Lieu"

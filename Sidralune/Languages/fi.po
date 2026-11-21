@@ -403,6 +403,18 @@ msgstr "Tätä ei voi lukea paikaksi. Esim. 58.4887, 13.3348 tai 58°29′N 13°
 msgid "from {0}"
 msgstr "lähde: {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Oma paikkasi"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Oma paikkasi: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "oma paikkasi"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} lisättiin paikkoihisi: aseta nimi ja aikavyöhyke kohdassa Asetukset → Sijainti"

@@ -407,6 +407,18 @@ msgstr "Nevar nolasīt kā vietu. Piem., 58.4887, 13.3348 vai 58°29′N 13°20�
 msgid "from {0}"
 msgstr "no {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Jūsu vieta"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Jūsu vieta: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "jūsu vieta"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} pievienota jūsu vietām: iestatiet nosaukumu un laika joslu sadaļā Iestatījumi → Atrašanās vieta"

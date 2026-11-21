@@ -130,6 +130,8 @@ The map beside the list shows where the selected eclipse can be seen, for planni
 - **Copy** (the button after it) puts the latitude and longitude on the clipboard in decimal degrees, such as `58.488667, 13.334811`.
 - **Elevation (m)** is the place's height, which moves the contacts a little (up to about a second at 1,000–2,000 m). It is 0 to begin with, or the land's height there when **World elevation (ETOPO1)** is installed in **Settings → Data** ("from ETOPO1" beside it). Type another value and the eclipse is worked out again for it; **Add as site** uses it too. ETOPO1's heights are about 1.85 km apart, so on mountains they can be a few hundred metres off, a tenth of a second or two. The map's lines, the path width and the distance from the central line are for sea level.
 
+**Your site** (the fifth button, with the house, or the Home key) goes to your active site and shows the eclipse there, with the elevation from your site's settings ("your site" beside it) rather than the elevation data. A right click on or next to the site's marker, or on its name, does the same without moving the map. A left click always gives exactly the place clicked, even right next to your site, so a neighbour's place can be looked at too.
+
 **Go to coordinates** (the fourth button, under **Whole eclipse**, or Ctrl+G) opens a field for a latitude and longitude. Press Enter or **Go**, and the map moves there, zooms in and shows the eclipse at that place, as if you had clicked it. If the clipboard holds a place, the field starts with it. You can also click the map and press Ctrl+V to go straight to a place on the clipboard. The field reads the forms that places are usually copied in:
 
 | Form | Example |

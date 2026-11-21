@@ -403,6 +403,18 @@ msgstr "Ez nem olvasható helyként. Pl. 58.4887, 13.3348 vagy 58°29′N 13°20
 msgid "from {0}"
 msgstr "forrás: {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Az Ön helye"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Az Ön helye: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "az Ön helye"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} hozzáadva a helyeihez: állítsa be a nevét és az időzónát a Beállítások → Hely alatt"

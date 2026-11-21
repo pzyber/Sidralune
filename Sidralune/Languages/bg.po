@@ -403,6 +403,18 @@ msgstr "Това не е място. Например 58.4887, 13.3348 или 58
 msgid "from {0}"
 msgstr "от {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Вашето място"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Вашето място: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "вашето място"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} е добавено към вашите места: задайте името и часовата зона в Настройки → Местоположение"

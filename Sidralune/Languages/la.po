@@ -403,6 +403,18 @@ msgstr "Locus legi non potest. Tempta 58.4887, 13.3348 vel 58°29′N 13°20′E
 msgid "from {0}"
 msgstr "ex {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Locus tuus"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Locus tuus: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "locus tuus"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} locis tuis additum est: nomen et zonam horariam in Optiones → Locus pone"

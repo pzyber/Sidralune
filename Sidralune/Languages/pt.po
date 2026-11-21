@@ -403,6 +403,18 @@ msgstr "Não é possível ler como local. Por exemplo 58.4887, 13.3348 ou 58°29
 msgid "from {0}"
 msgstr "de {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "O seu local"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "O seu local: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "o seu local"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} foi adicionado aos seus locais: defina o nome e o fuso horário em Definições → Localização"

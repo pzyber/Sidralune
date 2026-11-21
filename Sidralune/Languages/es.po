@@ -403,6 +403,18 @@ msgstr "No se reconoce como lugar. Por ejemplo 58.4887, 13.3348 o 58°29′N 13�
 msgid "from {0}"
 msgstr "de {0}"
 
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site"
+msgstr "Su lugar"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "Your site: {0}"
+msgstr "Su lugar: {0}"
+
+#: Sidralune/UI/EclipseMap.cs
+msgid "your site"
+msgstr "su lugar"
+
 #: Sidralune/Views/SolarSystemView.cs
 msgid "Added {0} to your sites: set its name and time zone in Settings → Location"
 msgstr "{0} se ha añadido a sus lugares: indique el nombre y la zona horaria en Ajustes → Ubicación"
