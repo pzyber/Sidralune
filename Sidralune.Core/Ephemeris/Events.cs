@@ -550,6 +550,7 @@ namespace Sidralune.Core.Ephemeris
         /// <summary>
         /// A solar eclipse from a site, from its greatest eclipse: the partial phase there (first and last contact), the local
         /// maximum with its magnitude, the share of the Sun's disc covered and the local type, and whether the Sun is up.
+        /// The maximum is the moment the site is closest to the shadow's axis, as on the eclipse map.
         /// </summary>
         public static LocalEclipse SolarEclipseAt(Observer site, AstroTime greatest)
         {
@@ -567,6 +568,16 @@ namespace Sidralune.Core.Ephemeris
             var res = new LocalEclipse { Time = AstroTime.FromTT(tmax), Maximum = AstroTime.FromTT(tmax) };
             if (overlap(tmax) <= 0) return res; // the Moon passes by the Sun without covering it from here
             res.Covers = true;
+            // the maximum as local circumstances define it (the Explanatory Supplement, NASA's and Xavier Jubier's
+            // predictions, the eclipse map): the moment the place is closest to the shadow's axis. The centres looking
+            // closest comes a few seconds apart in a partial eclipse, whose closest approach is shallow, as the Moon's
+            // distance from the place changes with the Earth's turning
+            var axis = BesselianElements.Compute(greatest).Local(site.LatitudeDeg, site.LongitudeDeg, site.ElevationM);
+            if (axis.Covers && Math.Abs(axis.Maximum.Time.JdTT - tmax) < 10 / 1440.0 && overlap(axis.Maximum.Time.JdTT) > 0)
+            {
+                tmax = axis.Maximum.Time.JdTT;
+                res.Time = res.Maximum = AstroTime.FromTT(tmax);
+            }
             double c1 = Contact(overlap, tmax, -1), c4 = Contact(overlap, tmax, +1);
             res.Start = AstroTime.FromTT(c1); res.End = AstroTime.FromTT(c4);
             Func<double, bool> up = t => { double s, a, b; bool u; SunAndMoon(site, t, out s, out a, out b, out u); return u; };
