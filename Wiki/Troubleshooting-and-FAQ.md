@@ -95,6 +95,9 @@ ASCOM, Alpaca and INDI transfer every frame whole. Choose a smaller **Region** (
 **PHD2 does not connect.**
 In PHD2, choose **Tools → Enable Server**; the menu item has a tick when the server is on. If you run several PHD2 instances, the first uses port 4400. PHD2 needs no camera connected to answer.
 
+**Connect PHD2 is greyed out.**
+A guide camera is connected in Sidralune, and PHD2 needs the camera for itself. Disconnect the guide camera in **Observatory → Equipment**, then click **Connect PHD2**.
+
 **The guide camera cannot be connected: "PHD2 is connected".**
 While PHD2 is connected it uses the guide camera itself. Click **Disconnect PHD2** on the Guiding tab to guide with Sidralune.
 

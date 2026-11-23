@@ -151,19 +151,14 @@ namespace Sidralune.Devices
                 if (other != null && other.Connected && info.Protocol != DeviceProtocol.Simulator && other.Info.Protocol == info.Protocol && other.Info.Address == info.Address)
                     throw new InvalidOperationException(info.Kind == DeviceKind.Camera ? Lang.T("This camera is already connected as the guide camera.") : Lang.T("This camera is already connected as the imaging camera."));
             }
+            // the guide camera belongs to one guider at a time: PHD2 opens it itself, and most drivers serve one program
             if (info.Kind == DeviceKind.GuideCamera && _phd2 != null)
                 throw new InvalidOperationException(Lang.T("PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."));
+            if (info.Kind == DeviceKind.Guider && GuideCamera != null)
+                throw new InvalidOperationException(Lang.T("Disconnect the guide camera to use PHD2."));
             var dev = Create(info);
             dev.Connect();
             Assign(info.Kind, dev);
-            if (info.Kind == DeviceKind.Guider && GuideCamera != null)
-            {
-                // PHD2 opens the guide camera itself, and most drivers serve one program at a time
-                _builtin?.StopGuiding();
-                try { GuideCamera.Disconnect(); } catch (Exception ex) { Log.Warn("Devices", ex.Message); }
-                GuideCamera = null;
-                Log.Info("Devices", "Guide camera disconnected for PHD2");
-            }
             // link simulators together for a coherent virtual observatory
             var cs = Camera as CameraSimulator;
             if (cs != null) { cs.Mount = Telescope as TelescopeSimulator ?? cs.Mount; cs.Focuser = Focuser as FocuserSimulator ?? cs.Focuser; cs.Wheel = FilterWheel as FilterWheelSimulator ?? cs.Wheel; }

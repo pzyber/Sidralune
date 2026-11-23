@@ -2557,6 +2557,10 @@ msgstr "Fokusuotuvas neprijungtas."
 msgid "No guider connected."
 msgstr "Gidavimo sistema neprijungta."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Norėdami naudoti PHD2, atjunkite gidavimo kamerą."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 prijungta ir pati naudoja gidavimo kamerą. Norėdami giduoti su Sidralune, atjunkite PHD2."

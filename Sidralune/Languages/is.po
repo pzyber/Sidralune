@@ -2545,6 +2545,10 @@ msgstr "Enginn fókusari tengdur."
 msgid "No guider connected."
 msgstr "Enginn stýribúnaður tengdur."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Aftengdu stýrimyndavélina til að nota PHD2."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 er tengt og notar stýrimyndavélina sjálft. Aftengdu PHD2 til að stýra með Sidralune."

@@ -819,8 +819,11 @@ namespace Sidralune.Views
                 phd2.Text = Dm.Phd2Connected ? T("Disconnect PHD2") : T("Connect PHD2");
                 phd2.Kind = Dm.Phd2Connected ? ButtonKind.Danger : ButtonKind.Normal;
                 phd2.Width = phd2Width;
+                // PHD2 opens the guide camera itself: with a guide camera connected here, Connect PHD2 waits
+                if (!phd2Job.Busy) phd2.Enabled = Dm.Phd2Connected || Dm.GuideCamera == null;
             };
             guideJob.Changed += syncGuideStop;
+            phd2Job.Changed += syncGuideStop;
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
             syncGuideStop();
             btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });

@@ -239,7 +239,7 @@ Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2
 
 | Button | Action |
 |---|---|
-| **Connect PHD2** | Connects to PHD2's event server (port 4400 for the first instance), which then guides instead of the Sidralune guider. It becomes **Disconnect PHD2**, which goes back to the Sidralune guider |
+| **Connect PHD2** | Connects to PHD2's event server (port 4400 for the first instance), which then guides instead of the Sidralune guider. It becomes **Disconnect PHD2**, which goes back to the Sidralune guider. Greyed out while a guide camera is connected in Sidralune |
 | **Loop** | Takes guide frames and follows the star, without guiding (Sidralune guider only) |
 | **Select star** | Chooses the best guide star in the frame (Sidralune guider only). You can also click a star in the frame |
 | **Start guiding** | Starts guiding, calibrating first when there is no calibration for this equipment, and waits until the guiding has settled |
@@ -313,7 +313,7 @@ Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.
 
 ### PHD2
 
-To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so Sidralune disconnects its guide camera once PHD2 is connected; the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
+To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so the guide camera belongs to one guider at a time: while a guide camera is connected in Sidralune, **Connect PHD2** is greyed out until you disconnect it, and while PHD2 is connected the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
 
 ## Polar alignment tab
 

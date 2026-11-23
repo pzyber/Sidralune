@@ -2557,6 +2557,10 @@ msgstr "Nije povezan fokuser."
 msgid "No guider connected."
 msgstr "Nije povezan sustav za vođenje."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Odspojite kameru za vođenje da biste koristili PHD2."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 je povezan i sam koristi kameru za vođenje. Odspojite PHD2 da biste vodili sa Sidraluneom."

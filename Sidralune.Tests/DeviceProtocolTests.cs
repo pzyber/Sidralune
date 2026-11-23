@@ -938,11 +938,16 @@ namespace Sidralune.Tests
             dm.DisconnectAll();
             CheckTrue("Disconnect all", !dm.All.Any() && dm.Telescope == null && dm.BuiltinGuider.Connected);
 
-            // PHD2 guides instead of the Sidralune guider, and takes the guide camera over
+            // PHD2 guides instead of the Sidralune guider; the guide camera belongs to one of them at a time
             var fake = new FakePhd2();
+            var phd2Info = new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "127.0.0.1:" + fake.Port };
             dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" });
-            dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "127.0.0.1:" + fake.Port });
-            CheckTrue("Connecting PHD2 makes it the guider and disconnects the guide camera", dm.Guider is Phd2Client && dm.Phd2Connected && dm.GuideCamera == null);
+            string phd2Refused = null;
+            try { dm.Connect(phd2Info); } catch (InvalidOperationException ex) { phd2Refused = ex.Message; }
+            CheckTrue("No PHD2 while a guide camera is connected (PHD2 opens it itself)", phd2Refused == "Disconnect the guide camera to use PHD2." && !dm.Phd2Connected && dm.GuideCamera != null && dm.Guider == dm.BuiltinGuider);
+            dm.Disconnect(DeviceKind.GuideCamera);
+            dm.Connect(phd2Info);
+            CheckTrue("Without the guide camera, PHD2 connects and is the guider", dm.Guider is Phd2Client && dm.Phd2Connected && dm.GuideCamera == null);
             string refused = null;
             try { dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" }); } catch (InvalidOperationException ex) { refused = ex.Message; }
             CheckTrue("No guide camera while PHD2 is connected", refused != null && refused.StartsWith("PHD2 is connected") && dm.GuideCamera == null);

@@ -2545,6 +2545,10 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Αποσυνδέστε την κάμερα οδήγησης για να χρησιμοποιήσετε το PHD2."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "Το PHD2 είναι συνδεδεμένο και χρησιμοποιεί το ίδιο την κάμερα οδήγησης. Αποσυνδέστε το PHD2 για να οδηγήσετε με το Sidralune."

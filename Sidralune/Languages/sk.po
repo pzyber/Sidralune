@@ -2557,6 +2557,10 @@ msgstr "Nie je pripojený zaostrovač."
 msgid "No guider connected."
 msgstr "Nie je pripojený pointačný systém."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Ak chcete použiť PHD2, odpojte pointačnú kameru."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 je pripojené a pointačnú kameru používa samo. Ak chcete pointovať so Sidralune, odpojte PHD2."

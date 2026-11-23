@@ -57,6 +57,11 @@ namespace Sidralune.AppTests
                 CheckTrue("PHD2 is connected on the Guiding tab", OnUi(() => Button(Button(view, "Start guiding").Parent, "Connect PHD2") != null));
                 OnUi(() => Button(view, "Connect simulated observatory").PerformClick());
                 CheckTrue("With the simulated guide camera the Sidralune guider guides", WaitFor(() => Dm.GuideCamera != null && Dm.Guider == Dm.BuiltinGuider, 15000));
+                CheckTrue("With a guide camera connected, Connect PHD2 is greyed out", WaitFor(() => OnUi(() =>
+                {
+                    var b = Button(Button(view, "Start guiding").Parent, "Connect PHD2");
+                    return b != null && !b.Enabled;
+                })));
                 var g = (SidraluneGuider)Dm.Guider;
                 var tel = (TelescopeSimulator)Dm.Telescope;
                 // quick to calibrate: a fast guide rate and short exposures

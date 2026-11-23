@@ -2569,6 +2569,10 @@ msgstr "Ni povezanega ostrilnika."
 msgid "No guider connected."
 msgstr "Ni povezanega vodilnega sistema."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Za uporabo PHD2 odklopite vodilno kamero."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 je povezan in sam uporablja vodilno kamero. Za vodenje s Sidralune prekinite povezavo s PHD2."

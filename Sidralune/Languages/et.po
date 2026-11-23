@@ -2545,6 +2545,10 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "PHD2 kasutamiseks katkesta juhtkaamera ühendus."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 on ühendatud ja kasutab juhtkaamerat ise. Sidralune'iga juhtimiseks katkesta PHD2 ühendus."

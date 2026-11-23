@@ -2545,6 +2545,10 @@ msgstr "Nessun focheggiatore collegato."
 msgid "No guider connected."
 msgstr "Nessuna guida collegata."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Scollega la camera di guida per usare PHD2."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 è collegato e usa da solo la camera di guida. Scollega PHD2 per guidare con Sidralune."

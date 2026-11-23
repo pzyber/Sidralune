@@ -2557,6 +2557,10 @@ msgstr "Niciun focalizator conectat."
 msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Deconectați camera de ghidare pentru a folosi PHD2."
+
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 este conectat și folosește singur camera de ghidare. Deconectați PHD2 pentru a ghida cu Sidralune."
