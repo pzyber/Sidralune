@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sidralune.Devices;
 using Sidralune.Devices.Automation;
+using Sidralune.Devices.Guiding;
+using Sidralune.Devices.Simulators;
 using Sidralune.Tests;
 using Sidralune.UI;
 using Sidralune.Views;
@@ -30,7 +33,8 @@ namespace Sidralune.AppTests
                 OnUi(() => Button(view, "Connect simulated observatory").PerformClick());
                 CheckTrue("Simulated observatory connected", WaitFor(() => Dm.Telescope != null && Dm.Camera != null && Dm.Focuser != null && Dm.Dome != null, 15000));
                 CheckTrue("Rows show Disconnect for connected devices", WaitFor(() => All(view).OfType<FlatButton>().Count(b => b.Text == "Disconnect") >= 6));
-                var widths = OnUi(() => All(view).OfType<FlatButton>().Where(b => b.Text == "Disconnect" || b.Text == "Connect").Select(b => b.Width).Distinct().ToList());
+                // the rows of the equipment table (the Guiding tab has a Connect of its own)
+                var widths = OnUi(() => All(view).OfType<FlatButton>().Where(b => (b.Text == "Disconnect" || b.Text == "Connect") && b.Parent is TableLayoutPanel).Select(b => b.Width).Distinct().ToList());
                 CheckTrue("Connect and Disconnect buttons keep one width", widths.Count == 1, string.Join(", ", widths));
                 CheckTrue("Equipment buttons wait while the simulators connect, then come back", WaitFor(() => OnUi(() => Button(view, "Disconnect all").Enabled), 15000));
                 CheckTrue("The mount's Stop is available with a telescope connected", WaitFor(() => OnUi(() => mountStop().Enabled)));
@@ -43,13 +47,61 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestGuidingTab()
+        {
+            var view = View<ObservatoryView>("observatory");
+            try
+            {
+                OnUi(() => Dm.DisconnectAll());
+                CheckTrue("Equipment has a guide camera row", OnUi(() => All(view).OfType<Label>().Any(l => l.Text == "Guide camera")));
+                OnUi(() => Button(view, "Connect simulated observatory").PerformClick());
+                CheckTrue("The simulated observatory brings a guide camera and the Sidralune guider", WaitFor(() => Dm.GuideCamera != null && Dm.Guider is SidraluneGuider, 15000));
+                var g = (SidraluneGuider)Dm.Guider;
+                var tel = (TelescopeSimulator)Dm.Telescope;
+                // quick to calibrate: a fast guide rate and short exposures
+                tel.SlewRateDegPerSec = 90;
+                tel.GuideRateRa = tel.GuideRateDec = 2 * TelescopeSimulator.SiderealDegPerSec;
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, CancellationToken.None).Wait();
+                g.Settings.ExposureSeconds = 0.2; g.Settings.FocalLengthMm = 500;
+                g.ClearCalibration();
+
+                var bar = OnUi(() => Button(view, "Start guiding").Parent);
+                var viewer = OnUi(() => Find<ImageViewer>(view, v => v.EmptyText.StartsWith("Connect a guide camera")));
+                CheckTrue("A guide camera view", viewer != null);
+                OnUi(() => Button(bar, "Loop").PerformClick());
+                CheckTrue("Loop shows guide frames", WaitFor(() => viewer.Image != null && g.State == SidraluneGuider.Looping, 10000), g.State);
+                CheckTrue("…and Stop becomes available", WaitFor(() => Button(bar, "Stop").Enabled));
+                OnUi(() => Button(bar, "Select star").PerformClick());
+                CheckTrue("Select star chooses one", WaitFor(() => g.Star != null && g.State == SidraluneGuider.Selected, 5000), g.State);
+                CheckTrue("The star is described under the frame", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Star at ")), 5000));
+
+                var camCard = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Guide camera"));
+                var exposure = OnUi(() => All(camCard).OfType<NumericUpDown>().First());
+                CheckTrue("The settings show the guider's", OnUi(() => exposure.Value == 0.2m || exposure.Enabled));
+                OnUi(() => exposure.Value = 0.25m);
+                CheckTrue("A changed setting reaches the guider and is saved", g.Settings.ExposureSeconds == 0.25 && GuiderSettings.Load().ExposureSeconds == 0.25);
+
+                OnUi(() => Button(bar, "Start guiding").PerformClick());
+                CheckTrue("While a start runs, the other guiding commands wait", OnUi(() => !Button(bar, "Calibrate & guide").Enabled && !Button(bar, "Dither").Enabled));
+                CheckTrue("Start guiding calibrates, then guides", WaitFor(() => g.IsGuiding, 60000), g.State);
+                var plot = OnUi(() => Find<PlotControl>(view, p => p.Title == "Guiding error"));
+                CheckTrue("Guide steps reach the graph", WaitFor(() => plot.Series.Count == 2 && plot.Series[0].X.Count >= 5, 15000));
+                CheckTrue("The calibration is described", OnUi(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Calibrated "))));
+                CheckTrue("The status line names the state and the RMS", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Guiding · RMS RA "))));
+                OnUi(() => Button(bar, "Stop").PerformClick());
+                CheckTrue("Stop stops the guider and greys out", WaitFor(() => g.State == SidraluneGuider.Stopped && !Button(bar, "Stop").Enabled, 10000), g.State);
+            }
+            finally { Dm.DisconnectAll(); }
+        }
+
+        [TestMethod]
         public void TestMissingDeviceMessages()
         {
             Dm.DisconnectAll();
             var view = View<ObservatoryView>("observatory");
             CheckTrue("Without a guider its Stop is greyed out", WaitFor(() => OnUi(() => !Button(Button(view, "Start guiding").Parent, "Stop").Enabled)));
             OnUi(() => Button(view, "Start guiding").PerformClick());
-            CheckTrue("Start guiding without a guider says what to do", WaitFor(() => Toasts().Any(t => t.StartsWith("No guider connected. Start PHD2"))));
+            CheckTrue("Start guiding without a guider says what to do", WaitFor(() => Toasts().Any(t => t.StartsWith("No guider connected. Connect a guide camera and the Sidralune guider"))));
             OnUi(() => Button(view, "Run autofocus").PerformClick());
             CheckTrue("Autofocus without a camera says so", WaitFor(() => Toasts().Any(t => t == "No camera connected. Connect one in Observatory → Equipment.")));
             OnUi(() => Button(view, "Run sequence").PerformClick());

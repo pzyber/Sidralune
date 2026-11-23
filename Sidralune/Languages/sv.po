@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Databaser: amatörforskningsprojekt"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Starta PHD2, slå på dess server (Tools → Enable Server) och klicka på Anslut PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Inget teleskop anslutet."
 
@@ -2548,6 +2544,302 @@ msgstr "Ingen fokuserare ansluten."
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
 msgstr "Ingen guidare ansluten."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Den här kameran är redan ansluten som guidekamera."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Den här kameran är redan ansluten som bildkamera."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
+msgstr "Ingen guidekamera ansluten."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Guidekameran har ingen guideport. Guida genom monteringen i stället."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Monteringen tar inte emot guidepulser. Guida genom guidekamerans port i stället."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Guidningen stoppades."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Stoppa guidningen innan du väljer en annan stjärna."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Ingen lämplig guidestjärna i bilden."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Ingen stjärna där att guida på."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Guidningen stabiliserades inte inom {0} s."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Guidar inte."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Ingen guidestjärna hittades. Kontrollera guidekamerans fokus och exponering."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Guidningen stoppades eftersom monteringen svängde."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Guidekameran kopplades från."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Guidekameran misslyckades tre gånger i rad: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibreringen misslyckades: stjärnan flyttade sig inte tillräckligt långt i RA. Kontrollera guidekabeln eller monteringens anslutning och guidehastighet."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibreringen misslyckades: stjärnan flyttade sig inte tillräckligt långt i Dek. Kontrollera guidekabeln eller monteringens anslutning och guidehastighet."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Kalibreringen stoppades eftersom monteringen svängde."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Guidestjärnan tappades under kalibreringen."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Kalibreringen misslyckades: Dek började inte röra sig. Dek är kanske inte ansluten, eller så har monteringen mycket glapp."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Starta PHD2 och slå på dess server (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
+msgstr "Anslut en guidekamera och Sidralune-guidaren under Observera → Utrustning, eller starta PHD2 med servern påslagen (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Guidekamera"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Stoppad"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Slinga"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Stjärna vald"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Kalibrerar"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Pausad"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Stjärnan tappad"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Inte kalibrerad. Kalibrera och guida kalibrerar först; Starta guidning kalibrerar när det inte finns någon kalibrering för den här utrustningen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Kalibrerad {0:yyyy-MM-dd HH:mm}: RA {1:0}° med {2:0.00} px/s, Dek {3:0}° med {4:0.00} px/s, {5:0.0}° från rät vinkel."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA och Dek är långt från rät vinkel: glapp eller dålig seeing kan ha stört kalibreringen. Kalibrera igen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA och Dek rörde sig med hastigheter som inte stämmer med deklinationen. Kontrollera guidehastigheterna och kalibrera sedan igen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Få kalibreringssteg. Ett kortare kalibreringssteg gör kalibreringen noggrannare."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Stjärnan rörde sig med en annan hastighet än guidehastigheten och brännvidden förutsäger. Kontrollera guidetubens brännvidd och monteringens guidehastighet."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Kalibrerad nära polen, där RA flyttar stjärnan lite. Kalibrera närmare himmelsekvatorn när du kan."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Sidralune-guidare"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the Sidralune guider"
+msgstr "Anslut Sidralune-guidaren"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider connected"
+msgstr "Sidralune-guidaren är ansluten"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 tar sina guidebilder själv."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Ta guidebilder och följ stjärnan utan att guida"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Välj stjärna"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Välj den bästa guidestjärnan eller klicka på en stjärna i bilden"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider, then click Loop"
+msgstr "Anslut en guidekamera och Sidralune-guidaren och klicka sedan på Slinga"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Guida genom"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Monteringen"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Guidekameran (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Guidetubens brännvidd (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Sökrutans radie (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Kalibreringssteg (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 räknar ut steget från guidehastigheten, pixelskalan och deklinationen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Kalibreringsavstånd (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Efter en meridianvändning"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Monteringen vänder Dek"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "De flesta monteringar vänder inte sina Dek-pulser efter en vändning. Om Dek springer iväg efter en vändning, ändra detta."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Rensa kalibreringen"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
+msgstr "RA: Hysteresis. Dek: Resist Switch, som bara byter riktning när felet tydligt kräver det."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "RA-aggressivitet (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "RA-hysteres (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "Minsta förflyttning i RA (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "Längsta puls i RA (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Dek-aggressivitet (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Minsta förflyttning i Dek (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Längsta puls i Dek (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Stora Dek-fel"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Rätta direkt"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Algorithms"
+msgstr "Algoritmer"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Kalibrering"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The settings are the Sidralune guider's: connect it to change them."
+msgstr "Inställningarna hör till Sidralune-guidaren: anslut den för att ändra dem."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Ingen guidestjärna: klicka på en stjärna eller Välj stjärna"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Stjärnan tappad vid {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Stjärna vid {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "mättad"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 visar sina guidebilder själv"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -3126,10 +3418,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Rensa grafen"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Ingen guidare ansluten – starta PHD2 och slå på dess server (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""

@@ -6,9 +6,10 @@ using Sidralune.Imaging;
 
 namespace Sidralune.Devices
 {
-    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider }
+    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider, GuideCamera }
 
-    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2 }
+    /// <summary>How a device is reached. <see cref="Builtin"/> is a device implemented by Sidralune itself (the Sidralune guider).</summary>
+    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2, Builtin }
 
     /// <summary>Identifies a device a user can connect to.</summary>
     public class DeviceInfo
@@ -53,6 +54,11 @@ namespace Sidralune.Devices
         bool CanPark { get; }
         bool CanSync { get; }
         bool CanPulseGuide { get; }
+        /// <summary>True while a guide pulse is running (false when the mount cannot tell).</summary>
+        bool IsPulseGuiding { get; }
+        /// <summary>Guide rates in degrees per second, NaN when the mount does not report them.</summary>
+        double GuideRateRa { get; }
+        double GuideRateDec { get; }
         bool CanSlewAltAz { get; }
         double SiteLatitude { get; }
         double SiteLongitude { get; }
@@ -108,6 +114,10 @@ namespace Sidralune.Devices
         void AbortExposure();
         /// <summary>Download the last image (normalised 0..1).</summary>
         AstroImage GetImage();
+        /// <summary>The camera has a guide (ST-4) port that sends pulses to the mount.</summary>
+        bool CanPulseGuide { get; }
+        bool IsPulseGuiding { get; }
+        void PulseGuide(GuideDirection dir, int ms);
     }
 
     public interface IFocuser : IDevice

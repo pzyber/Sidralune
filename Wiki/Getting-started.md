@@ -22,7 +22,7 @@ This page takes you from a fresh download to a working setup: building or runnin
 | Memory | 4 GB works for planning and processing single images; 16 GB or more is comfortable for stacking large sensors or long planetary videos. |
 | Display | 1280 × 800 or larger. Per-monitor high-DPI scaling is supported. |
 | Disk | About 10 MB for the program, plus about 70 MB for the recommended datasets (up to 150 MB with all optional ones). |
-| Optional software | ASCOM Platform and drivers, PHD2, ASTAP, an SDR program or rtl_tcp, only for the features that use them |
+| Optional software | ASCOM Platform and drivers, PHD2 (Sidralune has its own guider too), ASTAP, an SDR program or rtl_tcp, only for the features that use them |
 
 ## Building from source
 

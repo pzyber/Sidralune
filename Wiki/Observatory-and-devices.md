@@ -1,4 +1,4 @@
-The **Observatory** workspace connects and controls your equipment: mount, camera, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, cover calibrator and guider. It takes images, focuses automatically, centres targets by plate solving, guides through PHD2, polar-aligns your mount and runs automated sequences.
+The **Observatory** workspace connects and controls your equipment: mount, camera, guide camera, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, cover calibrator and guider. It takes images, focuses automatically, centres targets by plate solving, guides (with its own guider or through PHD2), polar-aligns your mount and runs automated sequences.
 
 The sequencer has its own page: [Sequencer](Sequencer).
 
@@ -26,6 +26,11 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Mount](#mount)
   - [Centring by plate solving](#centring-by-plate-solving)
 - [Guiding tab](#guiding-tab)
+  - [The Sidralune guider](#the-sidralune-guider)
+  - [Calibration](#calibration)
+  - [Guider settings](#guider-settings)
+  - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
+  - [PHD2](#phd2)
 - [Polar alignment tab](#polar-alignment-tab)
 - [Dome & weather tab](#dome--weather-tab)
 - [Meridian flips](#meridian-flips)
@@ -37,6 +42,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
 |---|---|---|---|---|---|
 | Mount (telescope) | Yes | Yes | Yes | LX200 / OnStep (serial or TCP) | Yes |
 | Camera | Yes | Yes | Yes | | Yes, renders real catalogue stars |
+| Guide camera | Yes | Yes | Yes | | Yes, a small camera on a guide scope |
 | Focuser | Yes | Yes | Yes | | Yes |
 | Filter wheel | Yes | Yes | Yes | | Yes |
 | Rotator | Yes | | | | |
@@ -45,7 +51,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
 | Safety monitor | Yes | Yes | | | Yes (from the simulated weather) |
 | Switch | Yes | | | | |
 | Cover calibrator (flat panel) | Yes | | | | |
-| Guider | | | | PHD2 | |
+| Guider | | | | The Sidralune guider (built in), PHD2 | The Sidralune guider guides the simulators |
 
 ## Equipment tab
 
@@ -55,7 +61,7 @@ At the bottom:
 
 | Button | Action |
 |---|---|
-| **Connect simulated observatory** | Connects a simulated mount, camera, focuser, filter wheel, dome and weather station in one go |
+| **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, dome and weather station, and the Sidralune guider, in one go |
 | **Discover Alpaca devices** | Searches the local network for Alpaca servers and adds their devices to the lists |
 | **Add INDI server…** | Connects to an INDI server and adds its devices to the lists |
 | **Disconnect all** | Disconnects every device. Available when at least one device is connected |
@@ -93,7 +99,8 @@ Mounts that speak the Meade LX200 command set (including OnStep, OnStepX and man
 
 The simulators behave like real devices, so you can learn Sidralune, test sequences and demonstrate features indoors:
 
-- The **mount** slews at a realistic speed, tracks, parks, reports its pier side and accepts syncs.
+- The **mount** slews at a realistic speed, tracks, parks and accepts syncs. Like a real German equatorial mount it keeps its pier side while it tracks through the meridian, until a slew flips it. It tracks with a little periodic error (±6″ over 8 minutes), drifts slowly as if its polar alignment were slightly off, and has some Dec backlash, so guiding has something to correct. Guide pulses take their time, at 0.5× sidereal.
+- The **guide camera** is a small uncooled camera (1280 × 960 pixels of 3.75 µm) on a 240 mm guide scope, turned 30° on the sky, on the same mount. The seeing moves its stars a little from frame to frame. It has a guide (ST-4) port.
 - The **camera** renders a star field around the mount's pointing from the loaded catalogues (plus synthetic faint stars), with a realistic point-spread function that widens when the focuser is out of focus, sky background, read noise and shot noise. Plate solving, autofocus, centring and polar alignment therefore all work for real.
 - The **focuser** has a hidden best-focus position; stars grow along a hyperbola away from it, exactly what autofocus expects. It also reports a slowly varying temperature.
 - The **filter wheel** has per-filter focus offsets, and the **dome** and **weather station** (with a safety monitor) respond to commands and report plausible values.
@@ -228,18 +235,85 @@ Type an object name or coordinates in **Go to**, then:
 
 ## Guiding tab
 
-Sidralune uses [PHD2](https://openphdguiding.org) for guiding. In PHD2, choose **Tools → Enable Server**, then click **Connect PHD2**.
+Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2](https://openphdguiding.org). Choose one in the list at the top left of the tab (or in the Guider row of the Equipment tab) and click **Connect**.
 
 | Button | Action |
 |---|---|
-| **Connect PHD2** | Connects to PHD2's event server (port 4400 for the first instance) |
-| **Start guiding** | Starts guiding with the existing calibration |
+| **Connect** | Connects the guider chosen in the list: the Sidralune guider, or PHD2's event server (port 4400 for the first instance) |
+| **Loop** | Takes guide frames and follows the star, without guiding (Sidralune guider only) |
+| **Select star** | Chooses the best guide star in the frame (Sidralune guider only). You can also click a star in the frame |
+| **Start guiding** | Starts guiding, calibrating first when there is no calibration for this equipment, and waits until the guiding has settled |
 | **Calibrate & guide** | Recalibrates, then guides |
 | **Dither** | Moves the guide star by a few pixels and waits for it to settle, so that hot pixels and noise patterns fall on different sky in each frame |
-| **Stop** | Stops guiding. Available while PHD2 is guiding, calibrating, looping or dithering |
+| **Stop** | Stops guiding, and a running Start guiding or Dither. Available while the guider is taking frames, calibrating or guiding |
 | **Clear graph** | Clears the error graph |
 
-The **Guiding error** graph plots the RA and Dec corrections in arcseconds. The status line shows the guider state and the RMS error in RA, Dec and total. Total RMS well below your image scale (arcseconds per pixel) means round stars.
+Start guiding, Calibrate & guide and Dither run one at a time; the others are greyed out while one runs.
+
+The **Guiding error** graph plots the star's offset in RA and Dec in arcseconds at each guide step. The status line shows the guider state and the RMS error in RA, Dec and total over the last 100 steps. Total RMS well below your image scale (arcseconds per pixel) means round stars.
+
+### The Sidralune guider
+
+The Sidralune guider needs a **guide camera** (the Guide camera row of the Equipment tab) and a way to send guide pulses: through the **mount**'s driver (ASCOM, Alpaca, INDI or LX200 pulse guiding), or through the **guide camera's ST-4 port** with a cable to the mount. The guide camera must be a different camera from the imaging camera.
+
+The tab shows the latest guide frame. A square marks the area searched for the guide star and a cross the lock position, where guiding holds it: yellow while looping and calibrating, green while guiding, red when the star is lost. Under the frame are the star's position, signal-to-noise ratio (SNR) and half-flux diameter (HFD), and a warning when it is saturated.
+
+**Select star** (and Start guiding when no star is chosen) picks a single, unsaturated star with a good SNR and a normal size, with no bright neighbour in its search area and enough room from the edges for calibration and dithers. Clicking the frame chooses the star nearest the click instead.
+
+Guiding corrects RA with **Hysteresis** and Dec with **Resist Switch**:
+
+- **Hysteresis** blends each new error with the previous ones (the hysteresis share), corrects a share of the result (the aggressiveness), and leaves errors smaller than the minimum move alone, since those are mostly seeing.
+- **Resist Switch** keeps correcting Dec in one direction, and changes direction only after three errors in a row the other way, each over the minimum move and not shrinking. Backlash makes every change of direction in Dec costly. With **Correct at once** on, an error more than three minimum moves the other way (a gust of wind, a cable) is corrected straight away.
+
+RA and Dec pulses are sent one after the other, each no longer than its maximum pulse, and nothing is sent while the mount slews. The RA rate is adjusted for the declination, so one calibration serves the whole sky.
+
+### Calibration
+
+Calibration measures how guide pulses move the star on the guide camera: in which direction a West pulse and a North pulse move it, and how many pixels per second. The guider pulses West in steps until the star has moved the calibration distance, back East, North (after first taking up any Dec backlash) and back South. Each direction and rate comes from a straight line fitted through every step's position, so one poorly measured step counts for little.
+
+The calibration step is worked out from the mount's guide rate (0.5× sidereal if the mount does not report it), the guide camera's pixel scale and the declination, for about twelve steps. Calibrate between about 20° north and south of the celestial equator, away from the horizon. Near the pole RA moves the star little and the RA measurement is poor.
+
+Afterwards the panel shows the calibration and warns when something looks wrong:
+
+- RA and Dec are more than 15° from square: backlash or poor seeing may have upset the calibration;
+- the RA and Dec rates do not fit the declination (RA should move the star cos(Dec) as fast as Dec at equal guide rates);
+- a leg took fewer than four steps;
+- the star moved more than 40 % faster or slower than the guide rate and focal length predict: check the guide scope's focal length and the mount's guide rate;
+- it was made near the pole.
+
+The calibration is saved and used again as long as the guide camera, binning, guide scope focal length and guide output stay the same. **Clear calibration** forgets it. After a meridian flip the camera has turned 180° on the sky, and the guider turns its calibration round to match. Most mounts keep their Dec pulse direction after a flip; if yours turns its Dec pulses round itself, Dec runs away after a flip. Then tick **Mount reverses Dec** and calibrate again.
+
+### Guider settings
+
+The settings on the right are the Sidralune guider's, saved as you change them:
+
+| Setting | Default | |
+|---|---|---|
+| Exposure (s) | 2 | Long enough to average out the seeing, short enough to correct often |
+| Binning | 1 | |
+| Guide through | The mount | Or the guide camera's ST-4 port |
+| Guide scope focal length (mm) | 240 | For the pixel scale and the calibration step |
+| Search box radius (px) | 15 | How far the star may move between frames |
+| Calibration step (ms) | 0 (automatic) | |
+| Calibration distance (px) | 20 | How far each calibration leg moves the star |
+| After a meridian flip: Mount reverses Dec | Off | |
+| RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | |
+| RA maximum pulse | 2500 ms | |
+| Dec aggressiveness, minimum move | 100 %, 0.2 px | |
+| Dec maximum pulse | 2500 ms | |
+| Large Dec errors: Correct at once | On | |
+
+If guiding chases the seeing (many small corrections back and forth), raise the minimum moves. If it lags behind the drift, raise the aggressiveness.
+
+### Lost stars, slews and the guide log
+
+When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. It never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten; start guiding again after the slew. If the guide camera fails three times in a row, the guider stops and says why.
+
+Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux and HFD, plus the calibration steps, dithers, lost and found stars and settling.
+
+### PHD2
+
+To guide with PHD2, choose **Tools → Enable Server** in PHD2, choose PHD2 in the list and click **Connect**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are not used. The sequencer, dithering, the meridian flip and the graph work the same with either guider.
 
 ## Polar alignment tab
 
@@ -272,7 +346,7 @@ The calculation compares the axis with the refracted pole, so the result is corr
 
 ## Meridian flips
 
-German equatorial mounts must flip from one side of the pier to the other after an object crosses the meridian. When an imaging target passes the meridian by a set number of minutes while the mount is on the east side of the pier, the [sequencer's meridian flip trigger](Sequencer#triggers) stops guiding, re-slews to the target (the mount then chooses the other pier side), re-centres by plate solving and resumes guiding.
+German equatorial mounts must flip from one side of the pier to the other after an object crosses the meridian. When an imaging target passes the meridian by a set number of minutes while the mount is on the east side of the pier, the [sequencer's meridian flip trigger](Sequencer#triggers) stops guiding, re-slews to the target (the mount then chooses the other pier side), re-centres by plate solving and then resumes guiding.
 
 ## Commands
 

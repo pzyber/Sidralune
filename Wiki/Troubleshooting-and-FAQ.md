@@ -78,7 +78,7 @@ Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky char
 ## Equipment
 
 **A button says "No telescope connected" (or camera, focuser, guider, dome).**
-That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (or click **Connect PHD2** for the guider), or click **Connect simulated observatory** to try the feature without hardware.
+That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (the guider can also be connected at the top of the Guiding tab), or click **Connect simulated observatory** to try the feature without hardware.
 
 **My ASCOM device is not in the list.**
 Install the ASCOM Platform and the driver, then click **ASCOM…** in the device's row to pick it in the ASCOM Chooser. If Sidralune says the platform is not installed, reinstall it from ascom-standards.org.
@@ -94,6 +94,18 @@ ASCOM, Alpaca and INDI transfer every frame whole. Choose a smaller **Region** (
 
 **PHD2 does not connect.**
 In PHD2, choose **Tools → Enable Server**. If you run several PHD2 instances, the first uses port 4400.
+
+**Calibration fails: "the star did not move far enough".**
+The guide pulses do not reach the mount, or move it very slowly. Check the guide cable (when guiding through the guide camera's ST-4 port) or that the mount's driver accepts pulse guiding, and the mount's guide rate (0.5× sidereal is usual). A longer **Calibration step** helps with slow guide rates. If only Dec fails, Dec may not be connected or may have a lot of backlash.
+
+**The calibration shows a warning.**
+Read the warning in the Calibration panel. "Far from square" and "rates that do not fit the declination" usually mean backlash, wind or poor seeing during calibration: calibrate again, near the celestial equator. "Another speed than the guide rate and focal length predict" means the guide scope's focal length in the settings or the mount's guide rate is not what it should be.
+
+**Dec runs away after a meridian flip.**
+Your mount turns its Dec guide pulses round itself after a flip. Tick **Mount reverses Dec** under Calibration in the Guiding tab and calibrate again.
+
+**The guide star is lost.**
+Clouds, a tree or a big jump (a cable snag) can take the star out of its search area. The guider keeps looking in the same place and guides on when the star is back. If it happens often, choose a brighter star, lengthen the exposure, or enlarge the **Search box radius**.
 
 **Autofocus fails or gives a poor V-curve.**
 Use an exposure that shows at least 20 stars, start reasonably near focus, choose a step size that changes the HFR noticeably, and avoid nights with fast-changing seeing or thin cloud. Check the backlash setting of your focuser driver.

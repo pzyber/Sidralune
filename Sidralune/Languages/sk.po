@@ -1273,7 +1273,7 @@ msgstr "Filtrové koleso"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Pointačná kamera"
+msgstr "Pointačný systém"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2542,10 +2542,6 @@ msgid "Databases: citizen science projects"
 msgstr "Databázy: projekty občianskej vedy"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Spustite PHD2, zapnite jeho server (Tools → Enable Server) a kliknite na Pripojiť PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Nie je pripojený ďalekohľad."
 
@@ -2559,7 +2555,303 @@ msgstr "Nie je pripojený zaostrovač."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Nie je pripojený pointačný systém."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Táto kamera je už pripojená ako pointačná kamera."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Táto kamera je už pripojená ako snímacia kamera."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Nie je pripojená pointačná kamera."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Pointačná kamera nemá pointačný port. Pointujte namiesto toho cez montáž."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Montáž neprijíma pointačné impulzy. Pointujte namiesto toho cez port pointačnej kamery."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Pointácia bola zastavená."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Pred výberom inej hviezdy zastavte pointáciu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "V snímke nie je vhodná pointačná hviezda."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Tam nie je hviezda na pointáciu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Pointácia sa neustálila do {0} s."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Nepointuje sa."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Pointačná hviezda sa nenašla. Skontrolujte zaostrenie a expozíciu pointačnej kamery."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Pointácia sa zastavila, pretože montáž prechádzala."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Pointačná kamera bola odpojená."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Pointačná kamera zlyhala trikrát za sebou: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrácia zlyhala: hviezda sa v RA neposunula dosť ďaleko. Skontrolujte pointačný kábel alebo pripojenie montáže a pointačnú rýchlosť."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrácia zlyhala: hviezda sa v Dec neposunula dosť ďaleko. Skontrolujte pointačný kábel alebo pripojenie montáže a pointačnú rýchlosť."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Kalibrácia sa zastavila, pretože montáž prechádzala."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Pointačná hviezda sa počas kalibrácie stratila."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Kalibrácia zlyhala: Dec sa nezačala hýbať. Dec možno nie je pripojená, alebo má montáž veľkú vôľu."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Spustite PHD2 a zapnite jeho server (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
+msgstr "Pripojte pointačnú kameru a pointačný systém Sidralune v zobrazení Pozorovanie → Vybavenie, alebo spustite PHD2 so zapnutým serverom (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Pointačná kamera"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Zastavené"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Slučka"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Hviezda zvolená"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Kalibruje sa"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Pozastavené"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Hviezda stratená"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Nekalibrované. „Kalibrovať a pointovať“ najprv kalibruje; „Spustiť pointáciu“ kalibruje, keď pre toto vybavenie kalibrácia chýba."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Kalibrované {0:yyyy-MM-dd HH:mm}: RA {1:0}° pri {2:0.00} px/s, Dec {3:0}° pri {4:0.00} px/s, {5:0.0}° od pravého uhla."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA a Dec sú ďaleko od pravého uhla: kalibráciu mohla pokaziť vôľa alebo zlý seeing. Kalibrujte znova."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA a Dec sa pohybovali rýchlosťami, ktoré nezodpovedajú deklinácii. Skontrolujte pointačné rýchlosti a kalibrujte znova."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Málo krokov kalibrácie. Kratší krok kalibrácie spresní kalibráciu."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Hviezda sa pohybovala inou rýchlosťou, než predpovedá pointačná rýchlosť a ohnisková vzdialenosť. Skontrolujte ohniskovú vzdialenosť pointačného ďalekohľadu a pointačnú rýchlosť montáže."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Kalibrované blízko pólu, kde RA hviezdou pohne len málo. Ak sa dá, kalibrujte bližšie k nebeskému rovníku."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Pointačný systém Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the Sidralune guider"
+msgstr "Pripojiť pointačný systém Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider connected"
+msgstr "Pointačný systém Sidralune pripojený"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 sníma pointačné snímky samo."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Snímať pointačné snímky a sledovať hviezdu bez pointácie"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Zvoliť hviezdu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Zvoľte najlepšiu pointačnú hviezdu alebo kliknite na hviezdu v snímke"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider, then click Loop"
+msgstr "Pripojte pointačnú kameru a pointačný systém Sidralune a kliknite na Slučka"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Pointovať cez"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Montáž"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Pointačnú kameru (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Ohnisková vzdialenosť pointačného ďalekohľadu (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Polomer oblasti hľadania (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Krok kalibrácie (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 určí krok z pointačnej rýchlosti, mierky pixelu a deklinácie."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Vzdialenosť kalibrácie (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Po preklopení cez meridián"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Montáž obracia Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Väčšina montáží po preklopení neobracia impulzy v Dec. Ak Dec po preklopení uteká, zmeňte toto."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Vymazať kalibráciu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
+msgstr "RA: Hysteresis. Dec: Resist Switch, ktorý mení smer len vtedy, keď to chyba jasne vyžaduje."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "Agresivita RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "Hysterézia RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "Minimálny posun RA (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "Maximálny impulz RA (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Agresivita Dec (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Minimálny posun Dec (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Maximálny impulz Dec (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Veľké chyby v Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Opraviť ihneď"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Algorithms"
+msgstr "Algoritmy"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Kalibrácia"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The settings are the Sidralune guider's: connect it to change them."
+msgstr "Nastavenia patria pointačnému systému Sidralune: ak ich chcete zmeniť, pripojte ho."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Žiadna pointačná hviezda: kliknite na hviezdu alebo na Zvoliť hviezdu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Hviezda stratená na {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Hviezda na {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "saturovaná"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 zobrazuje svoje pointačné snímky samo"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -3142,10 +3434,6 @@ msgstr "Dithering"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Vymazať graf"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Nie je pripojená pointačná kamera — spustite PHD2 a zapnite jeho server (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""

@@ -443,6 +443,7 @@ namespace Sidralune.Tests
             CheckTrue("Mount west of the meridian on the west pier side", tel.SideOfPier == PierSide.West && tel.DestinationSideOfPier(tel.SiderealTime + 1, 30) == PierSide.East);
             double dec0 = tel.Declination;
             tel.PulseGuide(GuideDirection.North, 1000);
+            CheckTrue("A guide pulse takes its time", tel.IsPulseGuiding && SpinUntil(() => !tel.IsPulseGuiding, 3000));
             Check("Guide pulse north at 0.5× sidereal (″)", (tel.Declination - dec0) * 3600, 0.5 * 15.041, 0.01);
             tel.SyncToCoordinates(tel.RightAscension, tel.Declination + 0.1);
             Check("Sync shifts the reported position", tel.Declination - (dec0 + 0.5 * 15.041 / 3600), 0.1, 1e-6);

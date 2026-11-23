@@ -1265,7 +1265,7 @@ msgstr "Rota filtrorum"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Camera ductrix"
+msgstr "Ductor"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Thesauri: incepta scientiae civium"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "PHD2 incipe, eius servitorem accende (Tools → Enable Server) et Coniunge PHD2 preme."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Nullum telescopium coniunctum."
 
@@ -2547,7 +2543,303 @@ msgstr "Nullus focator coniunctus."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Nullus ductor coniunctus."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Haec camera iam ut camera ductrix coniuncta est."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Haec camera iam ut camera imaginum coniuncta est."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Nulla camera ductrix coniuncta."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Camera ductrix portam ductus non habet. Duc potius per montationem."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Montatio pulsus ductus non accipit. Duc potius per portam camerae ductricis."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Ductus sistitus est."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Siste ductum antequam aliam stellam eligis."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Nulla stella ductrix idonea in imagine."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Nulla stella ibi ad ducendum."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Ductus intra {0} s non quievit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Ductus non agitur."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Nulla stella ductrix inventa. Focum et expositionem camerae ductricis inspice."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Ductus sistitus est, quia montatio se convertit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Camera ductrix disiuncta est."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Camera ductrix ter continenter defecit: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Calibratio defecit: stella in RA non satis longe mota est. Funem ductus aut coniunctionem et celeritatem ductus montationis inspice."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Calibratio defecit: stella in Dec non satis longe mota est. Funem ductus aut coniunctionem et celeritatem ductus montationis inspice."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Calibratio sistita est, quia montatio se convertit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Stella ductrix in calibratione amissa est."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Calibratio defecit: Dec moveri non coepit. Fortasse Dec non coniuncta est, aut montatio multum lusum habet."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "PHD2 incipe et ministratorem eius accende (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
+msgstr "Cameram ductricem et ductorem Sidralune in Specula → Instrumenta coniunge, aut PHD2 cum ministratore accenso incipe (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Camera ductrix"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Sistitum"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Iteratio"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Stella electa"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Calibratur"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Intermissum"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Stella amissa"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Non calibratum. «Calibra et duc» primum calibrat; «Ductum incipe» calibrat, cum nulla calibratio huius instrumenti est."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Calibratum {0:yyyy-MM-dd HH:mm}: RA {1:0}° celeritate {2:0.00} px/s, Dec {3:0}° celeritate {4:0.00} px/s, {5:0.0}° ab angulo recto."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA et Dec longe ab angulo recto absunt: lusus aut aer turbidus calibrationem fortasse turbavit. Iterum calibra."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA et Dec celeritatibus motae sunt quae declinationi non conveniunt. Celeritates ductus inspice, deinde iterum calibra."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Pauci gradus calibrationis. Gradus brevior calibrationem accuratiorem facit."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Stella alia celeritate mota est quam celeritas ductus et longitudo focalis praedicunt. Longitudinem focalem telescopii ductoris et celeritatem ductus montationis inspice."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Prope polum calibratum, ubi RA stellam parum movet. Propius aequatorem caelestem calibra, cum potes."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Ductor Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the Sidralune guider"
+msgstr "Ductorem Sidralune coniunge"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider connected"
+msgstr "Ductor Sidralune coniunctus"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 imagines ductus ipse capit."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Imagines ductus cape et stellam sequere, sine ductu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Stellam elige"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Optimam stellam ductricem elige, aut stellam in imagine preme"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider, then click Loop"
+msgstr "Cameram ductricem et ductorem Sidralune coniunge, deinde Iteratio preme"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Duc per"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Montationem"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Cameram ductricem (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Longitudo focalis telescopii ductoris (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Radius areae quaerendi (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Gradus calibrationis (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 gradum ex celeritate ductus, scala pixeli et declinatione computat."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Spatium calibrationis (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Post conversionem meridianam"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Montatio Dec invertit"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Plurimae montationes pulsus Dec post conversionem non invertunt. Si Dec post conversionem aufugit, hoc muta."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Calibrationem purga"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
+msgstr "RA: Hysteresis. Dec: Resist Switch, quod directionem mutat solum cum error id clare postulat."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "Acrimonia RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "Hysteresis RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "Motus minimus RA (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "Pulsus maximus RA (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Acrimonia Dec (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Motus minimus Dec (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Pulsus maximus Dec (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Errores magni in Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Statim corrige"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Algorithms"
+msgstr "Algorithmi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Calibratio"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The settings are the Sidralune guider's: connect it to change them."
+msgstr "Hae sunt optiones ductoris Sidralune: coniunge eum ut eas mutes."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Nulla stella ductrix: stellam preme aut Stellam elige"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Stella amissa ad {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Stella ad {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "saturata"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 imagines ductus ipse ostendit"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -3126,10 +3418,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Diagramma purga"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Nulla camera ductrix coniuncta — PHD2 incipe et eius servitorem accende (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""

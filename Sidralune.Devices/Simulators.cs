@@ -11,7 +11,10 @@ using Sidralune.Imaging;
 
 namespace Sidralune.Devices.Simulators
 {
-    /// <summary>German equatorial mount simulator with realistic slewing, tracking, parking and pier side.</summary>
+    /// <summary>
+    /// German equatorial mount simulator with realistic slewing, tracking, parking and pier side. Guide pulses take their
+    /// time, and optional tracking errors (periodic error, drift, Dec backlash) give a guider something to correct.
+    /// </summary>
     public class TelescopeSimulator : DeviceBase, ITelescope
     {
         public Observer Site = new Observer();
@@ -21,15 +24,40 @@ namespace Sidralune.Devices.Simulators
         private DateTime _last = DateTime.UtcNow;
         private readonly object _lock = new object();
         private double[] _axisRate = new double[2];
+        private PierSide _pier = PierSide.West;
         public double SlewRateDegPerSec = 4.0;
         /// <summary>Pointing model error (deg) injected for plate-solving/centering tests.</summary>
         public double PointingErrorRa = 0.0, PointingErrorDec = 0.0;
+
+        public const double SiderealDegPerSec = 15.0410686 / 3600;
+        /// <summary>Guide rates (deg/s), 0.5× sidereal unless set.</summary>
+        public double GuideRateRa { get; set; } = 0.5 * SiderealDegPerSec;
+        public double GuideRateDec { get; set; } = 0.5 * SiderealDegPerSec;
+
+        // Tracking errors. They move the true pointing only: the mount's encoders do not see them.
+        /// <summary>Periodic error: a sine of this amplitude (arcsec on the sky, in RA) over the worm period.</summary>
+        public double PeriodicErrorArcsec, WormPeriodSec = 480;
+        /// <summary>Drift from polar misalignment (arcsec per minute on the sky), starting again after each slew.</summary>
+        public double DriftRaArcsecPerMin, DriftDecArcsecPerMin;
+        /// <summary>Dec backlash: after the Dec motor reverses, this much of the pulses (ms) moves nothing.</summary>
+        public double DecBacklashMs;
+        /// <summary>
+        /// Dec pulses move towards the sky's north on both sides of the pier, as on mounts that reverse Dec themselves after
+        /// a meridian flip. Off (the default): North turns the Dec motor one way, which points south of the pier's east side.
+        /// </summary>
+        public bool DecPulsesFollowSky;
+
+        private double _driftRa, _driftDec; // arcsec accumulated since the last slew
+        private readonly DateTime[] _pulseStart = new DateTime[2], _pulseEnd = new DateTime[2];
+        private readonly double[] _pulseRate = new double[2]; // axis 0: RA hours/s, axis 1: Dec deg/s
+        private int _decMotor; // last Dec motor direction, +1 north, -1 south
+        private double _decSlackMs;
 
         public TelescopeSimulator() { Info = new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Telescope Simulator" }; }
 
         public override void Connect()
         {
-            _ra = Lst(); _dec = 90;
+            lock (_lock) { _ra = Lst(); _dec = 90; _last = DateTime.UtcNow; _pier = DestinationSideOfPier(_ra, _dec); }
             _timer = new Timer(Tick, null, 0, 100);
             Connected = true;
         }
@@ -38,32 +66,66 @@ namespace Sidralune.Devices.Simulators
 
         private double Lst() => AstroTime.Now.LocalSiderealHours(Site.LongitudeDeg);
 
+        private bool _arrived; // a slew ended since the last tick
+
         private void Tick(object state)
         {
-            lock (_lock)
-            {
-                var now = DateTime.UtcNow;
-                double dt = (now - _last).TotalSeconds;
-                _last = now;
-                if (!_tracking || _atPark) _ra += dt * 1.00273791 / 3600.0; // RA drifts with sidereal time when not tracking
-                if (_slewing)
-                {
-                    double dra = AstroMath.NormalizeDeg180((_targetRa - _ra) * 15), ddec = _targetDec - _dec;
-                    double step = SlewRateDegPerSec * dt;
-                    double dist = Math.Sqrt(dra * dra + ddec * ddec);
-                    if (dist <= step) { _ra = _targetRa; _dec = _targetDec; _slewing = false; RaiseStateChanged(); }
-                    else { _ra += dra / dist * step / 15; _dec += ddec / dist * step; }
-                }
-                _ra += _axisRate[0] * dt / 15; _dec = AstroMath.Clamp(_dec + _axisRate[1] * dt, -90, 90);
-                _ra = AstroMath.NormalizeHours(_ra);
-            }
+            bool arrived;
+            lock (_lock) { Advance(DateTime.UtcNow); arrived = _arrived; _arrived = false; }
+            if (arrived) RaiseStateChanged();
         }
 
-        public double RightAscension { get { lock (_lock) return AstroMath.NormalizeHours(_ra + PointingErrorRa / 15); } }
-        public double Declination { get { lock (_lock) return AstroMath.Clamp(_dec + PointingErrorDec, -90, 90); } }
-        /// <summary>True optical axis pointing (without the injected model error), used by the camera simulator.</summary>
-        public double TrueRa { get { lock (_lock) return _ra; } }
-        public double TrueDec { get { lock (_lock) return _dec; } }
+        /// <summary>Moves the simulation on to now (under the lock).</summary>
+        private void Advance(DateTime now)
+        {
+            double dt = (now - _last).TotalSeconds;
+            if (dt <= 0) return;
+            // the part of each guide pulse that falls between the last update and now
+            for (int a = 0; a < 2; a++)
+            {
+                if (_pulseEnd[a] <= _last) continue;
+                var from = _pulseStart[a] > _last ? _pulseStart[a] : _last;
+                var to = _pulseEnd[a] < now ? _pulseEnd[a] : now;
+                double s = (to - from).TotalSeconds;
+                if (s <= 0) continue;
+                if (a == 0) _ra += _pulseRate[0] * s; else _dec = AstroMath.Clamp(_dec + _pulseRate[1] * s, -90, 90);
+            }
+            if (!_tracking || _atPark) _ra += dt * 1.00273791 / 3600.0; // RA drifts with sidereal time when not tracking
+            else if (!_slewing) { _driftRa += DriftRaArcsecPerMin * dt / 60; _driftDec += DriftDecArcsecPerMin * dt / 60; }
+            if (_slewing)
+            {
+                double dra = AstroMath.NormalizeDeg180((_targetRa - _ra) * 15), ddec = _targetDec - _dec;
+                double step = SlewRateDegPerSec * dt;
+                double dist = Math.Sqrt(dra * dra + ddec * ddec);
+                if (dist <= step) { _ra = _targetRa; _dec = _targetDec; _slewing = false; _driftRa = _driftDec = 0; _arrived = true; }
+                else { _ra += dra / dist * step / 15; _dec += ddec / dist * step; }
+            }
+            _ra += _axisRate[0] * dt / 15; _dec = AstroMath.Clamp(_dec + _axisRate[1] * dt, -90, 90);
+            _ra = AstroMath.NormalizeHours(_ra);
+            _last = now;
+        }
+
+        private double PeriodicError(DateTime now) =>
+            PeriodicErrorArcsec == 0 || WormPeriodSec <= 0 || !_tracking || _atPark ? 0 : PeriodicErrorArcsec * Math.Sin(2 * Math.PI * (now.Ticks / 1e7 % WormPeriodSec) / WormPeriodSec);
+
+        public double RightAscension { get { lock (_lock) { Advance(DateTime.UtcNow); return AstroMath.NormalizeHours(_ra + PointingErrorRa / 15); } } }
+        public double Declination { get { lock (_lock) { Advance(DateTime.UtcNow); return AstroMath.Clamp(_dec + PointingErrorDec, -90, 90); } } }
+        /// <summary>True optical axis pointing (without the injected model error, with the tracking errors), used by the camera simulator.</summary>
+        public double TrueRa
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    var now = DateTime.UtcNow;
+                    Advance(now);
+                    double cosd = Math.Max(0.05, Math.Cos(_dec * AstroMath.Deg2Rad));
+                    return AstroMath.NormalizeHours(_ra + (PeriodicError(now) + _driftRa) / 3600.0 / 15.0 / cosd);
+                }
+            }
+        }
+        public double TrueDec { get { lock (_lock) { Advance(DateTime.UtcNow); return AstroMath.Clamp(_dec + _driftDec / 3600.0, -90, 90); } } }
+        public bool IsPulseGuiding { get { lock (_lock) { var now = DateTime.UtcNow; return _pulseEnd[0] > now || _pulseEnd[1] > now; } } }
 
         public double Altitude => AltAz().AltDeg;
         public double Azimuth => AltAz().AzDeg;
@@ -77,7 +139,8 @@ namespace Sidralune.Devices.Simulators
         public bool Tracking { get { return _tracking; } set { _tracking = value; RaiseStateChanged(); } }
         public TrackingRate TrackingRate { get; set; } = TrackingRate.Sidereal;
         public bool AtPark => _atPark;
-        public PierSide SideOfPier => DestinationSideOfPier(RightAscension, Declination);
+        /// <summary>The side chosen at the last slew: a German mount keeps it while tracking through the meridian, until it flips.</summary>
+        public PierSide SideOfPier { get { lock (_lock) return _pier; } }
         public bool CanPark => true;
         public bool CanSync => true;
         public bool CanPulseGuide => true;
@@ -91,9 +154,11 @@ namespace Sidralune.Devices.Simulators
             if (_atPark) throw new InvalidOperationException("Mount is parked");
             lock (_lock)
             {
+                Advance(DateTime.UtcNow);
                 // remove the injected pointing error so the scope ends at the requested apparent coordinates of its own model
                 _targetRa = AstroMath.NormalizeHours(raHours - PointingErrorRa / 15);
                 _targetDec = AstroMath.Clamp(decDeg - PointingErrorDec, -90, 90);
+                _pier = DestinationSideOfPier(raHours, decDeg);
                 _slewing = true;
             }
             RaiseStateChanged();
@@ -110,6 +175,7 @@ namespace Sidralune.Devices.Simulators
         {
             lock (_lock)
             {
+                Advance(DateTime.UtcNow);
                 // a sync corrects the model: the error becomes zero for the synced position
                 PointingErrorRa = AstroMath.NormalizeDeg180((raHours - _ra) * 15);
                 PointingErrorDec = decDeg - _dec;
@@ -122,20 +188,38 @@ namespace Sidralune.Devices.Simulators
         public void Unpark() { _atPark = false; _tracking = true; RaiseStateChanged(); }
         public void SetPark() { }
 
+        /// <summary>
+        /// Starts a guide pulse and returns at once (as ASCOM asks); the mount moves at the guide rate for ms milliseconds,
+        /// IsPulseGuiding meanwhile. A new pulse on the same axis replaces one still running.
+        /// </summary>
         public void PulseGuide(GuideDirection dir, int ms)
         {
-            double rate = 0.5 * 15.041 / 3600.0; // 0.5x sidereal in deg/s
-            double d = rate * ms / 1000.0;
+            if (ms <= 0) return;
             lock (_lock)
             {
-                if (dir == GuideDirection.North) _dec += d;
-                if (dir == GuideDirection.South) _dec -= d;
-                if (dir == GuideDirection.East) _ra += d / 15;
-                if (dir == GuideDirection.West) _ra -= d / 15;
+                var now = DateTime.UtcNow;
+                Advance(now);
+                bool dec = dir == GuideDirection.North || dir == GuideDirection.South;
+                int axis = dec ? 1 : 0;
+                double sign = dir == GuideDirection.North || dir == GuideDirection.East ? 1 : -1;
+                double delayMs = 0;
+                if (dec)
+                {
+                    // backlash belongs to the motor: reversing it takes up the slack before anything moves
+                    int motor = dir == GuideDirection.North ? 1 : -1;
+                    if (_decMotor != 0 && motor != _decMotor) _decSlackMs = DecBacklashMs;
+                    _decMotor = motor;
+                    delayMs = Math.Min(_decSlackMs, ms);
+                    _decSlackMs -= delayMs;
+                    if (!DecPulsesFollowSky && _pier == PierSide.East) sign = -sign;
+                }
+                _pulseStart[axis] = now.AddMilliseconds(delayMs);
+                _pulseEnd[axis] = now.AddMilliseconds(ms);
+                _pulseRate[axis] = dec ? sign * GuideRateDec : sign * GuideRateRa / 15.0;
             }
         }
 
-        public void MoveAxis(int axis, double rate) { lock (_lock) _axisRate[AstroMath.Clamp(axis, 0, 1)] = rate; RaiseStateChanged(); }
+        public void MoveAxis(int axis, double rate) { lock (_lock) { Advance(DateTime.UtcNow); _axisRate[AstroMath.Clamp(axis, 0, 1)] = rate; } RaiseStateChanged(); }
 
         public PierSide DestinationSideOfPier(double raHours, double decDeg)
         {
@@ -243,7 +327,12 @@ namespace Sidralune.Devices.Simulators
         public double SeeingArcsec = 2.2;
         public double ZeroPointMag = 21.5;     // mag giving 1 e-/s
         public double SkyMagArcsec2 = 20.8;
+        /// <summary>The camera's angle on the sky (degrees, north through east) on the west side of the pier; it turns 180° on the east side.</summary>
+        public double RotationDeg;
+        /// <summary>Seeing's wander of the star image: RMS (arcsec, per axis) in a 1 s exposure, less in longer ones.</summary>
+        public double JitterArcsec;
         private int _w = 2048, _h = 1536;
+        private double _pixelUm = 3.76;
         private CameraState _state = CameraState.Idle;
         private AstroImage _last;
         private CancellationTokenSource _cts;
@@ -255,6 +344,23 @@ namespace Sidralune.Devices.Simulators
         public bool ColorSensor = false;
 
         public CameraSimulator() { Info = new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera Simulator" }; NumX = _w; NumY = _h; }
+
+        /// <summary>A small uncooled guide camera on a 240 mm guide scope, turned 30° on the sky, guiding through its ST-4 port.</summary>
+        public static CameraSimulator GuideCamera(TelescopeSimulator mount)
+        {
+            var c = new CameraSimulator { Mount = mount, FocalLengthMm = 240, RotationDeg = 30, JitterArcsec = 0.6, Gain = 50, Offset = 10 };
+            c.Info = new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide Camera Simulator" };
+            c.SetSensor(1280, 960, 3.75);
+            return c;
+        }
+
+        /// <summary>Sets the sensor's size (pixels) and pixel size (µm), and the frame to the whole sensor.</summary>
+        public void SetSensor(int width, int height, double pixelUm)
+        {
+            _w = width; _h = height; _pixelUm = pixelUm;
+            StartX = StartY = 0; NumX = _w / Math.Max(1, BinX); NumY = _h / Math.Max(1, BinY);
+        }
+
         public override void Connect() { Connected = true; Task.Run(() => CoolLoop()); }
         public override void Disconnect() { Connected = false; }
 
@@ -270,8 +376,8 @@ namespace Sidralune.Devices.Simulators
 
         public int SensorWidth => _w;
         public int SensorHeight => _h;
-        public double PixelSizeX => 3.76;
-        public double PixelSizeY => 3.76;
+        public double PixelSizeX => _pixelUm;
+        public double PixelSizeY => _pixelUm;
         public int BinX { get; set; } = 1;
         public int BinY { get; set; } = 1;
         public int MaxBin => 4;
@@ -306,14 +412,18 @@ namespace Sidralune.Devices.Simulators
             _state = CameraState.Exposing;
             _last = null;
             RaiseStateChanged();
-            double ra = Mount != null ? Mount.TrueRa : 0, dec = Mount != null ? Mount.TrueDec : 0;
+            double ra0 = Mount != null ? Mount.TrueRa : 0, dec0 = Mount != null ? Mount.TrueDec : 0;
+            double rot = RotationDeg + (Mount != null && Mount.SideOfPier == PierSide.East ? 180 : 0);
             Task.Run(async () =>
             {
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(Math.Min(seconds, 30)), ct);
                     _state = CameraState.Download;
-                    _last = Render(seconds, light, ra, dec);
+                    // the star image lies where the mount pointed on average during the exposure
+                    double ra1 = Mount != null ? Mount.TrueRa : ra0, dec1 = Mount != null ? Mount.TrueDec : dec0;
+                    double ra = AstroMath.NormalizeHours(ra0 + AstroMath.NormalizeDeg180((ra1 - ra0) * 15) / 30), dec = (dec0 + dec1) / 2;
+                    _last = Render(seconds, light, ra, dec, rot);
                     _state = CameraState.Idle;
                 }
                 catch (OperationCanceledException) { _state = CameraState.Idle; }
@@ -326,7 +436,16 @@ namespace Sidralune.Devices.Simulators
 
         public AstroImage GetImage() => _last;
 
-        private AstroImage Render(double exp, bool light, double raH, double decD)
+        // the guide port passes pulses to the mount
+        public bool CanPulseGuide => Mount != null;
+        public bool IsPulseGuiding => Mount != null && Mount.IsPulseGuiding;
+        public void PulseGuide(GuideDirection dir, int ms)
+        {
+            if (Mount == null) throw new InvalidOperationException("Nothing is connected to the camera's guide port");
+            Mount.PulseGuide(dir, ms);
+        }
+
+        private AstroImage Render(double exp, bool light, double raH, double decD, double rotDeg)
         {
             int w = Math.Max(16, NumX), h = Math.Max(16, NumY); // NumX/NumY are in binned pixels (ASCOM convention)
             double scale = 206.265 * PixelSizeX * BinX / FocalLengthMm; // arcsec/px
@@ -342,13 +461,26 @@ namespace Sidralune.Devices.Simulators
                 // the mount reports JNow (apparent) coordinates; catalog stars are ICRS
                 var site = Mount != null ? Mount.Site : new Observer();
                 var icrs = new SkyContext(site, AstroTime.FromDateTime(_start)).ApparentToIcrs(raH * AstroMath.Hour2Rad, decD * AstroMath.Deg2Rad);
-                // tangent-plane rendering of catalog stars
+                // tangent-plane rendering of catalog stars; the optical axis is at the centre of the whole sensor, and
+                // the frame read out starts at StartX, StartY
                 double ra0 = icrs.Ra, de0 = icrs.Dec;
+                double cx = _w / (double)Math.Max(1, BinX) / 2 - StartX, cy = _h / (double)Math.Max(1, BinY) / 2 - StartY;
+                double reachX = Math.Max(Math.Abs(cx), Math.Abs(w - cx)), reachY = Math.Max(Math.Abs(cy), Math.Abs(h - cy));
                 var stars = new List<Star>();
-                double radius = Math.Sqrt(w * w + h * h) * scale / 3600.0 * 0.6 * AstroMath.Deg2Rad;
+                double radius = Math.Sqrt(reachX * reachX + reachY * reachY) * 1.2 * scale / 3600.0 * AstroMath.Deg2Rad;
                 CatalogManager.Instance.Stars.Cone(ra0, de0, radius, 16, stars);
                 double sigma = Math.Max(0.6, fwhmPx / 2.3548);
                 int r = (int)Math.Ceiling(sigma * 4);
+                // seeing moves the whole field a little in each exposure
+                double jit = JitterArcsec / Math.Sqrt(Math.Max(0.05, exp));
+                double jx = jit > 0 ? jit * Gauss() : 0, jy = jit > 0 ? jit * Gauss() : 0;
+                double cr = Math.Cos(rotDeg * AstroMath.Deg2Rad), sr = Math.Sin(rotDeg * AstroMath.Deg2Rad);
+                // east is left and north up at no rotation
+                Func<double, double, Pt> place = (xi, eta) =>
+                {
+                    double e = xi * AstroMath.Rad2ArcSec + jx, n = eta * AstroMath.Rad2ArcSec + jy;
+                    return new Pt { X = cx - (e * cr - n * sr) / scale, Y = cy - (e * sr + n * cr) / scale };
+                };
                 foreach (var s in stars)
                 {
                     double xi, eta;
@@ -356,36 +488,43 @@ namespace Sidralune.Devices.Simulators
                     double den = sd * sd0 + cd * cd0 * Math.Cos(da);
                     if (den <= 0) continue;
                     xi = cd * Math.Sin(da) / den; eta = (sd * cd0 - cd * sd0 * Math.Cos(da)) / den;
-                    double x = w / 2.0 - xi * AstroMath.Rad2ArcSec / scale, y = h / 2.0 - eta * AstroMath.Rad2ArcSec / scale;
+                    var p = place(xi, eta);
+                    double x = p.X, y = p.Y;
                     if (x < -r || y < -r || x > w + r || y > h + r) continue;
                     double flux = Math.Pow(10, -0.4 * (s.Mag - ZeroPointMag)) * exp; // electrons
                     Splat(d, w, h, x, y, flux, sigma, r);
                 }
                 if (SyntheticFieldStars)
                 {
-                    // deterministic pseudo-stars tied to sky cells (simulation aid when only a sparse catalog is loaded)
+                    // deterministic pseudo-stars tied to sky cells (simulation aid when only a sparse catalog is loaded); a
+                    // cell spans 0.25° of Dec and 0.25° of sky in RA at its own declination, so the stars stay where they are
+                    // on the sky wherever the camera points
                     double cell = 0.25 * AstroMath.Deg2Rad;
-                    int ci0 = (int)Math.Floor((ra0 * Math.Cos(de0) - radius) / cell), ci1 = (int)Math.Floor((ra0 * Math.Cos(de0) + radius) / cell);
                     int cj0 = (int)Math.Floor((de0 - radius) / cell), cj1 = (int)Math.Floor((de0 + radius) / cell);
                     for (int cj = cj0; cj <= cj1; cj++)
+                    {
+                        double raCell = cell / Math.Max(0.05, Math.Cos((cj + 0.5) * cell));
+                        double raReach = radius / Math.Max(0.05, Math.Cos(Math.Min(Math.Abs(de0) + radius, 1.5)));
+                        int ci0 = (int)Math.Floor((ra0 - raReach) / raCell), ci1 = (int)Math.Floor((ra0 + raReach) / raCell);
                         for (int ci = ci0; ci <= ci1; ci++)
                         {
                             var rng = new Random(unchecked(ci * 73856093 ^ cj * 19349663));
                             for (int k = 0; k < 60; k++)
                             {
                                 double sdec = (cj + rng.NextDouble()) * cell;
-                                double sra = (ci + rng.NextDouble()) * cell / Math.Max(0.05, Math.Cos(de0));
+                                double sra = (ci + rng.NextDouble()) * raCell;
                                 double mag = 9 + 6.5 * Math.Pow(rng.NextDouble(), 0.35);
                                 double cd = Math.Cos(sdec), sd = Math.Sin(sdec), cd0 = Math.Cos(de0), sd0 = Math.Sin(de0), da = sra - ra0;
                                 double den = sd * sd0 + cd * cd0 * Math.Cos(da);
                                 if (den <= 0) continue;
-                                double xi = cd * Math.Sin(da) / den, eta = (sd * cd0 - cd * sd0 * Math.Cos(da)) / den;
-                                double x = w / 2.0 - xi * AstroMath.Rad2ArcSec / scale, y = h / 2.0 - eta * AstroMath.Rad2ArcSec / scale;
+                                var p = place(cd * Math.Sin(da) / den, (sd * cd0 - cd * sd0 * Math.Cos(da)) / den);
+                                double x = p.X, y = p.Y;
                                 if (x < -r || y < -r || x > w + r || y > h + r) continue;
                                 double flux = Math.Pow(10, -0.4 * (mag - ZeroPointMag)) * exp;
                                 Splat(d, w, h, x, y, flux, sigma, r);
                             }
                         }
+                    }
                 }
             }
             double rn = 1.8;
@@ -407,11 +546,13 @@ namespace Sidralune.Devices.Simulators
             img.Header.Set("CCD-TEMP", _ccdTemp);
             img.Header.Set("GAIN", Gain); img.Header.Set("OFFSET", Offset);
             img.Header.Set("RA", raH * 15); img.Header.Set("DEC", decD);
-            img.Header.Set("INSTRUME", "Sidralune Camera Simulator");
+            img.Header.Set("INSTRUME", Info.Kind == DeviceKind.GuideCamera ? "Sidralune Guide Camera Simulator" : "Sidralune Camera Simulator");
             if (Focuser != null) img.Header.Set("FOCPOS", Focuser.Position);
             if (Wheel != null && Wheel.Position >= 0) img.Header.Set("FILTER", Wheel.Names[Wheel.Position]);
             return img;
         }
+
+        private struct Pt { public double X, Y; }
 
         /// <summary>Add synthetic faint field stars (deterministic per sky position). Simulation only.</summary>
         public bool SyntheticFieldStars = true;

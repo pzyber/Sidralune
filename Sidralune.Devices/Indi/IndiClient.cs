@@ -173,7 +173,8 @@ namespace Sidralune.Devices.Indi
             switch (info.Kind)
             {
                 case DeviceKind.Telescope: return new IndiTelescope(info);
-                case DeviceKind.Camera: return new IndiCamera(info);
+                case DeviceKind.Camera:
+                case DeviceKind.GuideCamera: return new IndiCamera(info);
                 case DeviceKind.Focuser: return new IndiFocuser(info);
             }
             throw new NotSupportedException("INDI " + info.Kind + " is not supported yet");
@@ -221,6 +222,18 @@ namespace Sidralune.Devices.Indi
         protected double Num(string prop, string el) { var p = C.Get(Dev, prop); return p != null ? p.Num(el) : double.NaN; }
         protected bool Sw(string prop, string el) { var p = C.Get(Dev, prop); string v; return p != null && p.Values.TryGetValue(el, out v) && v == "On"; }
         protected bool Busy(string prop) { var p = C.Get(Dev, prop); return p != null && p.State == "Busy"; }
+
+        /// <summary>A timed guide pulse through the standard guider properties, which mounts and cameras with a guide port share.</summary>
+        protected void TimedGuide(GuideDirection dir, int ms)
+        {
+            if (dir == GuideDirection.North || dir == GuideDirection.South)
+                C.SetNumber(Dev, "TELESCOPE_TIMED_GUIDE_NS", Tuple.Create("TIMED_GUIDE_N", dir == GuideDirection.North ? (double)ms : 0), Tuple.Create("TIMED_GUIDE_S", dir == GuideDirection.South ? (double)ms : 0));
+            else
+                C.SetNumber(Dev, "TELESCOPE_TIMED_GUIDE_WE", Tuple.Create("TIMED_GUIDE_W", dir == GuideDirection.West ? (double)ms : 0), Tuple.Create("TIMED_GUIDE_E", dir == GuideDirection.East ? (double)ms : 0));
+        }
+
+        protected bool HasTimedGuide => C.Get(Dev, "TELESCOPE_TIMED_GUIDE_NS") != null;
+        protected bool TimedGuideBusy => Busy("TELESCOPE_TIMED_GUIDE_NS") || Busy("TELESCOPE_TIMED_GUIDE_WE");
     }
 
     public class IndiTelescope : IndiBase, ITelescope
@@ -238,7 +251,12 @@ namespace Sidralune.Devices.Indi
         public PierSide SideOfPier => Sw("TELESCOPE_PIER_SIDE", "PIER_WEST") ? PierSide.West : Sw("TELESCOPE_PIER_SIDE", "PIER_EAST") ? PierSide.East : PierSide.Unknown;
         public bool CanPark => C.Get(Dev, "TELESCOPE_PARK") != null;
         public bool CanSync => true;
-        public bool CanPulseGuide => C.Get(Dev, "TELESCOPE_TIMED_GUIDE_NS") != null;
+        public bool CanPulseGuide => HasTimedGuide;
+        public bool IsPulseGuiding => TimedGuideBusy;
+        // GUIDE_RATE is a multiple of the sidereal rate
+        public double GuideRateRa => Num("GUIDE_RATE", "GUIDE_RATE_WE") * SiderealDegPerSec;
+        public double GuideRateDec => Num("GUIDE_RATE", "GUIDE_RATE_NS") * SiderealDegPerSec;
+        private const double SiderealDegPerSec = 15.0410686 / 3600;
         public bool CanSlewAltAz => C.Get(Dev, "HORIZONTAL_COORD") != null;
         public double SiteLatitude => Num("GEOGRAPHIC_COORD", "LAT");
         public double SiteLongitude => Num("GEOGRAPHIC_COORD", "LONG");
@@ -255,13 +273,7 @@ namespace Sidralune.Devices.Indi
         public void Park() => C.SetSwitch(Dev, "TELESCOPE_PARK", Tuple.Create("PARK", true), Tuple.Create("UNPARK", false));
         public void Unpark() => C.SetSwitch(Dev, "TELESCOPE_PARK", Tuple.Create("PARK", false), Tuple.Create("UNPARK", true));
         public void SetPark() => C.SetSwitch(Dev, "TELESCOPE_PARK_OPTION", Tuple.Create("PARK_CURRENT", true));
-        public void PulseGuide(GuideDirection dir, int ms)
-        {
-            if (dir == GuideDirection.North || dir == GuideDirection.South)
-                C.SetNumber(Dev, "TELESCOPE_TIMED_GUIDE_NS", Tuple.Create("TIMED_GUIDE_N", dir == GuideDirection.North ? (double)ms : 0), Tuple.Create("TIMED_GUIDE_S", dir == GuideDirection.South ? (double)ms : 0));
-            else
-                C.SetNumber(Dev, "TELESCOPE_TIMED_GUIDE_WE", Tuple.Create("TIMED_GUIDE_W", dir == GuideDirection.West ? (double)ms : 0), Tuple.Create("TIMED_GUIDE_E", dir == GuideDirection.East ? (double)ms : 0));
-        }
+        public void PulseGuide(GuideDirection dir, int ms) => TimedGuide(dir, ms);
         public void MoveAxis(int axis, double rate)
         {
             string prop = axis == 0 ? "TELESCOPE_MOTION_WE" : "TELESCOPE_MOTION_NS";
@@ -324,6 +336,9 @@ namespace Sidralune.Devices.Indi
         }
         public void AbortExposure() => C.SetSwitch(Dev, "CCD_ABORT_EXPOSURE", Tuple.Create("ABORT", true));
         public AstroImage GetImage() => _img;
+        public bool CanPulseGuide => HasTimedGuide;
+        public bool IsPulseGuiding => TimedGuideBusy;
+        public void PulseGuide(GuideDirection dir, int ms) => TimedGuide(dir, ms);
     }
 
     public class IndiFocuser : IndiBase, IFocuser

@@ -578,8 +578,8 @@ namespace Sidralune.Devices.Automation
             if (tel == null || ctx.Target == null || !MeridianFlip.IsDue(tel, MinutesAfterMeridian)) return;
             ctx.Log("Performing meridian flip");
             var app = new SkyContext(ctx.Site, AstroTime.Now).IcrsToApparent(ctx.Target.RaDeg * AstroMath.Deg2Rad, ctx.Target.DecDeg * AstroMath.Deg2Rad);
-            await MeridianFlip.Perform(tel, app.RaHours, app.DecDeg, ctx.Devices.Guider, ct);
-            await new CenterTarget().Run(ctx, ct);
+            // re-centre before guiding resumes, as after unsafe conditions
+            await MeridianFlip.Perform(tel, app.RaHours, app.DecDeg, ctx.Devices.Guider, ct, () => new CenterTarget().Run(ctx, ct));
         }
     }
 

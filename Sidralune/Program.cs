@@ -23,6 +23,8 @@ namespace Sidralune
 
             AppState.Load();
             Lang.Use(ArgValue(args, "--lang") ?? AppState.Settings.Language);
+            // the simulated mount drifts and has periodic error, so the Sidralune guider has something to correct
+            Devices.DeviceManager.Instance.SimulatedMountErrors = true;
             var form = new MainForm();
             string shot = ArgValue(args, "--screenshot");
             if (shot != null)

@@ -167,6 +167,7 @@ Always build and run the library tests before building the application, build th
 | `Sidralune.Imaging` | Image model, file formats (`IO`), analysis, processing, registration, stacking, planetary tools |
 | `Sidralune.Science` | Astrometry, photometry, spectroscopy, solar system, radio, online databases |
 | `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, PHD2, capture, sequencer |
+| `Sidralune.Devices/Guiding` | The Sidralune guider (`SidraluneGuider`: the guide loop, calibration, dithering and settling), its settings and calibration (`GuiderSettings`, `GuideCalibration`, saved in `guider.json`), choosing and measuring the guide star (`GuideStars`), the RA and Dec algorithms (`HysteresisAlgorithm`, `ResistSwitchAlgorithm`), pulses and the guide log (`GuidePulser`, `GuideLog`), and the PHD2 client (`Phd2Client`) |
 | `Sidralune.Tests` | Library tests (MSTest) |
 | `Sidralune.AppTests` | Application tests (MSTest): settings, scripting, planner, controls and every workspace |
 | `Wiki` | User manual |
@@ -252,8 +253,8 @@ If you believe a dependency is truly necessary, open an issue to discuss it befo
 
 The tests use MSTest, Visual Studio's own test framework (`Microsoft.VisualStudio.QualityTools.UnitTestFramework`, included with Visual Studio 2015 or later; no NuGet packages). There are two test projects, run in this order:
 
-1. `Sidralune.Tests` tests the libraries (two to three minutes). It does not depend on the application, so it runs before the application is built.
-2. `Sidralune.AppTests` tests the application (about a minute). It references `Sidralune.exe`, so building it builds the application first.
+1. `Sidralune.Tests` tests the libraries (about six minutes). It does not depend on the application, so it runs before the application is built.
+2. `Sidralune.AppTests` tests the application (about five and a half minutes). It references `Sidralune.exe`, so building it builds the application first.
 
 A test class derives from `TestBase` and is marked `[TestClass]`; each test is a `[TestMethod]`. A test makes many checks with the helpers in `Checks.cs` (shared by both projects). Every check is printed in the test's output, a failed check does not stop the test, and the test fails at the end with the list of every failed check:
 
@@ -280,7 +281,7 @@ msbuild Sidralune.AppTests\Sidralune.AppTests.csproj
 "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" Sidralune.AppTests\bin\Debug\Sidralune.AppTests.dll
 ```
 
-Run a subset while you work with a filter, for example `/TestCaseFilter:"FullyQualifiedName~Horizons"` or `/Tests:TestPhd2`. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there. The library tests take two to three minutes, the application tests about one. Visual Studio 2015's command-line runner waits for ever if a test process dies; the application tests record such a crash in `%TEMP%\SidraluneAppTests-crash.txt`, and a test whose UI thread stops answering fails after a minute.
+Run a subset while you work with a filter, for example `/TestCaseFilter:"FullyQualifiedName~Horizons"` or `/Tests:TestPhd2`. Use the `vstest.console.exe` of your Visual Studio version (for newer versions it is under `Common7\IDE\Extensions\TestPlatform`). If the repository is on a network drive, the test runner may refuse to load the test assembly (error `0x80131515`); copy the test project's `bin\Debug` folder to a local folder and run the tests there. The library tests take about six minutes and the application tests about five and a half (checking that every language fits takes two of them). Visual Studio 2015's command-line runner waits for ever if a test process dies; the application tests record such a crash in `%TEMP%\SidraluneAppTests-crash.txt`, and a test whose UI thread stops answering fails after a minute.
 
 Every part of the libraries has tests, grouped by area:
 
@@ -294,6 +295,7 @@ Every part of the libraries has tests, grouped by area:
 | `ImagingTests.cs`, `ImagingProcessingTests.cs`, `ImagingGeometryTests.cs`, `StackingTests.cs`, `PlanetaryTests.cs`, `CrwTests.cs`, `Cr3Tests.cs` | Image files (including Canon CRW and CR3 through small writers of each, and LZW-compressed TIFF as Windows writes it), quick and full image statistics, debayering, processing, geometry, star detection (including stars about one pixel wide) and matching, calibration, stacking, drizzle, video and raw formats, planetary tools |
 | `ColorManagementTests.cs` | ICC profiles (the built-in working spaces against published values and Windows' own sRGB profile), exact conversions between profiles and agreement with Windows' colour system, profiles in FITS, XISF, TIFF, PNG and JPEG files, the policies on opening, 8-bit exports |
 | `AstrometryTests.cs`, `ScienceTests.cs`, `ScienceExtraTests.cs` | Plate solving, image depth, photometry, timing, light curves, spectroscopy, radio, meteors, occultations, Saturn's ring tilt and moons, catalogue providers |
+| `GuidingTests.cs` | The guide algorithms, calibration geometry and fit, choosing and measuring guide stars, the simulators' guide pulses, tracking errors, pier side and guide camera, and the Sidralune guider in a closed loop on the simulators: calibration, guiding, dithers, pause, lost stars, a meridian flip, slews and failures |
 | `DeviceTests.cs`, `DeviceProtocolTests.cs`, `SequencerTests.cs`, `AutomationTests.cs` | Capture, video recording and live view, LX200/OnStep, PHD2, INDI, Alpaca and ASCOM against stand-ins, the device manager, every sequencer instruction and trigger, centring and polar alignment |
 
 The application tests (`Sidralune.AppTests`) start the real main window once, off screen, on a UI thread of its own (`AppHost.cs`), with its settings and data in `%TEMP%\SidraluneAppTests`. Tests run code on that thread with `OnUi(…)`, wait for background work with `WaitFor(…)`, open a workspace with `View<T>(key)`, click with `PerformClick()`, read notifications with `Toasts()` and check the log for errors with `LogMark()` and `ErrorsSince(…)`:
@@ -313,7 +315,7 @@ The application tests (`Sidralune.AppTests`) start the real main window once, of
 | `BackgroundLoadingTests.cs` | Images and videos open in the background as their tab's job (Planetary, Process channel combining, Astrometry) |
 | `ListEditingTests.cs` | Lists you add to can be emptied again: Derotation images, Photometry frames and stars, added minor bodies; the orbit of the first listed minor body shown at once, and double-clicking one centres it in the Sky tab, and an open comet orbit drawn through the comet and out to the edge of the diagram |
 | `JobTests.cs` | One job at a time where jobs share their input (plate solving, processing, stacking, planetary, photometry, data downloads), Deep sky's Show stacked image bringing the result back after a frame preview, and Show, Save and Open in Process greyed out until something is stacked and while a job runs, newest-result-wins look-ups, and cancelled or failed jobs freeing their controls |
-| `ObservatoryViewTests.cs` | Equipment, Disconnect all, one camera job at a time, planetary live view handing over to recording, messages for missing devices, sequence editing |
+| `ObservatoryViewTests.cs` | Equipment, Disconnect all, the Guiding tab with the Sidralune guider on the simulators, one camera job at a time, planetary live view handing over to recording, messages for missing devices, sequence editing |
 | `TranslationTests.cs` | The template and every `.po` file against the texts marked in the source and the option names of the property grids (every full language complete, placeholders kept, as many plural forms as each language's rule asks for, regional files backed by their language), workspace names and row labels fitting in every language, option names and choices marked in the pseudo-language and read back from what is shown, Yes/No, sequencer instructions and missing devices in Swedish, Settings in Swedish with labels that fit, choosing a language, the command line for restarting in a new language, Swedish planet names, object types, events, datasets and loaded catalogues (kept in English as data), and the pseudo-language finding unmarked text in Settings, Tonight (with the night worked out), Sky (with an object selected, and the star chart's headings), Planner (with its table filled, its types saved in English), and every tab of all the other workspaces |
 
 Rules for tests:

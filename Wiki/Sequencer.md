@@ -76,7 +76,7 @@ Containers can be nested, for example a loop of filters inside a target inside a
 |---|---|---|
 | **Slew to target** | Slews to the current target's apparent position | |
 | **Center target** ("Slew, plate solve & center") | Slews, plate-solves, syncs and re-slews until the target is centred | **Tolerance arcmin** (1), **Exposure** (5 s), **Bin** (2) |
-| **Start guiding** | Starts PHD2 guiding | **Force calibration** |
+| **Start guiding** | Starts guiding with the connected guider (the Sidralune guider or PHD2) and waits until it has settled | **Force calibration** |
 | **Stop guiding** | Stops guiding | |
 | **Take exposures** ("Expose … frames") | Takes a series of frames and saves them | **Count**, **Exposure**, **Filter**, **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Frame type** (chosen from a list: LIGHT, DARK, FLAT, BIAS), **Dither every** N frames, **Dither pixels** |
 | **Record video** | Records a [planetary SER video](Observatory-and-devices#planetary-video), named after the target and saved under `Planetary\<target>\` | **Exposure ms**, **Region** (centred on the sensor, the same choices as in the Imaging tab: **Full sensor** or 1920 × 1080 down to 320 × 240), **Bin**, **Gain** and **Offset** (−1 keeps the camera's value), **Filter**, **Max frames**, **Max seconds** (stops at whichever comes first) |

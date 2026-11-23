@@ -1265,7 +1265,7 @@ msgstr "Rrota e filtrave"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Kamera udhëheqëse"
+msgstr "Sistemi udhëheqës"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Bazat e të dhënave: projekte të shkencës qytetare"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Nisni PHD2, aktivizoni serverin e tij (Tools → Enable Server) dhe klikoni Lidh PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Asnjë teleskop i lidhur."
 
@@ -2547,7 +2543,303 @@ msgstr "Asnjë fokusues i lidhur."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Asnjë sistem udhëheqës i lidhur."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Kjo kamerë është tashmë e lidhur si kamerë udhëheqëse."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Kjo kamerë është tashmë e lidhur si kamerë fotografimi."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Asnjë kamerë udhëheqëse e lidhur."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Kamera udhëheqëse nuk ka port udhëheqjeje. Udhëhiqni përmes montimit."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Montimi nuk pranon impulse udhëheqjeje. Udhëhiqni përmes portit të kamerës udhëheqëse."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Udhëheqja u ndal."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Ndalni udhëheqjen para se të zgjidhni një yll tjetër."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Asnjë yll udhëheqës i përshtatshëm në kuadër."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Aty nuk ka yll për udhëheqje."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Udhëheqja nuk u stabilizua brenda {0} s."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Nuk po udhëhiqet."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Nuk u gjet yll udhëheqës. Kontrolloni fokusin dhe ekspozimin e kamerës udhëheqëse."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Udhëheqja u ndal sepse montimi u rrotullua."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Kamera udhëheqëse u shkëput."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Kamera udhëheqëse dështoi tri herë radhazi: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrimi dështoi: ylli nuk lëvizi mjaftueshëm në RA. Kontrolloni kabllon e udhëheqjes ose lidhjen dhe shpejtësinë e udhëheqjes së montimit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrimi dështoi: ylli nuk lëvizi mjaftueshëm në Dec. Kontrolloni kabllon e udhëheqjes ose lidhjen dhe shpejtësinë e udhëheqjes së montimit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Kalibrimi u ndal sepse montimi u rrotullua."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Ylli udhëheqës humbi gjatë kalibrimit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Kalibrimi dështoi: Dec nuk filloi të lëvizë. Ndoshta Dec nuk është e lidhur ose montimi ka shumë lojë."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Nisni PHD2 dhe aktivizoni serverin e tij (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
+msgstr "Lidhni një kamerë udhëheqëse dhe sistemin udhëheqës Sidralune te Observatori → Pajisjet, ose nisni PHD2 me serverin aktiv (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Kamera udhëheqëse"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "E ndalur"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Cikël"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Ylli u zgjodh"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Po kalibrohet"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Në pauzë"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Ylli humbi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Pa kalibrim. «Kalibro dhe udhëhiq» kalibron fillimisht; «Nis udhëheqjen» kalibron kur nuk ka kalibrim për këtë pajisje."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Kalibruar më {0:yyyy-MM-dd HH:mm}: RA {1:0}° me {2:0.00} px/s, Dec {3:0}° me {4:0.00} px/s, {5:0.0}° nga këndi i drejtë."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA dhe Dec janë larg këndit të drejtë: loja ose seeing-u i dobët mund ta kenë prishur kalibrimin. Kalibroni përsëri."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA dhe Dec lëvizën me shpejtësi që nuk i përshtaten deklinacionit. Kontrolloni shpejtësitë e udhëheqjes dhe kalibroni përsëri."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Pak hapa kalibrimi. Një hap kalibrimi më i shkurtër e bën kalibrimin më të saktë."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Ylli lëvizi me shpejtësi tjetër nga ajo që parashikojnë shpejtësia e udhëheqjes dhe distanca fokale. Kontrolloni distancën fokale të teleskopit udhëheqës dhe shpejtësinë e udhëheqjes së montimit."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Kalibruar pranë polit, ku RA e lëviz pak yllin. Kalibroni më afër ekuatorit qiellor kur mundeni."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Sistemi udhëheqës Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the Sidralune guider"
+msgstr "Lidh sistemin udhëheqës Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider connected"
+msgstr "Sistemi udhëheqës Sidralune u lidh"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 i bën vetë kuadrot e udhëheqjes."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Bëj kuadro udhëheqjeje dhe ndiq yllin, pa udhëheqje"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Zgjidh yllin"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Zgjidhni yllin më të mirë udhëheqës ose klikoni një yll në kuadër"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider, then click Loop"
+msgstr "Lidhni një kamerë udhëheqëse dhe sistemin udhëheqës Sidralune, pastaj klikoni Cikël"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Udhëhiq përmes"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Montimit"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Kamerës udhëheqëse (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Distanca fokale e teleskopit udhëheqës (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Rrezja e zonës së kërkimit (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Hapi i kalibrimit (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 e llogarit hapin nga shpejtësia e udhëheqjes, shkalla e pikselit dhe deklinacioni."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Distanca e kalibrimit (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Pas një kthimi në meridian"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Montimi e përmbys Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Shumica e montimeve nuk i përmbysin impulset Dec pas një kthimi. Nëse Dec ikën pas një kthimi, ndryshojeni këtë."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Pastro kalibrimin"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
+msgstr "RA: Hysteresis. Dec: Resist Switch, që ndryshon drejtim vetëm kur gabimi e kërkon qartë."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "Agresiviteti RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "Histereza RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "Lëvizja më e vogël RA (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "Impulsi më i gjatë RA (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Agresiviteti Dec (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Lëvizja më e vogël Dec (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Impulsi më i gjatë Dec (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Gabime të mëdha në Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Korrigjo menjëherë"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Algorithms"
+msgstr "Algoritmet"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Kalibrimi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The settings are the Sidralune guider's: connect it to change them."
+msgstr "Cilësimet i përkasin sistemit udhëheqës Sidralune: lidheni për t’i ndryshuar."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Asnjë yll udhëheqës: klikoni një yll ose Zgjidh yllin"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Ylli humbi te {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Ylli te {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "i ngopur"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 i shfaq vetë kuadrot e udhëheqjes"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -3126,10 +3418,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Pastro grafikun"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Asnjë kamerë udhëheqëse e lidhur — nisni PHD2 dhe aktivizoni serverin e tij (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""

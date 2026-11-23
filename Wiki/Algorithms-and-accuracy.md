@@ -15,6 +15,7 @@ Every calculation in Sidralune is based on published methods. This page lists th
 - [Calibration and stacking](#calibration-and-stacking)
 - [Image processing](#image-processing)
 - [Planetary imaging](#planetary-imaging)
+- [Guiding](#guiding)
 - [Photometry and time series](#photometry-and-time-series)
 - [Spectroscopy](#spectroscopy)
 - [Radio astronomy](#radio-astronomy)
@@ -181,6 +182,22 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Limb fitting | Radial gradient edges, RANSAC and Kåsa algebraic circle fit |
 | Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation |
 
+## Guiding
+
+The Sidralune guider (Observatory → Guiding) is written for Sidralune. Its ideas follow the long-established practice of autoguiders, in particular [PHD2](https://openphdguiding.org), whose Hysteresis and Resist Switch algorithms, Dec backlash clearing, calibration checks and settling it takes as its model.
+
+| Item | Method |
+|---|---|
+| Choosing the star | Sidralune's star detector over the whole frame; single, unsaturated stars with SNR 8 or more, HFD 1–12 px, no neighbour with a fifth of the flux inside the search area, and room from the edges for calibration |
+| Measuring the star | In a square around the last position: background and noise from the square's outer ring (median and MAD), the brightest spot on a 3×3 median (so single hot pixels do not count), then a Gaussian-weighted centroid (σ 1.5 px) iterated until it settles. Typically better than 0.1 px on synthetic stars with noise |
+| Calibration | West and North legs in fixed steps until the star has moved the calibration distance (20 px), with the step chosen for about twelve steps from the guide rate, pixel scale and declination. North starts after three steady steps have taken up the Dec backlash. Each leg's direction and rate come from a least-squares line through all its positions, not only its end points |
+| Calibration checks | Axes more than 15° from square; RA/Dec rate ratio more than 25 % from cos(Dec) (at equal guide rates); fewer than four steps; rates more than 40 % from those predicted by the focal length and guide rate; a declination beyond ±75° |
+| Offsets | The star's offset from the lock position split into RA and Dec with a 2×2 solve, so axes not exactly at right angles still separate. The RA rate scales with cos(Dec) / cos(Dec at calibration) (limited at ±80°). After a meridian flip the RA direction turns 180°, and the Dec direction too when the mount reverses Dec itself |
+| RA: Hysteresis | Blend = (1 − h) × error + h × previous blend; correction = aggressiveness × blend when the blend reaches the minimum move |
+| Dec: Resist Switch | Corrections continue in the current direction; a reversal needs three errors in a row the other way, each over the minimum move and not shrinking, or (fast switch) one error over three minimum moves |
+| Pulses | Pixels ÷ calibrated rate, limited to the maximum pulse; RA, then Dec; waited for by time and by the driver's IsPulseGuiding |
+| Settling | Done when the star has stayed within 1.5 px of the lock position for 10 s, given up after 120 s (Start guiding); a dither moves the lock by a random amount up to the dither size along RA and Dec and uses the sequence's settle values |
+
 ## Photometry and time series
 
 | Item | Method |
@@ -246,6 +263,7 @@ The test suite (`Sidralune.Tests`, about a thousand checks across every library,
 - radio tools (IQ files in every format, dedispersion, drift scans) and an rtl_tcp server,
 - constellation identification of known stars, and catalogue searches against a brute-force search,
 - device protocols against stand-in servers (LX200/OnStep, PHD2, INDI, ASCOM Alpaca) and stand-in ASCOM drivers,
+- the Sidralune guider on the simulators: calibration recovers the guide camera's simulated angle within 3° and its rates within 10 %, guiding holds a mount with periodic error, drift and backlash to well under an arcsecond, and dithers, lost stars and meridian flips are handled,
 - every sequencer instruction, loops, triggers, autofocus and device behaviour with the simulators.
 
 See [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#scientific-correctness) for the rules new algorithms must follow.

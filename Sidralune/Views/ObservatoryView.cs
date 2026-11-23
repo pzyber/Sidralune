@@ -27,7 +27,8 @@ namespace Sidralune.Views
         private readonly Sequencer _sequencer = new Sequencer();
         private DeviceManager Dm => DeviceManager.Instance;
 
-        private static string Phd2Hint => T("Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2.");
+        private static string Phd2Hint => T("Start PHD2 and enable its server (Tools → Enable Server).");
+        private static string GuiderHint => T("Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server).");
 
         // what is missing, as whole sentences (the words for the devices differ in form from language to language)
         private static string NoTelescope => T("No telescope connected.");
@@ -58,6 +59,7 @@ namespace Sidralune.Views
             {
                 case DeviceKind.Telescope: return T("Telescope");
                 case DeviceKind.Camera: return T("Camera");
+                case DeviceKind.GuideCamera: return T("Guide camera");
                 case DeviceKind.Focuser: return T("Focuser");
                 case DeviceKind.FilterWheel: return T("Filter wheel");
                 case DeviceKind.Rotator: return T("Rotator");
@@ -98,7 +100,7 @@ namespace Sidralune.Views
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
             var rowRefreshers = new List<Action>();
-            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator, DeviceKind.Guider };
+            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator, DeviceKind.Guider };
             foreach (var k in kinds)
             {
                 var kind = k;
@@ -192,7 +194,9 @@ namespace Sidralune.Views
                     {
                         int row = table.GetRow(combo);
                         var kind = kinds[row];
-                        foreach (var d in found.Where(f => f.Kind == kind)) combo.Items.Add(d);
+                        // a guide camera is one of the servers' cameras, listed in both rows
+                        foreach (var d in found.Where(f => f.Kind == kind || (kind == DeviceKind.GuideCamera && f.Kind == DeviceKind.Camera)))
+                            combo.Items.Add(new DeviceInfo { Kind = kind, Protocol = d.Protocol, Name = d.Name, Address = d.Address, Description = d.Description });
                     }
                     MainForm.Instance.Toast(Tn("{0} Alpaca device found", "{0} Alpaca devices found", found.Count) + " " + Tn("on {0} server", "on {0} servers", servers.Count));
                 });
@@ -242,7 +246,7 @@ namespace Sidralune.Views
                         foreach (var combo in table.Controls.OfType<ComboBox>())
                         {
                             var kind = kinds[table.GetRow(combo)];
-                            if ((kind == DeviceKind.Telescope && isScope) || (kind == DeviceKind.Camera && isCam) || (kind == DeviceKind.Focuser && isFoc))
+                            if ((kind == DeviceKind.Telescope && isScope) || ((kind == DeviceKind.Camera || kind == DeviceKind.GuideCamera) && isCam) || (kind == DeviceKind.Focuser && isFoc))
                                 combo.Items.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Indi, Name = d + " (INDI)", Address = host + "/" + d });
                         }
                     }
@@ -717,54 +721,271 @@ namespace Sidralune.Views
 
         // ================================================================== guiding
 
+        /// <summary>A guider's state in words; PHD2's and the Sidralune guider's states use the same names.</summary>
+        internal static string GuiderStateText(string state)
+        {
+            switch (state)
+            {
+                case "Stopped": return T("Stopped");
+                case "Looping": return T("Looping");
+                case "Selected": return T("Star selected");
+                case "Calibrating": return T("Calibrating");
+                case "Guiding": return T("Guiding");
+                case "Paused": return T("Paused");
+                case "LostLock": return T("Star lost");
+                default: return state ?? "";
+            }
+        }
+
+        /// <summary>What a calibration found, in words: its directions and rates, when it was made, and what looked wrong.</summary>
+        internal static string CalibrationText(GuideCalibration c)
+        {
+            if (c == null) return T("Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment.");
+            var lines = new List<string>
+            {
+                T("Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square.", c.When.ToLocalTime(), c.RaAngleDeg, c.RaRatePxPerSec, c.DecAngleDeg, c.DecRatePxPerSec, c.OrthogonalityErrorDeg)
+            };
+            foreach (var issue in c.Issues)
+            {
+                if (issue == GuideCalibration.IssueOrthogonality) lines.Add("⚠ " + T("RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."));
+                if (issue == GuideCalibration.IssueRateRatio) lines.Add("⚠ " + T("RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."));
+                if (issue == GuideCalibration.IssueFewSteps) lines.Add("⚠ " + T("Few calibration steps. A shorter calibration step makes the calibration more accurate."));
+                if (issue == GuideCalibration.IssuePrediction) lines.Add("⚠ " + T("The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."));
+                if (issue == GuideCalibration.IssueNearPole) lines.Add("⚠ " + T("Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."));
+            }
+            return string.Join(Environment.NewLine, lines);
+        }
+
         private Control BuildGuiding()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var plot = new PlotControl { Dock = DockStyle.Fill, Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
+            var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 230, Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
             var ra = plot.AddSeries(T("RA")); var dec = plot.AddSeries(T("Dec"));
             var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold };
-            var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
+            var bar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
             Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
-            btn(T("Connect PHD2"), Icons.Connect, () => Tasks.Run(T("Connect PHD2"), t => Dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" }),
-                () => MainForm.Instance.Toast(T("Connected to PHD2")),
-                ex => MainForm.Instance.Toast(T("Could not reach PHD2 on localhost:4400.") + " " + Phd2Hint, Icons.Warning, Theme.Current.Danger)));
-            Func<IGuider> guider = () => Need(Dm.Guider, NoGuider, Phd2Hint);
-            BackgroundTask guideTask = null;
-            btn(T("Start guiding"), Icons.Play, () => { var g = guider(); guideTask = Tasks.Run(T("Start guiding"), t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); }).Kind = ButtonKind.Primary;
-            btn(T("Calibrate & guide"), Icons.Target, () => { var g = guider(); guideTask = Tasks.Run(T("Calibrate"), t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
-            btn(T("Dither"), Icons.Grid, () => { var g = guider(); guideTask = Tasks.Run(T("Dither"), t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
-            var guideStop = btn(T("Stop"), Icons.Stop, () => guider().StopGuiding());
+            Func<SidraluneGuider> builtin = () => Dm.Guider as SidraluneGuider;
+
+            // which guider: the Sidralune guider, or PHD2 through its server
+            var choice = Ui.Combo(DeviceManager.BuiltinGuiderName, "PHD2");
+            choice.Width = 170; choice.Margin = new Padding(0, 9, 6, 0);
+            bar.Controls.Add(choice);
+            btn(T("Connect"), Icons.Connect, () =>
+            {
+                bool phd2 = choice.SelectedIndex == 1;
+                var info = phd2 ? new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" }
+                                : new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Builtin, Name = DeviceManager.BuiltinGuiderName, Address = "builtin" };
+                Tasks.Run(phd2 ? T("Connect PHD2") : T("Connect the Sidralune guider"), t => Dm.Connect(info),
+                    () => MainForm.Instance.Toast(phd2 ? T("Connected to PHD2") : T("Sidralune guider connected")),
+                    ex => MainForm.Instance.Toast(phd2 ? T("Could not reach PHD2 on localhost:4400.") + " " + Phd2Hint : ex.Message, Icons.Warning, Theme.Current.Danger));
+            });
+            Func<IGuider> guider = () => Need(Dm.Guider, NoGuider, GuiderHint);
+            Func<SidraluneGuider> own = () => { var g = guider() as SidraluneGuider; if (g == null) throw new InvalidOperationException(T("PHD2 takes its guide frames itself.")); return g; };
+            var loop = btn(T("Loop"), Icons.Refresh, () => own().Loop());
+            loop.ToolTipText = T("Take guide frames and follow the star, without guiding");
+            var select = btn(T("Select star"), Icons.Star, () => { var g = own(); g.Loop(); g.SelectStar(); });
+            select.ToolTipText = T("Choose the best guide star, or click a star in the frame");
+            var guideJob = new JobSlot();
+            var start = btn(T("Start guiding"), Icons.Play, () => { var g = guider(); guideJob.Run(T("Start guiding"), t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); });
+            start.Kind = ButtonKind.Primary;
+            var calibrate = btn(T("Calibrate & guide"), Icons.Target, () => { var g = guider(); guideJob.Run(T("Calibrate"), t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
+            var dither = btn(T("Dither"), Icons.Grid, () => { var g = guider(); guideJob.Run(T("Dither"), t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
+            // one guiding command at a time: a second start would wait for the same settling
+            guideJob.Guard(start, calibrate, dither);
+            var guideStop = btn(T("Stop"), Icons.Stop, () => { guideJob.Cancel(); guider().StopGuiding(); });
             guideStop.Kind = ButtonKind.Danger;
-            // Stop is available while the guider is doing something (PHD2 is idle in "Stopped" and "Selected") or a guiding command runs
+            // Stop is available while the guider is doing something (PHD2 is idle in "Stopped" and "Selected"; the
+            // Sidralune guider is busy whenever it takes frames) or a guiding command runs
             Action syncGuideStop = () =>
             {
                 var gd = Dm.Guider;
-                bool on = guideTask != null && !guideTask.Done;
-                try { on |= gd != null && gd.Connected && !string.IsNullOrEmpty(gd.State) && gd.State != "Stopped" && gd.State != "Selected"; } catch { }
+                bool on = guideJob.Busy;
+                try
+                {
+                    var sg = gd as SidraluneGuider;
+                    if (sg != null) on |= sg.IsRunning;
+                    else on |= gd != null && gd.Connected && !string.IsNullOrEmpty(gd.State) && gd.State != "Stopped" && gd.State != "Selected";
+                }
+                catch { }
                 guideStop.Enabled = on;
+                loop.Enabled = select.Enabled = !(gd is Phd2Client);
             };
-            Tasks.Changed += syncGuideStop;
+            guideJob.Changed += syncGuideStop;
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
             syncGuideStop();
             btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
-            int n = 0;
+
+            // the guide camera's frames, with the search box and the lock position
+            var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Connect a guide camera and the Sidralune guider, then click Loop") };
+            viewer.Stretch = DisplayStretch.AutoLinked;
+            var starInfo = new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim" };
+            viewer.PaintOverlay += (gr, toScreen) =>
+            {
+                var g = builtin();
+                if (g == null || viewer.Image == null || g.LastFrame == null) return;
+                var s = g.Star;
+                string state = g.State;
+                var color = state == SidraluneGuider.Guiding ? Theme.Current.Success : state == SidraluneGuider.LostLock ? Theme.Current.Danger : Theme.Current.Warning;
+                using (var pen = new Pen(color, 1.5f))
+                {
+                    if (s != null)
+                    {
+                        int r = g.Settings.SearchRadius;
+                        var a = toScreen(s.X - r, s.Y - r); var b = toScreen(s.X + r, s.Y + r);
+                        gr.DrawRectangle(pen, Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
+                    }
+                    if (!double.IsNaN(g.LockX))
+                    {
+                        var c = toScreen(g.LockX, g.LockY);
+                        gr.DrawLine(pen, c.X - 12, c.Y, c.X - 4, c.Y); gr.DrawLine(pen, c.X + 4, c.Y, c.X + 12, c.Y);
+                        gr.DrawLine(pen, c.X, c.Y - 12, c.X, c.Y - 4); gr.DrawLine(pen, c.X, c.Y + 4, c.X, c.Y + 12);
+                    }
+                }
+            };
+            viewer.ImageClick += (x, y, e) =>
+            {
+                var g = builtin();
+                if (g == null || e.Button != MouseButtons.Left) return;
+                try { g.SelectStar(x, y); viewer.Invalidate(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); }
+            };
+            var view = new Panel { Dock = DockStyle.Fill };
+            view.Controls.Add(viewer);
+            view.Controls.Add(starInfo);
+
+            // the Sidralune guider's settings, saved as they change
+            var right = new Panel { Dock = DockStyle.Right, Width = 360, AutoScroll = true };
+            var camGrid = new FormGrid(170);
+            var exposure = camGrid.Row(T("Exposure (s)"), Ui.Num(2, 0.05m, 30, 2, 0.5m));
+            var binning = camGrid.Row(T("Binning"), Ui.Combo("1", "2", "3", "4"));
+            var output = camGrid.Row(T("Guide through"), Ui.Combo(T("The mount"), T("The guide camera (ST-4)")));
+            var focal = camGrid.Row(T("Guide scope focal length (mm)"), Ui.Num(240, 20, 5000));
+            var radius = camGrid.Row(T("Search box radius (px)"), Ui.Num(15, 5, 50));
+            var calGrid = new FormGrid(170);
+            var step = calGrid.Row(T("Calibration step (ms)"), Ui.Num(0, 0, 5000, 0, 50));
+            calGrid.Full(Ui.Hint(T("0 works the step out from the guide rate, the pixel scale and the declination.")));
+            var distance = calGrid.Row(T("Calibration distance (px)"), Ui.Num(20, 5, 60));
+            var reverses = calGrid.Row(T("After a meridian flip"), new CheckBox { Text = T("Mount reverses Dec") });
+            calGrid.Full(Ui.Hint(T("Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this.")));
+            var calText = new Label { AutoSize = true, MaximumSize = new Size(300, 0), Tag = "dim" };
+            calGrid.Full(calText);
+            var clearCal = new FlatButton(T("Clear calibration"), Icons.Remove); clearCal.AutoSizeToText();
+            calGrid.Full(clearCal);
+            var algoGrid = new FormGrid(170);
+            algoGrid.Full(Ui.Hint(T("RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it.")));
+            var raAggr = algoGrid.Row(T("RA aggressiveness (%)"), Ui.Num(70, 0, 200));
+            var raHyst = algoGrid.Row(T("RA hysteresis (%)"), Ui.Num(10, 0, 90));
+            var raMin = algoGrid.Row(T("RA minimum move (px)"), Ui.Num(0.2m, 0, 5, 2, 0.05m));
+            var raMax = algoGrid.Row(T("RA maximum pulse (ms)"), Ui.Num(2500, 50, 10000, 0, 100));
+            var decAggr = algoGrid.Row(T("Dec aggressiveness (%)"), Ui.Num(100, 0, 100));
+            var decMin = algoGrid.Row(T("Dec minimum move (px)"), Ui.Num(0.2m, 0, 5, 2, 0.05m));
+            var decMax = algoGrid.Row(T("Dec maximum pulse (ms)"), Ui.Num(2500, 50, 10000, 0, 100));
+            var fast = algoGrid.Row(T("Large Dec errors"), new CheckBox { Text = T("Correct at once") });
+            right.Controls.Add(new Collapsible(T("Algorithms"), algoGrid));
+            right.Controls.Add(new Collapsible(T("Calibration"), calGrid));
+            right.Controls.Add(new Collapsible(T("Guide camera"), camGrid));
+            var settingsControls = new Control[] { exposure, binning, output, focal, radius, step, distance, reverses, clearCal, raAggr, raHyst, raMin, raMax, decAggr, decMin, decMax, fast };
+            bool loading = false;
+            Action showSettings = () =>
+            {
+                var g = builtin();
+                foreach (var c in settingsControls) c.Enabled = g != null;
+                calText.Text = g == null ? T("The settings are the Sidralune guider's: connect it to change them.") : CalibrationText(g.Calibration);
+                if (g == null) return;
+                var st = g.Settings;
+                loading = true;
+                try
+                {
+                    Func<NumericUpDown, double, decimal> clamp = (n, v) => Math.Max(n.Minimum, Math.Min(n.Maximum, (decimal)v));
+                    exposure.Value = clamp(exposure, st.ExposureSeconds); binning.SelectedIndex = Math.Max(0, Math.Min(3, st.Binning - 1));
+                    output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Value = clamp(focal, st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
+                    step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
+                    raAggr.Value = clamp(raAggr, st.RaAggressiveness); raHyst.Value = clamp(raHyst, st.RaHysteresis); raMin.Value = clamp(raMin, st.RaMinMovePx); raMax.Value = clamp(raMax, st.MaxRaPulseMs);
+                    decAggr.Value = clamp(decAggr, st.DecAggressiveness); decMin.Value = clamp(decMin, st.DecMinMovePx); decMax.Value = clamp(decMax, st.MaxDecPulseMs); fast.Checked = st.DecFastSwitch;
+                }
+                finally { loading = false; }
+            };
+            Action save = () =>
+            {
+                var g = builtin();
+                if (g == null || loading) return;
+                var st = g.Settings;
+                st.ExposureSeconds = (double)exposure.Value; st.Binning = binning.SelectedIndex + 1; st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount;
+                st.FocalLengthMm = (double)focal.Value; st.SearchRadius = (int)radius.Value; st.CalibrationStepMs = (int)step.Value; st.CalibrationDistancePx = (double)distance.Value;
+                st.MountReversesDecAfterFlip = reverses.Checked; st.RaAggressiveness = (double)raAggr.Value; st.RaHysteresis = (double)raHyst.Value; st.RaMinMovePx = (double)raMin.Value;
+                st.MaxRaPulseMs = (int)raMax.Value; st.DecAggressiveness = (double)decAggr.Value; st.DecMinMovePx = (double)decMin.Value; st.MaxDecPulseMs = (int)decMax.Value; st.DecFastSwitch = fast.Checked;
+                g.SaveSettings();
+                calText.Text = CalibrationText(g.Calibration);
+            };
+            foreach (var n in new[] { exposure, focal, radius, step, distance, raAggr, raHyst, raMin, raMax, decAggr, decMin, decMax }) n.ValueChanged += (s, e) => save();
+            foreach (var c in new[] { binning, output }) c.SelectedIndexChanged += (s, e) => save();
+            foreach (var c in new[] { reverses, fast }) c.CheckedChanged += (s, e) => save();
+            clearCal.Click += (s, e) => { var g = builtin(); if (g != null) g.ClearCalibration(); };
+
+            // the guider's steps and frames, shown one burst at a time (they arrive on the guider's thread)
+            int n0 = 0;
+            var steps = new System.Collections.Concurrent.ConcurrentQueue<GuideStep>();
+            int stepsPosted = 0, framePosted = 0;
+            Action drainSteps = () =>
+            {
+                Interlocked.Exchange(ref stepsPosted, 0);
+                GuideStep s;
+                while (steps.TryDequeue(out s)) { ra.Add(n0, s.RaArcsec); dec.Add(n0, s.DecArcsec); n0++; }
+                while (ra.X.Count > 400) { ra.X.RemoveAt(0); ra.Y.RemoveAt(0); dec.X.RemoveAt(0); dec.Y.RemoveAt(0); }
+                plot.Invalidate();
+            };
+            Action<GuideStep> onStep = s => { steps.Enqueue(s); if (Interlocked.Exchange(ref stepsPosted, 1) == 0) MainForm.Instance.Post(drainSteps); };
+            Action showFrame = () =>
+            {
+                Interlocked.Exchange(ref framePosted, 0);
+                var g = builtin();
+                var f = g?.LastFrame;
+                if (f == null) return;
+                bool fit = viewer.Image == null || viewer.Image.Width != f.Width || viewer.Image.Height != f.Height;
+                viewer.SetImage(f, fit);
+                var s = g.Star;
+                starInfo.Text = s == null ? T("No guide star: click a star or Select star") : g.Lost ? T("Star lost at {0:0.0}, {1:0.0}", s.X, s.Y)
+                    : T("Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px", s.X, s.Y, s.Snr, s.Hfd) + (s.Saturated ? " · ⚠ " + T("saturated") : "");
+            };
+            Action<AstroImage> onFrame = f => { if (Interlocked.Exchange(ref framePosted, 1) == 0) MainForm.Instance.Post(showFrame); };
+            Action onCalibration = () => MainForm.Instance.Post(() => { var g = builtin(); if (g != null) calText.Text = CalibrationText(g.Calibration); });
+            Action<string> onFailed = m => MainForm.Instance.Post(() => MainForm.Instance.Toast(m, Icons.Warning, Theme.Current.Danger));
             IGuider hooked = null;
+            Action hook = () =>
+            {
+                var g = Dm.Guider;
+                if (g == hooked) return;
+                if (hooked != null)
+                {
+                    hooked.Step -= onStep;
+                    var old = hooked as SidraluneGuider;
+                    if (old != null) { old.FrameReady -= onFrame; old.CalibrationChanged -= onCalibration; old.Failed -= onFailed; }
+                }
+                hooked = g;
+                if (g != null)
+                {
+                    g.Step += onStep;
+                    var sg = g as SidraluneGuider;
+                    if (sg != null) { sg.FrameReady += onFrame; sg.CalibrationChanged += onCalibration; sg.Failed += onFailed; }
+                    choice.SelectedIndex = g is Phd2Client ? 1 : 0;
+                }
+                if (!(g is SidraluneGuider)) viewer.SetImage(null);
+                viewer.EmptyText = g is Phd2Client ? T("PHD2 shows its guide frames itself") : T("Connect a guide camera and the Sidralune guider, then click Loop");
+                showSettings();
+            };
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(hook);
+            hook();
             Poll += () =>
             {
+                hook();
                 syncGuideStop();
                 var g = Dm.Guider;
-                if (g != hooked && g != null)
-                {
-                    hooked = g;
-                    g.Step += s => MainForm.Instance.Post(() =>
-                    {
-                        ra.Add(n, s.RaArcsec); dec.Add(n, s.DecArcsec); n++;
-                        if (ra.X.Count > 400) { ra.X.RemoveAt(0); ra.Y.RemoveAt(0); dec.X.RemoveAt(0); dec.Y.RemoveAt(0); }
-                        plot.Invalidate();
-                    });
-                }
-                stats.Text = g == null ? T("No guider connected — start PHD2 and enable its server (Tools → Enable Server)") : T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", g.State, g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
+                var sg = g as SidraluneGuider;
+                if (g == null) stats.Text = T("No guider connected.") + " " + GuiderHint;
+                else if (sg != null && sg.State == SidraluneGuider.Stopped && sg.LastError != null) stats.Text = GuiderStateText(g.State) + " · " + sg.LastError;
+                else stats.Text = T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", GuiderStateText(g.State), g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
             };
+            panel.Controls.Add(view);
+            panel.Controls.Add(right);
             panel.Controls.Add(plot);
             panel.Controls.Add(stats);
             panel.Controls.Add(bar);

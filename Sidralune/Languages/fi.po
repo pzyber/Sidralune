@@ -1265,7 +1265,7 @@ msgstr "Suodinpyörä"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Ohjauskamera"
+msgstr "Ohjausjärjestelmä"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Tietokannat: kansalaistiedehankkeet"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Käynnistä PHD2, ota sen palvelin käyttöön (Tools → Enable Server) ja napsauta Yhdistä PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Kaukoputkea ei ole yhdistetty."
 
@@ -2547,7 +2543,303 @@ msgstr "Tarkenninta ei ole yhdistetty."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Ohjausjärjestelmää ei ole yhdistetty."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Tämä kamera on jo yhdistetty ohjauskamerana."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Tämä kamera on jo yhdistetty kuvauskamerana."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Ohjauskameraa ei ole yhdistetty."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Ohjauskamerassa ei ole ohjausporttia. Ohjaa sen sijaan jalustan kautta."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Jalusta ei ota vastaan ohjauspulsseja. Ohjaa sen sijaan ohjauskameran portin kautta."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Ohjaus pysäytettiin."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Pysäytä ohjaus ennen kuin valitset toisen tähden."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Kuvassa ei ole sopivaa ohjaustähteä."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Siinä ei ole tähteä, jolla ohjata."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Ohjaus ei asettunut {0} s:n kuluessa."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Ohjaus ei ole käynnissä."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Ohjaustähteä ei löytynyt. Tarkista ohjauskameran tarkennus ja valotus."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Ohjaus pysähtyi, koska jalusta kääntyi."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Ohjauskameran yhteys katkesi."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Ohjauskamera epäonnistui kolme kertaa peräkkäin: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrointi epäonnistui: tähti ei liikkunut tarpeeksi RA:ssa. Tarkista ohjauskaapeli tai jalustan yhteys ja ohjausnopeus."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibrointi epäonnistui: tähti ei liikkunut tarpeeksi Dec:ssä. Tarkista ohjauskaapeli tai jalustan yhteys ja ohjausnopeus."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Kalibrointi pysähtyi, koska jalusta kääntyi."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Ohjaustähti katosi kalibroinnin aikana."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Kalibrointi epäonnistui: Dec ei lähtenyt liikkeelle. Dec ei ehkä ole kytketty, tai jalustassa on paljon välystä."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Käynnistä PHD2 ja ota sen palvelin käyttöön (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
+msgstr "Yhdistä ohjauskamera ja Sidralunen ohjausjärjestelmä kohdassa Observatorio → Laitteet, tai käynnistä PHD2 palvelin käytössä (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Ohjauskamera"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Pysäytetty"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Silmukka"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Tähti valittu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Kalibroidaan"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Tauolla"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Tähti kadonnut"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Ei kalibroitu. Kalibroi ja ohjaa kalibroi ensin; Aloita ohjaus kalibroi, kun tälle laitteistolle ei ole kalibrointia."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Kalibroitu {0:yyyy-MM-dd HH:mm}: RA {1:0}° nopeudella {2:0.00} px/s, Dec {3:0}° nopeudella {4:0.00} px/s, {5:0.0}° suorasta kulmasta."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA ja Dec ovat kaukana suorasta kulmasta: välys tai huono seeing on voinut sotkea kalibroinnin. Kalibroi uudelleen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA ja Dec liikkuivat nopeuksilla, jotka eivät sovi deklinaatioon. Tarkista ohjausnopeudet ja kalibroi uudelleen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Vähän kalibrointiaskelia. Lyhyempi kalibrointiaskel tekee kalibroinnista tarkemman."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Tähti liikkui eri nopeudella kuin ohjausnopeus ja polttoväli ennustavat. Tarkista ohjausputken polttoväli ja jalustan ohjausnopeus."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Kalibroitu lähellä napaa, jossa RA liikuttaa tähteä vähän. Kalibroi lähempänä taivaanekvaattoria, kun voit."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Sidralunen ohjausjärjestelmä"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the Sidralune guider"
+msgstr "Yhdistä Sidralunen ohjausjärjestelmä"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider connected"
+msgstr "Sidralunen ohjausjärjestelmä yhdistetty"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 ottaa ohjauskuvansa itse."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Ota ohjauskuvia ja seuraa tähteä ohjaamatta"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Valitse tähti"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Valitse paras ohjaustähti tai napsauta tähteä kuvassa"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera and the Sidralune guider, then click Loop"
+msgstr "Yhdistä ohjauskamera ja Sidralunen ohjausjärjestelmä ja napsauta sitten Silmukka"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Ohjaa"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Jalustan kautta"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Ohjauskameran kautta (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Ohjausputken polttoväli (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Hakualueen säde (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Kalibrointiaskel (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 laskee askeleen ohjausnopeudesta, pikseliskaalasta ja deklinaatiosta."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Kalibrointimatka (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Meridiaanikäännöksen jälkeen"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Jalusta kääntää Decin"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Useimmat jalustat eivät käännä Dec-pulssejaan käännöksen jälkeen. Jos Dec karkaa käännöksen jälkeen, muuta tätä."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Tyhjennä kalibrointi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
+msgstr "RA: Hysteresis. Dec: Resist Switch, joka vaihtaa suuntaa vain, kun virhe selvästi sitä vaatii."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "RA:n aggressiivisuus (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "RA:n hystereesi (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "RA:n pienin siirto (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "RA:n pisin pulssi (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Decin aggressiivisuus (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Decin pienin siirto (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Decin pisin pulssi (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Suuret Dec-virheet"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Korjaa heti"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Algorithms"
+msgstr "Algoritmit"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Kalibrointi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The settings are the Sidralune guider's: connect it to change them."
+msgstr "Asetukset kuuluvat Sidralunen ohjausjärjestelmälle: yhdistä se muuttaaksesi niitä."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Ei ohjaustähteä: napsauta tähteä tai Valitse tähti"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Tähti kadonnut kohdassa {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Tähti kohdassa {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "kyllästynyt"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 näyttää ohjauskuvansa itse"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -3126,10 +3418,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Tyhjennä kaavio"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Ohjauskameraa ei yhdistetty — käynnistä PHD2 ja ota sen palvelin käyttöön (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""

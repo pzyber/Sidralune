@@ -126,6 +126,10 @@ namespace Sidralune.Devices.Serial
         public bool CanPark => IsOnStep;
         public bool CanSync => true;
         public bool CanPulseGuide => true;
+        // LX200 has no query for a running pulse or for the guide rate
+        public bool IsPulseGuiding => false;
+        public double GuideRateRa => double.NaN;
+        public double GuideRateDec => double.NaN;
         public bool CanSlewAltAz => true;
         public double SiteLatitude => ParseDec(Query(":Gt#"));
         public double SiteLongitude => -ParseDec(Query(":Gg#")); // LX200 longitude is west positive

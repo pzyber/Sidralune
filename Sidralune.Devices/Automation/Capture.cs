@@ -222,8 +222,8 @@ namespace Sidralune.Devices.Automation
             return cam;
         }
 
-        /// <summary>One video frame: a short exposure, waited for and read.</summary>
-        private static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct)
+        /// <summary>One video or guide frame: a short exposure, waited for and read, with no analysis.</summary>
+        public static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct)
         {
             cam.StartExposure(seconds, true);
             using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
@@ -610,12 +610,17 @@ namespace Sidralune.Devices.Automation
 
         public static bool IsDue(ITelescope tel, double minutesAfter = 5) => tel.SideOfPier == PierSide.East && MinutesPastMeridian(tel, tel.RightAscension) >= minutesAfter;
 
-        /// <summary>Flip by re-slewing to the current target; the mount chooses the other pier side when past the meridian.</summary>
-        public static async Task Perform(ITelescope tel, double raHours, double decDeg, IGuider guider, CancellationToken ct)
+        /// <summary>
+        /// Flip by re-slewing to the current target; the mount chooses the other pier side when past the meridian.
+        /// beforeGuiding (re-centring, for instance) runs after the slew and before guiding resumes, so the guider does not
+        /// fight the small slews it makes.
+        /// </summary>
+        public static async Task Perform(ITelescope tel, double raHours, double decDeg, IGuider guider, CancellationToken ct, Func<Task> beforeGuiding = null)
         {
             bool wasGuiding = guider != null && guider.IsGuiding;
             if (wasGuiding) guider.StopGuiding();
             await Centering.Slew(tel, raHours, decDeg, ct);
+            if (beforeGuiding != null) await beforeGuiding();
             if (wasGuiding) await guider.StartGuiding(false, ct);
         }
     }

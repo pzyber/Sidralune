@@ -32,23 +32,36 @@ namespace Sidralune.Devices
         public Observer Site = new Observer();
         public double FocalLengthMm = 530;
         public double ApertureMm = 106;
+        /// <summary>
+        /// Give a simulated mount created from now on periodic error, drift and Dec backlash, so that guiding has something to
+        /// correct. Off by default so tests get a perfect mount; the app turns it on.
+        /// </summary>
+        public bool SimulatedMountErrors;
+        /// <summary>Where the Sidralune guider keeps its settings and writes guide logs (null: the usual folders); tests point them elsewhere.</summary>
+        public string GuiderSettingsPath, GuideLogFolder;
 
         public event EventHandler DevicesChanged;
 
-        public IEnumerable<IDevice> All => new IDevice[] { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, Safety, Weather, Cover, Guider }.Where(d => d != null);
+        public IEnumerable<IDevice> All => new IDevice[] { Telescope, Camera, GuideCamera, Focuser, FilterWheel, Dome, Rotator, Switch, Safety, Weather, Cover, Guider }.Where(d => d != null);
+
+        /// <summary>The name of the built-in guider, as listed with the guiders (in the interface language).</summary>
+        public static string BuiltinGuiderName => Lang.T("Sidralune guider");
 
         /// <summary>Discover available devices of a kind across protocols (Alpaca discovery may take ~1.5 s).</summary>
         public List<DeviceInfo> Discover(DeviceKind kind, bool includeAlpaca = true)
         {
             var list = new List<DeviceInfo>();
-            list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Simulator, Name = kind + " Simulator", Address = "sim" });
+            if (kind == DeviceKind.Guider) list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Builtin, Name = BuiltinGuiderName, Address = "builtin" });
+            else list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(kind), Address = "sim" });
             try { list.AddRange(AscomDiscovery.Drivers(kind)); } catch { }
             if (includeAlpaca)
             {
+                // a guide camera is one of the server's cameras
+                var type = kind == DeviceKind.GuideCamera ? DeviceKind.Camera : kind;
                 try
                 {
                     foreach (var s in AlpacaDiscovery.FindServers())
-                        try { list.AddRange(AlpacaDiscovery.Devices(s).Where(d => d.Kind == kind)); } catch { }
+                        try { list.AddRange(AlpacaDiscovery.Devices(s).Where(d => d.Kind == type).Select(d => { d.Kind = kind; return d; })); } catch { }
                 }
                 catch { }
             }
@@ -58,6 +71,8 @@ namespace Sidralune.Devices
             if (kind == DeviceKind.Guider) list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Phd2, Name = "PHD2 (localhost)", Address = "localhost:4400" });
             return list;
         }
+
+        private static string SimulatorName(DeviceKind kind) => kind == DeviceKind.GuideCamera ? "Guide Camera Simulator" : kind + " Simulator";
 
         public IDevice Create(DeviceInfo info)
         {
@@ -75,6 +90,9 @@ namespace Sidralune.Devices
                         if (hp.Length > 1) p.Instance = int.Parse(hp[1]) - 4399;
                         return p;
                     }
+                case DeviceProtocol.Builtin:
+                    if (info.Kind != DeviceKind.Guider) throw new NotSupportedException("No built-in " + info.Kind);
+                    return new SidraluneGuider(this, GuiderSettingsPath) { LogFolder = GuideLogFolder };
                 default: return CreateSimulator(info.Kind);
             }
         }
@@ -83,9 +101,14 @@ namespace Sidralune.Devices
         {
             switch (kind)
             {
-                case DeviceKind.Telescope: return new TelescopeSimulator { Site = Site };
+                case DeviceKind.Telescope:
+                    var mount = new TelescopeSimulator { Site = Site };
+                    if (SimulatedMountErrors) { mount.PeriodicErrorArcsec = 6; mount.WormPeriodSec = 480; mount.DriftRaArcsecPerMin = 0.3; mount.DriftDecArcsecPerMin = 0.6; mount.DecBacklashMs = 800; }
+                    return mount;
                 case DeviceKind.Camera:
                     return new CameraSimulator { Mount = Telescope as TelescopeSimulator, Focuser = Focuser as FocuserSimulator, Wheel = FilterWheel as FilterWheelSimulator, FocalLengthMm = FocalLengthMm };
+                case DeviceKind.GuideCamera:
+                    return CameraSimulator.GuideCamera(Telescope as TelescopeSimulator);
                 case DeviceKind.Focuser: return new FocuserSimulator();
                 case DeviceKind.FilterWheel: return new FilterWheelSimulator();
                 case DeviceKind.Dome: return new DomeSimulator();
@@ -98,12 +121,21 @@ namespace Sidralune.Devices
         /// <summary>Connect a device and register it in its slot (disconnecting any previous one).</summary>
         public IDevice Connect(DeviceInfo info)
         {
+            if (info.Kind == DeviceKind.Camera || info.Kind == DeviceKind.GuideCamera)
+            {
+                // one driver cannot run the imaging and the guide exposures at once
+                var other = info.Kind == DeviceKind.Camera ? GuideCamera : Camera;
+                if (other != null && other.Connected && info.Protocol != DeviceProtocol.Simulator && other.Info.Protocol == info.Protocol && other.Info.Address == info.Address)
+                    throw new InvalidOperationException(info.Kind == DeviceKind.Camera ? Lang.T("This camera is already connected as the guide camera.") : Lang.T("This camera is already connected as the imaging camera."));
+            }
             var dev = Create(info);
             dev.Connect();
             Assign(info.Kind, dev);
             // link simulators together for a coherent virtual observatory
             var cs = Camera as CameraSimulator;
             if (cs != null) { cs.Mount = Telescope as TelescopeSimulator ?? cs.Mount; cs.Focuser = Focuser as FocuserSimulator ?? cs.Focuser; cs.Wheel = FilterWheel as FilterWheelSimulator ?? cs.Wheel; }
+            var gs = GuideCamera as CameraSimulator;
+            if (gs != null) gs.Mount = Telescope as TelescopeSimulator ?? gs.Mount;
             Log.Info("Devices", "Connected " + info);
             DevicesChanged?.Invoke(this, EventArgs.Empty);
             return dev;
@@ -124,6 +156,7 @@ namespace Sidralune.Devices
             {
                 case DeviceKind.Telescope: return Telescope;
                 case DeviceKind.Camera: return Camera;
+                case DeviceKind.GuideCamera: return GuideCamera;
                 case DeviceKind.Focuser: return Focuser;
                 case DeviceKind.FilterWheel: return FilterWheel;
                 case DeviceKind.Dome: return Dome;
@@ -145,6 +178,7 @@ namespace Sidralune.Devices
             {
                 case DeviceKind.Telescope: Telescope = (ITelescope)d; break;
                 case DeviceKind.Camera: Camera = (ICamera)d; break;
+                case DeviceKind.GuideCamera: GuideCamera = (ICamera)d; break;
                 case DeviceKind.Focuser: Focuser = (IFocuser)d; break;
                 case DeviceKind.FilterWheel: FilterWheel = (IFilterWheel)d; break;
                 case DeviceKind.Dome: Dome = (IDome)d; break;
@@ -157,11 +191,12 @@ namespace Sidralune.Devices
             }
         }
 
-        /// <summary>Connect the full simulated observatory (mount, camera, focuser, wheel, dome, weather).</summary>
+        /// <summary>Connect the full simulated observatory (mount, camera, guide camera, focuser, wheel, dome, weather) and the Sidralune guider.</summary>
         public void ConnectSimulators()
         {
-            foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Camera, DeviceKind.Dome, DeviceKind.ObservingConditions })
-                Connect(new DeviceInfo { Kind = k, Protocol = DeviceProtocol.Simulator, Name = k + " Simulator", Address = "sim" });
+            foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Dome, DeviceKind.ObservingConditions })
+                Connect(new DeviceInfo { Kind = k, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(k), Address = "sim" });
+            Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Builtin, Name = BuiltinGuiderName, Address = "builtin" });
         }
 
         public void DisconnectAll()
