@@ -2558,6 +2558,30 @@ msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 ir pievienots un pats izmanto vadības kameru. Lai vadītu ar Sidralune, atvienojiet PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Pievienojiet vadības kameru sadaļā Observatorija → Aprīkojums vai cilnē Vadība noklikšķiniet uz Pievienot PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Izmanto PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Atvienot PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 ir pievienots: tam ir savi iestatījumi un kalibrējums."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Pievienojiet vadības kameru sadaļā Observatorija → Aprīkojums, tad noklikšķiniet uz Cikls"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Šī kamera jau ir pievienota kā vadības kamera."
 
@@ -2642,10 +2666,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Palaidiet PHD2 un ieslēdziet tā serveri (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Pievienojiet vadības kameru un Sidralune vadības sistēmu sadaļā Observatorija → Aprīkojums vai palaidiet PHD2 ar ieslēgtu serveri (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Vadības kamera"
 
@@ -2706,14 +2726,6 @@ msgid "Sidralune guider"
 msgstr "Sidralune vadības sistēma"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Pievienot Sidralune vadības sistēmu"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Sidralune vadības sistēma pievienota"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 vadības kadrus uzņem pats."
 
@@ -2728,10 +2740,6 @@ msgstr "Izvēlēties zvaigzni"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Izvēlieties labāko vadības zvaigzni vai noklikšķiniet uz zvaigznes kadrā"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Pievienojiet vadības kameru un Sidralune vadības sistēmu, tad noklikšķiniet uz Cikls"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2828,10 +2836,6 @@ msgstr "Algoritmi"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Kalibrēšana"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Šie ir Sidralune vadības sistēmas iestatījumi: pievienojiet to, lai tos mainītu."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

@@ -456,6 +456,8 @@ namespace Sidralune.Devices.Guiding
             else if (Star != null)
             {
                 var m = GuideStars.Measure(lum, w, h, Star.X, Star.Y, Settings.SearchRadius);
+                // a large correction moves the star towards the lock position, perhaps beyond the search box around where it was
+                if (m == null && _phase == Phase.Guiding && !double.IsNaN(LockX)) m = GuideStars.Measure(lum, w, h, LockX, LockY, Settings.SearchRadius);
                 lock (_lock)
                 {
                     if (m != null)
@@ -565,11 +567,12 @@ namespace Sidralune.Devices.Guiding
             // what a Dec step should do, from the measured RA rate (the guide rates the mount reports can be wrong)
             double expDec = raRate / cosd * (raKnown && decKnown ? gDec / gRa : 1);
             int stepDec = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, expDec);
-            await ClearBacklash(stepDec, expDec, pulser, ct);
+            int clearingMs = await ClearBacklash(stepDec, expDec, pulser, ct);
             var north = await RunLeg(GuideDirection.North, stepDec, dist, Star.X, Star.Y, pulser, ct);
             double decAngle, decRate;
             if (!GuideCalibration.FitLeg(north.T, north.X, north.Y, out decAngle, out decRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."));
-            await Return(GuideDirection.South, north.TotalMs, decRate, Settings.MaxDecPulseMs, pulser, ct);
+            // back by the North leg and the steps that took up the backlash, so the star ends near where it started
+            await Return(GuideDirection.South, north.TotalMs + clearingMs, decRate, Settings.MaxDecPulseMs, pulser, ct);
 
             var cal = new GuideCalibration
             {
@@ -643,7 +646,7 @@ namespace Sidralune.Devices.Guiding
         /// North steps until the star moves steadily: three steps in a row, each at least 60 % of the expected move and in
         /// the same direction. After 20 s of pulses it goes on if the star has moved 3 pixels at all, and gives up if not.
         /// </summary>
-        private async Task ClearBacklash(int stepMs, double expectedRate, GuidePulser pulser, CancellationToken ct)
+        private async Task<int> ClearBacklash(int stepMs, double expectedRate, GuidePulser pulser, CancellationToken ct)
         {
             double expectedMove = expectedRate * stepMs / 1000;
             double sx = Star.X, sy = Star.Y, lx = sx, ly = sy, pdx = 0, pdy = 0;
@@ -666,6 +669,7 @@ namespace Sidralune.Devices.Guiding
                 else { good = 0; pdx = pdy = 0; }
                 _log.Row("Backlash", Star, dx, dy, double.NaN, double.NaN, 0, stepMs);
             }
+            return totalMs;
         }
 
         // ------------------------------------------------------------------ the mount

@@ -28,7 +28,33 @@ namespace Sidralune.Devices
         public ISafetyMonitor Safety { get; private set; }
         public IObservingConditions Weather { get; private set; }
         public ICoverCalibrator Cover { get; private set; }
-        public IGuider Guider { get; private set; }
+        /// <summary>
+        /// The guider in use: PHD2 when it is connected, otherwise the Sidralune guider once there is a guide camera for it,
+        /// otherwise none.
+        /// </summary>
+        public IGuider Guider => _phd2 ?? (GuideCamera != null ? BuiltinGuider : null);
+        private IGuider _phd2;
+        private SidraluneGuider _builtin;
+        private readonly object _builtinLock = new object();
+
+        /// <summary>
+        /// Sidralune's own guider. It is part of Sidralune, so it is never connected or disconnected: it guides with the guide
+        /// camera whenever PHD2 is not connected. Its settings can be changed at any time.
+        /// </summary>
+        public SidraluneGuider BuiltinGuider
+        {
+            get
+            {
+                lock (_builtinLock)
+                {
+                    if (_builtin == null) { _builtin = new SidraluneGuider(this, GuiderSettingsPath) { LogFolder = GuideLogFolder }; _builtin.Connect(); }
+                    return _builtin;
+                }
+            }
+        }
+
+        /// <summary>PHD2 is connected and guides instead of the Sidralune guider.</summary>
+        public bool Phd2Connected => _phd2 != null;
         public Observer Site = new Observer();
         public double FocalLengthMm = 530;
         public double ApertureMm = 106;
@@ -44,15 +70,15 @@ namespace Sidralune.Devices
 
         public IEnumerable<IDevice> All => new IDevice[] { Telescope, Camera, GuideCamera, Focuser, FilterWheel, Dome, Rotator, Switch, Safety, Weather, Cover, Guider }.Where(d => d != null);
 
-        /// <summary>The name of the built-in guider, as listed with the guiders (in the interface language).</summary>
+        /// <summary>The name of the built-in guider (in the interface language).</summary>
         public static string BuiltinGuiderName => Lang.T("Sidralune guider");
 
         /// <summary>Discover available devices of a kind across protocols (Alpaca discovery may take ~1.5 s).</summary>
         public List<DeviceInfo> Discover(DeviceKind kind, bool includeAlpaca = true)
         {
             var list = new List<DeviceInfo>();
-            if (kind == DeviceKind.Guider) list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Builtin, Name = BuiltinGuiderName, Address = "builtin" });
-            else list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(kind), Address = "sim" });
+            // the Sidralune guider is not a device to choose; PHD2 is the guider there is to connect
+            if (kind != DeviceKind.Guider) list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(kind), Address = "sim" });
             try { list.AddRange(AscomDiscovery.Drivers(kind)); } catch { }
             if (includeAlpaca)
             {
@@ -90,9 +116,6 @@ namespace Sidralune.Devices
                         if (hp.Length > 1) p.Instance = int.Parse(hp[1]) - 4399;
                         return p;
                     }
-                case DeviceProtocol.Builtin:
-                    if (info.Kind != DeviceKind.Guider) throw new NotSupportedException("No built-in " + info.Kind);
-                    return new SidraluneGuider(this, GuiderSettingsPath) { LogFolder = GuideLogFolder };
                 default: return CreateSimulator(info.Kind);
             }
         }
@@ -128,9 +151,19 @@ namespace Sidralune.Devices
                 if (other != null && other.Connected && info.Protocol != DeviceProtocol.Simulator && other.Info.Protocol == info.Protocol && other.Info.Address == info.Address)
                     throw new InvalidOperationException(info.Kind == DeviceKind.Camera ? Lang.T("This camera is already connected as the guide camera.") : Lang.T("This camera is already connected as the imaging camera."));
             }
+            if (info.Kind == DeviceKind.GuideCamera && _phd2 != null)
+                throw new InvalidOperationException(Lang.T("PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."));
             var dev = Create(info);
             dev.Connect();
             Assign(info.Kind, dev);
+            if (info.Kind == DeviceKind.Guider && GuideCamera != null)
+            {
+                // PHD2 opens the guide camera itself, and most drivers serve one program at a time
+                _builtin?.StopGuiding();
+                try { GuideCamera.Disconnect(); } catch (Exception ex) { Log.Warn("Devices", ex.Message); }
+                GuideCamera = null;
+                Log.Info("Devices", "Guide camera disconnected for PHD2");
+            }
             // link simulators together for a coherent virtual observatory
             var cs = Camera as CameraSimulator;
             if (cs != null) { cs.Mount = Telescope as TelescopeSimulator ?? cs.Mount; cs.Focuser = Focuser as FocuserSimulator ?? cs.Focuser; cs.Wheel = FilterWheel as FilterWheelSimulator ?? cs.Wheel; }
@@ -143,6 +176,9 @@ namespace Sidralune.Devices
 
         public void Disconnect(DeviceKind kind)
         {
+            // the Sidralune guider stays; disconnecting the guider disconnects PHD2, or stops the Sidralune guider
+            if (kind == DeviceKind.Guider && _phd2 == null) { _builtin?.StopGuiding(); return; }
+            if (kind == DeviceKind.GuideCamera) _builtin?.StopGuiding();
             var d = Get(kind);
             if (d == null) return;
             try { d.Disconnect(); } catch (Exception ex) { Log.Warn("Devices", ex.Message); }
@@ -172,7 +208,7 @@ namespace Sidralune.Devices
 
         private void Assign(DeviceKind kind, IDevice d)
         {
-            var old = Get(kind);
+            var old = kind == DeviceKind.Guider ? _phd2 : Get(kind);
             if (old != null && old != d) try { old.Disconnect(); } catch { }
             switch (kind)
             {
@@ -187,16 +223,19 @@ namespace Sidralune.Devices
                 case DeviceKind.SafetyMonitor: Safety = d as ISafetyMonitor; break;
                 case DeviceKind.ObservingConditions: Weather = d as IObservingConditions; if (d is ISafetyMonitor && Safety == null) Safety = (ISafetyMonitor)d; break;
                 case DeviceKind.CoverCalibrator: Cover = (ICoverCalibrator)d; break;
-                case DeviceKind.Guider: Guider = (IGuider)d; break;
+                case DeviceKind.Guider: _phd2 = (IGuider)d; break;
             }
         }
 
-        /// <summary>Connect the full simulated observatory (mount, camera, guide camera, focuser, wheel, dome, weather) and the Sidralune guider.</summary>
+        /// <summary>
+        /// Connect the full simulated observatory (mount, camera, guide camera, focuser, wheel, dome, weather), guided by the
+        /// Sidralune guider (PHD2 is disconnected first, as it would use the guide camera itself).
+        /// </summary>
         public void ConnectSimulators()
         {
+            if (_phd2 != null) Disconnect(DeviceKind.Guider);
             foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Dome, DeviceKind.ObservingConditions })
                 Connect(new DeviceInfo { Kind = k, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(k), Address = "sim" });
-            Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Builtin, Name = BuiltinGuiderName, Address = "builtin" });
         }
 
         public void DisconnectAll()

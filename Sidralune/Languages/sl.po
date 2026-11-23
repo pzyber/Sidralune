@@ -2570,6 +2570,30 @@ msgid "No guider connected."
 msgstr "Ni povezanega vodilnega sistema."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 je povezan in sam uporablja vodilno kamero. Za vodenje s Sidralune prekinite povezavo s PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Povežite vodilno kamero v Observatorij → Oprema ali na zavihku Vodenje kliknite Poveži PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Uporablja jo PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Prekini povezavo s PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 je povezan: ima lastne nastavitve in kalibracijo."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Povežite vodilno kamero v Observatorij → Oprema, nato kliknite Zanka"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Ta kamera je že povezana kot vodilna kamera."
 
@@ -2654,10 +2678,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Zaženite PHD2 in vklopite njegov strežnik (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Povežite vodilno kamero in vodilni sistem Sidralune v Observatorij → Oprema ali zaženite PHD2 z vklopljenim strežnikom (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Vodilna kamera"
 
@@ -2718,14 +2738,6 @@ msgid "Sidralune guider"
 msgstr "Vodilni sistem Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Poveži vodilni sistem Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Vodilni sistem Sidralune je povezan"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 sam zajema svoje vodilne posnetke."
 
@@ -2740,10 +2752,6 @@ msgstr "Izberi zvezdo"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Izberite najboljšo vodilno zvezdo ali kliknite zvezdo na posnetku"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Povežite vodilno kamero in vodilni sistem Sidralune, nato kliknite Zanka"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2840,10 +2848,6 @@ msgstr "Algoritmi"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Kalibracija"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Nastavitve pripadajo vodilnemu sistemu Sidralune: povežite ga, da jih spremenite."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

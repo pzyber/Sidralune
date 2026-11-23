@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Ingen guider tilsluttet."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 er tilsluttet og bruger selv guidekameraet. Afbryd PHD2 for at guide med Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Tilslut et guidekamera under Observer → Udstyr, eller klik på Tilslut PHD2 under Guidning."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Bruges af PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Afbryd PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 er tilsluttet: det har sine egne indstillinger og sin egen kalibrering."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Tilslut et guidekamera under Observer → Udstyr, og klik så på Løkke"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Dette kamera er allerede tilsluttet som guidekamera."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Start PHD2, og slå dens server til (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Tilslut et guidekamera og Sidralune-guideren under Observer → Udstyr, eller start PHD2 med serveren slået til (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Guidekamera"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Sidralune-guider"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Tilslut Sidralune-guideren"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Sidralune-guideren er tilsluttet"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 tager selv sine guidebilleder."
 
@@ -2716,10 +2728,6 @@ msgstr "Vælg stjerne"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Vælg den bedste guidestjerne, eller klik på en stjerne i billedet"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Tilslut et guidekamera og Sidralune-guideren, og klik så på Løkke"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Algoritmer"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Kalibrering"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Indstillingerne hører til Sidralune-guideren: tilslut den for at ændre dem."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

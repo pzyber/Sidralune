@@ -2558,6 +2558,30 @@ msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 este conectat și folosește singur camera de ghidare. Deconectați PHD2 pentru a ghida cu Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Conectați o cameră de ghidare în Observator → Echipament sau faceți clic pe Conectează PHD2 în fila Ghidare."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Folosită de PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Deconectează PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 este conectat: are propriile setări și propria calibrare."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Conectați o cameră de ghidare în Observator → Echipament, apoi faceți clic pe Buclă"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Această cameră este deja conectată ca cameră de ghidare."
 
@@ -2642,10 +2666,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Porniți PHD2 și activați serverul său (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Conectați o cameră de ghidare și sistemul de ghidare Sidralune în Observator → Echipament sau porniți PHD2 cu serverul activat (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Cameră de ghidare"
 
@@ -2706,14 +2726,6 @@ msgid "Sidralune guider"
 msgstr "Sistemul de ghidare Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Conectează sistemul de ghidare Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Sistemul de ghidare Sidralune este conectat"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 își face singur cadrele de ghidare."
 
@@ -2728,10 +2740,6 @@ msgstr "Alege steaua"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Alegeți cea mai bună stea de ghidare sau faceți clic pe o stea din cadru"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Conectați o cameră de ghidare și sistemul de ghidare Sidralune, apoi faceți clic pe Buclă"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2828,10 +2836,6 @@ msgstr "Algoritmi"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Calibrare"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Setările aparțin sistemului de ghidare Sidralune: conectați-l pentru a le modifica."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

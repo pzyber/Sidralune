@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Nullus ductor coniunctus."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 coniunctum est et cameram ductricem ipsum adhibet. PHD2 disiunge ut cum Sidralune ducas."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Cameram ductricem in Specula → Instrumenta coniunge, aut in tabula Ductus preme Coniunge PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "A PHD2 adhibetur"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Disiunge PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 coniunctum est: suas optiones et calibrationem habet."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Cameram ductricem in Specula → Instrumenta coniunge, deinde Iteratio preme"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Haec camera iam ut camera ductrix coniuncta est."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "PHD2 incipe et ministratorem eius accende (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Cameram ductricem et ductorem Sidralune in Specula → Instrumenta coniunge, aut PHD2 cum ministratore accenso incipe (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Camera ductrix"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Ductor Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Ductorem Sidralune coniunge"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Ductor Sidralune coniunctus"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 imagines ductus ipse capit."
 
@@ -2716,10 +2728,6 @@ msgstr "Stellam elige"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Optimam stellam ductricem elige, aut stellam in imagine preme"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Cameram ductricem et ductorem Sidralune coniunge, deinde Iteratio preme"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Algorithmi"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Calibratio"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Hae sunt optiones ductoris Sidralune: coniunge eum ut eas mutes."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

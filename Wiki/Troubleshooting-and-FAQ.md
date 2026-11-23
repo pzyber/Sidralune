@@ -78,7 +78,7 @@ Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky char
 ## Equipment
 
 **A button says "No telescope connected" (or camera, focuser, guider, dome).**
-That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (the guider can also be connected at the top of the Guiding tab), or click **Connect simulated observatory** to try the feature without hardware.
+That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (for the guider: connect a guide camera, or click **Connect PHD2** on the Guiding tab), or click **Connect simulated observatory** to try the feature without hardware.
 
 **My ASCOM device is not in the list.**
 Install the ASCOM Platform and the driver, then click **ASCOM…** in the device's row to pick it in the ASCOM Chooser. If Sidralune says the platform is not installed, reinstall it from ascom-standards.org.
@@ -93,7 +93,10 @@ Make sure the Alpaca server is running, the computer is on the same network, and
 ASCOM, Alpaca and INDI transfer every frame whole. Choose a smaller **Region** (640 × 480 or 320 × 240 for planets), use 8-bit mode in the driver's **Setup…** if it offers one, and check the driver's USB speed setting. For the highest frame rates, record with the camera maker's software or SharpCap or FireCapture and open the SER file in Planetary.
 
 **PHD2 does not connect.**
-In PHD2, choose **Tools → Enable Server**. If you run several PHD2 instances, the first uses port 4400.
+In PHD2, choose **Tools → Enable Server**; the menu item has a tick when the server is on. If you run several PHD2 instances, the first uses port 4400. PHD2 needs no camera connected to answer.
+
+**The guide camera cannot be connected: "PHD2 is connected".**
+While PHD2 is connected it uses the guide camera itself. Click **Disconnect PHD2** on the Guiding tab to guide with Sidralune.
 
 **Calibration fails: "the star did not move far enough".**
 The guide pulses do not reach the mount, or move it very slowly. Check the guide cable (when guiding through the guide camera's ST-4 port) or that the mount's driver accepts pulse guiding, and the mount's guide rate (0.5× sidereal is usual). A longer **Calibration step** helps with slow guide rates. If only Dec fails, Dec may not be connected or may have a lot of backlash.

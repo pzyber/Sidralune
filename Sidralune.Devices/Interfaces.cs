@@ -8,7 +8,7 @@ namespace Sidralune.Devices
 {
     public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider, GuideCamera }
 
-    /// <summary>How a device is reached. <see cref="Builtin"/> is a device implemented by Sidralune itself (the Sidralune guider).</summary>
+    /// <summary>How a device is reached. <see cref="Builtin"/> is part of Sidralune itself (the Sidralune guider).</summary>
     public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2, Builtin }
 
     /// <summary>Identifies a device a user can connect to.</summary>

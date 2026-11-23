@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 on yhdistetty ja käyttää ohjauskameraa itse. Katkaise PHD2, jos haluat ohjata Sidralunella."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Yhdistä ohjauskamera kohdassa Observatorio → Laitteet tai napsauta Ohjaus-välilehdellä Yhdistä PHD2."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "PHD2:n käytössä"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Katkaise PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 on yhdistetty: sillä on omat asetukset ja oma kalibrointi."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Yhdistä ohjauskamera kohdassa Observatorio → Laitteet ja napsauta sitten Silmukka"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Tämä kamera on jo yhdistetty ohjauskamerana."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Käynnistä PHD2 ja ota sen palvelin käyttöön (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Yhdistä ohjauskamera ja Sidralunen ohjausjärjestelmä kohdassa Observatorio → Laitteet, tai käynnistä PHD2 palvelin käytössä (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Ohjauskamera"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Sidralunen ohjausjärjestelmä"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Yhdistä Sidralunen ohjausjärjestelmä"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Sidralunen ohjausjärjestelmä yhdistetty"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 ottaa ohjauskuvansa itse."
 
@@ -2716,10 +2728,6 @@ msgstr "Valitse tähti"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Valitse paras ohjaustähti tai napsauta tähteä kuvassa"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Yhdistä ohjauskamera ja Sidralunen ohjausjärjestelmä ja napsauta sitten Silmukka"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Algoritmit"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Kalibrointi"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Asetukset kuuluvat Sidralunen ohjausjärjestelmälle: yhdistä se muuttaaksesi niitä."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

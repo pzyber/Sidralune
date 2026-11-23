@@ -51,7 +51,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
 | Safety monitor | Yes | Yes | | | Yes (from the simulated weather) |
 | Switch | Yes | | | | |
 | Cover calibrator (flat panel) | Yes | | | | |
-| Guider | | | | The Sidralune guider (built in), PHD2 | The Sidralune guider guides the simulators |
+| Guider | | | | The Sidralune guider (built in), or PHD2 (connected on the Guiding tab) | The Sidralune guider guides the simulators |
 
 ## Equipment tab
 
@@ -61,7 +61,7 @@ At the bottom:
 
 | Button | Action |
 |---|---|
-| **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, dome and weather station, and the Sidralune guider, in one go |
+| **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, dome and weather station in one go, guided by the Sidralune guider (PHD2 is disconnected first) |
 | **Discover Alpaca devices** | Searches the local network for Alpaca servers and adds their devices to the lists |
 | **Add INDI server…** | Connects to an INDI server and adds its devices to the lists |
 | **Disconnect all** | Disconnects every device. Available when at least one device is connected |
@@ -235,11 +235,11 @@ Type an object name or coordinates in **Go to**, then:
 
 ## Guiding tab
 
-Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2](https://openphdguiding.org). Choose one in the list at the top left of the tab (or in the Guider row of the Equipment tab) and click **Connect**.
+Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2](https://openphdguiding.org). The Sidralune guider is part of Sidralune, so there is nothing to connect: it guides as soon as a guide camera is connected in the Equipment tab. To guide with PHD2 instead, click **Connect PHD2**.
 
 | Button | Action |
 |---|---|
-| **Connect** | Connects the guider chosen in the list: the Sidralune guider, or PHD2's event server (port 4400 for the first instance) |
+| **Connect PHD2** | Connects to PHD2's event server (port 4400 for the first instance), which then guides instead of the Sidralune guider. It becomes **Disconnect PHD2**, which goes back to the Sidralune guider |
 | **Loop** | Takes guide frames and follows the star, without guiding (Sidralune guider only) |
 | **Select star** | Chooses the best guide star in the frame (Sidralune guider only). You can also click a star in the frame |
 | **Start guiding** | Starts guiding, calibrating first when there is no calibration for this equipment, and waits until the guiding has settled |
@@ -313,7 +313,7 @@ Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.
 
 ### PHD2
 
-To guide with PHD2, choose **Tools → Enable Server** in PHD2, choose PHD2 in the list and click **Connect**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are not used. The sequencer, dithering, the meridian flip and the graph work the same with either guider.
+To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so Sidralune disconnects its guide camera once PHD2 is connected; the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
 
 ## Polar alignment tab
 

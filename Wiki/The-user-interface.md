@@ -90,7 +90,7 @@ Clicking an object in a chart, a grid row, or a search result makes it the selec
 
 ## Status bar
 
-- **Device pills** for the telescope, camera, focuser, filter wheel, guider and dome. A faint pill means no device of that kind is configured, green means connected and red means configured but disconnected. The pill text also shows extra state: slewing, parked or tracking for the mount, the sensor temperature for the camera, and the guiding state for the guider (Looping, Calibrating, Guiding, Paused, Star lost and so on). Click a pill to open the Observatory.
+- **Device pills** for the telescope, camera, focuser, filter wheel, guider and dome. A faint pill means no device of that kind is configured, green means connected and red means configured but disconnected. The pill text also shows extra state: slewing, parked or tracking for the mount, the sensor temperature for the camera, and, for the guider, which guider is in use (the Sidralune guider or PHD2) and its state (Looping, Calibrating, Guiding, Paused, Star lost and so on). Click a pill to open the Observatory.
 - **Data pill**: which ephemeris and catalogues are loaded, for example "DE440 · HYG (119627 stars) · OpenNGC (13380 objects)". Click it to open **Settings → Data**.
 - **Task pill**: the background task that is running, with its progress and status. "(+2)" means two more tasks are queued or running.
 - The latest warning or status message, on the right.

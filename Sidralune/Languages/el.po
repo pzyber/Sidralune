@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "Το PHD2 είναι συνδεδεμένο και χρησιμοποιεί το ίδιο την κάμερα οδήγησης. Αποσυνδέστε το PHD2 για να οδηγήσετε με το Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός ή πατήστε Σύνδεση PHD2 στην καρτέλα Οδήγηση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Σε χρήση από το PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Αποσύνδεση PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "Το PHD2 είναι συνδεδεμένο: έχει τις δικές του ρυθμίσεις και βαθμονόμηση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός και πατήστε Βρόχος"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Αυτή η κάμερα είναι ήδη συνδεδεμένη ως κάμερα οδήγησης."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Ξεκινήστε το PHD2 και ενεργοποιήστε τον διακομιστή του (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Συνδέστε κάμερα οδήγησης και το σύστημα οδήγησης Sidralune στο Αστεροσκοπείο → Εξοπλισμός ή ξεκινήστε το PHD2 με ενεργό διακομιστή (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Κάμερα οδήγησης"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Σύστημα οδήγησης Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Σύνδεση του συστήματος οδήγησης Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Το σύστημα οδήγησης Sidralune συνδέθηκε"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "Το PHD2 λαμβάνει μόνο του τα καρέ οδήγησης."
 
@@ -2716,10 +2728,6 @@ msgstr "Επιλογή αστέρα"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Επιλέξτε τον καλύτερο αστέρα οδήγησης ή κάντε κλικ σε έναν αστέρα στο καρέ"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Συνδέστε κάμερα οδήγησης και το σύστημα οδήγησης Sidralune και πατήστε Βρόχος"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Αλγόριθμοι"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Βαθμονόμηση"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Οι ρυθμίσεις ανήκουν στο σύστημα οδήγησης Sidralune: συνδέστε το για να τις αλλάξετε."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

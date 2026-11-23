@@ -188,8 +188,8 @@ namespace Sidralune.Tests
             tel.GuideRateRa = tel.GuideRateDec = 2 * TelescopeSimulator.SiderealDegPerSec;
             var cam = (CameraSimulator)dm.GuideCamera;
             cam.JitterArcsec = 0.1;
-            dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Builtin, Name = DeviceManager.BuiltinGuiderName });
-            var g = (SidraluneGuider)dm.Guider;
+            // the Sidralune guider is built in: with a guide camera it is the guider
+            var g = dm.BuiltinGuider;
             g.Settings.ExposureSeconds = 0.2;
             g.Settings.FocalLengthMm = 500;
             g.Settings.CalibrationDistancePx = 12;
@@ -298,6 +298,10 @@ namespace Sidralune.Tests
             Check("Calibrated Dec rate (px/s)", cal.DecRatePxPerSec, 2 * 15.0410686 / scale, 0.1 * 2 * 15.04 / scale);
             CheckTrue("The calibration looks right to itself", cal.Issues.Count == 0, string.Join(",", cal.Issues));
             CheckTrue("…and was saved", File.Exists(dm.GuiderSettingsPath) && GuiderSettings.Load(dm.GuiderSettingsPath).Calibration != null);
+            // calibration brings the star back past the backlash steps too, so guiding starts near the lock position
+            var first = g.History.First();
+            CheckTrue("Calibration leaves the star near where it started", Math.Sqrt(first.RaDistance * first.RaDistance + first.DecDistance * first.DecDistance) < g.Settings.SearchRadius,
+                string.Format("{0:0.0}, {1:0.0} px", first.RaDistance, first.DecDistance));
 
             int from = g.History.Count;
             SpinUntil(() => g.History.Count >= from + 20, 30000);
@@ -410,7 +414,7 @@ namespace Sidralune.Tests
             // a camera that stops delivering frames stops the guider with a message
             var problems = new List<string>();
             g.Failed += m => problems.Add(m);
-            dm.Disconnect(DeviceKind.GuideCamera);
+            dm.GuideCamera.Disconnect();
             CheckTrue("A lost camera stops the guider", SpinUntil(() => g.State == SidraluneGuider.Stopped, 8000) && problems.Count == 1, string.Join(";", problems));
             dm.DisconnectAll();
         }

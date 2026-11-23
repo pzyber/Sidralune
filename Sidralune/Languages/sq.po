@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Asnjë sistem udhëheqës i lidhur."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 është i lidhur dhe e përdor vetë kamerën udhëheqëse. Shkëputni PHD2 për të udhëhequr me Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Lidhni një kamerë udhëheqëse te Observatori → Pajisjet, ose klikoni Lidh PHD2 në skedën Udhëheqja."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Në përdorim nga PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Shkëput PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 është i lidhur: ka cilësimet dhe kalibrimin e vet."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Lidhni një kamerë udhëheqëse te Observatori → Pajisjet, pastaj klikoni Cikël"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Kjo kamerë është tashmë e lidhur si kamerë udhëheqëse."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Nisni PHD2 dhe aktivizoni serverin e tij (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Lidhni një kamerë udhëheqëse dhe sistemin udhëheqës Sidralune te Observatori → Pajisjet, ose nisni PHD2 me serverin aktiv (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Kamera udhëheqëse"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Sistemi udhëheqës Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Lidh sistemin udhëheqës Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Sistemi udhëheqës Sidralune u lidh"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 i bën vetë kuadrot e udhëheqjes."
 
@@ -2716,10 +2728,6 @@ msgstr "Zgjidh yllin"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Zgjidhni yllin më të mirë udhëheqës ose klikoni një yll në kuadër"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Lidhni një kamerë udhëheqëse dhe sistemin udhëheqës Sidralune, pastaj klikoni Cikël"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Algoritmet"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Kalibrimi"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Cilësimet i përkasin sistemit udhëheqës Sidralune: lidheni për t’i ndryshuar."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

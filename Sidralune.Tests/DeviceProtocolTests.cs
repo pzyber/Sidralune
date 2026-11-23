@@ -915,15 +915,15 @@ namespace Sidralune.Tests
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.Focuser, Protocol = DeviceProtocol.Indi, Address = "h:1/F" }) is IndiFocuser
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.Dome, Protocol = DeviceProtocol.Simulator }) is DomeSimulator);
             var guiders = dm.Discover(DeviceKind.Guider, false);
-            CheckTrue("Discovery offers the Sidralune guider first, and PHD2", guiders[0].Protocol == DeviceProtocol.Builtin && guiders.Any(d => d.Protocol == DeviceProtocol.Phd2 && d.Address == "localhost:4400")
-                && !guiders.Any(d => d.Protocol == DeviceProtocol.Simulator));
+            CheckTrue("Discovery offers PHD2 as the guider to connect (the Sidralune guider is built in)", guiders.Count == 1 && guiders[0].Protocol == DeviceProtocol.Phd2 && guiders[0].Address == "localhost:4400");
+            CheckTrue("Without a guide camera or PHD2 there is no guider", dm.Guider == null && dm.BuiltinGuider != null && dm.BuiltinGuider.Connected);
             var guideCams = dm.Discover(DeviceKind.GuideCamera, false);
             CheckTrue("Discovery offers a guide camera simulator", guideCams[0].Protocol == DeviceProtocol.Simulator && guideCams[0].Kind == DeviceKind.GuideCamera && guideCams[0].Name == "Guide Camera Simulator");
             CheckTrue("A guide camera from any protocol is a camera", dm.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Alpaca, Address = "h:1/0" }) is AlpacaCamera
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Indi, Address = "h:1/G" }) is IndiCamera);
             dm.ConnectSimulators();
             CheckTrue("Simulated observatory connected", dm.Telescope is TelescopeSimulator && dm.Camera is CameraSimulator && dm.GuideCamera is CameraSimulator && dm.Focuser != null && dm.FilterWheel != null
-                && dm.Dome != null && dm.Weather != null && dm.Safety != null && dm.Guider is Sidralune.Devices.Guiding.SidraluneGuider && changes == 8);
+                && dm.Dome != null && dm.Weather != null && dm.Safety != null && dm.Guider == dm.BuiltinGuider && changes == 7);
             var cs = (CameraSimulator)dm.Camera;
             CheckTrue("Camera simulator linked to mount, focuser and wheel", cs.Mount == dm.Telescope && cs.Focuser == dm.Focuser && cs.Wheel == dm.FilterWheel);
             var gcs = (CameraSimulator)dm.GuideCamera;
@@ -936,7 +936,20 @@ namespace Sidralune.Tests
             dm.Disconnect(DeviceKind.Dome);
             CheckTrue("Disconnect one", dm.Dome == null);
             dm.DisconnectAll();
-            CheckTrue("Disconnect all", !dm.All.Any() && dm.Telescope == null);
+            CheckTrue("Disconnect all", !dm.All.Any() && dm.Telescope == null && dm.BuiltinGuider.Connected);
+
+            // PHD2 guides instead of the Sidralune guider, and takes the guide camera over
+            var fake = new FakePhd2();
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" });
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "127.0.0.1:" + fake.Port });
+            CheckTrue("Connecting PHD2 makes it the guider and disconnects the guide camera", dm.Guider is Phd2Client && dm.Phd2Connected && dm.GuideCamera == null);
+            string refused = null;
+            try { dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" }); } catch (InvalidOperationException ex) { refused = ex.Message; }
+            CheckTrue("No guide camera while PHD2 is connected", refused != null && refused.StartsWith("PHD2 is connected") && dm.GuideCamera == null);
+            dm.Disconnect(DeviceKind.Guider);
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" });
+            CheckTrue("After PHD2, the Sidralune guider guides again with the guide camera", !dm.Phd2Connected && dm.Guider == dm.BuiltinGuider);
+            dm.DisconnectAll();
             bool noSim = false;
             try { dm.Create(new DeviceInfo { Kind = DeviceKind.Rotator, Protocol = DeviceProtocol.Simulator }); } catch (NotSupportedException) { noSim = true; }
             CheckTrue("No rotator simulator", noSim);

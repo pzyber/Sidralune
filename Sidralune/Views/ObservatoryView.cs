@@ -28,7 +28,7 @@ namespace Sidralune.Views
         private DeviceManager Dm => DeviceManager.Instance;
 
         private static string Phd2Hint => T("Start PHD2 and enable its server (Tools → Enable Server).");
-        private static string GuiderHint => T("Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server).");
+        private static string GuiderHint => T("Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab.");
 
         // what is missing, as whole sentences (the words for the devices differ in form from language to language)
         private static string NoTelescope => T("No telescope connected.");
@@ -100,7 +100,7 @@ namespace Sidralune.Views
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
             var rowRefreshers = new List<Action>();
-            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator, DeviceKind.Guider };
+            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator };
             foreach (var k in kinds)
             {
                 var kind = k;
@@ -130,6 +130,9 @@ namespace Sidralune.Views
                     connect.Kind = dev != null && dev.Connected ? ButtonKind.Danger : ButtonKind.Normal;
                     connect.Width = connectWidth;
                     status.Text = dev != null ? (dev.Connected ? "● " + T("Connected: {0}", dev.Info.Name) : "○ " + T("Lost connection")) : T("Not connected");
+                    // PHD2 opens the guide camera itself while it is connected
+                    if (kind == DeviceKind.GuideCamera && Dm.Phd2Connected) status.Text = T("In use by PHD2");
+                    if (kind == DeviceKind.GuideCamera) connect.Enabled = combo.Enabled = !Dm.Phd2Connected;
                     status.ForeColor = dev != null && dev.Connected ? Theme.Current.Success : Theme.Current.TextDim;
                 };
                 // one connect or disconnect at a time per device: a second click while a driver is connecting would connect twice
@@ -165,7 +168,6 @@ namespace Sidralune.Views
                     }
                     catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); }
                 };
-                choose.Visible = kind != DeviceKind.Guider;
                 rowRefreshers.Add(refresh);
                 refresh();
             }
@@ -766,21 +768,26 @@ namespace Sidralune.Views
             Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             Func<SidraluneGuider> builtin = () => Dm.Guider as SidraluneGuider;
 
-            // which guider: the Sidralune guider, or PHD2 through its server
-            var choice = Ui.Combo(DeviceManager.BuiltinGuiderName, "PHD2");
-            choice.Width = 170; choice.Margin = new Padding(0, 9, 6, 0);
-            bar.Controls.Add(choice);
-            btn(T("Connect"), Icons.Connect, () =>
+            // the Sidralune guider guides with the guide camera; PHD2, a program of its own, is connected here instead
+            var phd2Job = new JobSlot();
+            var phd2 = btn(T("Disconnect PHD2"), Icons.Connect, () =>
             {
-                bool phd2 = choice.SelectedIndex == 1;
-                var info = phd2 ? new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" }
-                                : new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Builtin, Name = DeviceManager.BuiltinGuiderName, Address = "builtin" };
-                Tasks.Run(phd2 ? T("Connect PHD2") : T("Connect the Sidralune guider"), t => Dm.Connect(info),
-                    () => MainForm.Instance.Toast(phd2 ? T("Connected to PHD2") : T("Sidralune guider connected")),
-                    ex => MainForm.Instance.Toast(phd2 ? T("Could not reach PHD2 on localhost:4400.") + " " + Phd2Hint : ex.Message, Icons.Warning, Theme.Current.Danger));
+                if (Dm.Phd2Connected) { phd2Job.Run(T("Disconnect PHD2"), t => Dm.Disconnect(DeviceKind.Guider)); return; }
+                var info = new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" };
+                phd2Job.Run(T("Connect PHD2"), t => Dm.Connect(info), () => MainForm.Instance.Toast(T("Connected to PHD2")),
+                    ex => MainForm.Instance.Toast(T("Could not reach PHD2 on localhost:4400.") + " " + Phd2Hint, Icons.Warning, Theme.Current.Danger));
             });
+            // sized for the longer text, so switching does not move the other buttons
+            int phd2Width = phd2.Width;
+            phd2.Text = T("Connect PHD2"); phd2.AutoSizeToText();
+            phd2.Width = phd2Width = Math.Max(phd2Width, phd2.Width);
+            phd2Job.Guard(phd2);
             Func<IGuider> guider = () => Need(Dm.Guider, NoGuider, GuiderHint);
-            Func<SidraluneGuider> own = () => { var g = guider() as SidraluneGuider; if (g == null) throw new InvalidOperationException(T("PHD2 takes its guide frames itself.")); return g; };
+            Func<SidraluneGuider> own = () =>
+            {
+                if (Dm.Phd2Connected) throw new InvalidOperationException(T("PHD2 takes its guide frames itself."));
+                return Need(Dm.Guider as SidraluneGuider, T("No guide camera connected."));
+            };
             var loop = btn(T("Loop"), Icons.Refresh, () => own().Loop());
             loop.ToolTipText = T("Take guide frames and follow the star, without guiding");
             var select = btn(T("Select star"), Icons.Star, () => { var g = own(); g.Loop(); g.SelectStar(); });
@@ -808,7 +815,10 @@ namespace Sidralune.Views
                 }
                 catch { }
                 guideStop.Enabled = on;
-                loop.Enabled = select.Enabled = !(gd is Phd2Client);
+                loop.Enabled = select.Enabled = !Dm.Phd2Connected;
+                phd2.Text = Dm.Phd2Connected ? T("Disconnect PHD2") : T("Connect PHD2");
+                phd2.Kind = Dm.Phd2Connected ? ButtonKind.Danger : ButtonKind.Normal;
+                phd2.Width = phd2Width;
             };
             guideJob.Changed += syncGuideStop;
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
@@ -816,7 +826,7 @@ namespace Sidralune.Views
             btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
 
             // the guide camera's frames, with the search box and the lock position
-            var viewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Connect a guide camera and the Sidralune guider, then click Loop") };
+            var viewer = new ImageViewer { Dock = DockStyle.Fill };
             viewer.Stretch = DisplayStretch.AutoLinked;
             var starInfo = new Label { Dock = DockStyle.Bottom, Height = 22, Tag = "dim" };
             viewer.PaintOverlay += (gr, toScreen) =>
@@ -888,10 +898,10 @@ namespace Sidralune.Views
             bool loading = false;
             Action showSettings = () =>
             {
-                var g = builtin();
-                foreach (var c in settingsControls) c.Enabled = g != null;
-                calText.Text = g == null ? T("The settings are the Sidralune guider's: connect it to change them.") : CalibrationText(g.Calibration);
-                if (g == null) return;
+                // the Sidralune guider's settings can be changed at any time, except while PHD2 guides instead
+                var g = Dm.BuiltinGuider;
+                foreach (var c in settingsControls) c.Enabled = !Dm.Phd2Connected;
+                calText.Text = Dm.Phd2Connected ? T("PHD2 is connected: it has its own settings and calibration.") : CalibrationText(g.Calibration);
                 var st = g.Settings;
                 loading = true;
                 try
@@ -905,22 +915,32 @@ namespace Sidralune.Views
                 }
                 finally { loading = false; }
             };
-            Action save = () =>
+            // each control writes only its own setting, so settings changed elsewhere (a script) are not put back
+            Action<Action<GuiderSettings>> save = set =>
             {
-                var g = builtin();
-                if (g == null || loading) return;
-                var st = g.Settings;
-                st.ExposureSeconds = (double)exposure.Value; st.Binning = binning.SelectedIndex + 1; st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount;
-                st.FocalLengthMm = (double)focal.Value; st.SearchRadius = (int)radius.Value; st.CalibrationStepMs = (int)step.Value; st.CalibrationDistancePx = (double)distance.Value;
-                st.MountReversesDecAfterFlip = reverses.Checked; st.RaAggressiveness = (double)raAggr.Value; st.RaHysteresis = (double)raHyst.Value; st.RaMinMovePx = (double)raMin.Value;
-                st.MaxRaPulseMs = (int)raMax.Value; st.DecAggressiveness = (double)decAggr.Value; st.DecMinMovePx = (double)decMin.Value; st.MaxDecPulseMs = (int)decMax.Value; st.DecFastSwitch = fast.Checked;
+                if (loading) return;
+                var g = Dm.BuiltinGuider;
+                set(g.Settings);
                 g.SaveSettings();
                 calText.Text = CalibrationText(g.Calibration);
             };
-            foreach (var n in new[] { exposure, focal, radius, step, distance, raAggr, raHyst, raMin, raMax, decAggr, decMin, decMax }) n.ValueChanged += (s, e) => save();
-            foreach (var c in new[] { binning, output }) c.SelectedIndexChanged += (s, e) => save();
-            foreach (var c in new[] { reverses, fast }) c.CheckedChanged += (s, e) => save();
-            clearCal.Click += (s, e) => { var g = builtin(); if (g != null) g.ClearCalibration(); };
+            exposure.ValueChanged += (s, e) => save(st => st.ExposureSeconds = (double)exposure.Value);
+            binning.SelectedIndexChanged += (s, e) => save(st => st.Binning = binning.SelectedIndex + 1);
+            output.SelectedIndexChanged += (s, e) => save(st => st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount);
+            focal.ValueChanged += (s, e) => save(st => st.FocalLengthMm = (double)focal.Value);
+            radius.ValueChanged += (s, e) => save(st => st.SearchRadius = (int)radius.Value);
+            step.ValueChanged += (s, e) => save(st => st.CalibrationStepMs = (int)step.Value);
+            distance.ValueChanged += (s, e) => save(st => st.CalibrationDistancePx = (double)distance.Value);
+            reverses.CheckedChanged += (s, e) => save(st => st.MountReversesDecAfterFlip = reverses.Checked);
+            raAggr.ValueChanged += (s, e) => save(st => st.RaAggressiveness = (double)raAggr.Value);
+            raHyst.ValueChanged += (s, e) => save(st => st.RaHysteresis = (double)raHyst.Value);
+            raMin.ValueChanged += (s, e) => save(st => st.RaMinMovePx = (double)raMin.Value);
+            raMax.ValueChanged += (s, e) => save(st => st.MaxRaPulseMs = (int)raMax.Value);
+            decAggr.ValueChanged += (s, e) => save(st => st.DecAggressiveness = (double)decAggr.Value);
+            decMin.ValueChanged += (s, e) => save(st => st.DecMinMovePx = (double)decMin.Value);
+            decMax.ValueChanged += (s, e) => save(st => st.MaxDecPulseMs = (int)decMax.Value);
+            fast.CheckedChanged += (s, e) => save(st => st.DecFastSwitch = fast.Checked);
+            clearCal.Click += (s, e) => Dm.BuiltinGuider.ClearCalibration();
 
             // the guider's steps and frames, shown one burst at a time (they arrive on the guider's thread)
             int n0 = 0;
@@ -938,9 +958,9 @@ namespace Sidralune.Views
             Action showFrame = () =>
             {
                 Interlocked.Exchange(ref framePosted, 0);
-                var g = builtin();
-                var f = g?.LastFrame;
-                if (f == null) return;
+                var g = Dm.BuiltinGuider;
+                var f = g.LastFrame;
+                if (f == null || Dm.Phd2Connected) return;
                 bool fit = viewer.Image == null || viewer.Image.Width != f.Width || viewer.Image.Height != f.Height;
                 viewer.SetImage(f, fit);
                 var s = g.Star;
@@ -948,29 +968,21 @@ namespace Sidralune.Views
                     : T("Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px", s.X, s.Y, s.Snr, s.Hfd) + (s.Saturated ? " · ⚠ " + T("saturated") : "");
             };
             Action<AstroImage> onFrame = f => { if (Interlocked.Exchange(ref framePosted, 1) == 0) MainForm.Instance.Post(showFrame); };
-            Action onCalibration = () => MainForm.Instance.Post(() => { var g = builtin(); if (g != null) calText.Text = CalibrationText(g.Calibration); });
-            Action<string> onFailed = m => MainForm.Instance.Post(() => MainForm.Instance.Toast(m, Icons.Warning, Theme.Current.Danger));
+            // the Sidralune guider is always there; PHD2's steps are followed while it is connected
+            var sidralune = Dm.BuiltinGuider;
+            sidralune.FrameReady += onFrame;
+            sidralune.CalibrationChanged += () => MainForm.Instance.Post(() => { if (!Dm.Phd2Connected) calText.Text = CalibrationText(sidralune.Calibration); });
+            sidralune.Failed += m => MainForm.Instance.Post(() => MainForm.Instance.Toast(m, Icons.Warning, Theme.Current.Danger));
             IGuider hooked = null;
             Action hook = () =>
             {
                 var g = Dm.Guider;
                 if (g == hooked) return;
-                if (hooked != null)
-                {
-                    hooked.Step -= onStep;
-                    var old = hooked as SidraluneGuider;
-                    if (old != null) { old.FrameReady -= onFrame; old.CalibrationChanged -= onCalibration; old.Failed -= onFailed; }
-                }
+                if (hooked != null) hooked.Step -= onStep;
                 hooked = g;
-                if (g != null)
-                {
-                    g.Step += onStep;
-                    var sg = g as SidraluneGuider;
-                    if (sg != null) { sg.FrameReady += onFrame; sg.CalibrationChanged += onCalibration; sg.Failed += onFailed; }
-                    choice.SelectedIndex = g is Phd2Client ? 1 : 0;
-                }
+                if (g != null) g.Step += onStep;
                 if (!(g is SidraluneGuider)) viewer.SetImage(null);
-                viewer.EmptyText = g is Phd2Client ? T("PHD2 shows its guide frames itself") : T("Connect a guide camera and the Sidralune guider, then click Loop");
+                viewer.EmptyText = Dm.Phd2Connected ? T("PHD2 shows its guide frames itself") : T("Connect a guide camera in Observatory → Equipment, then click Loop");
                 showSettings();
             };
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(hook);
@@ -982,10 +994,14 @@ namespace Sidralune.Views
                 var g = Dm.Guider;
                 var sg = g as SidraluneGuider;
                 if (g == null) stats.Text = T("No guider connected.") + " " + GuiderHint;
-                else if (sg != null && sg.State == SidraluneGuider.Stopped && sg.LastError != null) stats.Text = GuiderStateText(g.State) + " · " + sg.LastError;
-                // the RMS only once there are guide steps to measure it from
-                else if (double.IsNaN(g.RmsTotalArcsec)) stats.Text = GuiderStateText(g.State);
-                else stats.Text = T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", GuiderStateText(g.State), g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
+                else
+                {
+                    // the guider in use and its state, then why it stopped or the RMS once there are guide steps
+                    string state = (sg != null ? DeviceManager.BuiltinGuiderName : "PHD2") + " · " + GuiderStateText(g.State);
+                    if (sg != null && sg.State == SidraluneGuider.Stopped && sg.LastError != null) stats.Text = state + " · " + sg.LastError;
+                    else if (double.IsNaN(g.RmsTotalArcsec)) stats.Text = state;
+                    else stats.Text = T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", state, g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
+                }
             };
             panel.Controls.Add(view);
             panel.Controls.Add(right);

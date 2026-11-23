@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Няма свързан автогид."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 е свързан и сам използва гид камерата. Изключете PHD2, за да гидирате със Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Свържете гид камера в Наблюдение → Оборудване или щракнете „Свързване на PHD2“ в раздела Гидиране."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Използва се от PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Изключване на PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 е свързан: той има собствени настройки и калибриране."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Свържете гид камера в Наблюдение → Оборудване, след това щракнете „Цикъл“"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Тази камера вече е свързана като гид камера."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Стартирайте PHD2 и включете сървъра му (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Свържете гид камера и автогида на Sidralune в Наблюдение → Оборудване или стартирайте PHD2 с включен сървър (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Гид камера"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Автогид на Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Свързване на автогида на Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Автогидът на Sidralune е свързан"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "PHD2 сам прави кадрите за гидиране."
 
@@ -2716,10 +2728,6 @@ msgstr "Избор на звезда"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Изберете най-добрата звезда за гидиране или щракнете върху звезда в кадъра"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Свържете гид камера и автогида на Sidralune, след това щракнете „Цикъл“"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Алгоритми"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Калибриране"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Настройките са на автогида на Sidralune: свържете го, за да ги промените."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"

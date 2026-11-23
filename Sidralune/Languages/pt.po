@@ -2546,6 +2546,30 @@ msgid "No guider connected."
 msgstr "Nenhum guiador ligado."
 
 #: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "O PHD2 está ligado e usa ele próprio a câmara de guiagem. Desligue o PHD2 para guiar com o Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
+msgstr "Ligue uma câmara de guiagem em Observatório → Equipamento, ou clique em Ligar PHD2 no separador Guiagem."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Em uso pelo PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Desligar PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "O PHD2 está ligado: tem as suas próprias definições e calibração."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Ligue uma câmara de guiagem em Observatório → Equipamento e depois clique em Ciclo"
+
+#: Sidralune.Devices/DeviceManager.cs
 msgid "This camera is already connected as the guide camera."
 msgstr "Esta câmara já está ligada como câmara de guiagem."
 
@@ -2630,10 +2654,6 @@ msgid "Start PHD2 and enable its server (Tools → Enable Server)."
 msgstr "Inicie o PHD2 e ative o seu servidor (Tools → Enable Server)."
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider in Observatory → Equipment, or start PHD2 with its server enabled (Tools → Enable Server)."
-msgstr "Ligue uma câmara de guiagem e o guiador do Sidralune em Observatório → Equipamento, ou inicie o PHD2 com o servidor ativo (Tools → Enable Server)."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "Guide camera"
 msgstr "Câmara de guiagem"
 
@@ -2694,14 +2714,6 @@ msgid "Sidralune guider"
 msgstr "Guiador do Sidralune"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Connect the Sidralune guider"
-msgstr "Ligar o guiador do Sidralune"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Sidralune guider connected"
-msgstr "Guiador do Sidralune ligado"
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "PHD2 takes its guide frames itself."
 msgstr "O PHD2 faz as suas próprias imagens de guiagem."
 
@@ -2716,10 +2728,6 @@ msgstr "Escolher estrela"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Choose the best guide star, or click a star in the frame"
 msgstr "Escolha a melhor estrela-guia ou clique numa estrela da imagem"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera and the Sidralune guider, then click Loop"
-msgstr "Ligue uma câmara de guiagem e o guiador do Sidralune e depois clique em Ciclo"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guide through"
@@ -2816,10 +2824,6 @@ msgstr "Algoritmos"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"
 msgstr "Calibração"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "The settings are the Sidralune guider's: connect it to change them."
-msgstr "Estas definições são do guiador do Sidralune: ligue-o para as alterar."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guide star: click a star or Select star"
