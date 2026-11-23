@@ -71,6 +71,9 @@ namespace Sidralune.AppTests
                 OnUi(() => Button(bar, "Loop").PerformClick());
                 CheckTrue("Loop shows guide frames", WaitFor(() => viewer.Image != null && g.State == SidraluneGuider.Looping, 10000), g.State);
                 CheckTrue("…and Stop becomes available", WaitFor(() => Button(bar, "Stop").Enabled));
+                CheckTrue("Before any guide steps the status line shows the state, without an RMS", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text == "Looping")) && OnUi(() => !All(view).OfType<Label>().Any(l => l.Text.Contains("NaN"))));
+                var notCalibrated = OnUi(() => All(view).OfType<Label>().FirstOrDefault(l => l.Text.StartsWith("Not calibrated.")));
+                CheckTrue("The calibration text shows \"Calibrate & guide\" with its &", notCalibrated != null && notCalibrated.Text.Contains("Calibrate & guide") && !notCalibrated.UseMnemonic);
                 OnUi(() => Button(bar, "Select star").PerformClick());
                 CheckTrue("Select star chooses one", WaitFor(() => g.Star != null && g.State == SidraluneGuider.Selected, 5000), g.State);
                 CheckTrue("The star is described under the frame", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Star at ")), 5000));

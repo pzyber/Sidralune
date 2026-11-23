@@ -761,7 +761,7 @@ namespace Sidralune.Views
             var panel = new Panel { Dock = DockStyle.Fill };
             var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 230, Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
             var ra = plot.AddSeries(T("RA")); var dec = plot.AddSeries(T("Dec"));
-            var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold };
+            var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold, UseMnemonic = false }; // error messages may hold "&"
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
             Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             Func<SidraluneGuider> builtin = () => Dm.Guider as SidraluneGuider;
@@ -866,7 +866,8 @@ namespace Sidralune.Views
             var distance = calGrid.Row(T("Calibration distance (px)"), Ui.Num(20, 5, 60));
             var reverses = calGrid.Row(T("After a meridian flip"), new CheckBox { Text = T("Mount reverses Dec") });
             calGrid.Full(Ui.Hint(T("Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this.")));
-            var calText = new Label { AutoSize = true, MaximumSize = new Size(300, 0), Tag = "dim" };
+            // "&" is text here ("Calibrate & guide"), not a shortcut marker
+            var calText = new Label { AutoSize = true, MaximumSize = new Size(300, 0), Tag = "dim", UseMnemonic = false };
             calGrid.Full(calText);
             var clearCal = new FlatButton(T("Clear calibration"), Icons.Remove); clearCal.AutoSizeToText();
             calGrid.Full(clearCal);
@@ -982,6 +983,8 @@ namespace Sidralune.Views
                 var sg = g as SidraluneGuider;
                 if (g == null) stats.Text = T("No guider connected.") + " " + GuiderHint;
                 else if (sg != null && sg.State == SidraluneGuider.Stopped && sg.LastError != null) stats.Text = GuiderStateText(g.State) + " · " + sg.LastError;
+                // the RMS only once there are guide steps to measure it from
+                else if (double.IsNaN(g.RmsTotalArcsec)) stats.Text = GuiderStateText(g.State);
                 else stats.Text = T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", GuiderStateText(g.State), g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
             };
             panel.Controls.Add(view);
