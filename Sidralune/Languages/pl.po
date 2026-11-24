@@ -2557,6 +2557,10 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Podłącz kamerę prowadzącą w widoku Obserwacje → Sprzęt albo kliknij Połącz z PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Nie podłączono teleskopu: asystent musi wiedzieć, gdzie celuje montaż, i go obracać."
@@ -3220,10 +3224,6 @@ msgstr "Odłącz kamerę prowadzącą, aby użyć PHD2."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 jest połączony i sam używa kamery prowadzącej. Rozłącz PHD2, aby prowadzić z Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Podłącz kamerę prowadzącą w widoku Obserwacje → Sprzęt albo kliknij Połącz z PHD2 na karcie Guiding."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

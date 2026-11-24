@@ -2557,6 +2557,10 @@ msgstr "Niciun focalizator conectat."
 msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Conectați o cameră de ghidare în Observator → Echipament sau faceți clic pe Conectează PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Niciun telescop conectat: asistentul trebuie să știe încotro e îndreptată montura și s-o rotească."
@@ -3220,10 +3224,6 @@ msgstr "Deconectați camera de ghidare pentru a folosi PHD2."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 este conectat și folosește singur camera de ghidare. Deconectați PHD2 pentru a ghida cu Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Conectați o cameră de ghidare în Observator → Echipament sau faceți clic pe Conectează PHD2 în fila Ghidare."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

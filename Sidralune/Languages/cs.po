@@ -2557,6 +2557,10 @@ msgstr "Není připojen ostřič."
 msgid "No guider connected."
 msgstr "Není připojen pointační systém."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Připojte pointační kameru v Observatoř → Vybavení, nebo klikněte na Připojit PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Není připojen dalekohled: asistent potřebuje vědět, kam montáž míří, a natáčet ji."
@@ -3220,10 +3224,6 @@ msgstr "Chcete-li použít PHD2, odpojte pointační kameru."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 je připojeno a pointační kameru používá samo. Chcete-li pointovat se Sidralune, odpojte PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Připojte pointační kameru v Observatoř → Vybavení, nebo na kartě Pointace klikněte na Připojit PHD2."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

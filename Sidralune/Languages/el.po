@@ -2545,6 +2545,10 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός ή πατήστε Σύνδεση PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Δεν είναι συνδεδεμένο τηλεσκόπιο: ο βοηθός πρέπει να ξέρει πού δείχνει η στήριξη και να τη μετακινεί."
@@ -3208,10 +3212,6 @@ msgstr "Αποσυνδέστε την κάμερα οδήγησης για να 
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "Το PHD2 είναι συνδεδεμένο και χρησιμοποιεί το ίδιο την κάμερα οδήγησης. Αποσυνδέστε το PHD2 για να οδηγήσετε με το Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός ή πατήστε Σύνδεση PHD2 στην καρτέλα Οδήγηση."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

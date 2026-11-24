@@ -2545,6 +2545,10 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Ühenda juhtkaamera vaates Vaatlus → Varustus või klõpsa nuppu Ühenda PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Teleskoopi pole ühendatud: assistent peab teadma, kuhu monteering osutab, ja seda pöörama."
@@ -3208,10 +3212,6 @@ msgstr "PHD2 kasutamiseks katkesta juhtkaamera ühendus."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 on ühendatud ja kasutab juhtkaamerat ise. Sidralune'iga juhtimiseks katkesta PHD2 ühendus."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Ühenda juhtkaamera vaates Vaatlus → Varustus või klõpsa vahekaardil Juhtimine nuppu Ühenda PHD2."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

@@ -2545,6 +2545,10 @@ msgstr "Nincs csatlakoztatott fókuszáló."
 msgid "No guider connected."
 msgstr "Nincs csatlakoztatott vezetőrendszer."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Csatlakoztasson vezetőkamerát itt: Észlelés → Eszközök, vagy kattintson a PHD2 csatlakoztatása gombra."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Nincs csatlakoztatva távcső: az asszisztensnek tudnia kell, hová mutat a mechanika, és mozgatnia kell."
@@ -3208,10 +3212,6 @@ msgstr "A PHD2 használatához válassza le a vezetőkamerát."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "A PHD2 csatlakoztatva van, és maga használja a vezetőkamerát. A Sidralune-nal való vezetéshez válassza le a PHD2-t."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Csatlakoztasson vezetőkamerát itt: Észlelés → Eszközök, vagy kattintson a Vezetés lapon a PHD2 csatlakoztatása gombra."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

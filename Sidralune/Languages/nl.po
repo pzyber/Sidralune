@@ -2545,6 +2545,10 @@ msgstr "Geen focuser verbonden."
 msgid "No guider connected."
 msgstr "Geen guider verbonden."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Verbind een guidecamera via Waarnemen → Apparatuur, of klik op PHD2 verbinden."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Geen telescoop verbonden: de assistent moet weten waar de montering naar wijst en hem kunnen bewegen."
@@ -3208,10 +3212,6 @@ msgstr "Koppel de guidecamera los om PHD2 te gebruiken."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 is verbonden en gebruikt de guidecamera zelf. Koppel PHD2 los om met Sidralune te guiden."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Verbind een guidecamera via Waarnemen → Apparatuur, of klik op het tabblad Guiding op PHD2 verbinden."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

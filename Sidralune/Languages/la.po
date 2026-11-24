@@ -2545,6 +2545,10 @@ msgstr "Nullus focator coniunctus."
 msgid "No guider connected."
 msgstr "Nullus ductor coniunctus."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Cameram ductricem in Specula → Instrumenta coniunge, aut preme Coniunge PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Nullum telescopium conexum: adiutor scire debet quo fulcrum spectet, et id vertere."
@@ -3208,10 +3212,6 @@ msgstr "Cameram ductricem disiunge ut PHD2 adhibeas."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 coniunctum est et cameram ductricem ipsum adhibet. PHD2 disiunge ut cum Sidralune ducas."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Cameram ductricem in Specula → Instrumenta coniunge, aut in tabula Ductus preme Coniunge PHD2."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

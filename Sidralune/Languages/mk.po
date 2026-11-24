@@ -2545,6 +2545,10 @@ msgstr "Нема поврзан фокусер."
 msgid "No guider connected."
 msgstr "Нема поврзан систем за водење."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Поврзете камера за водење во Набљудување → Опрема или кликнете Поврзи PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Нема поврзан телескоп: асистентот треба да знае каде е насочен монтажот и да го врти."
@@ -3208,10 +3212,6 @@ msgstr "Исклучете ја камерата за водење за да г�
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 е поврзан и сам ја користи камерата за водење. Исклучете го PHD2 за да водите со Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Поврзете камера за водење во Набљудување → Опрема или кликнете Поврзи PHD2 во јазичето Водење."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

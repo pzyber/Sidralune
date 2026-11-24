@@ -2545,6 +2545,10 @@ msgstr "Eingin fokusari tengdur."
 msgid "No guider connected."
 msgstr "Einki stýritól tengt."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Tengja eitt stýrimyndatól í Eygleiðing → Útgerð, ella klikk á Tengja PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Einki teleskop er tengt: hjálparin má vita, hvagar festið peikar, og kunna snara tað."
@@ -3208,10 +3212,6 @@ msgstr "Slít stýrimyndatólið fyri at brúka PHD2."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 er tengt og brúkar sjálvt stýrimyndatólið. Slít PHD2 fyri at stýra við Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Tengja eitt stýrimyndatól í Eygleiðing → Útgerð, ella klikk á Tengja PHD2 undir Stýring."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

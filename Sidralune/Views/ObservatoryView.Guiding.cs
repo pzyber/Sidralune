@@ -197,10 +197,13 @@ namespace Sidralune.Views
             sidralune.FrameReady += onFrame;
             sidralune.Failed += m => MainForm.Instance.Post(() => MainForm.Instance.Toast(m, Icons.Warning, Theme.Current.Danger));
             IGuider hooked = null;
+            bool hookedOnce = false;
             Action hook = () =>
             {
                 var g = Dm.Guider;
-                if (g == hooked) return;
+                // the first time too, with no guider yet, so the empty frame says what to do
+                if (g == hooked && hookedOnce) return;
+                hookedOnce = true;
                 if (hooked != null) hooked.Step -= onStep;
                 hooked = g;
                 if (g != null) g.Step += onStep;

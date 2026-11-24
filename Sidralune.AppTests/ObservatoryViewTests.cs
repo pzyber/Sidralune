@@ -53,6 +53,10 @@ namespace Sidralune.AppTests
             try
             {
                 OnUi(() => Dm.DisconnectAll());
+                // a tab built with nothing connected says what to connect, in the frame and the status line
+                var fresh = OnUi(() => new ObservatoryView { Size = new System.Drawing.Size(1500, 900) });
+                CheckTrue("With no guider, the empty guide frame says what to connect", OnUi(() => Find<ImageViewer>(fresh, v => v.EmptyText == "Connect a guide camera in Observatory → Equipment, then click Loop") != null));
+                CheckTrue("…and the status line too, without sending you to the tab it is on", WaitFor(() => OnUi(() => All(view).OfType<Label>().Any(l => l.Text == "No guider connected. Connect a guide camera in Observatory → Equipment, or click Connect PHD2."))));
                 CheckTrue("Equipment has a guide camera row, and no guider row (the Sidralune guider is built in)", OnUi(() => All(view).OfType<Label>().Any(l => l.Text == "Guide camera") && !All(view).OfType<Label>().Any(l => l.Text == "Guider")));
                 CheckTrue("PHD2 is connected on the Guiding tab", OnUi(() => Button(Button(view, "Start guiding").Parent, "Connect PHD2") != null));
                 OnUi(() => Button(view, "Connect simulated observatory").PerformClick());

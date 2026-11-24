@@ -2545,6 +2545,10 @@ msgstr "Nessun focheggiatore collegato."
 msgid "No guider connected."
 msgstr "Nessuna guida collegata."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Collega una camera di guida in Osservatorio → Attrezzatura, oppure fai clic su Collega PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Nessun telescopio collegato: l'assistente deve sapere dove punta la montatura e muoverla."
@@ -3208,10 +3212,6 @@ msgstr "Scollega la camera di guida per usare PHD2."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 è collegato e usa da solo la camera di guida. Scollega PHD2 per guidare con Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Collega una camera di guida in Osservatorio → Attrezzatura, oppure fai clic su Collega PHD2 nella scheda Autoguida."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

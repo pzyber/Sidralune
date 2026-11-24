@@ -2545,6 +2545,10 @@ msgstr "Ingen fokuserare ansluten."
 msgid "No guider connected."
 msgstr "Ingen guidare ansluten."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Anslut en guidekamera under Observera → Utrustning, eller klicka på Anslut PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Inget teleskop anslutet: assistenten behöver veta vart monteringen pekar och kunna vrida den."
@@ -3208,10 +3212,6 @@ msgstr "Koppla från guidekameran för att använda PHD2."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 är anslutet och använder guidekameran själv. Koppla från PHD2 för att guida med Sidralune."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Anslut en guidekamera under Observera → Utrustning, eller klicka på Anslut PHD2 under Guidning."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

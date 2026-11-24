@@ -2557,6 +2557,10 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Pievienojiet vadības kameru sadaļā Observatorija → Aprīkojums vai noklikšķiniet uz Pievienot PHD2."
+
 #: Sidralune.Devices/Guiding/CalibrationAssistant.cs
 msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
 msgstr "Nav pievienots teleskops: asistentam jāzina, kur vērsts montējums, un tas jāpagriež."
@@ -3220,10 +3224,6 @@ msgstr "Lai izmantotu PHD2, atvienojiet vadības kameru."
 #: Sidralune.Devices/DeviceManager.cs
 msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
 msgstr "PHD2 ir pievienots un pats izmanto vadības kameru. Lai vadītu ar Sidralune, atvienojiet PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab."
-msgstr "Pievienojiet vadības kameru sadaļā Observatorija → Aprīkojums vai cilnē Vadība noklikšķiniet uz Pievienot PHD2."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "In use by PHD2"

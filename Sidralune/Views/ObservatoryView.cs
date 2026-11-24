@@ -28,7 +28,7 @@ namespace Sidralune.Views
         private DeviceManager Dm => DeviceManager.Instance;
 
         private static string Phd2Hint => T("Start PHD2 and enable its server (Tools → Enable Server).");
-        private static string GuiderHint => T("Connect a guide camera in Observatory → Equipment, or click Connect PHD2 on the Guiding tab.");
+        private static string GuiderHint => T("Connect a guide camera in Observatory → Equipment, or click Connect PHD2.");
 
         // what is missing, as whole sentences (the words for the devices differ in form from language to language)
         private static string NoTelescope => T("No telescope connected.");
