@@ -2545,6 +2545,662 @@ msgstr "Kein Fokussierer verbunden."
 msgid "No guider connected."
 msgstr "Kein Guider verbunden."
 
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
+msgstr "Kein Teleskop verbunden: Der Assistent muss wissen, wohin die Montierung zeigt, und sie schwenken."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The mount does not report its guide rate. 0.5× sidereal or faster is best."
+msgstr "Die Montierung meldet ihre Nachführgeschwindigkeit fürs Guiding nicht. 0,5× siderisch oder schneller ist am besten."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The guide rate is {0:0.0#}× sidereal. 0.5× or faster calibrates and guides better."
+msgstr "Die Guiding-Geschwindigkeit ist {0:0.0#}× siderisch. Mit 0,5× oder schneller kalibriert und guidet es sich besser."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The calibration step is fixed at {0} ms. 0 works it out for the place and the guide rate."
+msgstr "Der Kalibrierschritt ist auf {0} ms festgelegt. 0 bestimmt ihn aus dem Ort und der Guiding-Geschwindigkeit."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The assistant has not moved the mount."
+msgstr "Der Assistent hat die Montierung nicht bewegt."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Start guiding first: the Guiding Assistant measures while guiding is paused."
+msgstr "Starten Sie zuerst das Guiding: Der Guiding-Assistent misst, während das Guiding pausiert."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec came back more slowly than it went, so the backlash could not be told apart."
+msgstr "Dec kam langsamer zurück, als sie hinging, daher ließ sich das Umkehrspiel nicht herausrechnen."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "The backlash test was stopped."
+msgstr "Der Umkehrspieltest wurde gestoppt."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Minimum move RA {0:0.00} px and Dec {1:0.00} px, a little under the seeing's wander."
+msgstr "Kleinste Bewegung RA {0:0.00} px und Dec {1:0.00} px, etwas unter der Unruhe durch das Seeing."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is small ({0:0} ms): no compensation needed."
+msgstr "Das Umkehrspiel in Dec ist klein ({0:0} ms): keine Kompensation nötig."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Turn on Dec backlash compensation at {0:0} ms (adapting between {1:0} and {2:0} ms)."
+msgstr "Schalten Sie die Umkehrspielkompensation in Dec mit {0:0} ms ein (passt sich zwischen {1:0} und {2:0} ms an)."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec North only, against the drift."
+msgstr "Das Umkehrspiel in Dec ist groß ({0:0.0} s): Dec nur nach Norden guiden, gegen die Drift."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec South only, against the drift."
+msgstr "Das Umkehrspiel in Dec ist groß ({0:0.0} s): Dec nur nach Süden guiden, gegen die Drift."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Polar alignment is off by at least {0:0}′. Observatory → Polar alignment can measure and correct it."
+msgstr "Die Einnordung weicht um mindestens {0:0}′ ab. Sternwarte → Einnorden kann sie messen und korrigieren."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "RA changes quickly ({0:0.00}″/s): a {1:0.0#} s exposure follows it better."
+msgstr "RA ändert sich schnell ({0:0.00}″/s): Eine Belichtung von {1:0.0#} s folgt besser."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is not running."
+msgstr "Der Guider läuft nicht."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is busy."
+msgstr "Der Guider ist beschäftigt."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Choose a guide star first."
+msgstr "Wählen Sie zuerst einen Leitstern."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The lock position must be inside the frame."
+msgstr "Die Halteposition muss im Bild liegen."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Wait until calibration has finished."
+msgstr "Warten Sie, bis die Kalibrierung fertig ist."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Calibrate first: comet tracking moves the lock position through the calibration."
+msgstr "Zuerst kalibrieren: Die Kometennachführung verschiebt die Halteposition über die Kalibrierung."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The comet {0} is not in the comet list. Download the comet data in Settings, or enter the rates."
+msgstr "Der Komet {0} ist nicht in der Kometenliste. Laden Sie die Kometendaten in den Einstellungen herunter oder geben Sie die Raten ein."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Start guiding first, then keep the comet centred by moving the lock position."
+msgstr "Starten Sie zuerst das Guiding und halten Sie dann den Kometen mittig, indem Sie die Halteposition verschieben."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Train for longer: at least a minute gives usable rates."
+msgstr "Länger trainieren: Mindestens eine Minute ergibt brauchbare Raten."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Click Loop first, so the pulse's effect can be seen."
+msgstr "Klicken Sie zuerst auf Schleife, damit die Wirkung des Pulses zu sehen ist."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Manual pulses are for looping, not while calibrating or guiding."
+msgstr "Manuelle Pulse sind für die Schleife da, nicht während Kalibrierung oder Guiding."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop the guider before taking dark frames."
+msgstr "Stoppen Sie den Guider, bevor Dunkelbilder aufgenommen werden."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Dark frames are being taken with the guide camera."
+msgstr "Mit der Leitkamera werden gerade Dunkelbilder aufgenommen."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guide star was lost during the backlash test."
+msgstr "Der Leitstern ging während des Umkehrspieltests verloren."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The backlash test stopped because the mount slewed."
+msgstr "Der Umkehrspieltest wurde beendet, weil die Montierung geschwenkt hat."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Select star here"
+msgstr "Stern hier wählen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Set lock position here"
+msgstr "Halteposition hierher setzen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Assistants"
+msgstr "Assistenten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Darks"
+msgstr "Dunkelbilder"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Tools"
+msgstr "Werkzeuge"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "brightness jumped: frame not used"
+msgstr "Helligkeit sprang: Bild nicht verwendet"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} stars"
+msgstr "{0} Sterne"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.0#} s"
+msgstr "{0:0.0#} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Auto exposure"
+msgstr "Automatische Belichtung"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the star's SNR"
+msgstr "Dem SNR des Sterns folgen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Shortest exposure (s)"
+msgstr "Kürzeste Belichtung (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Longest exposure (s)"
+msgstr "Längste Belichtung (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Multi-star"
+msgstr "Mehrere Sterne"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide on several stars"
+msgstr "Auf mehrere Sterne guiden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Most stars"
+msgstr "Höchstens Sterne"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star brightness"
+msgstr "Sternhelligkeit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Skip frames where it jumps"
+msgstr "Bilder mit Sprüngen auslassen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Brightness tolerance (%)"
+msgstr "Helligkeitstoleranz (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction; after three in a row, the new brightness counts."
+msgstr "Ein Bild, in dem sich die Helligkeit des Leitsterns um mehr als die Toleranz ändert, wird nicht für eine Korrektur verwendet; nach dreien in Folge gilt die neue Helligkeit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA algorithm"
+msgstr "RA-Algorithmus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hysteresis"
+msgstr "Hysterese"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2"
+msgstr "Lowpass2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter"
+msgstr "Z-Filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2 aggressiveness (%)"
+msgstr "Lowpass2-Aggressivität (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter exposure factor"
+msgstr "Z-Filter-Belichtungsfaktor"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec algorithm"
+msgstr "Dec-Algorithmus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Resist Switch"
+msgstr "Resist Switch"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide Dec"
+msgstr "Dec guiden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Both ways"
+msgstr "In beide Richtungen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North only"
+msgstr "Nur Norden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South only"
+msgstr "Nur Süden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Off"
+msgstr "Aus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash compensation"
+msgstr "Umkehrspielkompensation"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When Dec turns"
+msgstr "Wenn Dec umkehrt"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash (ms)"
+msgstr "Umkehrspiel (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at least (ms)"
+msgstr "Umkehrspiel mindestens (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at most (ms)"
+msgstr "Umkehrspiel höchstens (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide stars"
+msgstr "Leitsterne"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects a share of the error, smoothed with the one before."
+msgstr "Korrigiert einen Teil des Fehlers, geglättet mit dem vorherigen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Changes direction only when the error clearly asks for it, which suits Dec's backlash."
+msgstr "Wechselt die Richtung nur, wenn der Fehler es deutlich verlangt, was zum Umkehrspiel in Dec passt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing."
+msgstr "Legt eine Gerade durch die letzten Fehler, sodass sich das Seeing herausmittelt: für ruhig laufende Montierungen bei gutem Seeing."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guides as if the exposures were longer: for slow errors in poor seeing."
+msgstr "Guidet, als wären die Belichtungen länger: für langsame Fehler bei schlechtem Seeing."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Now {0:0} ms, as it has adapted."
+msgstr "Jetzt {0:0} ms, wie sie sich angepasst hat."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, measures how the stars move with corrections paused: the seeing, the drift, RA's swing and the polar alignment error. Give it two minutes, longer for polar alignment."
+msgstr "Misst während des Guidings, wie sich die Sterne bei pausierten Korrekturen bewegen: das Seeing, die Drift, den Ausschlag in RA und den Fehler der Einnordung. Geben Sie ihm zwei Minuten, für die Einnordung länger."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Afterwards"
+msgstr "Danach"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measure Dec backlash"
+msgstr "Umkehrspiel in Dec messen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start measuring"
+msgstr "Messung starten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop and analyse"
+msgstr "Stoppen und auswerten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Apply the ticked settings"
+msgstr "Angehakte Einstellungen übernehmen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibrates near the meridian and the celestial equator, where calibration is most reliable, on the side the mount points to now, then rates the calibration."
+msgstr "Kalibriert nahe dem Meridian und dem Himmelsäquator, wo die Kalibrierung am zuverlässigsten ist, auf der Seite, auf die die Montierung jetzt zeigt, und bewertet dann die Kalibrierung."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hour angle (h)"
+msgstr "Stundenwinkel (h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Declination (°)"
+msgstr "Deklination (°)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Slew and calibrate"
+msgstr "Schwenken und kalibrieren"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Return"
+msgstr "Zurück"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Suggest again"
+msgstr "Erneut vorschlagen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration Assistant"
+msgstr "Kalibrierassistent"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant"
+msgstr "Guiding-Assistent"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measuring… {0} frames so far."
+msgstr "Messung läuft… bisher {0} Bilder."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} frames over {1:0} s."
+msgstr "{0} Bilder über {1:0} s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+msgstr "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Drift: RA {0:0.00}″, Dec {1:0.00}″ a minute."
+msgstr "Drift: RA {0:0.00}″, Dec {1:0.00}″ pro Minute."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA swing {0:0.0}″ peak to peak, changing up to {1:0.00}″ a second."
+msgstr "Ausschlag in RA {0:0.0}″ Spitze zu Spitze, Änderung bis {1:0.00}″ pro Sekunde."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Polar alignment off by at least {0:0.0}′."
+msgstr "Einnordung um mindestens {0:0.0}′ daneben."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash: {0}"
+msgstr "Umkehrspiel in Dec: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash {0:0} ± {1:0} ms."
+msgstr "Umkehrspiel in Dec {0:0} ± {1:0} ms."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2 is connected: it has its own Guiding Assistant."
+msgstr "PHD2 ist verbunden: Es hat einen eigenen Guiding-Assistenten."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant finished"
+msgstr "Guiding-Assistent fertig"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Settings applied."
+msgstr "Einstellungen übernommen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Good"
+msgstr "Gut"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Acceptable"
+msgstr "Annehmbar"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Poor"
+msgstr "Schlecht"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration: {0}."
+msgstr "Kalibrierung: {0}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding stopped, so the Guiding Assistant did too."
+msgstr "Das Guiding wurde gestoppt, also auch der Guiding-Assistent."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a telescope: the assistant slews it."
+msgstr "Verbinden Sie ein Teleskop: Der Assistent schwenkt es."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West of the meridian, {0:0}° up."
+msgstr "Westlich des Meridians, {0:0}° hoch."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East of the meridian, {0:0}° up."
+msgstr "Östlich des Meridians, {0:0}° hoch."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Nothing"
+msgstr "Nichts"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The dark library"
+msgstr "Die Dunkelbildbibliothek"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The bad-pixel map"
+msgstr "Die Pixelfehlerkarte"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A dark library subtracts a master dark from each guide frame; a bad-pixel map mends the hot and cold pixels. Either removes hot pixels that could be taken for stars."
+msgstr "Eine Dunkelbildbibliothek zieht von jedem Leitbild ein Master-Dunkelbild ab; eine Pixelfehlerkarte repariert die heißen und kalten Pixel. Beides entfernt heiße Pixel, die für Sterne gehalten werden könnten."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames each"
+msgstr "Dunkelbilder je Belichtung"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build dark library"
+msgstr "Dunkelbildbibliothek erstellen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames"
+msgstr "Dunkelbilder"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Threshold (σ)"
+msgstr "Schwelle (σ)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build bad-pixel map"
+msgstr "Pixelfehlerkarte erstellen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Cover the guide scope (or close the camera's shutter), then click Continue."
+msgstr "Decken Sie das Leitrohr ab (oder schließen Sie den Verschluss der Kamera) und klicken Sie dann auf Weiter."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Continue"
+msgstr "Weiter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Taking dark frames"
+msgstr "Dunkelbilder werden aufgenommen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map"
+msgstr "Pixelfehlerkarte"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library"
+msgstr "Dunkelbildbibliothek"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library built. Uncover the guide scope."
+msgstr "Dunkelbildbibliothek erstellt. Decken Sie das Leitrohr wieder auf."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map built: {0} hot and {1} cold pixels. Uncover the guide scope."
+msgstr "Pixelfehlerkarte erstellt: {0} heiße und {1} kalte Pixel. Decken Sie das Leitrohr wieder auf."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Exposures: {0} s"
+msgstr "Belichtungen: {0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0}: {1:0} %"
+msgstr "{0}: {1:0} %"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a guide camera to build or use dark frames."
+msgstr "Verbinden Sie eine Leitkamera, um Dunkelbilder zu erstellen oder zu nutzen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: none yet."
+msgstr "Dunkelbildbibliothek: noch keine."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: {0} s, {1} frames each, {2:yyyy-MM-dd}."
+msgstr "Dunkelbildbibliothek: {0} s, je {1} Bilder, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It fits the guide camera."
+msgstr "Sie passt zur Leitkamera."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It doesn't fit the guide camera as set up now; build it again."
+msgstr "Sie passt nicht zur Leitkamera, wie sie jetzt eingerichtet ist; erstellen Sie sie neu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: none yet."
+msgstr "Pixelfehlerkarte: noch keine."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: {0} hot and {1} cold pixels, {2:yyyy-MM-dd}."
+msgstr "Pixelfehlerkarte: {0} heiße und {1} kalte Pixel, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position X (px)"
+msgstr "Halteposition X (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position Y (px)"
+msgstr "Halteposition Y (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Or right-click the frame: Set lock position here."
+msgstr "Oder Rechtsklick ins Bild: Halteposition hierher setzen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Sticky lock position"
+msgstr "Feste Halteposition"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Keep it through stops"
+msgstr "Über Stopps hinweg behalten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Move by (″)"
+msgstr "Verschieben um (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North"
+msgstr "Norden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South"
+msgstr "Süden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East"
+msgstr "Osten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West"
+msgstr "Westen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Moves the telescope that far on the sky, through the calibration; without one, that many pixels in the frame."
+msgstr "Bewegt das Teleskop so weit am Himmel, über die Kalibrierung; ohne Kalibrierung so viele Pixel im Bild."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rates from"
+msgstr "Raten aus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Entered rates"
+msgstr "Eingegebene Raten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A comet's orbit"
+msgstr "Bahn eines Kometen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training"
+msgstr "Training"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA (″/h, on the sky)"
+msgstr "RA (″/h, am Himmel)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec (″/h)"
+msgstr "Dec (″/h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Comet tracking"
+msgstr "Kometennachführung"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the comet"
+msgstr "Dem Kometen folgen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start training"
+msgstr "Training starten"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop training"
+msgstr "Training beenden"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse (ms)"
+msgstr "Puls (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While looping: one pulse, and how far the star moved, to check the guide cable and the guide rate."
+msgstr "In der Schleife: ein Puls, und wie weit sich der Stern bewegt hat, um Guidingkabel und Guiding-Geschwindigkeit zu prüfen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Manual guide"
+msgstr "Manuelles Guiding"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position"
+msgstr "Halteposition"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse sent. Choose a guide star to see how far it moves."
+msgstr "Puls gesendet. Wählen Sie einen Leitstern, um zu sehen, wie weit er sich bewegt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The star moved {0:0.0} px towards {1:0}°."
+msgstr "Der Stern hat sich {0:0.0} px in Richtung {1:0}° bewegt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "As calibrated ({0:0.0} px towards {1:0}°)."
+msgstr "Wie kalibriert ({0:0.0} px in Richtung {1:0}°)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The calibration expected {0:0.0} px towards {1:0}°. Check the guide cable, the guide rate and Dec backlash."
+msgstr "⚠ Die Kalibrierung erwartete {0:0.0} px in Richtung {1:0}°. Prüfen Sie das Guidingkabel, die Guiding-Geschwindigkeit und das Umkehrspiel in Dec."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: keep the comet centred in the imaging camera by moving the lock position."
+msgstr "Training: Halten Sie den Kometen in der Hauptkamera mittig, indem Sie die Halteposition verschieben."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Following at RA {0:0.0}″/h and Dec {1:0.0}″/h."
+msgstr "Folgt mit RA {0:0.0}″/h und Dec {1:0.0}″/h."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "No comets yet: download the comet data in Settings."
+msgstr "Noch keine Kometen: Laden Sie die Kometendaten in den Einstellungen herunter."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, the lock position follows the comet, so the comet stays put in the imaging camera."
+msgstr "Beim Guiding folgt die Halteposition dem Kometen, sodass der Komet in der Hauptkamera stillsteht."
+
 #: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
 msgid "Disconnect the guide camera to use PHD2."
 msgstr "Trennen Sie die Leitkamera, um PHD2 zu verwenden."
@@ -2782,10 +3438,6 @@ msgid "Clear calibration"
 msgstr "Kalibrierung löschen"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
-msgstr "RA: Hysteresis. Dec: Resist Switch, das die Richtung nur wechselt, wenn der Fehler es deutlich verlangt."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "RA aggressiveness (%)"
 msgstr "RA-Aggressivität (%)"
 
@@ -2820,10 +3472,6 @@ msgstr "Große Dec-Fehler"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Correct at once"
 msgstr "Sofort korrigieren"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Algorithms"
-msgstr "Algorithmen"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"

@@ -2545,6 +2545,662 @@ msgstr "Asnjë fokusues i lidhur."
 msgid "No guider connected."
 msgstr "Asnjë sistem udhëheqës i lidhur."
 
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
+msgstr "Asnjë teleskop i lidhur: asistenti duhet të dijë ku drejtohet montura dhe ta rrotullojë."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The mount does not report its guide rate. 0.5× sidereal or faster is best."
+msgstr "Montura nuk e tregon shpejtësinë e udhëheqjes. Më mirë është 0,5× yjore ose më shpejt."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The guide rate is {0:0.0#}× sidereal. 0.5× or faster calibrates and guides better."
+msgstr "Shpejtësia e udhëheqjes është {0:0.0#}× yjore. Me 0,5× ose më shpejt, kalibrimi dhe udhëheqja janë më të mira."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The calibration step is fixed at {0} ms. 0 works it out for the place and the guide rate."
+msgstr "Hapi i kalibrimit është i fiksuar në {0} ms. 0 e llogarit sipas vendit dhe shpejtësisë së udhëheqjes."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The assistant has not moved the mount."
+msgstr "Asistenti nuk e ka lëvizur monturën."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Start guiding first: the Guiding Assistant measures while guiding is paused."
+msgstr "Nisni fillimisht udhëheqjen: asistenti i udhëheqjes mat kur udhëheqja është në pauzë."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec came back more slowly than it went, so the backlash could not be told apart."
+msgstr "Dec u kthye më ngadalë se sa shkoi, prandaj loja nuk mund të ndahej."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "The backlash test was stopped."
+msgstr "Testi i lojës u ndal."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Minimum move RA {0:0.00} px and Dec {1:0.00} px, a little under the seeing's wander."
+msgstr "Lëvizja më e vogël RA {0:0.00} px dhe Dec {1:0.00} px, pak nën dridhjen e seeing-ut."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is small ({0:0} ms): no compensation needed."
+msgstr "Loja në Dec është e vogël ({0:0} ms): nuk duhet kompensim."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Turn on Dec backlash compensation at {0:0} ms (adapting between {1:0} and {2:0} ms)."
+msgstr "Aktivizoni kompensimin e lojës në Dec me {0:0} ms (përshtatet mes {1:0} dhe {2:0} ms)."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec North only, against the drift."
+msgstr "Loja në Dec është e madhe ({0:0.0} s): udhëhiqni Dec vetëm drejt veriut, kundër zhvendosjes."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec South only, against the drift."
+msgstr "Loja në Dec është e madhe ({0:0.0} s): udhëhiqni Dec vetëm drejt jugut, kundër zhvendosjes."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Polar alignment is off by at least {0:0}′. Observatory → Polar alignment can measure and correct it."
+msgstr "Rreshtimi polar shmanget të paktën {0:0}′. Observatori → Rreshtimi polar mund ta matë dhe ta korrigjojë."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "RA changes quickly ({0:0.00}″/s): a {1:0.0#} s exposure follows it better."
+msgstr "RA ndryshon shpejt ({0:0.00}″/s): një ekspozim {1:0.0#} s e ndjek më mirë."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is not running."
+msgstr "Udhëheqja nuk po punon."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is busy."
+msgstr "Udhëheqja është e zënë."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Choose a guide star first."
+msgstr "Zgjidhni fillimisht një yll udhëheqës."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The lock position must be inside the frame."
+msgstr "Pozicioni i kyçjes duhet të jetë brenda kuadrit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Wait until calibration has finished."
+msgstr "Prisni derisa të mbarojë kalibrimi."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Calibrate first: comet tracking moves the lock position through the calibration."
+msgstr "Kalibroni fillimisht: ndjekja e kometës e lëviz pozicionin e kyçjes nëpërmjet kalibrimit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The comet {0} is not in the comet list. Download the comet data in Settings, or enter the rates."
+msgstr "Kometa {0} nuk është në listën e kometave. Shkarkoni të dhënat e kometave te Cilësimet ose shkruani shpejtësitë."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Start guiding first, then keep the comet centred by moving the lock position."
+msgstr "Nisni fillimisht udhëheqjen, pastaj mbani kometën në qendër duke lëvizur pozicionin e kyçjes."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Train for longer: at least a minute gives usable rates."
+msgstr "Stërvitni më gjatë: të paktën një minutë jep shpejtësi të përdorshme."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Click Loop first, so the pulse's effect can be seen."
+msgstr "Klikoni fillimisht Cikël, që të shihet efekti i impulsit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Manual pulses are for looping, not while calibrating or guiding."
+msgstr "Impulset dore janë për ciklin, jo gjatë kalibrimit ose udhëheqjes."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop the guider before taking dark frames."
+msgstr "Ndalni udhëheqjen para se të bëni kuadro të errëta."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Dark frames are being taken with the guide camera."
+msgstr "Kamera udhëheqëse po bën kuadro të errëta."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guide star was lost during the backlash test."
+msgstr "Ylli udhëheqës humbi gjatë testit të lojës."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The backlash test stopped because the mount slewed."
+msgstr "Testi i lojës u ndal sepse montura u rrotullua."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Select star here"
+msgstr "Zgjidh yllin këtu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Set lock position here"
+msgstr "Vendos pozicionin e kyçjes këtu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Assistants"
+msgstr "Asistentët"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Darks"
+msgstr "Kuadro të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Tools"
+msgstr "Mjete"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "brightness jumped: frame not used"
+msgstr "shkëlqimi kërceu: kuadri nuk u përdor"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} stars"
+msgstr "{0} yje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.0#} s"
+msgstr "{0:0.0#} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Auto exposure"
+msgstr "Ekspozim automatik"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the star's SNR"
+msgstr "Sipas SNR-së së yllit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Shortest exposure (s)"
+msgstr "Ekspozimi më i shkurtër (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Longest exposure (s)"
+msgstr "Ekspozimi më i gjatë (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Multi-star"
+msgstr "Disa yje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide on several stars"
+msgstr "Udhëhiq me disa yje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Most stars"
+msgstr "Më së shumti yje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star brightness"
+msgstr "Shkëlqimi i yllit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Skip frames where it jumps"
+msgstr "Kapërce kuadrot ku kërcen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Brightness tolerance (%)"
+msgstr "Toleranca e shkëlqimit (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction; after three in a row, the new brightness counts."
+msgstr "Një kuadër ku shkëlqimi i yllit udhëheqës ndryshon më shumë se toleranca nuk përdoret për korrigjim; pas tre radhazi vlen shkëlqimi i ri."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA algorithm"
+msgstr "Algoritmi i RA"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hysteresis"
+msgstr "Histereza"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2"
+msgstr "Lowpass2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter"
+msgstr "Z-filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2 aggressiveness (%)"
+msgstr "Agresiviteti i Lowpass2 (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter exposure factor"
+msgstr "Faktori i ekspozimit të Z-filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec algorithm"
+msgstr "Algoritmi i Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Resist Switch"
+msgstr "Resist Switch"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide Dec"
+msgstr "Udhëhiq Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Both ways"
+msgstr "Në të dy drejtimet"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North only"
+msgstr "Vetëm veri"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South only"
+msgstr "Vetëm jug"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Off"
+msgstr "Joaktiv"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash compensation"
+msgstr "Kompensimi i lojës"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When Dec turns"
+msgstr "Kur Dec kthen drejtim"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash (ms)"
+msgstr "Loja (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at least (ms)"
+msgstr "Loja të paktën (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at most (ms)"
+msgstr "Loja më së shumti (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide stars"
+msgstr "Yjet udhëheqës"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects a share of the error, smoothed with the one before."
+msgstr "Korrigjon një pjesë të gabimit, të zbutur me të mëparshmin."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Changes direction only when the error clearly asks for it, which suits Dec's backlash."
+msgstr "Ndryshon drejtim vetëm kur gabimi e kërkon qartë, gjë që i përshtatet lojës në Dec."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing."
+msgstr "Heq një vijë të drejtë nëpër gabimet e fundit që seeing-u të mesatarizohet: për montura të qeta me seeing të mirë."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guides as if the exposures were longer: for slow errors in poor seeing."
+msgstr "Udhëheq sikur ekspozimet të ishin më të gjata: për gabime të ngadalta me seeing të dobët."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Now {0:0} ms, as it has adapted."
+msgstr "Tani {0:0} ms, siç është përshtatur."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, measures how the stars move with corrections paused: the seeing, the drift, RA's swing and the polar alignment error. Give it two minutes, longer for polar alignment."
+msgstr "Gjatë udhëheqjes mat si lëvizin yjet me korrigjimet në pauzë: seeing-un, zhvendosjen, lëkundjen në RA dhe gabimin e rreshtimit polar. Jepini dy minuta, më gjatë për rreshtimin polar."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Afterwards"
+msgstr "Më pas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measure Dec backlash"
+msgstr "Mat lojën në Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start measuring"
+msgstr "Fillo matjen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop and analyse"
+msgstr "Ndal dhe analizo"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Apply the ticked settings"
+msgstr "Zbato cilësimet e shënuara"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibrates near the meridian and the celestial equator, where calibration is most reliable, on the side the mount points to now, then rates the calibration."
+msgstr "Kalibron afër meridianit dhe ekuatorit qiellor, ku kalibrimi është më i besueshëm, në anën ku drejtohet tani montura, pastaj vlerëson kalibrimin."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hour angle (h)"
+msgstr "Këndi orar (h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Declination (°)"
+msgstr "Deklinacioni (°)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Slew and calibrate"
+msgstr "Rrotullo dhe kalibro"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Return"
+msgstr "Kthehu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Suggest again"
+msgstr "Propozo sërish"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration Assistant"
+msgstr "Asistenti i kalibrimit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant"
+msgstr "Asistenti i udhëheqjes"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measuring… {0} frames so far."
+msgstr "Po matet… deri tani {0} kuadro."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} frames over {1:0} s."
+msgstr "{0} kuadro në {1:0} s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+msgstr "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Drift: RA {0:0.00}″, Dec {1:0.00}″ a minute."
+msgstr "Zhvendosja: RA {0:0.00}″, Dec {1:0.00}″ në minutë."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA swing {0:0.0}″ peak to peak, changing up to {1:0.00}″ a second."
+msgstr "Lëkundja në RA {0:0.0}″ nga maja në majë, me ndryshim deri në {1:0.00}″ në sekondë."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Polar alignment off by at least {0:0.0}′."
+msgstr "Rreshtimi polar shmanget të paktën {0:0.0}′."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash: {0}"
+msgstr "Loja në Dec: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash {0:0} ± {1:0} ms."
+msgstr "Loja në Dec {0:0} ± {1:0} ms."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2 is connected: it has its own Guiding Assistant."
+msgstr "PHD2 është i lidhur: ka asistentin e vet të udhëheqjes."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant finished"
+msgstr "Asistenti i udhëheqjes mbaroi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Settings applied."
+msgstr "Cilësimet u zbatuan."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Good"
+msgstr "I mirë"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Acceptable"
+msgstr "I pranueshëm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Poor"
+msgstr "I dobët"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration: {0}."
+msgstr "Kalibrimi: {0}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding stopped, so the Guiding Assistant did too."
+msgstr "Udhëheqja u ndal, prandaj edhe asistenti i udhëheqjes."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a telescope: the assistant slews it."
+msgstr "Lidhni një teleskop: asistenti e rrotullon."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West of the meridian, {0:0}° up."
+msgstr "Në perëndim të meridianit, {0:0}° lart."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East of the meridian, {0:0}° up."
+msgstr "Në lindje të meridianit, {0:0}° lart."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Nothing"
+msgstr "Asgjë"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The dark library"
+msgstr "Bibliotekën e kuadrove të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The bad-pixel map"
+msgstr "Hartën e pikselëve të dëmtuar"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A dark library subtracts a master dark from each guide frame; a bad-pixel map mends the hot and cold pixels. Either removes hot pixels that could be taken for stars."
+msgstr "Biblioteka e kuadrove të errëta zbret një kuadër të errët kryesor nga çdo kuadër udhëheqjeje; harta e pikselëve të dëmtuar ndreq pikselët e nxehtë dhe të ftohtë. Të dyja heqin pikselët e nxehtë që mund të merreshin për yje."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames each"
+msgstr "Kuadro të errëta për secilin"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build dark library"
+msgstr "Krijo bibliotekë kuadrosh të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames"
+msgstr "Kuadro të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Threshold (σ)"
+msgstr "Pragu (σ)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build bad-pixel map"
+msgstr "Krijo hartën e pikselëve të dëmtuar"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Cover the guide scope (or close the camera's shutter), then click Continue."
+msgstr "Mbuloni teleskopin udhëheqës (ose mbyllni grilën e kamerës), pastaj klikoni Vazhdo."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Continue"
+msgstr "Vazhdo"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Taking dark frames"
+msgstr "Po bëhen kuadro të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map"
+msgstr "Harta e pikselëve të dëmtuar"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library"
+msgstr "Biblioteka e kuadrove të errëta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library built. Uncover the guide scope."
+msgstr "Biblioteka e kuadrove të errëta u krijua. Zbuloni teleskopin udhëheqës."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map built: {0} hot and {1} cold pixels. Uncover the guide scope."
+msgstr "Harta e pikselëve të dëmtuar u krijua: {0} të nxehtë dhe {1} të ftohtë. Zbuloni teleskopin udhëheqës."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Exposures: {0} s"
+msgstr "Ekspozime: {0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0}: {1:0} %"
+msgstr "{0}: {1:0} %"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a guide camera to build or use dark frames."
+msgstr "Lidhni një kamerë udhëheqëse për të krijuar ose përdorur kuadro të errëta."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: none yet."
+msgstr "Biblioteka e kuadrove të errëta: ende asnjë."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: {0} s, {1} frames each, {2:yyyy-MM-dd}."
+msgstr "Biblioteka e kuadrove të errëta: {0} s, nga {1} kuadro, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It fits the guide camera."
+msgstr "I përshtatet kamerës udhëheqëse."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It doesn't fit the guide camera as set up now; build it again."
+msgstr "Nuk i përshtatet kamerës udhëheqëse siç është vendosur tani; krijojeni sërish."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: none yet."
+msgstr "Harta e pikselëve të dëmtuar: ende asnjë."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: {0} hot and {1} cold pixels, {2:yyyy-MM-dd}."
+msgstr "Harta e pikselëve të dëmtuar: {0} të nxehtë dhe {1} të ftohtë, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position X (px)"
+msgstr "Pozicioni i kyçjes X (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position Y (px)"
+msgstr "Pozicioni i kyçjes Y (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Or right-click the frame: Set lock position here."
+msgstr "Ose klikoni me të djathtën kuadrin: Vendos pozicionin e kyçjes këtu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Sticky lock position"
+msgstr "Pozicion kyçjeje i qëndrueshëm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Keep it through stops"
+msgstr "Mbaje pas ndalimit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Move by (″)"
+msgstr "Lëviz me (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North"
+msgstr "Veri"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South"
+msgstr "Jug"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East"
+msgstr "Lindje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West"
+msgstr "Perëndim"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Moves the telescope that far on the sky, through the calibration; without one, that many pixels in the frame."
+msgstr "E lëviz teleskopin aq në qiell nëpërmjet kalibrimit; pa të, aq piksele në kuadër."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rates from"
+msgstr "Shpejtësitë nga"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Entered rates"
+msgstr "Shpejtësi të shkruara"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A comet's orbit"
+msgstr "Orbita e një komete"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training"
+msgstr "Stërvitje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA (″/h, on the sky)"
+msgstr "RA (″/h, në qiell)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec (″/h)"
+msgstr "Dec (″/h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Comet tracking"
+msgstr "Ndjekja e kometës"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the comet"
+msgstr "Ndiq kometën"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start training"
+msgstr "Fillo stërvitjen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop training"
+msgstr "Ndal stërvitjen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse (ms)"
+msgstr "Impulsi (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While looping: one pulse, and how far the star moved, to check the guide cable and the guide rate."
+msgstr "Në cikël: një impuls dhe sa u zhvendos ylli, për të kontrolluar kabllon dhe shpejtësinë e udhëheqjes."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Manual guide"
+msgstr "Udhëheqje me dorë"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position"
+msgstr "Pozicioni i kyçjes"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse sent. Choose a guide star to see how far it moves."
+msgstr "Impulsi u dërgua. Zgjidhni një yll udhëheqës për të parë sa lëviz."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The star moved {0:0.0} px towards {1:0}°."
+msgstr "Ylli lëvizi {0:0.0} px drejt {1:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "As calibrated ({0:0.0} px towards {1:0}°)."
+msgstr "Si në kalibrim ({0:0.0} px drejt {1:0}°)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The calibration expected {0:0.0} px towards {1:0}°. Check the guide cable, the guide rate and Dec backlash."
+msgstr "⚠ Kalibrimi priste {0:0.0} px drejt {1:0}°. Kontrolloni kabllon e udhëheqjes, shpejtësinë e udhëheqjes dhe lojën në Dec."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: keep the comet centred in the imaging camera by moving the lock position."
+msgstr "Stërvitje: mbani kometën në qendër të kamerës kryesore duke lëvizur pozicionin e kyçjes."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Following at RA {0:0.0}″/h and Dec {1:0.0}″/h."
+msgstr "Ndiqet me RA {0:0.0}″/h dhe Dec {1:0.0}″/h."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "No comets yet: download the comet data in Settings."
+msgstr "Ende nuk ka kometa: shkarkoni të dhënat e kometave te Cilësimet."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, the lock position follows the comet, so the comet stays put in the imaging camera."
+msgstr "Gjatë udhëheqjes pozicioni i kyçjes ndjek kometën, kështu që kometa qëndron e palëvizur në kamerën kryesore."
+
 #: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
 msgid "Disconnect the guide camera to use PHD2."
 msgstr "Shkëputni kamerën udhëheqëse për të përdorur PHD2."
@@ -2782,10 +3438,6 @@ msgid "Clear calibration"
 msgstr "Pastro kalibrimin"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "RA: Hysteresis. Dec: Resist Switch, which changes direction only when the error clearly asks for it."
-msgstr "RA: Hysteresis. Dec: Resist Switch, që ndryshon drejtim vetëm kur gabimi e kërkon qartë."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "RA aggressiveness (%)"
 msgstr "Agresiviteti RA (%)"
 
@@ -2820,10 +3472,6 @@ msgstr "Gabime të mëdha në Dec"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Correct at once"
 msgstr "Korrigjo menjëherë"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Algorithms"
-msgstr "Algoritmet"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Calibration"

@@ -66,12 +66,12 @@ namespace Sidralune.Devices.Guiding
             {
                 Path = System.IO.Path.Combine(folder ?? AppPaths.Logs, "Guide " + DateTime.Now.ToString("yyyy-MM-dd HHmmss", CultureInfo.InvariantCulture) + ".csv");
                 _w = new StreamWriter(Path, true) { AutoFlush = true };
-                _w.WriteLine("Time,Event,X,Y,Offset X,Offset Y,RA px,Dec px,RA ms,Dec ms,SNR,Flux,HFD,Note");
+                _w.WriteLine("Time,Event,X,Y,Offset X,Offset Y,RA px,Dec px,RA ms,Dec ms,SNR,Flux,HFD,Stars,Note");
             }
             catch (Exception ex) { Log.Warn("Guider", "Could not open the guide log: " + ex.Message); _w = null; }
         }
 
-        public void Row(string ev, GuideStarInfo star, double ox, double oy, double ra, double dec, int raMs, int decMs, string note = "")
+        public void Row(string ev, GuideStarInfo star, double ox, double oy, double ra, double dec, int raMs, int decMs, string note = "", int stars = 0)
         {
             if (_w == null) return;
             var cells = new object[]
@@ -79,7 +79,8 @@ namespace Sidralune.Devices.Guiding
                 DateTime.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture), ev,
                 star != null ? (object)Math.Round(star.X, 3) : "", star != null ? (object)Math.Round(star.Y, 3) : "",
                 Num(ox), Num(oy), Num(ra), Num(dec), raMs, decMs,
-                star != null ? (object)Math.Round(star.Snr, 1) : "", star != null ? (object)star.Flux.ToString("G5", CultureInfo.InvariantCulture) : "", star != null ? (object)Math.Round(star.Hfd, 2) : "", note
+                star != null ? (object)Math.Round(star.Snr, 1) : "", star != null ? (object)star.Flux.ToString("G5", CultureInfo.InvariantCulture) : "", star != null ? (object)Math.Round(star.Hfd, 2) : "",
+                stars > 0 ? (object)stars : "", note
             };
             try { lock (this) _w.WriteLine(string.Join(",", Array.ConvertAll(cells, c => CsvWriter.Escape(CsvWriter.Format(c))))); } catch { }
         }

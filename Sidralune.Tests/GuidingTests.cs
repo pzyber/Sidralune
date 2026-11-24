@@ -5,8 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Sidralune.Core;
 using Sidralune.Core.Catalogs;
+using Sidralune.Core.Ephemeris;
 using Sidralune.Core.Mathematics;
+using Sidralune.Core.MinorBodies;
+using Sidralune.Core.Time;
 using Sidralune.Devices;
 using Sidralune.Devices.Automation;
 using Sidralune.Devices.Guiding;
@@ -416,6 +420,433 @@ namespace Sidralune.Tests
             g.Failed += m => problems.Add(m);
             dm.GuideCamera.Disconnect();
             CheckTrue("A lost camera stops the guider", SpinUntil(() => g.State == SidraluneGuider.Stopped, 8000) && problems.Count == 1, string.Join(";", problems));
+            dm.DisconnectAll();
+        }
+
+        private static double Gauss(Random r) => Math.Sqrt(-2 * Math.Log(1 - r.NextDouble())) * Math.Cos(2 * Math.PI * r.NextDouble());
+
+        /// <summary>A star moving by drift pixels a frame, measured with noise, guided by one algorithm: the RMS of where it really was, and of the corrections.</summary>
+        private static double[] Loop(IAxisAlgorithm alg, double drift, double noise, int frames, int seed)
+        {
+            var rng = new Random(seed);
+            double p = 0, ss = 0, cs = 0;
+            int n = 0;
+            for (int i = 0; i < frames; i++)
+            {
+                p += drift;
+                double c = alg.Correction(p + noise * Gauss(rng));
+                alg.Sent(c);
+                p -= c;
+                if (i >= frames / 2) { ss += p * p; cs += c * c; n++; }
+            }
+            return new[] { Math.Sqrt(ss / n), Math.Sqrt(cs / n), p };
+        }
+
+        [TestMethod]
+        public void TestGuideAlgorithmsStage2()
+        {
+            var lp = new Lowpass2Algorithm { MinMovePx = 0.2, Aggressiveness = 0.8 };
+            Check("Lowpass2 leaves an error under the minimum move alone", lp.Correction(0.1), 0, 1e-12);
+            lp.Reset();
+            double last = 0;
+            for (int i = 1; i <= 10; i++) last = lp.Correction(0.1 * i);
+            Check("Lowpass2 follows a ramp: a share of the line's value now", last, 0.8 * 1.0, 1e-9);
+            Check("…never more than the error just measured", new Lowpass2Algorithm { Aggressiveness = 1 }.Correction(0.5), 0.5, 1e-12);
+            lp.Reset();
+            for (int i = 0; i < 10; i++) lp.Correction(0.5);
+            Check("A turn the other way of over five minimum moves starts the line again", lp.Correction(-1.5), -1.2, 1e-9);
+            // seeing alone: the line averages it out, so it is corrected far less than with Hysteresis
+            var rng = new Random(11);
+            var noise = Enumerable.Range(0, 400).Select(i => 0.35 * Gauss(rng)).ToList();
+            lp.Reset();
+            var hy = new HysteresisAlgorithm { MinMovePx = 0.2, Hysteresis = 0.1, Aggressiveness = 0.8 };
+            double lpSum = noise.Sum(e => Math.Abs(lp.Correction(e))), hySum = noise.Sum(e => Math.Abs(hy.Correction(e)));
+            CheckTrue("Lowpass2 chases seeing far less than Hysteresis", lpSum < 0.6 * hySum, lpSum.ToString("0.0") + " vs " + hySum.ToString("0.0"));
+            var lpDrift = Loop(new Lowpass2Algorithm { MinMovePx = 0.2, Aggressiveness = 0.8 }, 0.1, 0.1, 200, 4);
+            CheckTrue("Lowpass2 holds a drifting star", lpDrift[0] < 0.5, lpDrift[0].ToString("0.00"));
+
+            var z1 = new ZFilterAlgorithm { MinMovePx = 0, ExposureFactor = 1 };
+            Check("Z-filter at factor 1 passes the error through", z1.Correction(0.7), 0.7, 1e-12);
+            var zNoise = Loop(new ZFilterAlgorithm { MinMovePx = 0, ExposureFactor = 4 }, 0, 0.5, 400, 7);
+            var hNoise = Loop(new HysteresisAlgorithm { MinMovePx = 0, Hysteresis = 0, Aggressiveness = 1 }, 0, 0.5, 400, 7);
+            CheckTrue("Z-filter at factor 4 corrects much less of the seeing", zNoise[1] < 0.5 * hNoise[1], zNoise[1].ToString("0.00") + " vs " + hNoise[1].ToString("0.00"));
+            var zDrift = Loop(new ZFilterAlgorithm { MinMovePx = 0.05, ExposureFactor = 4 }, 0.1, 0, 200, 3);
+            CheckTrue("Z-filter keeps up with a steady drift, a little behind", zDrift[0] < 0.6 && Math.Abs(zDrift[2]) < 0.6, zDrift[0].ToString("0.00") + " " + zDrift[2].ToString("0.00"));
+
+            var b = new BacklashCompensation { Enabled = true, AmountMs = 500, MinMs = 100, MaxMs = 800 };
+            CheckTrue("No compensation before Dec has turned at all", b.Extra(1, -1) == 0);
+            b.Pulsed(1);
+            CheckTrue("…nor going on the same way", b.Extra(1, -1) == 0);
+            b.Pulsed(1);
+            Check("A turn adds the backlash (ms)", b.Extra(-1, 1), 500, 0);
+            b.Pulsed(-1);
+            b.Next(-0.8, 0.2);
+            Check("An overshoot shortens it by 10 %", b.AmountMs, 450, 1e-9);
+            b.Extra(1, -1); b.Pulsed(1);
+            b.Next(-0.9, 0.2);
+            Check("A turn that hardly moved the star lengthens it by 10 %", b.AmountMs, 495, 1e-9);
+            b.AmountMs = 790;
+            b.Extra(-1, 1); b.Pulsed(-1); b.Next(1, 0.2);
+            Check("…up to the maximum", b.AmountMs, 800, 1e-9);
+            b.Enabled = false;
+            CheckTrue("Off: nothing added", b.Extra(1, -1) == 0);
+        }
+
+        [TestMethod]
+        public void TestMultiStar()
+        {
+            var field = new List<Synthetic.SynthStar>
+            {
+                new Synthetic.SynthStar { X = 200, Y = 150, Flux = 0.45 },   // the guide star
+                new Synthetic.SynthStar { X = 80, Y = 60, Flux = 0.3 }, new Synthetic.SynthStar { X = 320, Y = 70, Flux = 0.3 },
+                new Synthetic.SynthStar { X = 90, Y = 230, Flux = 0.3 }, new Synthetic.SynthStar { X = 310, Y = 240, Flux = 0.3 },
+                new Synthetic.SynthStar { X = 200, Y = 60, Flux = 0.3 }, new Synthetic.SynthStar { X = 120, Y = 150, Flux = 0.3 },
+            };
+            Func<double, double, int, Func<int, Synthetic.SynthStar, Synthetic.SynthStar>, AstroImage> frame = (sx, sy, seed, change) =>
+                Field(field.Select((s, i) => change(i, new Synthetic.SynthStar { X = s.X + sx, Y = s.Y + sy, Flux = s.Flux })).Where(s => s != null), 0, seed);
+            Func<int, Synthetic.SynthStar, Synthetic.SynthStar> same = (i, s) => s;
+            var f0 = frame(0, 0, 100, same);
+            var lum0 = f0.Luminance();
+            var primary = GuideStars.Select(lum0, f0.Width, f0.Height, 10, double.NaN, double.NaN, 20);
+            CheckTrue("The brightest single star is the guide star", primary != null && Math.Abs(primary.X - 200) < 0.5 && Math.Abs(primary.Y - 150) < 0.5, primary?.ToString());
+            var multi = new GuideStarSet { SearchRadius = 10, MultiStar = true, MaxStars = 9, MassCheck = false };
+            var single = new GuideStarSet { SearchRadius = 10, MultiStar = false, MassCheck = false };
+            multi.SetPrimary(primary, lum0, f0.Width, f0.Height, 20);
+            single.SetPrimary(primary, lum0, f0.Width, f0.Height, 20);
+            CheckTrue("Six other stars are chosen with it", multi.Secondaries.Count == 6, multi.Secondaries.Count.ToString());
+            double lx = primary.X, ly = primary.Y;
+
+            // the same shifts measured with one star and with seven: the spread of the error
+            var rng = new Random(9);
+            var em = new List<double>(); var es = new List<double>();
+            for (int k = 1; k <= 40; k++)
+            {
+                double sx = rng.NextDouble() * 2 - 1, sy = rng.NextDouble() * 2 - 1;
+                var f = frame(sx, sy, 100 + k, same);
+                var lum = f.Luminance();
+                var rm = multi.Track(lum, f.Width, f.Height, lx, ly, true, 20);
+                var rs = single.Track(lum, f.Width, f.Height, lx, ly, true, 20);
+                if (!rm.Usable || !rs.Usable) { em.Add(99); continue; }
+                em.Add(rm.Dx - sx); es.Add(rs.Dx - sx);
+            }
+            Func<List<double>, double> spread = v => Math.Sqrt(v.Average(x => (x - v.Average()) * (x - v.Average())));
+            Info(string.Format("Error spread: seven stars {0:0.000} px, one star {1:0.000} px", spread(em), spread(es)));
+            CheckTrue("Seven stars measure the shift better than one", spread(em) < 0.75 * spread(es), spread(em).ToString("0.000") + " vs " + spread(es).ToString("0.000"));
+
+            // one star jumps (a hot pixel, a satellite next to it): it is left out
+            var jump = frame(0.3, -0.2, 300, (i, s) => i == 2 ? new Synthetic.SynthStar { X = s.X + 4, Y = s.Y, Flux = s.Flux } : s);
+            var rj = multi.Track(jump.Luminance(), jump.Width, jump.Height, lx, ly, true, 20);
+            CheckTrue("A star that disagrees is left out", rj.Usable && Math.Abs(rj.Dx - 0.3) < 0.25 && rj.StarsUsed == 6, string.Format("{0:0.00} with {1} stars", rj.Dx, rj.StarsUsed));
+
+            // the guide star disappears: the others carry on, and after ten frames the best of them takes over
+            bool usable = true, promoted = false;
+            for (int k = 0; k < 10; k++)
+            {
+                var f = frame(0.2, 0.1, 400 + k, (i, s) => i == 0 ? null : s);
+                var r = multi.Track(f.Luminance(), f.Width, f.Height, lx, ly, true, 20);
+                usable &= r.Usable && !r.PrimaryFound;
+                if (r.Promoted) { promoted = true; lx = r.NewLockX; ly = r.NewLockY; }
+                if (usable && !r.Promoted) CheckTrue("…the others still give the shift", Math.Abs(r.Dx - 0.2) < 0.25, r.Dx.ToString("0.00"));
+            }
+            CheckTrue("Without the guide star the others guide", usable);
+            CheckTrue("After ten frames another star is the guide star", promoted && Math.Abs(multi.Primary.X - 200) + Math.Abs(multi.Primary.Y - 150) > 5, multi.Primary?.ToString());
+            var after = frame(0.2, 0.1, 500, (i, s) => i == 0 ? null : s);
+            var ra = multi.Track(after.Luminance(), after.Width, after.Height, lx, ly, true, 20);
+            CheckTrue("…and the shift is the same from its lock position", ra.Usable && ra.PrimaryFound && Math.Abs(ra.Dx - 0.2) < 0.25 && Math.Abs(ra.Dy - 0.1) < 0.25, ra.Dx.ToString("0.00") + ", " + ra.Dy.ToString("0.00"));
+
+            // star mass: one star alone, its brightness jumping
+            var mass = new GuideStarSet { SearchRadius = 10, MultiStar = false, MassCheck = true, MassTolerance = 0.5 };
+            mass.SetPrimary(primary, lum0, f0.Width, f0.Height, 20);
+            for (int k = 0; k < 4; k++) { var f = frame(0, 0, 600 + k, same); mass.Track(f.Luminance(), f.Width, f.Height, primary.X, primary.Y, true, 20); }
+            Func<int, Synthetic.SynthStar, Synthetic.SynthStar> bright = (i, s) => i == 0 ? new Synthetic.SynthStar { X = s.X, Y = s.Y, Flux = s.Flux * 3 } : s;
+            var m1 = frame(0, 0, 700, bright); var r1 = mass.Track(m1.Luminance(), m1.Width, m1.Height, primary.X, primary.Y, true, 20);
+            var m2 = frame(0, 0, 701, bright); var r2 = mass.Track(m2.Luminance(), m2.Width, m2.Height, primary.X, primary.Y, true, 20);
+            var m3 = frame(0, 0, 702, bright); var r3 = mass.Track(m3.Luminance(), m3.Width, m3.Height, primary.X, primary.Y, true, 20);
+            CheckTrue("A frame with the star three times as bright is not used", r1.PrimaryRejected && !r1.Usable && r2.PrimaryRejected && !r2.Usable);
+            CheckTrue("…the third such frame in a row makes it the star's brightness", !r3.PrimaryRejected && r3.Usable && r3.Notes.Count > 0);
+            // with other stars, a frame the guide star sits out is still guided on
+            var withOthers = new GuideStarSet { SearchRadius = 10, MultiStar = true, MaxStars = 9, MassCheck = true, MassTolerance = 0.5 };
+            withOthers.SetPrimary(primary, lum0, f0.Width, f0.Height, 20);
+            for (int k = 0; k < 4; k++) { var f = frame(0, 0, 900 + k, same); withOthers.Track(f.Luminance(), f.Width, f.Height, primary.X, primary.Y, true, 20); }
+            var m4 = frame(0.4, 0, 910, bright);
+            var r4 = withOthers.Track(m4.Luminance(), m4.Width, m4.Height, primary.X, primary.Y, true, 20);
+            CheckTrue("…the others still guide when the guide star sits a frame out", r4.PrimaryRejected && r4.Usable && r4.StarsUsed == 6 && Math.Abs(r4.Dx - 0.4) < 0.25, r4.StarsUsed + " stars, " + r4.Dx.ToString("0.00"));
+        }
+
+        [TestMethod]
+        public void TestGuideDarksAndExposure()
+        {
+            var dm = GuideObservatory("guide-darks");
+            var g = dm.BuiltinGuider;
+            var cam = (CameraSimulator)dm.GuideCamera;
+            var ct = CancellationToken.None;
+            Func<Action, string> error = a => { try { a(); return null; } catch (AggregateException ex) { return ex.InnerException.Message; } catch (Exception ex) { return ex.Message; } };
+
+            g.BuildDarkLibrary(new[] { 0.2, 0.5 }, 3, null, ct).Wait();
+            var setup = g.SetupNow();
+            g.Darks.Load(setup.Camera);
+            CheckTrue("A dark library of two exposures that fits the guide camera", g.Darks.LibraryFits(setup) && g.Darks.Library.Exposures.Count == 2, setup.ToString());
+            Check("The nearest dark to 0.3 s", g.Darks.Nearest(0.3), 0.2, 1e-9);
+            var dark = CaptureService.GrabFrame(cam, 0.5, ct, false).Result;
+            var d = dark.Data[0];
+            double med = ImageStatistics.Compute(d, dark.Width, 0).Median;
+            var hot = Enumerable.Range(0, d.Length).Where(i => d[i] > med + 0.001).ToList();
+            CheckTrue("The simulated guide camera has about 60 hot pixels", hot.Count >= 55 && hot.Count <= 60, hot.Count.ToString());
+            var treated = CaptureService.GrabFrame(cam, 0.5, ct, false).Result;
+            double used = g.Darks.Apply(treated, DarkFrameKind.DarkLibrary, setup, 0.5);
+            double tmed = ImageStatistics.Compute(treated.Data[0], treated.Width, 0).Median;
+            CheckTrue("Subtracting the 0.5 s dark removes the hot pixels", used == 0.5 && hot.All(i => Math.Abs(treated.Data[0][i] - tmed) < 0.0003));
+
+            var map = g.BuildBadPixelMap(1, 3, 5, null, ct).Result;
+            CheckTrue("A bad-pixel map finds the hot pixels", map.Hot >= hot.Count && map.Hot <= hot.Count + 4 && map.Cold <= 3, map.Hot + " hot, " + map.Cold + " cold");
+            var mended = CaptureService.GrabFrame(cam, 0.5, ct, false).Result;
+            g.Darks.Apply(mended, DarkFrameKind.BadPixelMap, setup, 0.5);
+            double mmed = ImageStatistics.Compute(mended.Data[0], mended.Width, 0).Median;
+            CheckTrue("…and mends them", hot.Count(i => Math.Abs(mended.Data[0][i] - mmed) < 0.0003) >= hot.Count - 2);
+
+            g.Settings.Binning = 2;
+            var binned = g.SetupNow();
+            CheckTrue("Neither fits another binning", !g.Darks.LibraryFits(binned) && !g.Darks.MapFits(binned));
+            g.Settings.Binning = 1;
+
+            // the loop uses them
+            g.Settings.DarkFrames = DarkFrameKind.DarkLibrary;
+            g.Loop();
+            CheckTrue("No dark frames while the guider runs", error(() => g.BuildDarkLibrary(new[] { 0.2 }, 1, null, ct).Wait()) == "Stop the guider before taking dark frames.");
+            SpinUntil(() => g.LastFrame != null, 5000);
+            Thread.Sleep(600);
+            var lf = g.LastFrame;
+            double lmed = ImageStatistics.Compute(lf.Data[0], lf.Width, 0).Median;
+            CheckTrue("Guide frames have the dark subtracted", hot.Count(i => Math.Abs(lf.Data[0][i] - lmed) < 0.0003) >= hot.Count - 3);
+
+            // auto exposure: down when the star is bright enough, up when it is not
+            g.Settings.AutoExposure = true; g.Settings.AutoExposureMin = 0.5; g.Settings.AutoExposureMax = 1; g.Settings.TargetSnr = 1;
+            g.SelectStar();
+            CheckTrue("Auto exposure starts at the maximum", g.CurrentExposure == 1);
+            CheckTrue("A bright star shortens it", SpinUntil(() => g.CurrentExposure == 0.5, 12000), g.CurrentExposure.ToString());
+            g.Settings.TargetSnr = 100000;
+            CheckTrue("A star too faint for the target lengthens it", SpinUntil(() => g.CurrentExposure == 1, 12000), g.CurrentExposure.ToString());
+            g.Settings.AutoExposure = false;
+            CheckTrue("Off: the exposure set", g.CurrentExposure == g.Settings.ExposureSeconds);
+            g.StopGuiding();
+            dm.DisconnectAll();
+        }
+
+        [TestMethod]
+        public void TestGuidingAssistant()
+        {
+            var dm = GuideObservatory("guide-assistant");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = (SidraluneGuider)dm.Guider;
+            var cam = (CameraSimulator)dm.GuideCamera;
+            var ct = CancellationToken.None;
+            Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+            g.StartGuiding(false, ct).Wait();
+            CheckTrue("Guiding", g.IsGuiding);
+            var ga = new GuidingAssistant(g);
+            // seeing, and a pole far enough off to measure in half a minute
+            cam.JitterArcsec = 0.6;
+            tel.DriftDecArcsecPerMin = 24;
+            ga.Start();
+            CheckTrue("The assistant pauses corrections", g.State == SidraluneGuider.Paused);
+            Thread.Sleep(25000);
+            var live = ga.Current;
+            CheckTrue("Live numbers while it measures", live.Frames > 50 && !double.IsNaN(live.SeeingRaArcsec), live.Frames.ToString());
+            // a quiet sky and real backlash for the backlash test
+            cam.JitterArcsec = 0.05;
+            tel.DriftDecArcsecPerMin = 0;
+            tel.DecBacklashMs = 800;
+            var r = ga.Stop(true, ct).Result;
+            double seeing = 0.6 / Math.Sqrt(0.2);
+            Info(string.Format("Seeing RA {0:0.00}\" Dec {1:0.00}\" (simulated {2:0.00}\"), Dec drift {3:0.0}\"/min, polar error {4:0}', backlash {5:0} ± {6:0} ms",
+                r.SeeingRaArcsec, r.SeeingDecArcsec, seeing, r.DriftDecArcsecPerMin, r.PolarErrorArcmin, r.BacklashMs, r.BacklashUncertaintyMs));
+            Check("Seeing in RA (″)", r.SeeingRaArcsec, seeing, 0.3 * seeing);
+            Check("Seeing in Dec (″)", r.SeeingDecArcsec, seeing, 0.3 * seeing);
+            Check("Dec drift (″/min)", Math.Abs(r.DriftDecArcsecPerMin), 24, 7);
+            CheckTrue("No RA drift to speak of", Math.Abs(r.DriftRaArcsecPerMin) < 5, r.DriftRaArcsecPerMin.ToString("0.0"));
+            Check("Polar alignment error from the Dec drift (′)", r.PolarErrorArcmin, Math.Abs(r.DriftDecArcsecPerMin) * 3.81, 0.5);
+            CheckTrue("Backlash measured", r.BacklashMeasured && r.BacklashValid, r.BacklashProblem);
+            Check("Dec backlash (ms)", r.BacklashMs, 800, 200);
+            CheckTrue("Guiding resumes", SpinUntil(() => g.IsGuiding, 5000), g.State);
+
+            var recs = GuidingAssistant.Recommend(r, g.Settings);
+            Info(string.Join(" | ", recs.Select(x => x.Text)));
+            var st = new GuiderSettings();
+            foreach (var x in recs) x.Apply?.Invoke(st);
+            Check("Recommended RA minimum move (px)", st.RaMinMovePx, 0.65 * r.SeeingRaArcsec / g.PixelScale, 0.02);
+            CheckTrue("Backlash compensation is recommended at the measured amount", st.BacklashCompensation && Math.Abs(st.BacklashMs - r.BacklashMs) <= 10 && st.BacklashMaxMs > st.BacklashMs);
+            CheckTrue("Polar alignment advice", recs.Any(x => x.Apply == null && x.Text.Contains("Polar alignment")));
+            CheckTrue("The result is kept", GuiderSettings.Load(dm.GuiderSettingsPath).AssistantResults.Count == 1);
+            g.StopGuiding();
+            dm.DisconnectAll();
+        }
+
+        [TestMethod]
+        public void TestCalibrationAssistant()
+        {
+            double ha, dec;
+            CalibrationAssistant.ProposeFor(1, 52, out ha, out dec);
+            CheckTrue("West of the meridian: 5° west, on the equator at 52° N", Math.Abs(ha - 1 / 3.0) < 1e-9 && dec == 0);
+            CalibrationAssistant.ProposeFor(23, 52, out ha, out dec);
+            CheckTrue("East of the meridian: 5° east", Math.Abs(ha + 1 / 3.0) < 1e-9 && dec == 0);
+            CalibrationAssistant.ProposeFor(1, 66, out ha, out dec);
+            CheckTrue("At 66° N the equator is low: raised until 30° up", dec > 0 && CalibrationAssistant.Altitude(ha, dec, 66) >= 30 && CalibrationAssistant.Altitude(ha, dec - 1, 66) < 30, dec.ToString());
+            CalibrationAssistant.ProposeFor(1, -70, out ha, out dec);
+            CheckTrue("…towards the south pole in the south", dec < 0 && CalibrationAssistant.Altitude(ha, dec, -70) >= 30, dec.ToString());
+
+            var dm = GuideObservatory("guide-cal-assistant");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = (SidraluneGuider)dm.Guider;
+            var ct = CancellationToken.None;
+            Centering.Slew(tel, AstroMath.NormalizeHours(tel.SiderealTime - 2), 50, ct).Wait();
+            double ra0 = tel.RightAscension;
+            var ca = new CalibrationAssistant(dm, g);
+            ca.Propose();
+            CheckTrue("Proposed on the same side of the meridian, on the equator", Math.Abs(ca.TargetHaHours - 1 / 3.0) < 1e-9 && ca.TargetDecDeg == 0);
+            var checks = ca.Checks();
+            CheckTrue("The simulator passes the checks", checks.Count == 0, string.Join(" ", checks));
+            ca.Run(ct).Wait();
+            double haNow = AstroMath.NormalizeDeg180(AstroMath.NormalizeHours(tel.SiderealTime - tel.RightAscension) * 15) / 15;
+            CheckTrue("It calibrated near the meridian and the equator", Math.Abs(haNow - 1 / 3.0) < 0.1 && Math.Abs(tel.Declination) < 0.5, haNow.ToString("0.00") + " h, " + tel.Declination.ToString("0.0") + "°");
+            var rating = CalibrationAssistant.Rate(g.Calibration);
+            CheckTrue("The simulator calibrates well", rating == CalibrationRating.Good, string.Join(" ", g.Calibration.Issues));
+            CheckTrue("…and guiding stopped after", g.State == SidraluneGuider.Stopped);
+            ca.Return(ct).Wait();
+            CheckTrue("Return slews back", Math.Abs(tel.Declination - 50) < 0.01 && Math.Abs(AstroMath.NormalizeDeg180((tel.RightAscension - ra0) * 15)) < 0.01);
+            var poor = SampleCalibration();
+            poor.DecAngleDeg = 150; poor.Check();
+            CheckTrue("Axes far from square rate poor", CalibrationAssistant.Rate(poor) == CalibrationRating.Poor && poor.Issues.Count == 1);
+            var few = SampleCalibration();
+            few.RaSteps = 3; few.Check();
+            CheckTrue("Only few steps rates acceptable", CalibrationAssistant.Rate(few) == CalibrationRating.Acceptable);
+            dm.DisconnectAll();
+        }
+
+        private static double TrueArcsec(Func<double> read)
+        {
+            double s = 0;
+            for (int i = 0; i < 5; i++) { s += read(); Thread.Sleep(30); }
+            return s / 5;
+        }
+
+        [TestMethod]
+        public void TestGuiderTools()
+        {
+            var dm = GuideObservatory("guide-tools");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = (SidraluneGuider)dm.Guider;
+            var ct = CancellationToken.None;
+            Func<Action, string> error = a => { try { a(); return null; } catch (AggregateException ex) { return ex.InnerException.Message; } catch (Exception ex) { return ex.Message; } };
+
+            // a comet's rates from its orbit agree with its places ten minutes apart
+            var comet = new MinorBody { Name = "Test comet", Designation = "C/2026 T1", IsComet = true, Elements = OrbitalElements.FromMeanAnomaly(2461200.5, 3.1, 0.6, 12, 80, 120, 10) };
+            var now = DateTime.UtcNow;
+            double cra, cdec;
+            CometRates.Compute(comet, dm.Site, now, out cra, out cdec);
+            var pa = MinorBodyStore.Place(new SkyContext(dm.Site, AstroTime.FromDateTime(now.AddMinutes(-5))), comet).Apparent;
+            var pb = MinorBodyStore.Place(new SkyContext(dm.Site, AstroTime.FromDateTime(now.AddMinutes(5))), comet).Apparent;
+            double fra = (AstroMath.NormalizeRad(pb.Ra - pa.Ra + Math.PI) - Math.PI) * Math.Cos(pb.Dec) * AstroMath.Rad2ArcSec * 6, fdec = (pb.Dec - pa.Dec) * AstroMath.Rad2ArcSec * 6;
+            Info(string.Format("Comet rates RA {0:0.0}\"/h Dec {1:0.0}\"/h", cra, cdec));
+            CheckTrue("Comet rates from its orbit (″/h)", Math.Abs(cra - fra) < 0.01 * Math.Abs(fra) + 0.5 && Math.Abs(cdec - fdec) < 0.01 * Math.Abs(fdec) + 0.5, fra.ToString("0.0") + ", " + fdec.ToString("0.0"));
+
+            Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+            CheckTrue("Manual pulses need the guider looping", error(() => g.ManualPulse(GuideDirection.West, 300, ct).Wait()) == "Click Loop first, so the pulse's effect can be seen.");
+            g.StartGuiding(false, ct).Wait();
+            CheckTrue("…and not guiding", error(() => g.ManualPulse(GuideDirection.West, 300, ct).Wait()) == "Manual pulses are for looping, not while calibrating or guiding.");
+            CheckTrue("The calibration knows which way North and West move the mount", g.Calibration.NorthSign == 1 && g.Calibration.WestSign == 1, g.Calibration.NorthSign + " " + g.Calibration.WestSign);
+
+            // a new lock position while guiding: the star is guided there
+            double lx = g.LockX + 4, ly = g.LockY - 3;
+            g.SetLockPosition(lx, ly);
+            CheckTrue("The star is guided to a new lock position", SpinUntil(() => Math.Abs(g.Star.X - lx) < 0.6 && Math.Abs(g.Star.Y - ly) < 0.6, 10000), g.Star.ToString());
+            // nudges move the telescope on the sky
+            g.Settings.NudgeArcsec = 5;
+            Thread.Sleep(1500);
+            double dec0 = TrueArcsec(() => tel.TrueDec * 3600), ra0 = TrueArcsec(() => tel.TrueRa * 15 * 3600);
+            g.NudgeLock(GuideDirection.North);
+            g.NudgeLock(GuideDirection.East);
+            Thread.Sleep(4000);
+            double dec1 = TrueArcsec(() => tel.TrueDec * 3600), ra1 = TrueArcsec(() => tel.TrueRa * 15 * 3600);
+            // Resist Switch leaves Dec errors up to about 0.9″ uncorrected, so a whole step is measured to 1″
+            Check("North 5″ moves the telescope 5″ north", dec1 - dec0, 5, 1);
+            Check("East 5″ moves it 5″ east", (ra1 - ra0) * Math.Cos(dec1 / 3600 * AstroMath.Deg2Rad), 5, 1);
+
+            // Dec guide modes and Lowpass2
+            int from = g.History.Count;
+            g.Settings.DecMode = DecGuideMode.Off;
+            SpinUntil(() => g.History.Count >= from + 8, 10000);
+            CheckTrue("Dec guide mode Off sends no Dec pulses", g.History.Skip(from + 1).All(s => s.DecPulse == 0));
+            g.Settings.DecMode = DecGuideMode.North;
+            from = g.History.Count;
+            SpinUntil(() => g.History.Count >= from + 8, 10000);
+            CheckTrue("North only sends no South pulses", g.History.Skip(from + 1).All(s => s.DecPulse >= 0));
+            g.Settings.DecMode = DecGuideMode.Auto;
+            g.Settings.DecAlgorithm = GuideAlgorithmKind.Lowpass2;
+            tel.DriftDecArcsecPerMin = 30;
+            from = g.History.Count;
+            SpinUntil(() => g.History.Count >= from + 30, 20000);
+            double decRms = Math.Sqrt(g.History.Skip(from + 10).Average(s => s.DecArcsec * s.DecArcsec));
+            CheckTrue("Lowpass2 holds Dec against a drift of 30″ a minute", decRms < 1.0, decRms.ToString("0.00"));
+            tel.DriftDecArcsecPerMin = 0;
+            g.Settings.DecAlgorithm = GuideAlgorithmKind.ResistSwitch;
+
+            // comet tracking at entered rates: the telescope follows them
+            g.Settings.CometSource = CometRateSource.Entered;
+            g.Settings.CometRaArcsecPerHour = 1800; g.Settings.CometDecArcsecPerHour = -3600;
+            g.FollowComet(true);
+            Thread.Sleep(3000);
+            // RA in arcseconds of RA; the sky motion is its change times cos(dec)
+            dec0 = TrueArcsec(() => tel.TrueDec * 3600); ra0 = TrueArcsec(() => tel.TrueRa * 15 * 3600);
+            var sw = Stopwatch.StartNew();
+            Thread.Sleep(12000);
+            dec1 = TrueArcsec(() => tel.TrueDec * 3600); ra1 = TrueArcsec(() => tel.TrueRa * 15 * 3600);
+            double hours = sw.Elapsed.TotalHours;
+            double east = (ra1 - ra0) * Math.Cos(dec1 / 3600 * AstroMath.Deg2Rad);
+            Info(string.Format("Comet: {0:0.00}″ east and {1:0.00}″ north in {2:0.0} s", east, dec1 - dec0, hours * 3600));
+            Check("The telescope follows the comet in RA (″/h)", east / hours, 1800, 270);
+            Check("…and in Dec (″/h)", (dec1 - dec0) / hours, -3600, 540);
+            g.FollowComet(false);
+            g.Settings.CometSource = CometRateSource.Comet; g.Settings.CometName = "No such comet";
+            CheckTrue("A comet not in the list is said", error(() => g.FollowComet(true)).StartsWith("The comet No such comet is not in the comet list."));
+
+            // training: the lock moved east 1″ a second for twelve seconds
+            g.Settings.NudgeArcsec = 1;
+            g.StartCometTraining();
+            sw.Restart();
+            for (int i = 0; i < 12; i++) { g.NudgeLock(GuideDirection.East); Thread.Sleep(1000); }
+            hours = sw.Elapsed.TotalHours;
+            g.StopCometTraining();
+            Check("Trained RA rate (″/h)", g.Settings.CometRaArcsecPerHour, 12 / hours, 0.05 * 12 / hours);
+            CheckTrue("…no Dec rate", Math.Abs(g.Settings.CometDecArcsecPerHour) < 0.02 * 12 / hours && g.Settings.CometSource == CometRateSource.Trained, g.Settings.CometDecArcsecPerHour.ToString("0.0"));
+
+            // a sticky lock position comes back after a stop
+            g.Settings.StickyLock = true;
+            g.SetLockPosition(g.LockX + 2, g.LockY);
+            double sx = g.LockX, sy = g.LockY;
+            g.StopGuiding();
+            CheckTrue("The sticky lock position is kept", g.Settings.StickyLockX == sx && GuiderSettings.Load(dm.GuiderSettingsPath).StickyLockY == sy);
+            g.StartGuiding(false, ct).Wait();
+            CheckTrue("Guiding again holds the stars at the sticky lock position", g.LockX == sx && g.LockY == sy && g.IsGuiding, g.LockX.ToString("0.00"));
+            // a slew slow enough for the guider to see it between frames
+            tel.SlewRateDegPerSec = 5;
+            tel.SlewToCoordinatesAsync(AstroMath.NormalizeHours(tel.SiderealTime - 1), 40);
+            SpinUntil(() => !g.IsGuiding, 5000);
+            SpinUntil(() => !tel.Slewing, 10000);
+            CheckTrue("A slew forgets it", SpinUntil(() => double.IsNaN(g.Settings.StickyLockX), 3000));
+            g.Settings.StickyLock = false;
+
+            // manual pulses while looping, measured against the calibration, on a star in a frame taken after the slew
+            var before = g.LastFrame;
+            SpinUntil(() => g.LastFrame != before && g.State == SidraluneGuider.Looping, 5000);
+            g.SelectStar();
+            var mp = g.ManualPulse(GuideDirection.West, 300, ct).Result;
+            Info(string.Format("West 300 ms: {0:0.00} px towards {1:0}° (expected {2:0.00} px towards {3:0}°)", mp.Distance, mp.AngleDeg, mp.ExpectedDistance, mp.ExpectedAngleDeg));
+            CheckTrue("A West pulse moves the star as calibrated", mp.Matches == true);
+            double expected = 2 * 15.0410686 * Math.Cos(40 * AstroMath.Deg2Rad) * 0.3 / g.PixelScale;
+            Check("…by the guide rate (px)", mp.Distance, expected, 0.25 * expected);
+            var mn = g.ManualPulse(GuideDirection.North, 300, ct).Result;
+            CheckTrue("A North pulse too", mn.Matches == true, mn.Distance.ToString("0.00"));
+            g.StopGuiding();
             dm.DisconnectAll();
         }
     }

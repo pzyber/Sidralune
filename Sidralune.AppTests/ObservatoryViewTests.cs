@@ -69,6 +69,8 @@ namespace Sidralune.AppTests
                 tel.GuideRateRa = tel.GuideRateDec = 2 * TelescopeSimulator.SiderealDegPerSec;
                 Centering.Slew(tel, tel.SiderealTime - 0.5, 30, CancellationToken.None).Wait();
                 g.Settings.ExposureSeconds = 0.2; g.Settings.FocalLengthMm = 500;
+                // the simulated seeing at these short exposures moves the star more than 1.5 px now and then: settle looser and sooner
+                g.SettlePixels = 3; g.SettleSeconds = 2;
                 g.ClearCalibration();
 
                 var bar = OnUi(() => Button(view, "Start guiding").Parent);
@@ -91,6 +93,19 @@ namespace Sidralune.AppTests
                 CheckTrue("A changed setting reaches the guider and is saved", g.Settings.ExposureSeconds == 0.25 && GuiderSettings.Load().ExposureSeconds == 0.25);
                 CheckTrue("…and leaves the other settings alone (the focal length set in code stays)", g.Settings.FocalLengthMm == 500, g.Settings.FocalLengthMm.ToString());
 
+                // the guider's pages, with the Guiding tab on screen so Visible says what is shown
+                OnUi(() => { var tabs = All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Guiding")); tabs.Select(tabs.Header.Tabs.IndexOf("Guiding")); });
+                var side = OnUi(() => All(view).OfType<TabbedPanel>().FirstOrDefault(t => t.Header.Tabs.Contains("Assistants")));
+                CheckTrue("The guider has Settings, Assistants, Darks and Tools pages", side != null && OnUi(() => side.Header.Tabs.SequenceEqual(new[] { "Settings", "Assistants", "Darks", "Tools" })));
+                var decCard = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Dec"));
+                var decAlgo = OnUi(() => All(decCard).OfType<ComboBox>().First());
+                Func<string, bool> rowShown = label => OnUi(() => All(decCard).OfType<Label>().Any(l => l.Text == label && l.Visible));
+                CheckTrue("Resist Switch shows its own rows", rowShown("Dec aggressiveness (%)") && !rowShown("Lowpass2 aggressiveness (%)"));
+                OnUi(() => decAlgo.SelectedIndex = 1);
+                CheckTrue("Choosing Lowpass2 shows its rows instead", rowShown("Lowpass2 aggressiveness (%)") && !rowShown("Dec aggressiveness (%)"));
+                CheckTrue("…and is saved", g.Settings.DecAlgorithm == GuideAlgorithmKind.Lowpass2 && GuiderSettings.Load().DecAlgorithm == GuideAlgorithmKind.Lowpass2);
+                OnUi(() => decAlgo.SelectedIndex = 0);
+
                 OnUi(() => Button(bar, "Start guiding").PerformClick());
                 CheckTrue("While a start runs, the other guiding commands wait", OnUi(() => !Button(bar, "Calibrate & guide").Enabled && !Button(bar, "Dither").Enabled));
                 CheckTrue("Start guiding calibrates, then guides", WaitFor(() => g.IsGuiding, 60000), g.State);
@@ -98,10 +113,53 @@ namespace Sidralune.AppTests
                 CheckTrue("Guide steps reach the graph", WaitFor(() => plot.Series.Count == 2 && plot.Series[0].X.Count >= 5, 15000), string.Format("state {0}, history {1}, points {2}, guider {3}", g.State, g.History.Count, plot.Series[0].X.Count, Dm.Guider == g));
                 CheckTrue("The calibration is described", OnUi(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Calibrated "))));
                 CheckTrue("The status line names the state and the RMS", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Sidralune guider · Guiding · RMS RA "))), OnUi(() => string.Join(" | ", All(view).OfType<Label>().Where(l => l.Text.Contains("Sidralune guider")).Select(l => l.Text))));
+                CheckTrue("…and how many stars it guides on", WaitFor(() => All(view).OfType<Label>().Any(l => l.Text.StartsWith("Sidralune guider · Guiding · RMS RA ") && l.Text.Contains(" stars"))));
+
+                // manual pulses wait while guiding
+                var manual = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Manual guide"));
+                CheckTrue("Manual guide waits while guiding", WaitFor(() => OnUi(() => All(manual).OfType<FlatButton>().All(b => !b.Enabled))));
+                // the lock position, typed in on the Tools page
+                var lockCard = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Lock position"));
+                var nums = OnUi(() => All(lockCard).OfType<NumericUpDown>().Take(2).ToList());
+                double nx = Math.Round(g.LockX + 2, 2), ny = Math.Round(g.LockY + 1, 2);
+                OnUi(() => { side.Select(3); nums[0].Value = (decimal)nx; nums[1].Value = (decimal)ny; Button(lockCard, "Set").PerformClick(); });
+                CheckTrue("Set moves the lock position", Math.Abs(g.LockX - nx) < 1e-9 && Math.Abs(g.LockY - ny) < 1e-9, g.LockX + ", " + g.LockY);
+                CheckTrue("…and the stars are guided there", WaitFor(() => Math.Abs(g.Star.X - nx) < 0.7 && Math.Abs(g.Star.Y - ny) < 0.7, 15000), g.Star.ToString());
+
+                // the Guiding Assistant, briefly, without the backlash test
+                var assist = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Guiding Assistant"));
+                OnUi(() => { side.Select(1); All(assist).OfType<CheckBox>().First().Checked = false; });
+                // once Start guiding has settled (it waits for the stars to stay put, which a paused guider would not do)
+                CheckTrue("The Guiding Assistant can start while guiding", WaitFor(() => OnUi(() => Button(assist, "Start measuring").Enabled), 40000));
+                OnUi(() => Button(assist, "Start measuring").PerformClick());
+                CheckTrue("It pauses corrections", WaitFor(() => g.State == SidraluneGuider.Paused, 3000), g.State);
+                Thread.Sleep(4000);
+                OnUi(() => Button(assist, "Stop and analyse").PerformClick());
+                CheckTrue("It describes what it measured", WaitFor(() => OnUi(() => All(assist).OfType<Label>().Any(l => l.Text.Contains("Seeing: RA "))), 15000));
+                CheckTrue("…and guiding resumes", WaitFor(() => g.IsGuiding, 5000), g.State);
+                OnUi(() => Button(assist, "Apply the ticked settings").PerformClick());
+                double suggested = Math.Max(0.05, Math.Round(0.65 * g.Settings.AssistantResults[0].SeeingRaArcsec / g.PixelScale, 2));
+                CheckTrue("Apply sets the suggested minimum move", Math.Abs(g.Settings.RaMinMovePx - suggested) < 1e-9, g.Settings.RaMinMovePx + " vs " + suggested);
+
                 OnUi(() => Button(bar, "Stop").PerformClick());
                 CheckTrue("Stop stops the guider and greys out", WaitFor(() => g.State == SidraluneGuider.Stopped && !Button(bar, "Stop").Enabled, 10000), g.State);
+
+                // dark frames: the guide scope must be covered first; Cancel takes none
+                var darkCard = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Dark library"));
+                var cover = OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == "Taking dark frames"));
+                OnUi(() => side.Select(2));
+                CheckTrue("Build dark library is available with the guider stopped", WaitFor(() => OnUi(() => Button(darkCard, "Build dark library").Enabled), 5000));
+                OnUi(() => Button(darkCard, "Build dark library").PerformClick());
+                CheckTrue("It asks to cover the guide scope first", OnUi(() => cover.Visible && All(cover).OfType<Label>().Any(l => l.Visible && l.Text.StartsWith("Cover the guide scope"))));
+                OnUi(() => Button(cover, "Cancel").PerformClick());
+                CheckTrue("Cancel takes no dark frames", OnUi(() => !cover.Visible) && !g.IsRunning && WaitFor(() => OnUi(() => Button(darkCard, "Build dark library").Enabled), 3000));
             }
-            finally { Dm.DisconnectAll(); }
+            finally
+            {
+                Dm.DisconnectAll();
+                Dm.BuiltinGuider.SettlePixels = 1.5; Dm.BuiltinGuider.SettleSeconds = 10;
+                OnUi(() => All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Guiding")).Select(0));
+            }
         }
 
         [TestMethod]

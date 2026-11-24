@@ -184,7 +184,7 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 
 ## Guiding
 
-The Sidralune guider (Observatory → Guiding) is written for Sidralune. Its ideas follow the long-established practice of autoguiders, in particular [PHD2](https://openphdguiding.org), whose Hysteresis and Resist Switch algorithms, Dec backlash clearing, calibration checks and settling it takes as its model.
+The Sidralune guider (Observatory → Guiding) is written for Sidralune. Its ideas follow the long-established practice of autoguiders, in particular PHD2.
 
 | Item | Method |
 |---|---|
@@ -197,6 +197,17 @@ The Sidralune guider (Observatory → Guiding) is written for Sidralune. Its ide
 | Dec: Resist Switch | Corrections continue in the current direction; a reversal needs three errors in a row the other way, each over the minimum move and not shrinking, or (fast switch) one error over three minimum moves |
 | Pulses | Pixels ÷ calibrated rate, limited to the maximum pulse; RA, then Dec; waited for by time and by the driver's IsPulseGuiding |
 | Settling | Done when the star has stayed within 1.5 px of the lock position for 10 s, given up after 120 s (Start guiding); a dither moves the lock by a random amount up to the dither size along RA and Dec and uses the sequence's settle values |
+| Multi-star | Up to 8 more stars (SNR 6 or more, a search area apart) with fixed offsets from the guide star while guiding. Each frame: every star measured in its own search area; displacements from the lock position plus each star's offset; stars more than max(2 px, 3 × 1.4826 × the median distance from the median displacement) left out; SNR-weighted mean. A guide star jump over 2.5 px is followed on the guide star alone. Without the guide star, two others suffice; after 10 frames the one with the best SNR becomes the guide star and the lock position moves to its reference |
+| Star mass | The guide star's flux against the median of its last 10 accepted frames; a frame more than the tolerance (50 %) away is not used, and the third in a row resets the reference |
+| Auto exposure | Steps 0.5–10 s within the set range; one shorter after 3 frames with SNR over 1.5 × target, one longer after 2 frames under the target |
+| Dark library and bad-pixel map | Master darks as the per-pixel median of N dark frames, subtracted with the master's median added back; bad pixels are those more than k σ (MAD-based) above or below the master's median, each replaced by the median of its good neighbours |
+| Lowpass2 | Least-squares line through the last 10 errors since a reset; correction = aggressiveness × the line's value now, zero under the minimum move or of the other sign, never more than the current error; a turn the other way over five minimum moves starts the line again |
+| Z-filter | The uncorrected track (error + corrections sent so far) through a second-order Butterworth low-pass (bilinear transform) with its cutoff at 1/(2 × factor) cycles a frame; correction = filtered track − corrections so far |
+| Backlash compensation | On a Dec reversal the amount is added to the pulse; in the next frame an overshoot past the minimum move takes 10 % off, an error still 80 % or more of the one before on the same side adds 10 %, within the least and most |
+| Guiding Assistant | Seeing = √(Σ Δ² / 2(n − 1)) of frame-to-frame differences per axis; drift from a least-squares line; RA peak-to-peak of the residuals and the fastest change of a five-frame running mean; polar alignment error ≥ the size of the Dec drift (″/min) × 1436 / (120 π) arcmin (the sky turns once a sidereal day). Backlash: the x-intercept of a line through the South steps that moved the star more than 15 % of the way back, valid when the South rate is ≥ 90 % of the North rate; uncertainty = residual σ ÷ South rate. Suggested minimum move = 0.65 × seeing RMS |
+| Calibration Assistant | Hour angle ±5° on the current side of the meridian; declination 0°, or the nearest declination towards the pole with altitude ≥ 30° there; the final slew approaches from 1° south. Rated poor for axes far from square or rates unlike cos(Dec), acceptable for the lesser warnings |
+| Sky directions | Calibration notes which way the mount's own RA and Dec moved under West and North pulses. A North nudge or comet motion is turned into image pixels through the calibrated directions, with North turned round after a flip when the mount does not reverse Dec |
+| Comet rates | From the comet's apparent topocentric places half an hour either side of now: ΔRA × cos(Dec) and ΔDec per hour, recomputed every 10 minutes. Training: lock position moves turned back into sky arcseconds, summed, divided by the time |
 
 ## Photometry and time series
 

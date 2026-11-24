@@ -29,6 +29,11 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [The Sidralune guider](#the-sidralune-guider)
   - [Calibration](#calibration)
   - [Guider settings](#guider-settings)
+  - [Guiding on several stars](#guiding-on-several-stars)
+  - [Dark frames](#dark-frames)
+  - [Guiding Assistant](#guiding-assistant)
+  - [Calibration Assistant](#calibration-assistant)
+  - [Lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
   - [PHD2](#phd2)
 - [Polar alignment tab](#polar-alignment-tab)
@@ -100,7 +105,7 @@ Mounts that speak the Meade LX200 command set (including OnStep, OnStepX and man
 The simulators behave like real devices, so you can learn Sidralune, test sequences and demonstrate features indoors:
 
 - The **mount** slews at a realistic speed, tracks, parks and accepts syncs. Like a real German equatorial mount it keeps its pier side while it tracks through the meridian, until a slew flips it. It tracks with a little periodic error (±6″ over 8 minutes), drifts slowly as if its polar alignment were slightly off, and has some Dec backlash, so guiding has something to correct. Guide pulses take their time, at 0.5× sidereal.
-- The **guide camera** is a small uncooled camera (1280 × 960 pixels of 3.75 µm) on a 240 mm guide scope, turned 30° on the sky, on the same mount. The seeing moves its stars a little from frame to frame. It has a guide (ST-4) port.
+- The **guide camera** is a small uncooled camera (1280 × 960 pixels of 3.75 µm) on a 240 mm guide scope, turned 30° on the sky, on the same mount. The seeing moves its stars a little from frame to frame, and it has some hot pixels for dark frames to remove. It has a guide (ST-4) port.
 - The **camera** renders a star field around the mount's pointing from the loaded catalogues (plus synthetic faint stars), with a realistic point-spread function that widens when the focuser is out of focus, sky background, read noise and shot noise. Plate solving, autofocus, centring and polar alignment therefore all work for real.
 - The **focuser** has a hidden best-focus position; stars grow along a hyperbola away from it, exactly what autofocus expects. It also reports a slowly varying temperature.
 - The **filter wheel** has per-filter focus offsets, and the **dome** and **weather station** (with a safety monitor) respond to commands and report plausible values.
@@ -250,22 +255,28 @@ Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2
 
 Start guiding, Calibrate & guide and Dither run one at a time; the others are greyed out while one runs.
 
-The **Guiding error** graph plots the star's offset in RA and Dec in arcseconds at each guide step. The status line shows the guider state and the RMS error in RA, Dec and total over the last 100 steps. Total RMS well below your image scale (arcseconds per pixel) means round stars.
+The **Guiding error** graph plots the star's offset in RA and Dec in arcseconds at each guide step. The status line shows the guider state and the RMS error in RA, Dec and total over the last 100 steps, then how many stars it guides on, the exposure auto exposure has chosen, and **Comet** while it follows a comet. Total RMS well below your image scale (arcseconds per pixel) means round stars.
+
+Beside the frame, the Sidralune guider has four pages: **Settings**, **Assistants** (the [Guiding Assistant](#guiding-assistant) and the [Calibration Assistant](#calibration-assistant)), **Darks** ([dark frames](#dark-frames)) and **Tools** ([lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)). All are greyed out while PHD2 guides instead.
 
 ### The Sidralune guider
 
 The Sidralune guider needs a **guide camera** (the Guide camera row of the Equipment tab) and a way to send guide pulses: through the **mount**'s driver (ASCOM, Alpaca, INDI or LX200 pulse guiding), or through the **guide camera's ST-4 port** with a cable to the mount. The guide camera must be a different camera from the imaging camera.
 
-The tab shows the latest guide frame. A square marks the area searched for the guide star and a cross the lock position, where guiding holds it: yellow while looping and calibrating, green while guiding, red when the star is lost. Under the frame are the star's position, signal-to-noise ratio (SNR) and half-flux diameter (HFD), and a warning when it is saturated.
+The tab shows the latest guide frame. A square marks the area searched for the guide star and a cross the lock position, where guiding holds it: yellow while looping and calibrating, green while guiding, red when the star is lost or a frame is left out because the star's brightness jumped. Thin squares mark the other stars guided on. Under the frame are the star's position, signal-to-noise ratio (SNR) and half-flux diameter (HFD), and a warning when it is saturated.
 
-**Select star** (and Start guiding when no star is chosen) picks a single, unsaturated star with a good SNR and a normal size, with no bright neighbour in its search area and enough room from the edges for calibration and dithers. Clicking the frame chooses the star nearest the click instead.
+**Select star** (and Start guiding when no star is chosen) picks a single, unsaturated star with a good SNR and a normal size, with no bright neighbour in its search area and enough room from the edges for calibration and dithers. Clicking the frame chooses the star nearest the click instead. A right click offers **Select star here** and **Set lock position here**.
 
-Guiding corrects RA with **Hysteresis** and Dec with **Resist Switch**:
+Each axis has its own algorithm, chosen on the Settings page; only that algorithm's settings are shown:
 
-- **Hysteresis** blends each new error with the previous ones (the hysteresis share), corrects a share of the result (the aggressiveness), and leaves errors smaller than the minimum move alone, since those are mostly seeing.
-- **Resist Switch** keeps correcting Dec in one direction, and changes direction only after three errors in a row the other way, each over the minimum move and not shrinking. Backlash makes every change of direction in Dec costly. With **Correct at once** on, an error more than three minimum moves the other way (a gust of wind, a cable) is corrected straight away.
+- **Hysteresis** (RA's default) blends each new error with the previous ones (the hysteresis share), corrects a share of the result (the aggressiveness), and leaves errors smaller than the minimum move alone, since those are mostly seeing.
+- **Resist Switch** (Dec's default) keeps correcting Dec in one direction, and changes direction only after three errors in a row the other way, each over the minimum move and not shrinking. Backlash makes every change of direction in Dec costly. With **Correct at once** on, an error more than three minimum moves the other way (a gust of wind, a cable) is corrected straight away.
+- **Lowpass2** fits a straight line through the last ten errors and corrects a share of where the line is now, so the seeing averages out. It never corrects more than the error just measured. It suits mounts that drift smoothly, in good seeing.
+- **Z-filter** guides as if each exposure were several times longer (the exposure factor), by low-pass filtering the star's motion. It suits slow errors in poor seeing; with short exposures, try a factor of 2–4.
 
-RA and Dec pulses are sent one after the other, each no longer than its maximum pulse, and nothing is sent while the mount slews. The RA rate is adjusted for the declination, so one calibration serves the whole sky.
+**Guide Dec** can be limited to **North only** or **South only** (for a mount with a lot of backlash and a steady Dec drift: guide against the drift only) or **Off**. **Backlash compensation** lengthens the first Dec pulse after Dec changes direction by the backlash, so the gears are taken up and the correction still works. The amount adapts as it guides: a turn that overshoots shortens it by 10 %, one that hardly moved the star lengthens it by 10 %, always between the least and most you set (with no most set, up to twice the amount). The [Guiding Assistant](#guiding-assistant) measures the backlash and fills these in.
+
+RA and Dec pulses are sent one after the other, each no longer than its maximum pulse (Dec's plus any backlash compensation), and nothing is sent while the mount slews. The RA rate is adjusted for the declination, so one calibration serves the whole sky.
 
 ### Calibration
 
@@ -285,35 +296,94 @@ The calibration is saved and used again as long as the guide camera, binning, gu
 
 ### Guider settings
 
-The settings on the right are the Sidralune guider's, saved as you change them:
+The Settings page holds the Sidralune guider's settings, saved as you change them:
 
 | Setting | Default | |
 |---|---|---|
 | Exposure (s) | 2 | Long enough to average out the seeing, short enough to correct often |
+| Auto exposure | Off | The exposure follows the star's SNR between the shortest and longest exposure (1 and 5 s), aiming at the target SNR (10) |
 | Binning | 1 | |
 | Guide through | The mount | Or the guide camera's ST-4 port |
 | Guide scope focal length (mm) | 240 | For the pixel scale and the calibration step |
 | Search box radius (px) | 15 | How far the star may move between frames |
+| Multi-star: Guide on several stars | On, up to 9 stars | See [Guiding on several stars](#guiding-on-several-stars) |
+| Star brightness: Skip frames where it jumps | On, 50 % | A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction |
 | Calibration step (ms) | 0 (automatic) | |
 | Calibration distance (px) | 20 | How far each calibration leg moves the star |
 | After a meridian flip: Mount reverses Dec | Off | |
-| RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | |
+| RA algorithm | Hysteresis | Or Lowpass2 or Z-filter |
+| RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | Lowpass2: aggressiveness 80 %; Z-filter: exposure factor 4 |
 | RA maximum pulse | 2500 ms | |
+| Dec algorithm | Resist Switch | Or Lowpass2 or Z-filter |
 | Dec aggressiveness, minimum move | 100 %, 0.2 px | |
 | Dec maximum pulse | 2500 ms | |
-| Large Dec errors: Correct at once | On | |
+| Large Dec errors: Correct at once | On | Resist Switch only |
+| Guide Dec | Both ways | Or North only, South only, Off |
+| Backlash compensation | Off | With the backlash and the least and most it may adapt to |
 
-If guiding chases the seeing (many small corrections back and forth), raise the minimum moves. If it lags behind the drift, raise the aggressiveness.
+If guiding chases the seeing (many small corrections back and forth), raise the minimum moves. If it lags behind the drift, raise the aggressiveness. The [Guiding Assistant](#guiding-assistant) suggests both minimum moves from the seeing it measures.
+
+Auto exposure starts at the longest exposure. Once there is a star, it takes one step shorter (0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8 or 10 s) after three frames over 1.5 × the target SNR, and one step longer after two frames under it. With a dark library, the dark of the nearest exposure is used.
+
+The brightness check compares each frame's guide star with the median of its last ten frames. After three frames in a row outside the tolerance the new brightness counts, so thin cloud or a focus change does not stop guiding for good.
+
+### Guiding on several stars
+
+With **Multi-star** on, choosing the guide star also chooses up to eight more around it: unsaturated, well measured, alone in their search area and at least a search area apart. Each frame measures every star in its own search area. While guiding, their displacements from where they should be are averaged, each weighted by its SNR, so the measuring noise of one star counts for less.
+
+- A star that disagrees with the others by more than 2 px (or three times their spread) is left out of that frame; three frames in a row and it is dropped.
+- When the guide star jumps more than 2.5 px (a bump), that frame follows the guide star alone.
+- When the guide star cannot be seen, guiding goes on with the others as long as two are found, and after ten frames the best of them becomes the guide star.
+- When fewer than half the stars are left, more are looked for, at most once a minute.
+- Calibration uses the guide star alone, since its moves are large.
+
+A star you click is the guide star, and others are still chosen around it.
+
+### Dark frames
+
+The **Darks** page treats each guide frame before the stars are measured. Under **Use** choose:
+
+- **The dark library**: a master dark for each guide exposure (the median of several dark frames, 5 by default) is subtracted. With auto exposure, the library holds every exposure from the shortest to the longest; otherwise the exposure set. A frame of another exposure uses the nearest dark.
+- **The bad-pixel map**: the hot and cold pixels found in a master dark (10 dark frames of 10 s, more than 5 noise levels from the median by default) are replaced by the median of their neighbours.
+
+Either removes hot pixels that could be taken for stars. **Build dark library** and **Build bad-pixel map** first ask you to cover the guide scope (or close the camera's shutter), then take the frames, with progress and **Stop**. The guider must be stopped. The page says what exists and whether it still fits the guide camera: a library or map fits only the camera, frame size, binning, gain and offset it was made with, and is not used otherwise. They are kept per camera in `%LOCALAPPDATA%\Sidralune\Settings\Guider darks`.
+
+### Guiding Assistant
+
+The Guiding Assistant (Assistants page) measures how the stars move without corrections. Start guiding, then click **Start measuring**: corrections pause while frames go on. Give it two minutes, longer for an accurate polar alignment error, then click **Stop and analyse**. It shows:
+
+- the seeing in RA and Dec: the RMS of the frame-to-frame differences divided by √2, which slow drift and periodic error hardly touch;
+- the drift in RA and Dec, from a straight line through the run;
+- RA's swing from peak to peak once the drift is taken out, and how fast RA changes at most;
+- the polar alignment error that the Dec drift needs at least.
+
+With **Measure Dec backlash** ticked, a backlash test follows. Dec is stepped North (after taking up the backlash) until the star has moved the calibration distance, then South until it is back; the backlash is the pulse time South before the star moved. It is only reported when the star came back at 90 % or more of the speed it went.
+
+The suggestions can be ticked and applied with **Apply the ticked settings**: minimum moves a little under the seeing (0.65 × its RMS), backlash compensation for a backlash between 100 ms and 3 s, Dec guided one way only for a larger one, a shorter exposure when RA changes fast, and advice to [polar-align](#polar-alignment-tab) when the pole is off by more than 5′. Guiding resumes either way. The last three runs are kept and shown again.
+
+### Calibration Assistant
+
+The Calibration Assistant (Assistants page) calibrates where calibration is most reliable: 5° from the meridian, on the side the mount already points to so it does not flip, on the celestial equator, or nearer the pole where the equator is lower than 30° (at high latitudes). The hour angle and declination can be changed; **Suggest again** brings back the proposal.
+
+It first says what to check: a mount that does not report its guide rate, a guide rate under 0.5× sidereal, or a fixed calibration step. **Slew and calibrate** slews there (the last degree from the south, so Dec's gears are taken up northwards), calibrates and stops guiding, then rates the calibration **Good**, **Acceptable** or **Poor** and says why. **Return** slews back to where the mount was.
+
+### Lock position, comet tracking and manual guide
+
+The **Tools** page:
+
+- **Lock position**: where guiding holds the star. Type X and Y and click **Set**, or right-click the frame. While guiding, the stars are guided there like a dither. **North**, **South**, **East** and **West** move it by the step: on the sky through the calibration, so North moves the telescope north by that many arcseconds whatever the camera's angle; without a calibration, that many pixels in the frame. **Sticky lock position** keeps it through stops, lost stars and choosing the star again (the star nearest it is chosen), so the framing stays the same; a slew forgets it.
+- **Comet tracking**: while guiding with **Follow the comet** on, the lock position moves with the comet, so the comet stays put in the imaging camera and the stars trail. The rates (arcseconds an hour, RA as motion on the sky) come from entered rates, from a comet's orbit in Sidralune's comet list (worked out again every 10 minutes, for your site), or from **training**: start training, keep the comet centred by moving the lock position, and stop training; the moves over the time become the rates.
+- **Manual guide**: while looping, one pulse North, South, East or West of the set length, and how far the star moved and which way. With a calibration it says whether that agrees with the calibration: a quick check of the guide cable, the guide rate and Dec backlash.
 
 ### Lost stars, slews and the guide log
 
 When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. It never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten; start guiding again after the slew. If the guide camera fails three times in a row, the guider stops and says why.
 
-Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux and HFD, plus the calibration steps, dithers, lost and found stars and settling.
+Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
 
 ### PHD2
 
-To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so the guide camera belongs to one guider at a time: while a guide camera is connected in Sidralune, **Connect PHD2** is greyed out until you disconnect it, and while PHD2 is connected the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings, so Loop, Select star and the settings panel are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
+To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so the guide camera belongs to one guider at a time: while a guide camera is connected in Sidralune, **Connect PHD2** is greyed out until you disconnect it, and while PHD2 is connected the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings and tools, so Loop, Select star and the Settings, Assistants, Darks and Tools pages are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
 
 ## Polar alignment tab
 

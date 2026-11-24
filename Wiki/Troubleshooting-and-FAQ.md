@@ -111,7 +111,22 @@ Read the warning in the Calibration panel. "Far from square" and "rates that do 
 Your mount turns its Dec guide pulses round itself after a flip. Tick **Mount reverses Dec** under Calibration in the Guiding tab and calibrate again.
 
 **The guide star is lost.**
-Clouds, a tree or a big jump (a cable snag) can take the star out of its search area. The guider keeps looking in the same place and guides on when the star is back. If it happens often, choose a brighter star, lengthen the exposure, or enlarge the **Search box radius**.
+Clouds, a tree or a big jump (a cable snag) can take the star out of its search area. The guider keeps looking in the same place and guides on when the star is back. With **Multi-star** on, guiding goes on with the other stars meanwhile. If it happens often, choose a brighter star, lengthen the exposure, or enlarge the **Search box radius**.
+
+**Frames are left out: "brightness jumped".**
+The guide star's brightness changed by more than the tolerance (passing cloud, a satellite, another star in the search area). Those frames are not used for corrections; after three in a row the new brightness counts. If it happens all the time in patchy cloud, raise the **Brightness tolerance** or turn the check off.
+
+**The dark library or bad-pixel map "doesn't fit the guide camera".**
+It was made with another camera, binning, gain or offset, or another frame size, and is not used. Build it again on the Darks page with the guide camera as you use it now.
+
+**Dec oscillates after turning on backlash compensation.**
+The compensation is too large for your mount: lower **Backlash** and **Backlash at most**, or run the Guiding Assistant's backlash test again. If it keeps oscillating, turn compensation off and guide Dec one way only (**Guide Dec**: North only or South only, against the drift).
+
+**The Guiding Assistant's Start measuring is greyed out.**
+It measures while guiding, so start guiding first, and wait until Start guiding has settled.
+
+**The comet drifts in the imaging camera while it is followed.**
+Check the rates: a comet's orbit in the comet list may be old (download the comet data again in Settings), and entered rates for RA must be motion on the sky, that is already multiplied by cos(Dec). Training for a few minutes gives rates that match what you see. Comet tracking needs a calibration, and stops when the mount slews.
 
 **Autofocus fails or gives a poor V-curve.**
 Use an exposure that shows at least 20 stars, start reasonably near focus, choose a step size that changes the HFR noticeably, and avoid nights with fast-changing seeing or thin cloud. Check the backlash setting of your focuser driver.

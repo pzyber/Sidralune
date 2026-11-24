@@ -27,23 +27,60 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         public static GuideStarInfo Select(float[] d, int w, int h, int searchRadius, double nearX = double.NaN, double nearY = double.NaN, int edgeMargin = 0)
         {
-            var stars = StarDetector.Detect(d, w, h, new StarDetectionOptions { Sigma = 5, MaxStars = 400, MaxEccentricity = 0.8 });
-            int margin = Math.Max(searchRadius + 8, Math.Min(edgeMargin, Math.Min(w, h) / 3));
-            Func<DetectedStar, bool> roomy = s => s.X >= margin && s.Y >= margin && s.X < w - margin && s.Y < h - margin;
-            // a neighbour inside the search box with a fifth of the flux or more would pull the measurement
-            Func<DetectedStar, bool> alone = s => !stars.Any(o => o != s && Math.Abs(o.X - s.X) <= searchRadius + 3 && Math.Abs(o.Y - s.Y) <= searchRadius + 3 && o.Flux > s.Flux / 5);
-            var good = stars.Where(s => !s.Saturated && s.Snr >= MinSnr && 2 * s.Hfr >= MinHfd && 2 * s.Hfr <= MaxHfd && roomy(s) && alone(s)).ToList();
+            List<DetectedStar> stars;
+            var good = Usable(d, w, h, searchRadius, edgeMargin, MinSnr, out stars);
             DetectedStar pick;
             if (!double.IsNaN(nearX))
             {
                 Func<DetectedStar, double> dist = s => Math.Sqrt((s.X - nearX) * (s.X - nearX) + (s.Y - nearY) * (s.Y - nearY));
                 pick = good.Where(s => dist(s) <= 40).OrderBy(dist).FirstOrDefault() ?? stars.Where(s => dist(s) <= 40).OrderBy(dist).FirstOrDefault();
             }
-            else pick = good.OrderBy(s => s.Peak > 0.85 ? 1 : 0).ThenByDescending(s => s.Snr).FirstOrDefault();
+            else pick = good.FirstOrDefault();
             if (pick == null) return null;
             // measured the way it will be measured while guiding, so the lock position and later frames agree
             return Measure(d, w, h, pick.X, pick.Y, searchRadius)
                 ?? new GuideStarInfo { X = pick.X, Y = pick.Y, Flux = pick.Flux, Peak = pick.Peak, Snr = pick.Snr, Hfd = 2 * pick.Hfr, Saturated = pick.Saturated };
+        }
+
+        /// <summary>
+        /// The stars fit to guide on, strongest first: single, unsaturated, well measured (at least minSnr, HFD within
+        /// limits) and at least edgeMargin pixels from the edges (the search radius and 8 pixels if less). All the stars
+        /// found come back in all.
+        /// </summary>
+        private static List<DetectedStar> Usable(float[] d, int w, int h, int searchRadius, int edgeMargin, double minSnr, out List<DetectedStar> all)
+        {
+            var stars = StarDetector.Detect(d, w, h, new StarDetectionOptions { Sigma = 5, MaxStars = 400, MaxEccentricity = 0.8 });
+            all = stars;
+            int margin = Math.Max(searchRadius + 8, Math.Min(edgeMargin, Math.Min(w, h) / 3));
+            Func<DetectedStar, bool> roomy = s => s.X >= margin && s.Y >= margin && s.X < w - margin && s.Y < h - margin;
+            // a neighbour inside the search box with a fifth of the flux or more would pull the measurement
+            Func<DetectedStar, bool> alone = s => !stars.Any(o => o != s && Math.Abs(o.X - s.X) <= searchRadius + 3 && Math.Abs(o.Y - s.Y) <= searchRadius + 3 && o.Flux > s.Flux / 5);
+            return stars.Where(s => !s.Saturated && s.Snr >= minSnr && 2 * s.Hfr >= MinHfd && 2 * s.Hfr <= MaxHfd && roomy(s) && alone(s))
+                        .OrderBy(s => s.Peak > 0.85 ? 1 : 0).ThenByDescending(s => s.Snr).ToList();
+        }
+
+        /// <summary>
+        /// More stars to guide on besides the ones given (positions to keep clear of): fit stars at least a search box
+        /// apart from those and from each other, strongest first, measured the way guiding measures them.
+        /// </summary>
+        public static List<GuideStarInfo> SelectMore(float[] d, int w, int h, int searchRadius, int edgeMargin, IList<double[]> taken, int count, double minSnr = 6)
+        {
+            var found = new List<GuideStarInfo>();
+            if (count <= 0) return found;
+            List<DetectedStar> all;
+            var good = Usable(d, w, h, searchRadius, edgeMargin, minSnr, out all);
+            var clear = new List<double[]>(taken);
+            int box = 2 * searchRadius + 1;
+            foreach (var s in good)
+            {
+                if (found.Count >= count) break;
+                if (clear.Any(t => Math.Abs(t[0] - s.X) < box && Math.Abs(t[1] - s.Y) < box)) continue;
+                var m = Measure(d, w, h, s.X, s.Y, searchRadius);
+                if (m == null || m.Saturated) continue;
+                found.Add(m);
+                clear.Add(new[] { m.X, m.Y });
+            }
+            return found;
         }
 
         /// <summary>

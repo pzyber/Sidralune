@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +13,22 @@ using Sidralune.Imaging;
 
 namespace Sidralune.Devices.Guiding
 {
+    /// <summary>One measured frame while guiding (paused or not): the stars' offset from the lock position along RA and Dec.</summary>
+    public class GuideFrame
+    {
+        public DateTime Time;
+        /// <summary>Pixels along the West and North pulse directions.</summary>
+        public double RaPx, DecPx;
+        public bool Paused;
+    }
+
     /// <summary>
-    /// Sidralune's own guider. It takes short exposures with the guide camera, follows one guide star, calibrates how
-    /// guide pulses move it, and corrects its drift from the lock position with Hysteresis in RA and Resist Switch in Dec,
-    /// through the mount or the guide camera's ST-4 port. One loop owns the camera: it watches, calibrates or guides.
+    /// Sidralune's own guider. It takes short exposures with the guide camera, follows the guide star (and, with multi-star,
+    /// others with it), calibrates how guide pulses move it, and corrects its drift from the lock position with the chosen
+    /// algorithm on each axis, through the mount or the guide camera's ST-4 port. One loop owns the camera: it watches,
+    /// calibrates or guides, and runs the jobs the tools give it (manual pulses, the backlash test) between frames.
     /// </summary>
-    public class SidraluneGuider : DeviceBase, IGuider
+    public partial class SidraluneGuider : DeviceBase, IGuider
     {
         // the states, in the words the interface already uses for PHD2's
         public const string Stopped = "Stopped", Looping = "Looping", Selected = "Selected", Calibrating = "Calibrating", Guiding = "Guiding", Paused = "Paused", LostLock = "LostLock";
@@ -29,21 +40,28 @@ namespace Sidralune.Devices.Guiding
         private readonly List<GuideStep> _history = new List<GuideStep>();
         private readonly Random _rng = new Random();
         private readonly GuideLog _log = new GuideLog();
-        private readonly HysteresisAlgorithm _raAlgo = new HysteresisAlgorithm();
-        private readonly ResistSwitchAlgorithm _decAlgo = new ResistSwitchAlgorithm();
+        private readonly GuideStarSet _stars = new GuideStarSet();
+        private IAxisAlgorithm _raAlgo, _decAlgo;
+        private GuideAlgorithmKind? _raKind, _decKind;
+        private readonly BacklashCompensation _backlash = new BacklashCompensation();
+        private double _backlashFrom = double.NaN, _backlashMinFrom = double.NaN, _backlashMaxFrom = double.NaN;
         private CancellationTokenSource _session; // the running loop, null when stopped
         private Task _loop;
         private volatile string _state = Stopped;
         private volatile Phase _phase = Phase.Watching;
-        private volatile bool _paused, _lost, _selectRequested, _calibrationRequested, _resetAlgorithms, _keepLock;
+        private volatile bool _paused, _lost, _selectRequested, _calibrationRequested, _resetAlgorithms, _keepLock, _userLock, _usable, _rejected;
         private TaskCompletionSource<bool> _calibrationDone;
         private long _frames;   // frames measured so far
         private int _guideRun;  // counts the starts of guiding, so a wait notices guiding stopping and starting again
         private string _stopReason;
+        private double _errX, _errY; // the stars' offset from the lock position in the last frame (image pixels)
         // the guide camera as prepared for this session
-        private int _bin = 1;
+        private int _bin = 1, _gain = -1, _offset = -1;
         private double _pixelUm, _focal;
         private string _cameraId = "";
+        private double _autoExposure = double.NaN;
+        private int _snrHigh, _snrLow;
+        private double _lastDarkUsed = double.NaN;
 
         public GuiderSettings Settings { get; private set; }
         /// <summary>Where the settings are saved (null: Settings\guider.json).</summary>
@@ -73,6 +91,8 @@ namespace Sidralune.Devices.Guiding
         public event Action CalibrationChanged;
         /// <summary>The guider stopped by itself (the camera failed, for instance), with the reason for the user.</summary>
         public event Action<string> Failed;
+        /// <summary>A frame was measured while guiding, paused or not (raised on the guider's thread); the Guiding Assistant listens.</summary>
+        public event Action<GuideFrame> Measured;
 
         public SidraluneGuider(DeviceManager dm, string settingsPath = null)
         {
@@ -88,8 +108,18 @@ namespace Sidralune.Devices.Guiding
         public string State => _state;
         public bool IsGuiding => _state == Guiding;
         public bool IsCalibrating => _phase == Phase.Calibrating;
+        /// <summary>Guiding, whether or not corrections are paused or the star is lost for now.</summary>
+        public bool InGuidingPhase => _phase == Phase.Guiding;
         /// <summary>Looping, calibrating or guiding.</summary>
         public bool IsRunning { get { lock (_lock) return _session != null; } }
+        /// <summary>How many stars the last frame was guided on.</summary>
+        public int StarsUsed => _stars.LastUsed;
+        /// <summary>The last frame was not used: the guide star's brightness changed too much.</summary>
+        public bool FrameRejected => _rejected;
+        /// <summary>The other stars guided on: x, y and 1 when found in the last frame.</summary>
+        public List<double[]> SecondaryStars { get { lock (_lock) return _stars.Secondaries.Select(s => new[] { s.Info.X, s.Info.Y, s.FoundNow ? 1.0 : 0.0 }).ToList(); } }
+        /// <summary>The Dec backlash compensation in use now (ms), as it has adapted.</summary>
+        public double BacklashCompensationMs => _backlash.AmountMs;
 
         /// <summary>The guide camera's arcseconds per pixel from its pixel size, the binning and the guide scope's focal length.</summary>
         public double PixelScale
@@ -126,6 +156,110 @@ namespace Sidralune.Devices.Guiding
             CalibrationChanged?.Invoke();
         }
 
+        // ------------------------------------------------------------------ exposure
+
+        private static readonly double[] ExposureSteps = { 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10 };
+
+        /// <summary>The exposures auto exposure chooses from, between a minimum and a maximum.</summary>
+        public static double[] AutoExposureSteps(double min, double max)
+        {
+            var s = ExposureSteps.Where(e => e >= min - 1e-9 && e <= max + 1e-9).ToArray();
+            return s.Length > 0 ? s : new[] { Math.Max(0.05, min) };
+        }
+
+        /// <summary>The exposure of the next guide frame: the set one, or what auto exposure has chosen.</summary>
+        public double CurrentExposure
+        {
+            get
+            {
+                if (!Settings.AutoExposure) return Math.Max(0.001, Settings.ExposureSeconds);
+                double e = _autoExposure;
+                return double.IsNaN(e) ? AutoExposureSteps(Settings.AutoExposureMin, Settings.AutoExposureMax).Last() : e;
+            }
+        }
+
+        /// <summary>
+        /// Auto exposure: the maximum until there is a star; then one step shorter after three frames over 1.5 × the
+        /// target SNR, one step longer after two frames under it.
+        /// </summary>
+        private void AdjustExposure()
+        {
+            if (!Settings.AutoExposure) { _autoExposure = double.NaN; _snrHigh = _snrLow = 0; return; }
+            var steps = AutoExposureSteps(Settings.AutoExposureMin, Settings.AutoExposureMax);
+            int i = Array.IndexOf(steps, _autoExposure);
+            var s = Star;
+            if (i < 0 || s == null)
+            {
+                if (i != steps.Length - 1) SetAutoExposure(steps[steps.Length - 1]);
+                return;
+            }
+            if (_lost || _rejected) return;
+            double target = Math.Max(1, Settings.TargetSnr);
+            if (s.Snr > 1.5 * target) { _snrHigh++; _snrLow = 0; }
+            else if (s.Snr < target) { _snrLow++; _snrHigh = 0; }
+            else _snrHigh = _snrLow = 0;
+            if (_snrHigh >= 3 && i > 0) SetAutoExposure(steps[i - 1]);
+            else if (_snrLow >= 2 && i < steps.Length - 1) SetAutoExposure(steps[i + 1]);
+        }
+
+        private void SetAutoExposure(double e)
+        {
+            double old = _autoExposure;
+            _autoExposure = e;
+            _snrHigh = _snrLow = 0;
+            if (!double.IsNaN(old))
+            {
+                _log.Event("Exposure", e.ToString("0.0#", CultureInfo.InvariantCulture) + " s");
+                Log.Info("Guider", "Auto exposure " + e.ToString("0.0#", CultureInfo.InvariantCulture) + " s");
+            }
+        }
+
+        // ------------------------------------------------------------------ dark frames
+
+        private GuideDarks _darks;
+
+        /// <summary>The guide camera's dark library and bad-pixel map, kept beside the settings.</summary>
+        public GuideDarks Darks =>
+            _darks ?? (_darks = new GuideDarks(Path.Combine(Path.GetDirectoryName(SettingsPath ?? GuiderSettings.DefaultPath) ?? ".", "Guider darks")));
+
+        private DarkSetup SetupOf(AstroImage frame) =>
+            new DarkSetup { Camera = _cameraId, Width = frame.Width, Height = frame.Height, Binning = _bin, Gain = _gain, Offset = _offset };
+
+        /// <summary>The guide camera as the settings would set it up now (null without one), to tell whether darks fit.</summary>
+        public DarkSetup SetupNow()
+        {
+            var cam = _dm.GuideCamera;
+            if (cam == null || !cam.Connected) return null;
+            try
+            {
+                int max = Math.Max(1, cam.MaxBin), bin = Math.Max(1, Math.Min(Settings.Binning, max));
+                return new DarkSetup
+                {
+                    Camera = cam.Info.Protocol + " " + cam.Info.Address, Width = cam.SensorWidth / bin, Height = cam.SensorHeight / bin, Binning = Math.Max(1, Settings.Binning),
+                    Gain = SafeGain(cam), Offset = SafeOffset(cam)
+                };
+            }
+            catch { return null; }
+        }
+
+        private static int SafeGain(ICamera cam) { try { return cam.HasGain ? cam.Gain : -1; } catch { return -1; } }
+        private static int SafeOffset(ICamera cam) { try { return cam.HasOffset ? cam.Offset : -1; } catch { return -1; } }
+
+        private void ApplyDarks(AstroImage frame)
+        {
+            if (Settings.DarkFrames == DarkFrameKind.None) return;
+            var setup = SetupOf(frame);
+            Darks.Load(setup.Camera);
+            double used = Darks.Apply(frame, Settings.DarkFrames, setup, CurrentExposure);
+            // a dark of another exposure is said once
+            if (!double.IsNaN(used) && Math.Abs(used - CurrentExposure) > 1e-3 && used != _lastDarkUsed)
+            {
+                _log.Event("Dark", string.Format(CultureInfo.InvariantCulture, "{0:0.0##} s dark for {1:0.0##} s frames", used, CurrentExposure));
+                Log.Info("Guider", string.Format(CultureInfo.InvariantCulture, "Using the {0:0.0##} s dark for {1:0.0##} s guide frames", used, CurrentExposure));
+            }
+            _lastDarkUsed = used;
+        }
+
         // ------------------------------------------------------------------ starting and stopping
 
         /// <summary>Starts taking guide frames (and following the star once there is one), if not already.</summary>
@@ -134,6 +268,7 @@ namespace Sidralune.Devices.Guiding
             lock (_lock)
             {
                 if (_session != null) return;
+                if (_building) throw new InvalidOperationException(Lang.T("Dark frames are being taken with the guide camera."));
                 var cam = _dm.GuideCamera;
                 if (cam == null || !cam.Connected) throw new InvalidOperationException(Lang.T("No guide camera connected."));
                 LastError = null;
@@ -162,12 +297,22 @@ namespace Sidralune.Devices.Guiding
         private void EndSession()
         {
             CancellationTokenSource s;
+            LoopJob pending;
             // the star goes with the session: after a stop the mount may move, and the next start chooses again
-            lock (_lock) { s = _session; _session = null; Star = null; _lost = false; LockX = LockY = double.NaN; }
+            lock (_lock)
+            {
+                s = _session; _session = null; Star = null; _lost = false; LockX = LockY = double.NaN; _keepLock = _userLock = false;
+                _stars.Clear();
+                pending = _job; _job = null;
+            }
+            pending?.Done.TrySetCanceled();
             _phase = Phase.Watching;
+            if (CometFollowing) { CometFollowing = false; Log.Info("Guider", "Comet tracking off"); }
+            CometTraining = false;
             if (s != null)
             {
                 s.Cancel();
+                if (Settings.StickyLock) SaveSettings();
                 _log.Event("Stopped", "");
                 _log.Dispose();
                 Log.Info("Guider", "Stopped");
@@ -186,19 +331,34 @@ namespace Sidralune.Devices.Guiding
             UpdateState();
         }
 
+        private void ConfigureStars()
+        {
+            _stars.SearchRadius = Settings.SearchRadius;
+            _stars.MultiStar = Settings.MultiStar;
+            _stars.MaxStars = Math.Max(1, Settings.MaxStars);
+            _stars.MassCheck = Settings.StarMassCheck;
+            _stars.MassTolerance = Math.Max(0.05, Settings.StarMassTolerance / 100);
+        }
+
         /// <summary>
         /// Chooses the guide star: the one nearest a point (a click on the frame), or the best in the frame. On the next
-        /// frame when there is none yet.
+        /// frame when there is none yet. With multi-star, other stars are chosen around it.
         /// </summary>
         public void SelectStar(double x = double.NaN, double y = double.NaN)
         {
             if (_phase != Phase.Watching) throw new InvalidOperationException(Lang.T("Stop guiding before choosing another star."));
             var f = LastFrame;
             if (f == null) { _selectRequested = true; return; }
-            var s = GuideStars.Select(f.Luminance(), f.Width, f.Height, Settings.SearchRadius, x, y, EdgeMargin);
+            var lum = f.Luminance();
+            var s = GuideStars.Select(lum, f.Width, f.Height, Settings.SearchRadius, x, y, EdgeMargin);
             if (s == null) throw new InvalidOperationException(double.IsNaN(x) ? Lang.T("No suitable guide star in the frame.") : Lang.T("No star there to guide on."));
-            lock (_lock) { Star = s; _lost = false; LockX = s.X; LockY = s.Y; }
-            Log.Info("Guider", "Guide star " + s);
+            ConfigureStars();
+            lock (_lock)
+            {
+                Star = s; _lost = false; LockX = s.X; LockY = s.Y; _keepLock = _userLock = false;
+                _stars.SetPrimary(s, lum, f.Width, f.Height, EdgeMargin);
+            }
+            Log.Info("Guider", "Guide star " + s + (Settings.MultiStar ? string.Format(", {0} more", _stars.Secondaries.Count) : ""));
             UpdateState();
         }
 
@@ -245,6 +405,7 @@ namespace Sidralune.Devices.Guiding
                 if (f != null && (LockY + oy < margin || LockY + oy > f.Height - margin)) oy = -oy;
                 LockX += ox; LockY += oy;
             }
+            RememberLock();
             _resetAlgorithms = true;
             _log.Event("Dither", string.Format(CultureInfo.InvariantCulture, "{0:0.00} {1:0.00}", ox, oy));
             Log.Info("Guider", string.Format(CultureInfo.InvariantCulture, "Dither by {0:0.00}, {1:0.00} px", ox, oy));
@@ -287,25 +448,39 @@ namespace Sidralune.Devices.Guiding
             using (ct.Register(() => done.TrySetCanceled())) await done.Task;
         }
 
+        /// <summary>A sticky lock position kept for this camera, if there is one to use.</summary>
+        private bool StickyLockApplies =>
+            Settings.StickyLock && !double.IsNaN(Settings.StickyLockX) && !double.IsNaN(Settings.StickyLockY) && Settings.StickyLockCamera == _cameraId;
+
         private void BeginGuiding()
         {
+            bool sticky = false, tooFar = false;
             lock (_lock)
             {
-                if (!_keepLock && Star != null) { LockX = Star.X; LockY = Star.Y; }
-                _keepLock = false;
+                // a sticky lock position is for the star guided there: one far from it would drag the mount across the sky
+                bool near = Star != null && Math.Abs(Star.X - Settings.StickyLockX) <= 40 && Math.Abs(Star.Y - Settings.StickyLockY) <= 40;
+                tooFar = StickyLockApplies && !near && !_userLock;
+                // a lock position the user set wins, then a sticky one, then where calibration left it, then the star
+                if (_userLock) { }
+                else if (StickyLockApplies && near) { LockX = Settings.StickyLockX; LockY = Settings.StickyLockY; sticky = true; }
+                else if (!_keepLock && Star != null) { LockX = Star.X; LockY = Star.Y; }
+                _keepLock = _userLock = false;
             }
+            if (tooFar) Log.Info("Guider", "The sticky lock position was not used: the guide star is far from it");
             _resetAlgorithms = true;
             _paused = false;
+            _backlashFrom = double.NaN; // the compensation starts again from the settings
             Interlocked.Increment(ref _guideRun);
             _log.Open(LogFolder);
-            _log.Event("Guiding", string.Format(CultureInfo.InvariantCulture, "lock {0:0.00} {1:0.00}", LockX, LockY));
+            _log.Event("Guiding", string.Format(CultureInfo.InvariantCulture, "lock {0:0.00} {1:0.00}{2}", LockX, LockY, sticky ? " (sticky)" : ""));
             _phase = Phase.Guiding;
+            RememberLock();
             Log.Info("Guider", "Guiding");
             UpdateState();
         }
 
         /// <summary>
-        /// Waits until the star has stayed within px of the lock position for sec seconds; false after timeout seconds.
+        /// Waits until the stars have stayed within px of the lock position for sec seconds; false after timeout seconds.
         /// Throws when guiding stops meanwhile (a slew, for instance).
         /// </summary>
         private async Task<bool> WaitSettled(double px, double sec, double timeout, CancellationToken ct)
@@ -322,10 +497,9 @@ namespace Sidralune.Devices.Guiding
                 long f = Interlocked.Read(ref _frames);
                 if (f == seen) continue;
                 seen = f;
-                var s = Star;
-                if (_lost || s == null) { within = DateTime.MinValue; continue; }
+                if (_lost || !_usable || Star == null) { within = DateTime.MinValue; continue; }
                 double dx, dy;
-                lock (_lock) { dx = s.X - LockX; dy = s.Y - LockY; }
+                lock (_lock) { dx = _errX; dy = _errY; }
                 if (Math.Sqrt(dx * dx + dy * dy) <= px)
                 {
                     if (within == DateTime.MinValue) within = DateTime.UtcNow;
@@ -345,6 +519,16 @@ namespace Sidralune.Devices.Guiding
                 PrepareCamera();
                 while (!ct.IsCancellationRequested)
                 {
+                    LoopJob job;
+                    lock (_lock) { job = _job; _job = null; }
+                    if (job != null)
+                    {
+                        try { await job.Work(job.Cts.Token); job.Done.TrySetResult(true); }
+                        catch (OperationCanceledException) { job.Done.TrySetCanceled(); if (ct.IsCancellationRequested) throw; }
+                        catch (Exception ex) { job.Done.TrySetException(ex); }
+                        finally { job.Cts.Dispose(); }
+                        continue;
+                    }
                     if (_calibrationRequested)
                     {
                         _calibrationRequested = false;
@@ -371,14 +555,23 @@ namespace Sidralune.Devices.Guiding
                             _log.Event("Slew", "guiding stopped");
                         }
                         _phase = Phase.Watching;
-                        lock (_lock) { Star = null; _lost = false; LockX = LockY = double.NaN; }
+                        lock (_lock) { Star = null; _lost = false; LockX = LockY = double.NaN; _keepLock = _userLock = false; _stars.Clear(); }
+                        // the sky has moved: a sticky lock position and comet tracking mean nothing any more
+                        if (!double.IsNaN(Settings.StickyLockX)) { Settings.StickyLockX = Settings.StickyLockY = double.NaN; SaveSettings(); }
+                        if (CometFollowing) { CometFollowing = false; Log.Info("Guider", "Comet tracking off: the mount slewed"); }
+                        CometTraining = false;
                         UpdateState();
                         while (MountSlewing()) await Task.Delay(200, ct);
                         continue;
                     }
                     if (_bin != Math.Max(1, Settings.Binning) || _focal != Settings.FocalLengthMm) PrepareCamera();
                     Track(await Frame(ct));
-                    if (_phase == Phase.Guiding && !_paused && !_lost && Star != null) await Correct(ct);
+                    if (_phase == Phase.Guiding)
+                    {
+                        Report();
+                        if (CometFollowing) FollowComet();
+                        if (!_paused && !_lost && _usable && Star != null) await Correct(ct);
+                    }
                 }
             }
             catch (OperationCanceledException) { }
@@ -386,9 +579,28 @@ namespace Sidralune.Devices.Guiding
             finally
             {
                 bool current;
-                lock (_lock) { current = _session == cts || _session == null; if (_session == cts) _session = null; }
+                LoopJob pending = null;
+                lock (_lock)
+                {
+                    current = _session == cts || _session == null;
+                    if (_session == cts) _session = null;
+                    if (current) { pending = _job; _job = null; }
+                }
+                pending?.Done.TrySetCanceled();
                 if (current) { _phase = Phase.Watching; SetState(Stopped); }
             }
+        }
+
+        /// <summary>Tells listeners (the Guiding Assistant) where the stars were in this frame, along RA and Dec.</summary>
+        private void Report()
+        {
+            var cal = Settings.Calibration;
+            var h = Measured;
+            if (h == null || cal == null || _lost || !_usable) return;
+            double ex, ey, ra, dec;
+            lock (_lock) { ex = _errX; ey = _errY; }
+            cal.ToAxes(ex, ey, MountPierSide(), Settings.MountReversesDecAfterFlip, out ra, out dec);
+            h(new GuideFrame { Time = DateTime.UtcNow, RaPx = ra, DecPx = dec, Paused = _paused });
         }
 
         private void Fail(string message, CancellationTokenSource cts)
@@ -416,6 +628,8 @@ namespace Sidralune.Devices.Guiding
             _bin = Math.Max(1, Settings.Binning);
             _focal = Settings.FocalLengthMm;
             try { _pixelUm = cam.PixelSizeX; } catch { _pixelUm = 0; }
+            _gain = SafeGain(cam);
+            _offset = SafeOffset(cam);
             _cameraId = cam.Info.Protocol + " " + cam.Info.Address;
             // the simulated guide camera sits on the guide scope the settings describe
             var sim = cam as CameraSimulator;
@@ -428,7 +642,7 @@ namespace Sidralune.Devices.Guiding
             {
                 var cam = _dm.GuideCamera;
                 if (cam == null || !cam.Connected) throw new InvalidOperationException(Lang.T("The guide camera was disconnected."));
-                try { return await CaptureService.GrabFrame(cam, Math.Max(0.001, Settings.ExposureSeconds), ct); }
+                try { return await CaptureService.GrabFrame(cam, CurrentExposure, ct); }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
                     Log.Warn("Guider", "Guide frame failed: " + ex.Message);
@@ -438,66 +652,117 @@ namespace Sidralune.Devices.Guiding
             }
         }
 
-        /// <summary>Measures the guide star in a new frame (or chooses one when asked).</summary>
+        /// <summary>Measures the stars in a new frame (or chooses the guide star when asked).</summary>
         private void Track(AstroImage frame)
         {
+            ApplyDarks(frame);
             var lum = frame.Luminance();
             int w = frame.Width, h = frame.Height;
-            if (_selectRequested)
+            bool guiding = _phase == Phase.Guiding;
+            ConfigureStars();
+            StarSetFrame r = null;
+            GuideStarInfo chosen = null;
+            bool found = false, lostNow = false;
+            lock (_lock)
             {
-                var s = GuideStars.Select(lum, w, h, Settings.SearchRadius, double.NaN, double.NaN, EdgeMargin);
-                lock (_lock)
+                if (_selectRequested)
                 {
-                    if (s != null) { Star = s; _lost = false; if (_phase == Phase.Watching) { LockX = s.X; LockY = s.Y; } }
+                    // with a sticky lock position, the star that was guided there (the one nearest it)
+                    if (StickyLockApplies) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, Settings.StickyLockX, Settings.StickyLockY, EdgeMargin);
+                    if (chosen == null) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, double.NaN, double.NaN, EdgeMargin);
+                    if (chosen != null)
+                    {
+                        Star = chosen; _lost = false; _rejected = false; _usable = !guiding;
+                        _stars.SetPrimary(chosen, lum, w, h, EdgeMargin);
+                        if (!guiding && !_keepLock) { LockX = chosen.X; LockY = chosen.Y; }
+                    }
+                    _selectRequested = false;
                 }
-                if (s != null) Log.Info("Guider", "Guide star " + s);
-                _selectRequested = false;
-            }
-            else if (Star != null)
-            {
-                var m = GuideStars.Measure(lum, w, h, Star.X, Star.Y, Settings.SearchRadius);
-                // a large correction moves the star towards the lock position, perhaps beyond the search box around where it was
-                if (m == null && _phase == Phase.Guiding && !double.IsNaN(LockX)) m = GuideStars.Measure(lum, w, h, LockX, LockY, Settings.SearchRadius);
-                lock (_lock)
+                else if (Star != null)
                 {
-                    if (m != null)
-                    {
-                        if (_lost) { _log.Event("Star found", m.ToString()); Log.Info("Guider", "Guide star found again"); }
-                        Star = m; _lost = false;
-                        if (_phase == Phase.Watching) { LockX = m.X; LockY = m.Y; }
-                    }
-                    else if (!_lost)
-                    {
-                        _lost = true;
-                        _log.Event("Star lost", "");
-                        Log.Warn("Guider", "Guide star lost");
-                    }
+                    r = _stars.Track(lum, w, h, LockX, LockY, guiding, EdgeMargin);
+                    if (r.Promoted) { LockX = r.NewLockX; LockY = r.NewLockY; }
+                    if (r.PrimaryFound || r.Promoted) Star = _stars.Primary;
+                    _usable = r.Usable;
+                    _rejected = r.PrimaryRejected && !r.Usable;
+                    if (r.Usable && guiding) { _errX = r.Dx; _errY = r.Dy; }
+                    // a frame left out for the star's brightness is not a lost star
+                    bool missing = !r.Usable && !r.PrimaryRejected;
+                    if (!missing && _lost) { _lost = false; found = true; }
+                    else if (missing && !_lost) { _lost = true; lostNow = true; }
+                    if (!guiding && r.PrimaryFound && !_keepLock) { LockX = Star.X; LockY = Star.Y; }
                 }
             }
+            if (chosen != null) Log.Info("Guider", "Guide star " + chosen + (Settings.MultiStar ? string.Format(", {0} more", _stars.Secondaries.Count) : ""));
+            if (found) { _log.Event("Star found", Star.ToString()); Log.Info("Guider", "Guide star found again"); }
+            if (lostNow) { _log.Event("Star lost", ""); Log.Warn("Guider", "Guide star lost"); }
+            if (r != null) foreach (var n in r.Notes) { _log.Event("Stars", n); Log.Info("Guider", n); }
+            if (r != null && r.Promoted) RememberLock();
+            AdjustExposure();
             LastFrame = frame;
             Interlocked.Increment(ref _frames);
             UpdateState();
             FrameReady?.Invoke(frame);
         }
 
-        /// <summary>The star's offset from the lock position in the image and along the RA and Dec pulse directions.</summary>
-        private void Offset(GuideStarInfo s, out double raErr, out double decErr, out double ex, out double ey)
+        // ------------------------------------------------------------------ corrections
+
+        private static IAxisAlgorithm Create(GuideAlgorithmKind k)
         {
-            lock (_lock) { ex = s.X - LockX; ey = s.Y - LockY; }
-            Settings.Calibration.ToAxes(ex, ey, MountPierSide(), Settings.MountReversesDecAfterFlip, out raErr, out decErr);
+            switch (k)
+            {
+                case GuideAlgorithmKind.ResistSwitch: return new ResistSwitchAlgorithm();
+                case GuideAlgorithmKind.Lowpass2: return new Lowpass2Algorithm();
+                case GuideAlgorithmKind.ZFilter: return new ZFilterAlgorithm();
+                default: return new HysteresisAlgorithm();
+            }
         }
 
-        /// <summary>One guide step: the star's offset from the lock position, split into RA and Dec, corrected by pulses.</summary>
+        /// <summary>The algorithms and the backlash compensation follow the settings, which may change while guiding.</summary>
+        private void ConfigureAlgorithms()
+        {
+            var st = Settings;
+            if (_raAlgo == null || _raKind != st.RaAlgorithm) { _raAlgo = Create(st.RaAlgorithm); _raKind = st.RaAlgorithm; }
+            if (_decAlgo == null || _decKind != st.DecAlgorithm) { _decAlgo = Create(st.DecAlgorithm); _decKind = st.DecAlgorithm; }
+            Configure(_raAlgo, true);
+            Configure(_decAlgo, false);
+            _backlash.Enabled = st.BacklashCompensation;
+            if (st.BacklashMs != _backlashFrom || st.BacklashMinMs != _backlashMinFrom || st.BacklashMaxMs != _backlashMaxFrom)
+            {
+                _backlashFrom = st.BacklashMs; _backlashMinFrom = st.BacklashMinMs; _backlashMaxFrom = st.BacklashMaxMs;
+                _backlash.AmountMs = Math.Max(0, st.BacklashMs);
+                _backlash.MinMs = Math.Max(0, st.BacklashMinMs);
+                // no maximum set: up to twice the amount
+                _backlash.MaxMs = st.BacklashMaxMs > 0 ? st.BacklashMaxMs : 2 * Math.Max(0, st.BacklashMs);
+            }
+        }
+
+        private void Configure(IAxisAlgorithm a, bool ra)
+        {
+            var st = Settings;
+            double minMove = ra ? st.RaMinMovePx : st.DecMinMovePx, aggr = (ra ? st.RaAggressiveness : st.DecAggressiveness) / 100;
+            var h = a as HysteresisAlgorithm;
+            if (h != null) { h.MinMovePx = minMove; h.Hysteresis = st.RaHysteresis / 100; h.Aggressiveness = aggr; }
+            var r = a as ResistSwitchAlgorithm;
+            if (r != null) { r.MinMovePx = minMove; r.Aggressiveness = aggr; r.FastSwitch = st.DecFastSwitch; }
+            var l = a as Lowpass2Algorithm;
+            if (l != null) { l.MinMovePx = minMove; l.Aggressiveness = (ra ? st.RaLowpassAggressiveness : st.DecLowpassAggressiveness) / 100; }
+            var z = a as ZFilterAlgorithm;
+            if (z != null) { z.MinMovePx = minMove; z.ExposureFactor = ra ? st.RaZFactor : st.DecZFactor; }
+        }
+
+        /// <summary>One guide step: the stars' offset from the lock position, split into RA and Dec, corrected by pulses.</summary>
         private async Task Correct(CancellationToken ct)
         {
             var cal = Settings.Calibration;
             if (cal == null) return;
-            if (_resetAlgorithms) { _raAlgo.Reset(); _decAlgo.Reset(); _resetAlgorithms = false; }
-            _raAlgo.MinMovePx = Settings.RaMinMovePx; _raAlgo.Hysteresis = Settings.RaHysteresis / 100; _raAlgo.Aggressiveness = Settings.RaAggressiveness / 100;
-            _decAlgo.MinMovePx = Settings.DecMinMovePx; _decAlgo.Aggressiveness = Settings.DecAggressiveness / 100; _decAlgo.FastSwitch = Settings.DecFastSwitch;
+            ConfigureAlgorithms();
+            if (_resetAlgorithms) { _raAlgo.Reset(); _decAlgo.Reset(); _backlash.Reset(); _resetAlgorithms = false; }
             var s = Star;
-            double raErr, decErr, ex, ey;
-            Offset(s, out raErr, out decErr, out ex, out ey);
+            double ex, ey, raErr, decErr;
+            lock (_lock) { ex = _errX; ey = _errY; }
+            cal.ToAxes(ex, ey, MountPierSide(), Settings.MountReversesDecAfterFlip, out raErr, out decErr);
+            _backlash.Next(decErr, Settings.DecMinMovePx);
             double raC = _raAlgo.Correction(raErr), decC = _decAlgo.Correction(decErr);
             double raRate = cal.RaRateAt(MountDeclination()), decRate = cal.DecRatePxPerSec;
             int raMs = raRate > 0 ? (int)Math.Round(Math.Min(Settings.MaxRaPulseMs, Math.Abs(raC) / raRate * 1000)) : 0;
@@ -505,6 +770,18 @@ namespace Sidralune.Devices.Guiding
             // the star has moved the way a West pulse moves it: an East pulse brings it back (and South for North)
             var raDir = raC > 0 ? GuideDirection.East : GuideDirection.West;
             var decDir = decC > 0 ? GuideDirection.South : GuideDirection.North;
+            string note = "";
+            var mode = Settings.DecMode;
+            if (decMs > 0 && (mode == DecGuideMode.Off || (mode == DecGuideMode.North && decDir == GuideDirection.South) || (mode == DecGuideMode.South && decDir == GuideDirection.North)))
+            {
+                note = "Dec " + decDir + " not sent (" + mode + " only)";
+                decMs = 0;
+            }
+            // what actually goes out, for the algorithms that keep account of it
+            _raAlgo.Sent(raRate > 0 ? Math.Sign(raC) * raMs / 1000.0 * raRate : 0);
+            _decAlgo.Sent(decRate > 0 ? Math.Sign(decC) * decMs / 1000.0 * decRate : 0);
+            int extra = decMs > 0 ? _backlash.Extra(decDir == GuideDirection.North ? 1 : -1, decErr) : 0;
+            if (extra > 0) { decMs += extra; note = "backlash +" + extra + " ms"; }
             double scale = PixelScale;
             var step = new GuideStep
             {
@@ -513,11 +790,19 @@ namespace Sidralune.Devices.Guiding
                 Snr = s.Snr, StarMass = s.Flux
             };
             lock (_history) { _history.Add(step); if (_history.Count > 5000) _history.RemoveRange(0, 1000); }
-            _log.Row("Guide", s, ex, ey, raErr, decErr, step.RaPulse, step.DecPulse);
+            _log.Row("Guide", s, ex, ey, raErr, decErr, step.RaPulse, step.DecPulse, note, _stars.LastUsed);
             Step?.Invoke(step);
             var pulser = new GuidePulser(_dm, Settings.Output);
             if (raMs > 0) await pulser.Pulse(raDir, raMs, ct);
-            if (decMs > 0) await pulser.Pulse(decDir, decMs, ct);
+            if (decMs > 0) await SendPulse(pulser, decDir, decMs, ct);
+        }
+
+        /// <summary>Sends a pulse, noting the way Dec last turned for the backlash compensation.</summary>
+        private async Task SendPulse(GuidePulser pulser, GuideDirection dir, int ms, CancellationToken ct)
+        {
+            await pulser.Pulse(dir, ms, ct);
+            if (dir == GuideDirection.North) _backlash.Pulsed(1);
+            else if (dir == GuideDirection.South) _backlash.Pulsed(-1);
         }
 
         // ------------------------------------------------------------------ calibration
@@ -559,7 +844,9 @@ namespace Sidralune.Devices.Guiding
             double dist = Math.Max(5, Settings.CalibrationDistancePx);
             int stepRa = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, predRa);
 
+            double ra0 = MountRa();
             var west = await RunLeg(GuideDirection.West, stepRa, dist, startX, startY, pulser, ct);
+            int westSign = Sign(-AstroMath.NormalizeDeg180((MountRa() - ra0) * 15) * 3600 * cosd);
             double raAngle, raRate;
             if (!GuideCalibration.FitLeg(west.T, west.X, west.Y, out raAngle, out raRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."));
             await Return(GuideDirection.East, west.TotalMs, raRate, Settings.MaxRaPulseMs, pulser, ct);
@@ -568,7 +855,9 @@ namespace Sidralune.Devices.Guiding
             double expDec = raRate / cosd * (raKnown && decKnown ? gDec / gRa : 1);
             int stepDec = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, expDec);
             int clearingMs = await ClearBacklash(stepDec, expDec, pulser, ct);
+            double dec0 = MountDeclination();
             var north = await RunLeg(GuideDirection.North, stepDec, dist, Star.X, Star.Y, pulser, ct);
+            int northSign = Sign((MountDeclination() - dec0) * 3600);
             double decAngle, decRate;
             if (!GuideCalibration.FitLeg(north.T, north.X, north.Y, out decAngle, out decRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."));
             // back by the North leg and the steps that took up the backlash, so the star ends near where it started
@@ -579,7 +868,8 @@ namespace Sidralune.Devices.Guiding
                 RaAngleDeg = raAngle, DecAngleDeg = decAngle, RaRatePxPerSec = raRate, DecRatePxPerSec = decRate,
                 ExpectedRaRatePxPerSec = raKnown ? predRa : double.NaN, ExpectedDecRatePxPerSec = decKnown ? predDec : double.NaN,
                 DecDeg = dec, PierSide = pier, Binning = _bin, PixelSizeUm = _pixelUm, FocalLengthMm = Settings.FocalLengthMm,
-                Output = Settings.Output, Camera = _cameraId, When = DateTime.UtcNow, RaSteps = west.Steps, DecSteps = north.Steps
+                Output = Settings.Output, Camera = _cameraId, When = DateTime.UtcNow, RaSteps = west.Steps, DecSteps = north.Steps,
+                WestSign = westSign, NorthSign = northSign
             };
             cal.Check();
             Settings.Calibration = cal;
@@ -596,16 +886,19 @@ namespace Sidralune.Devices.Guiding
             UpdateState();
         }
 
+        /// <summary>+1, -1, or 0 for a change under half an arcsecond (the mount did not say).</summary>
+        private static int Sign(double arcsec) => double.IsNaN(arcsec) || Math.Abs(arcsec) < 0.5 ? 0 : Math.Sign(arcsec);
+
         /// <summary>A pulse for about twelve steps over the distance, between 0.1 and 3 s.</summary>
         private static int StepFor(double dist, double ratePxPerSec) =>
             ratePxPerSec > 0 && !double.IsInfinity(ratePxPerSec) ? (int)AstroMath.Clamp(Math.Round(dist / 12 / ratePxPerSec * 1000), 100, 3000) : 750;
 
         /// <summary>The next frame's star position; throws when the star is lost or the mount slews.</summary>
-        private async Task NextPosition(CancellationToken ct)
+        private async Task NextPosition(CancellationToken ct, string slewed = null, string lost = null)
         {
-            if (MountSlewing()) throw new InvalidOperationException(Lang.T("Calibration stopped because the mount slewed."));
+            if (MountSlewing()) throw new InvalidOperationException(slewed ?? Lang.T("Calibration stopped because the mount slewed."));
             Track(await Frame(ct));
-            if (Star == null || _lost) throw new InvalidOperationException(Lang.T("The guide star was lost during calibration."));
+            if (Star == null || _lost) throw new InvalidOperationException(lost ?? Lang.T("The guide star was lost during calibration."));
         }
 
         private async Task<Leg> RunLeg(GuideDirection dir, int stepMs, double dist, double x0, double y0, GuidePulser pulser, CancellationToken ct)
@@ -618,7 +911,7 @@ namespace Sidralune.Devices.Guiding
                 if (leg.Steps >= 40)
                     throw new InvalidOperationException(ra ? Lang.T("Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate.")
                                                            : Lang.T("Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."));
-                await pulser.Pulse(dir, stepMs, ct);
+                await SendPulse(pulser, dir, stepMs, ct);
                 leg.Steps++;
                 leg.TotalMs += stepMs;
                 await NextPosition(ct);
@@ -636,7 +929,7 @@ namespace Sidralune.Devices.Guiding
             for (int left = totalMs; left > 0; left -= chunk)
             {
                 int ms = Math.Min(chunk, left);
-                await pulser.Pulse(dir, ms, ct);
+                await SendPulse(pulser, dir, ms, ct);
                 await NextPosition(ct);
                 _log.Row("Calibration " + dir, Star, double.NaN, double.NaN, double.NaN, double.NaN, 0, 0);
             }
@@ -646,7 +939,7 @@ namespace Sidralune.Devices.Guiding
         /// North steps until the star moves steadily: three steps in a row, each at least 60 % of the expected move and in
         /// the same direction. After 20 s of pulses it goes on if the star has moved 3 pixels at all, and gives up if not.
         /// </summary>
-        private async Task<int> ClearBacklash(int stepMs, double expectedRate, GuidePulser pulser, CancellationToken ct)
+        private async Task<int> ClearBacklash(int stepMs, double expectedRate, GuidePulser pulser, CancellationToken ct, string lost = null)
         {
             double expectedMove = expectedRate * stepMs / 1000;
             double sx = Star.X, sy = Star.Y, lx = sx, ly = sy, pdx = 0, pdy = 0;
@@ -659,9 +952,9 @@ namespace Sidralune.Devices.Guiding
                     if (moved >= 3) break;
                     throw new InvalidOperationException(Lang.T("Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."));
                 }
-                await pulser.Pulse(GuideDirection.North, stepMs, ct);
+                await SendPulse(pulser, GuideDirection.North, stepMs, ct);
                 totalMs += stepMs;
-                await NextPosition(ct);
+                await NextPosition(ct, null, lost);
                 double dx = Star.X - lx, dy = Star.Y - ly;
                 lx = Star.X; ly = Star.Y;
                 bool same = good == 0 || dx * pdx + dy * pdy > 0;
@@ -684,6 +977,12 @@ namespace Sidralune.Devices.Guiding
         {
             var tel = _dm.Telescope;
             try { return tel != null && tel.Connected ? tel.Declination : double.NaN; } catch { return double.NaN; }
+        }
+
+        private double MountRa()
+        {
+            var tel = _dm.Telescope;
+            try { return tel != null && tel.Connected ? tel.RightAscension : double.NaN; } catch { return double.NaN; }
         }
 
         private PierSide MountPierSide()

@@ -222,10 +222,10 @@ namespace Sidralune.Devices.Automation
             return cam;
         }
 
-        /// <summary>One video or guide frame: a short exposure, waited for and read, with no analysis.</summary>
-        public static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct)
+        /// <summary>One video or guide frame: a short exposure, waited for and read, with no analysis. light false takes a dark frame.</summary>
+        public static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct, bool light = true)
         {
-            cam.StartExposure(seconds, true);
+            cam.StartExposure(seconds, light);
             using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
             {
                 if (seconds > 0.03) await Task.Delay(TimeSpan.FromSeconds(seconds - 0.02), ct);

@@ -27,6 +27,11 @@ namespace Sidralune.Devices.Guiding
         public string Camera = "";
         public DateTime When;
         public int RaSteps, DecSteps;
+        /// <summary>
+        /// Which way the mount's own coordinates moved while calibrating: +1 when a West pulse moved it west (RA down) and
+        /// a North pulse north, -1 the other way, 0 when the mount did not say. Turns "north on the sky" into pulses.
+        /// </summary>
+        public int WestSign, NorthSign;
         /// <summary>What looked wrong (see the Issue constants), kept to show with the calibration.</summary>
         public List<string> Issues = new List<string>();
 
@@ -71,6 +76,40 @@ namespace Sidralune.Devices.Guiding
             double rx, ry, dx, dy;
             Directions(now, mountReversesDec, out rx, out ry, out dx, out dy);
             ex = ra * rx + dec * dx; ey = ra * ry + dec * dy;
+        }
+
+        /// <summary>
+        /// Which way on the sky West and North pulses move the mount now: West pulses always the same way; North pulses the
+        /// other way after a flip when the mount does not turn its Dec pulses round itself.
+        /// </summary>
+        public void SkySigns(PierSide now, bool mountReversesDec, out int west, out int north)
+        {
+            west = WestSign == 0 ? 1 : WestSign;
+            north = NorthSign == 0 ? 1 : NorthSign;
+            if (Flipped(now) && !mountReversesDec) north = -north;
+        }
+
+        /// <summary>
+        /// The image offset (pixels) that moves the lock position so that guiding moves the telescope eastArcsec east and
+        /// northArcsec north on the sky.
+        /// </summary>
+        public void SkyToImage(double eastArcsec, double northArcsec, double arcsecPerPx, PierSide now, bool mountReversesDec, out double ex, out double ey)
+        {
+            int west, north;
+            SkySigns(now, mountReversesDec, out west, out north);
+            // the lock moved the way a West pulse moves the star makes the guider pulse West
+            FromAxes(-eastArcsec / arcsecPerPx * west, northArcsec / arcsecPerPx * north, now, mountReversesDec, out ex, out ey);
+        }
+
+        /// <summary>The telescope motion on the sky (arcsec east and north) that a lock position move of (ex, ey) pixels asks for.</summary>
+        public void ImageToSky(double ex, double ey, double arcsecPerPx, PierSide now, bool mountReversesDec, out double eastArcsec, out double northArcsec)
+        {
+            int west, north;
+            SkySigns(now, mountReversesDec, out west, out north);
+            double ra, dec;
+            ToAxes(ex, ey, now, mountReversesDec, out ra, out dec);
+            eastArcsec = -ra * arcsecPerPx * west;
+            northArcsec = dec * arcsecPerPx * north;
         }
 
         /// <summary>

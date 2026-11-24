@@ -84,6 +84,9 @@
     <Compile Include="Views\ObservatoryView.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Views\ObservatoryView.Guiding.cs">
+      <DependentUpon>ObservatoryView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\PhotometryView.cs">
       <SubType>UserControl</SubType>
     </Compile>

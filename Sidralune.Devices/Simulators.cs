@@ -331,6 +331,11 @@ namespace Sidralune.Devices.Simulators
         public double RotationDeg;
         /// <summary>Seeing's wander of the star image: RMS (arcsec, per axis) in a 1 s exposure, less in longer ones.</summary>
         public double JitterArcsec;
+        /// <summary>Hot pixels, always at the same places in a frame of a given size, and how bright they grow (fraction of full scale per minute).</summary>
+        public int HotPixels = 40;
+        public double HotPixelLevel = 0.3;
+        /// <summary>The share of starlight that gets through (1 clear, less under thin cloud).</summary>
+        public double Transparency = 1;
         private int _w = 2048, _h = 1536;
         private double _pixelUm = 3.76;
         private CameraState _state = CameraState.Idle;
@@ -348,7 +353,7 @@ namespace Sidralune.Devices.Simulators
         /// <summary>A small uncooled guide camera on a 240 mm guide scope, turned 30° on the sky, guiding through its ST-4 port.</summary>
         public static CameraSimulator GuideCamera(TelescopeSimulator mount)
         {
-            var c = new CameraSimulator { Mount = mount, FocalLengthMm = 240, RotationDeg = 30, JitterArcsec = 0.6, Gain = 50, Offset = 10 };
+            var c = new CameraSimulator { Mount = mount, FocalLengthMm = 240, RotationDeg = 30, JitterArcsec = 0.6, Gain = 50, Offset = 10, HotPixels = 60 };
             c.Info = new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide Camera Simulator" };
             c.SetSensor(1280, 960, 3.75);
             return c;
@@ -491,7 +496,7 @@ namespace Sidralune.Devices.Simulators
                     var p = place(xi, eta);
                     double x = p.X, y = p.Y;
                     if (x < -r || y < -r || x > w + r || y > h + r) continue;
-                    double flux = Math.Pow(10, -0.4 * (s.Mag - ZeroPointMag)) * exp; // electrons
+                    double flux = Math.Pow(10, -0.4 * (s.Mag - ZeroPointMag)) * exp * Transparency; // electrons
                     Splat(d, w, h, x, y, flux, sigma, r);
                 }
                 if (SyntheticFieldStars)
@@ -520,7 +525,7 @@ namespace Sidralune.Devices.Simulators
                                 var p = place(cd * Math.Sin(da) / den, (sd * cd0 - cd * sd0 * Math.Cos(da)) / den);
                                 double x = p.X, y = p.Y;
                                 if (x < -r || y < -r || x > w + r || y > h + r) continue;
-                                double flux = Math.Pow(10, -0.4 * (mag - ZeroPointMag)) * exp;
+                                double flux = Math.Pow(10, -0.4 * (mag - ZeroPointMag)) * exp * Transparency;
                                 Splat(d, w, h, x, y, flux, sigma, r);
                             }
                         }
@@ -536,7 +541,7 @@ namespace Sidralune.Devices.Simulators
                 double adu = bias + noisy / gainE;
                 d[i] = (float)AstroMath.Clamp(adu / 65535.0, 0, 1);
             }
-            for (int i = 0; i < 40; i++) { int p = hot.Next(d.Length); d[p] = (float)Math.Min(1, d[p] + 0.3 * exp / 60); }
+            for (int i = 0; i < HotPixels; i++) { int p = hot.Next(d.Length); d[p] = (float)Math.Min(1, d[p] + HotPixelLevel * exp / 60); }
             img.ExposureSeconds = exp;
             img.DateObs = _start;
             img.Header.Set("IMAGETYP", light ? "Light Frame" : "Dark Frame");
