@@ -43,6 +43,48 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestSwitchFlatPanelAndDomeSimulators()
+        {
+            var sw = new SwitchSimulator();
+            sw.Connect();
+            CheckTrue("A switch box of four: two dew heaters, a fan and the mount's power, which starts on",
+                sw.Count == 4 && sw.GetName(0) == "Dew heater 1" && sw.GetName(3) == "Mount power" && sw.GetSwitch(3) && !sw.GetSwitch(0));
+            sw.SetValue(0, 40);
+            CheckTrue("A dew heater takes a level, and is on at any level above 0", sw.GetValue(0) == 40 && sw.GetSwitch(0));
+            sw.SetValue(1, 250);
+            CheckTrue("…of at most 100 %", sw.GetValue(1) == 100);
+            sw.SetSwitch(0, false); sw.SetSwitch(2, true);
+            CheckTrue("Switches turn off and on; on/off ones read 0 or 1", sw.GetValue(0) == 0 && !sw.GetSwitch(0) && sw.GetValue(2) == 1);
+            bool outside = false;
+            try { sw.GetSwitch(4); } catch (ArgumentOutOfRangeException) { outside = true; }
+            CheckTrue("A switch that is not there is refused", outside);
+
+            var dome = new DomeSimulator();
+            dome.Connect();
+            dome.SlewToAzimuth(3);
+            CheckTrue("The dome stops on an azimuth between its 2° steps, instead of going back and forth", GuidingTests.SpinUntil(() => !dome.Slewing && dome.Azimuth == 3, 3000) && !GuidingTests.SpinUntil(() => dome.Azimuth != 3, 500), dome.Azimuth.ToString());
+            dome.SlewToAzimuth(90);
+            Thread.Sleep(200);
+            dome.SlewToAzimuth(355);
+            CheckTrue("A new slew takes over, the short way round through north", GuidingTests.SpinUntil(() => !dome.Slewing && dome.Azimuth == 355, 5000), dome.Azimuth.ToString());
+
+            var cover = new CoverCalibratorSimulator { MoveSeconds = 0.5 };
+            cover.Connect();
+            CheckTrue("The flat panel's cover starts closed and dark", cover.CoverState == "Closed" && cover.Brightness == 0 && cover.MaxBrightness == 255);
+            cover.OpenCover();
+            CheckTrue("The cover takes its time to open", cover.CoverState == "Moving");
+            CheckTrue("…and opens", GuidingTests.SpinUntil(() => cover.CoverState == "Open", 3000));
+            cover.CloseCover();
+            Thread.Sleep(100);
+            cover.OpenCover();
+            CheckTrue("Opening again while closing wins", GuidingTests.SpinUntil(() => cover.CoverState == "Open", 3000) && !GuidingTests.SpinUntil(() => cover.CoverState != "Open", 1000), cover.CoverState);
+            cover.CalibratorOn(300);
+            CheckTrue("The panel lights, at most at 255", cover.Brightness == 255);
+            cover.CalibratorOff();
+            CheckTrue("…and goes dark", cover.Brightness == 0);
+        }
+
+        [TestMethod]
         public void TestSequenceSerialization()
         {
             var seq = Sequencer.Template("M 31", 10.684, 41.269);

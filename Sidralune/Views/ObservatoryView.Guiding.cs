@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -38,11 +39,25 @@ namespace Sidralune.Views
         /// <summary>Runs a UI action, telling the user what went wrong instead of throwing.</summary>
         private static void Try(Action a) { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }
 
+        private static string AoCalibrationText(AoCalibration c) =>
+            c == null || c.XPxPerStep <= 0 ? T("The AO is not calibrated yet: it is calibrated after the mount when guiding starts.")
+            : T("AO calibrated {0:yyyy-MM-dd HH:mm}: X {1:0.00} px a step towards {2:0}°, Y {3:0.00} px a step towards {4:0}°.", c.When.ToLocalTime(), c.XPxPerStep, c.XAngleDeg, c.YPxPerStep, c.YAngleDeg);
+
         private Control BuildGuiding()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
-            var plot = new PlotControl { Dock = DockStyle.Bottom, Height = 230, Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
+            var plot = new PlotControl { Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
             var ra = plot.AddSeries(T("RA")); var dec = plot.AddSeries(T("Dec"));
+            // the error as a graph, as points round the lock position, and the guide star's profile
+            var targetView = new GuideTargetView();
+            var profile = new PlotControl { Title = T("Star profile"), YLabel = T("ADU"), XLabel = T("pixels from the star") };
+            var profX = profile.AddSeries(T("X"), SeriesStyle.LineScatter); var profY = profile.AddSeries(T("Y"), SeriesStyle.LineScatter);
+            // dashed, so X and Y can be told apart in the red night palette too
+            profY.DashDot = true;
+            var graphs = new TabbedPanel { Dock = DockStyle.Bottom, Height = 262 };
+            graphs.AddPage(T("Graph"), plot);
+            graphs.AddPage(T("Target"), targetView);
+            graphs.AddPage(T("Star profile"), profile);
             var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold, UseMnemonic = false }; // error messages may hold "&"
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
             Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => Try(a)); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
@@ -106,7 +121,7 @@ namespace Sidralune.Views
             phd2Job.Changed += syncGuideStop;
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
             syncGuideStop();
-            btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
+            btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); targetView.Clear(); });
 
             // the guide camera's frames, with the search boxes and the lock position
             var viewer = new ImageViewer { Dock = DockStyle.Fill };
@@ -138,6 +153,7 @@ namespace Sidralune.Views
                         gr.DrawLine(pen, c.X, c.Y - 12, c.X, c.Y - 4); gr.DrawLine(pen, c.X, c.Y + 4, c.X, c.Y + 12);
                     }
                 }
+                if (g.UsingAo) DrawAoGauge(gr, viewer.ClientSize, Dm.Ao, g.Settings.AoBumpPercent, g.Bumping);
             };
             // a left click chooses the star; a right click offers that or the lock position there
             double menuX = double.NaN, menuY = double.NaN;
@@ -173,7 +189,7 @@ namespace Sidralune.Views
             {
                 Interlocked.Exchange(ref stepsPosted, 0);
                 GuideStep s;
-                while (steps.TryDequeue(out s)) { ra.Add(n0, s.RaArcsec); dec.Add(n0, s.DecArcsec); n0++; }
+                while (steps.TryDequeue(out s)) { ra.Add(n0, s.RaArcsec); dec.Add(n0, s.DecArcsec); targetView.Add(s.RaArcsec, s.DecArcsec); n0++; }
                 while (ra.X.Count > 400) { ra.X.RemoveAt(0); ra.Y.RemoveAt(0); dec.X.RemoveAt(0); dec.Y.RemoveAt(0); }
                 plot.Invalidate();
             };
@@ -187,6 +203,7 @@ namespace Sidralune.Views
                 bool fit = viewer.Image == null || viewer.Image.Width != f.Width || viewer.Image.Height != f.Height;
                 viewer.SetImage(f, fit);
                 var s = g.Star;
+                if (profile.Visible) StarProfile(f, s, g.Settings.SearchRadius, profile, profX, profY);
                 starInfo.Text = s == null ? T("No guide star: click a star or Select star") : g.Lost ? T("Star lost at {0:0.0}, {1:0.0}", s.X, s.Y)
                     : T("Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px", s.X, s.Y, s.Snr, s.Hfd) + (s.Saturated ? " · ⚠ " + T("saturated") : "")
                       + (g.FrameRejected ? " · ⚠ " + T("brightness jumped: frame not used") : "");
@@ -232,6 +249,9 @@ namespace Sidralune.Views
                         if (sg.StarsUsed > 1) more += " · " + T("{0} stars", sg.StarsUsed);
                         if (sg.Settings.AutoExposure) more += " · " + T("{0:0.0#} s", sg.CurrentExposure);
                         if (sg.CometFollowing) more += " · " + T("Comet");
+                        if (sg.SubframeRead != null) more += " · " + T("Subframe");
+                        if (sg.UsingAo)
+                            try { var ao = Dm.Ao; more += " · " + T("AO {0:+0;-0;0}, {1:+0;-0;0}", ao.PositionX, ao.PositionY) + (sg.Bumping ? " · " + T("bumping the mount") : ""); } catch { }
                     }
                     if (sg != null && sg.State == SidraluneGuider.Stopped && sg.LastError != null) stats.Text = state + " · " + sg.LastError;
                     else if (double.IsNaN(g.RmsTotalArcsec)) stats.Text = state + more;
@@ -240,10 +260,141 @@ namespace Sidralune.Views
             };
             panel.Controls.Add(view);
             panel.Controls.Add(right);
-            panel.Controls.Add(plot);
+            panel.Controls.Add(graphs);
             panel.Controls.Add(stats);
             panel.Controls.Add(bar);
             return panel;
+        }
+
+        /// <summary>
+        /// The AO's position in its travel, in a corner of the frame: a square of the travel, the bump point inside it,
+        /// and a dot where the AO is (red while the mount is being bumped).
+        /// </summary>
+        private static void DrawAoGauge(Graphics gr, Size view, IAdaptiveOptics ao, double bumpPercent, bool bumping)
+        {
+            int max, x, y;
+            try { max = Math.Max(1, ao.MaxSteps); x = ao.PositionX; y = ao.PositionY; } catch { return; }
+            var p = Theme.Current;
+            const int size = 64, margin = 10;
+            var box = new RectangleF(view.Width - size - margin, margin + 16, size, size);
+            gr.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var bg = new SolidBrush(Color.FromArgb(200, p.Surface))) gr.FillRectangle(bg, box.X - 4, box.Y - 18, box.Width + 8, box.Height + 22);
+            using (var text = new SolidBrush(p.TextDim)) gr.DrawString(T("AO"), Theme.SmallFont, text, box.X, box.Y - 16);
+            using (var pen = new Pen(p.Border)) gr.DrawRectangle(pen, box.X, box.Y, box.Width, box.Height);
+            float half = size / 2f, b = (float)(half * Math.Max(0, Math.Min(100, bumpPercent)) / 100);
+            float cx = box.X + half, cy = box.Y + half;
+            using (var pen = new Pen(p.Warning) { DashStyle = DashStyle.Dash }) gr.DrawRectangle(pen, cx - b, cy - b, 2 * b, 2 * b);
+            using (var pen = new Pen(p.Border)) { gr.DrawLine(pen, cx, box.Y, cx, box.Bottom); gr.DrawLine(pen, box.X, cy, box.Right, cy); }
+            // X positive West (to the right), Y positive North (up), as the AO's maker names them
+            float dx = cx + half * x / max, dy = cy - half * y / max;
+            using (var dot = new SolidBrush(bumping ? p.Danger : p.Accent)) gr.FillEllipse(dot, dx - 4, dy - 4, 8, 8);
+        }
+
+        /// <summary>The guide star's cross-sections through X and Y, with its peak, HFD and FWHM in the title.</summary>
+        private static void StarProfile(AstroImage f, GuideStarInfo s, int searchRadius, PlotControl plot, PlotSeries px, PlotSeries py)
+        {
+            px.X.Clear(); px.Y.Clear(); py.X.Clear(); py.Y.Clear();
+            if (s == null || f == null) { plot.Title = T("Star profile"); plot.Invalidate(); return; }
+            var lum = f.Luminance();
+            int w = f.Width, h = f.Height, r = Math.Max(8, searchRadius), cx = (int)Math.Round(s.X), cy = (int)Math.Round(s.Y);
+            for (int d = -r; d <= r; d++)
+            {
+                int x = cx + d, y = cy + d;
+                if (x >= 0 && x < w && cy >= 0 && cy < h) px.Add(d, lum[cy * w + x] * 65535.0);
+                if (y >= 0 && y < h && cx >= 0 && cx < w) py.Add(d, lum[y * w + cx] * 65535.0);
+            }
+            double fx = Fwhm(px), fy = Fwhm(py), fwhm = double.IsNaN(fx) ? fy : double.IsNaN(fy) ? fx : (fx + fy) / 2;
+            double peak = px.Y.Count > 0 ? px.Y.Max() : double.NaN;
+            plot.Title = T("Star profile · peak {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px", peak, s.Hfd, fwhm);
+            plot.Invalidate();
+        }
+
+        /// <summary>The width at half the height above the background (the ends' lowest), between the crossings either side of the peak.</summary>
+        private static double Fwhm(PlotSeries s)
+        {
+            int n = s.Y.Count;
+            if (n < 5) return double.NaN;
+            double bg = Math.Min(s.Y.Take(3).Average(), s.Y.Skip(n - 3).Average());
+            int top = s.Y.IndexOf(s.Y.Max());
+            double half = bg + (s.Y[top] - bg) / 2;
+            if (s.Y[top] - bg <= 0) return double.NaN;
+            double left = double.NaN, right = double.NaN;
+            for (int i = top; i > 0; i--) if (s.Y[i - 1] < half) { left = s.X[i - 1] + (half - s.Y[i - 1]) / (s.Y[i] - s.Y[i - 1]) * (s.X[i] - s.X[i - 1]); break; }
+            for (int i = top; i < n - 1; i++) if (s.Y[i + 1] < half) { right = s.X[i] + (s.Y[i] - half) / (s.Y[i] - s.Y[i + 1]) * (s.X[i + 1] - s.X[i]); break; }
+            return right - left;
+        }
+
+        /// <summary>The last hundred guide steps as points round the lock position (RA across, Dec up), with rings of whole arcseconds and the RMS circle.</summary>
+        private sealed class GuideTargetView : Control, IThemed
+        {
+            private readonly List<PointF> _pts = new List<PointF>();
+
+            public GuideTargetView()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+            }
+
+            public int Count => _pts.Count;
+
+            public void Add(double ra, double dec)
+            {
+                if (double.IsNaN(ra) || double.IsNaN(dec)) return;
+                _pts.Add(new PointF((float)ra, (float)dec));
+                if (_pts.Count > 100) _pts.RemoveAt(0);
+                Invalidate();
+            }
+
+            public void Clear() { _pts.Clear(); Invalidate(); }
+
+            public void ApplyTheme(Palette p) => Invalidate();
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var p = Theme.Current;
+                var g = e.Graphics;
+                g.Clear(p.ChartBackground);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                float cx = Width / 2f, cy = Height / 2f, radius = Math.Min(Width, Height) / 2f - 20;
+                if (radius < 10) return;
+                // scaled to the bulk of the points (nine in ten), so one large jump does not shrink the rest; points
+                // beyond the outer ring sit on its edge
+                double max = 3;
+                if (_pts.Count > 0)
+                {
+                    var r = _pts.Select(q => Math.Max(Math.Abs(q.X), Math.Abs(q.Y))).OrderBy(x => x).ToList();
+                    max = Math.Max(max, 1.15 * r[(int)Math.Floor(0.9 * (r.Count - 1))]);
+                }
+                max = Math.Ceiling(max);
+                float k = (float)(radius / max);
+                int step = max <= 6 ? 1 : (int)Math.Ceiling(max / 6);
+                using (var grid = new Pen(p.ChartGrid))
+                using (var text = new SolidBrush(p.ChartText))
+                {
+                    g.DrawLine(grid, cx - radius, cy, cx + radius, cy);
+                    g.DrawLine(grid, cx, cy - radius, cx, cy + radius);
+                    for (int r = step; r <= max; r += step)
+                    {
+                        g.DrawEllipse(grid, cx - r * k, cy - r * k, 2 * r * k, 2 * r * k);
+                        g.DrawString(r + "″", Theme.SmallFont, text, cx + r * k * 0.71f + 1, cy - r * k * 0.71f - 13);
+                    }
+                    g.DrawString(T("RA"), Theme.SmallFont, text, cx + radius - 16, cy + 2);
+                    g.DrawString(T("Dec"), Theme.SmallFont, text, cx + 3, cy - radius - 4);
+                }
+                // older points fainter
+                for (int i = 0; i < _pts.Count; i++)
+                {
+                    int alpha = 60 + 195 * (i + 1) / _pts.Count;
+                    float px = _pts[i].X * k, py = _pts[i].Y * k, len = (float)Math.Sqrt(px * px + py * py);
+                    if (len > radius) { px *= radius / len; py *= radius / len; }
+                    using (var b = new SolidBrush(Color.FromArgb(alpha, i == _pts.Count - 1 ? p.Warning : p.Accent)))
+                        g.FillEllipse(b, cx + px - 2.5f, cy - py - 2.5f, 5, 5);
+                }
+                if (_pts.Count < 2) return;
+                double rms = Math.Sqrt(_pts.Average(q => q.X * q.X + q.Y * q.Y));
+                float rr = Math.Min(radius, (float)rms * k);
+                using (var pen = new Pen(p.Success, 1.5f) { DashStyle = DashStyle.Dash }) g.DrawEllipse(pen, cx - rr, cy - rr, 2 * rr, 2 * rr);
+                using (var b = new SolidBrush(p.Success)) g.DrawString(T("RMS {0:0.00}″", rms), Theme.UiFont, b, 6, Height - 22);
+            }
         }
 
         // ------------------------------------------------------------------ settings
@@ -261,6 +412,8 @@ namespace Sidralune.Views
             var output = camGrid.Row(T("Guide through"), Ui.Combo(T("The mount"), T("The guide camera (ST-4)")));
             var focal = camGrid.Row(T("Guide scope focal length (mm)"), Ui.Num(240, 20, 5000));
             var radius = camGrid.Row(T("Search box radius (px)"), Ui.Num(15, 5, 50));
+            var subframes = camGrid.Row(T("Subframes"), new CheckBox { Text = T("While guiding, download only a box round the stars") });
+            var noise = camGrid.Row(T("Noise reduction"), Ui.Combo(T("None"), T("2×2 mean"), T("3×3 median")));
 
             var starGrid = new FormGrid(170);
             var multi = starGrid.Row(T("Multi-star"), new CheckBox { Text = T("Guide on several stars") });
@@ -275,6 +428,9 @@ namespace Sidralune.Views
             var distance = calGrid.Row(T("Calibration distance (px)"), Ui.Num(20, 5, 60));
             var reverses = calGrid.Row(T("After a meridian flip"), new CheckBox { Text = T("Mount reverses Dec") });
             calGrid.Full(Ui.Hint(T("Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this.")));
+            var onRotator = calGrid.Row(T("Rotator"), new CheckBox { Text = T("The guide camera turns with it") });
+            var rotReversed = calGrid.Row(T("Rotator direction"), new CheckBox { Text = T("Reversed (a mirrored image)") });
+            calGrid.Full(Ui.Hint(T("For an off-axis guider on a rotator: the calibration turns with the rotator, so turning it needs no new calibration.")));
             // "&" is text here ("Calibrate & guide"), not a shortcut marker
             var calText = new Label { AutoSize = true, MaximumSize = new Size(320, 0), Tag = "dim", UseMnemonic = false };
             calGrid.Full(calText);
@@ -282,12 +438,18 @@ namespace Sidralune.Views
             calGrid.Full(clearCal);
 
             var raGrid = new FormGrid(170);
-            var raAlgo = raGrid.Row(T("RA algorithm"), Ui.Combo(T("Hysteresis"), T("Lowpass2"), T("Z-filter")));
+            var raAlgo = raGrid.Row(T("RA algorithm"), Ui.Combo(T("Hysteresis"), T("Lowpass2"), T("Z-filter"), T("Predictive PEC")));
             var raHint = Ui.Hint(""); raGrid.Full(raHint);
             var raAggr = raGrid.Row(T("RA aggressiveness (%)"), Ui.Num(70, 0, 200));
             var raHyst = raGrid.Row(T("RA hysteresis (%)"), Ui.Num(10, 0, 90));
             var raLp = raGrid.Row(T("Lowpass2 aggressiveness (%)"), Ui.Num(80, 0, 100));
             var raZ = raGrid.Row(T("Z-filter exposure factor"), Ui.Num(4, 1, 8, 1, 0.5m));
+            var pecPred = raGrid.Row(T("Predictive gain (%)"), Ui.Num(50, 0, 100));
+            var pecReact = raGrid.Row(T("Reactive gain (%)"), Ui.Num(60, 0, 100));
+            var pecPeriod = raGrid.Row(T("Worm period (s)"), Ui.Num(480, 10, 3600));
+            var pecAuto = raGrid.Row(T("Period"), new CheckBox { Text = T("Adjust it from the guiding") });
+            var pecRetain = raGrid.Row(T("Retain model (%)"), Ui.Num(40, 0, 100));
+            var pecStatus = Ui.Hint(""); raGrid.Full(pecStatus);
             var raMin = raGrid.Row(T("RA minimum move (px)"), Ui.Num(0.2m, 0, 5, 2, 0.05m));
             var raMax = raGrid.Row(T("RA maximum pulse (ms)"), Ui.Num(2500, 50, 10000, 0, 100));
 
@@ -307,19 +469,47 @@ namespace Sidralune.Views
             var blMax = decGrid.Row(T("Backlash at most (ms)"), Ui.Num(0, 0, 10000, 0, 10));
             var blNow = Ui.Hint(""); decGrid.Full(blNow);
 
+            var aoGrid = new FormGrid(170);
+            var aoTravel = aoGrid.Row(T("Travel (steps each way)"), Ui.Num(45, 5, 500));
+            var aoCalStep = aoGrid.Row(T("Calibration step (steps)"), Ui.Num(5, 1, 50));
+            var aoCalSteps = aoGrid.Row(T("Calibration leg (steps)"), Ui.Num(25, 5, 200));
+            var aoBump = aoGrid.Row(T("Bump the mount at (%)"), Ui.Num(80, 20, 100));
+            var aoBumpStep = aoGrid.Row(T("Bump step (″)"), Ui.Num(1, 0.1m, 10, 1, 0.1m));
+            var aoBumpDither = aoGrid.Row(T("After a dither"), new CheckBox { Text = T("Recentre the AO with the mount") });
+            var aoAggr = aoGrid.Row(T("AO aggressiveness (%)"), Ui.Num(80, 0, 100));
+            var aoMin = aoGrid.Row(T("AO minimum move (px)"), Ui.Num(0.1m, 0, 5, 2, 0.05m));
+            aoGrid.Full(Ui.Hint(T("The AO corrects every frame; when it passes the bump point of its travel, the mount takes over in small moves. The AO is calibrated after the mount.")));
+            var aoCalText = new Label { AutoSize = true, MaximumSize = new Size(320, 0), Tag = "dim", UseMnemonic = false };
+            aoGrid.Full(aoCalText);
+            var aoClear = MakeButton(T("Clear AO calibration"), Icons.Remove);
+            aoGrid.Full(aoClear);
+            var aoCard = new Collapsible(T("Adaptive optics"), aoGrid) { Visible = false };
+
+            var srvGrid = new FormGrid(170);
+            var srvOn = new CheckBox { Text = T("Let other programs guide with Sidralune"), AutoSize = true, Margin = new Padding(0, 4, 0, 0) };
+            srvGrid.Full(srvOn);
+            var srvPort = srvGrid.Row(T("Port"), Ui.Num(4400, 1024, 65535));
+            var srvOthers = srvGrid.Row(T("Other computers"), new CheckBox { Text = T("Allow them to connect") });
+            var srvStatus = new Label { AutoSize = true, MaximumSize = new Size(320, 0), Tag = "dim", UseMnemonic = false };
+            srvGrid.Full(srvStatus);
+            srvGrid.Full(Ui.Hint(T("Programs that can guide with PHD2 connect here instead, as if Sidralune's guider were PHD2. PHD2 itself must not use the same port.")));
+
+            page.Controls.Add(new Collapsible(T("PHD2-compatible server"), srvGrid));
+            page.Controls.Add(aoCard);
             page.Controls.Add(new Collapsible(T("Dec"), decGrid));
             page.Controls.Add(new Collapsible(T("RA"), raGrid));
             page.Controls.Add(new Collapsible(T("Calibration"), calGrid));
             page.Controls.Add(new Collapsible(T("Guide stars"), starGrid));
             page.Controls.Add(new Collapsible(T("Guide camera"), camGrid));
 
-            var raKinds = new[] { GuideAlgorithmKind.Hysteresis, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter };
+            var raKinds = new[] { GuideAlgorithmKind.Hysteresis, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter, GuideAlgorithmKind.PredictivePec };
             var decKinds = new[] { GuideAlgorithmKind.ResistSwitch, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter };
             var modes = new[] { DecGuideMode.Auto, DecGuideMode.North, DecGuideMode.South, DecGuideMode.Off };
             Func<GuideAlgorithmKind, string> algoHint = k =>
                 k == GuideAlgorithmKind.Hysteresis ? T("Corrects a share of the error, smoothed with the one before.")
                 : k == GuideAlgorithmKind.ResistSwitch ? T("Changes direction only when the error clearly asks for it, which suits Dec's backlash.")
                 : k == GuideAlgorithmKind.Lowpass2 ? T("Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing.")
+                : k == GuideAlgorithmKind.PredictivePec ? T("Learns the mount's periodic error while guiding and corrects it before it shows: for mounts with a regular worm error. It trains for two worm periods.")
                 : T("Guides as if the exposures were longer: for slow errors in poor seeing.");
             // only the rows of the chosen algorithms, and of auto exposure and backlash compensation when on
             Action layout = () =>
@@ -333,6 +523,10 @@ namespace Sidralune.Views
                 ShowRow(raGrid, raHyst, st.RaAlgorithm == GuideAlgorithmKind.Hysteresis);
                 ShowRow(raGrid, raLp, st.RaAlgorithm == GuideAlgorithmKind.Lowpass2);
                 ShowRow(raGrid, raZ, st.RaAlgorithm == GuideAlgorithmKind.ZFilter);
+                bool pec = st.RaAlgorithm == GuideAlgorithmKind.PredictivePec;
+                foreach (var c in new Control[] { pecPred, pecReact, pecPeriod, pecAuto, pecRetain, pecStatus }) ShowRow(raGrid, c, pec);
+                ShowRow(srvGrid, srvPort, st.ServerEnabled);
+                ShowRow(srvGrid, srvOthers, st.ServerEnabled);
                 ShowRow(decGrid, decAggr, st.DecAlgorithm == GuideAlgorithmKind.ResistSwitch);
                 ShowRow(decGrid, fast, st.DecAlgorithm == GuideAlgorithmKind.ResistSwitch);
                 ShowRow(decGrid, decLp, st.DecAlgorithm == GuideAlgorithmKind.Lowpass2);
@@ -342,8 +536,9 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, focal, radius, multi, maxStars, mass, massTol, step, distance, reverses, clearCal,
-                raAlgo, raAggr, raHyst, raLp, raZ, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax };
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, focal, radius, subframes, noise, multi, maxStars, mass, massTol, step, distance, reverses, onRotator, rotReversed, clearCal,
+                raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
+                aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
             refresh = () =>
             {
@@ -351,6 +546,7 @@ namespace Sidralune.Views
                 var g = Dm.BuiltinGuider;
                 foreach (var c in controls) c.Enabled = !Dm.Phd2Connected;
                 calText.Text = Dm.Phd2Connected ? T("PHD2 is connected: it has its own settings and calibration.") : CalibrationText(g.Calibration);
+                aoCalText.Text = AoCalibrationText(g.AoCalibration);
                 var st = g.Settings;
                 loading = true;
                 try
@@ -368,6 +564,14 @@ namespace Sidralune.Views
                     decAggr.Value = clamp(decAggr, st.DecAggressiveness); fast.Checked = st.DecFastSwitch; decLp.Value = clamp(decLp, st.DecLowpassAggressiveness); decZ.Value = clamp(decZ, st.DecZFactor);
                     decMin.Value = clamp(decMin, st.DecMinMovePx); decMax.Value = clamp(decMax, st.MaxDecPulseMs); decMode.SelectedIndex = Math.Max(0, Array.IndexOf(modes, st.DecMode));
                     backlash.Checked = st.BacklashCompensation; blAmount.Value = clamp(blAmount, st.BacklashMs); blMin.Value = clamp(blMin, st.BacklashMinMs); blMax.Value = clamp(blMax, st.BacklashMaxMs);
+                    subframes.Checked = st.UseSubframes; noise.SelectedIndex = Math.Max(0, Math.Min(2, (int)st.NoiseReduction));
+                    onRotator.Checked = st.GuideCameraOnRotator; rotReversed.Checked = st.RotatorReversed;
+                    pecPred.Value = clamp(pecPred, st.PecPredictiveGain); pecReact.Value = clamp(pecReact, st.PecReactiveGain); pecPeriod.Value = clamp(pecPeriod, st.PecPeriodSec);
+                    pecAuto.Checked = st.PecAutoPeriod; pecRetain.Value = clamp(pecRetain, st.PecRetainPercent);
+                    aoTravel.Value = clamp(aoTravel, st.AoTravel); aoCalStep.Value = clamp(aoCalStep, st.AoCalStep); aoCalSteps.Value = clamp(aoCalSteps, st.AoCalSteps);
+                    aoBump.Value = clamp(aoBump, st.AoBumpPercent); aoBumpStep.Value = clamp(aoBumpStep, st.AoBumpStepArcsec); aoBumpDither.Checked = st.AoBumpOnDither;
+                    aoAggr.Value = clamp(aoAggr, st.AoAggressiveness); aoMin.Value = clamp(aoMin, st.AoMinMovePx);
+                    srvOn.Checked = st.ServerEnabled; srvPort.Value = clamp(srvPort, st.ServerPort); srvOthers.Checked = st.ServerAllowOthers;
                 }
                 finally { loading = false; }
                 layout();
@@ -418,12 +622,55 @@ namespace Sidralune.Views
             blMin.ValueChanged += (s, e) => save(st => st.BacklashMinMs = (double)blMin.Value);
             blMax.ValueChanged += (s, e) => save(st => st.BacklashMaxMs = (double)blMax.Value);
             clearCal.Click += (s, e) => Dm.BuiltinGuider.ClearCalibration();
+            subframes.CheckedChanged += (s, e) => save(st => st.UseSubframes = subframes.Checked);
+            noise.SelectedIndexChanged += (s, e) => save(st => st.NoiseReduction = (NoiseReduction)Math.Max(0, noise.SelectedIndex));
+            onRotator.CheckedChanged += (s, e) => save(st => st.GuideCameraOnRotator = onRotator.Checked);
+            rotReversed.CheckedChanged += (s, e) => save(st => st.RotatorReversed = rotReversed.Checked);
+            pecPred.ValueChanged += (s, e) => save(st => st.PecPredictiveGain = (double)pecPred.Value);
+            pecReact.ValueChanged += (s, e) => save(st => st.PecReactiveGain = (double)pecReact.Value);
+            pecPeriod.ValueChanged += (s, e) => save(st => st.PecPeriodSec = (double)pecPeriod.Value);
+            pecAuto.CheckedChanged += (s, e) => save(st => st.PecAutoPeriod = pecAuto.Checked);
+            pecRetain.ValueChanged += (s, e) => save(st => st.PecRetainPercent = (double)pecRetain.Value);
+            aoTravel.ValueChanged += (s, e) => save(st => st.AoTravel = (int)aoTravel.Value);
+            aoCalStep.ValueChanged += (s, e) => save(st => st.AoCalStep = (int)aoCalStep.Value);
+            aoCalSteps.ValueChanged += (s, e) => save(st => st.AoCalSteps = (int)aoCalSteps.Value);
+            aoBump.ValueChanged += (s, e) => save(st => st.AoBumpPercent = (double)aoBump.Value);
+            aoBumpStep.ValueChanged += (s, e) => save(st => st.AoBumpStepArcsec = (double)aoBumpStep.Value);
+            aoBumpDither.CheckedChanged += (s, e) => save(st => st.AoBumpOnDither = aoBumpDither.Checked);
+            aoAggr.ValueChanged += (s, e) => save(st => st.AoAggressiveness = (double)aoAggr.Value);
+            aoMin.ValueChanged += (s, e) => save(st => st.AoMinMovePx = (double)aoMin.Value);
+            aoClear.Click += (s, e) => { Dm.BuiltinGuider.ClearAoCalibration(); aoCalText.Text = AoCalibrationText(Dm.BuiltinGuider.AoCalibration); };
+            // the server listens as set: started, stopped or moved to another port at once
+            Action applyServer = () =>
+            {
+                var st = Dm.BuiltinGuider.Settings;
+                var srv = Dm.GuiderServer;
+                srv.Stop();
+                if (st.ServerEnabled) srv.Start(st.ServerPort, st.ServerAllowOthers);
+            };
+            srvOn.CheckedChanged += (s, e) => { if (loading) return; save(st => st.ServerEnabled = srvOn.Checked); applyServer(); };
+            srvPort.ValueChanged += (s, e) => { if (loading) return; save(st => st.ServerPort = (int)srvPort.Value); applyServer(); };
+            srvOthers.CheckedChanged += (s, e) => { if (loading) return; save(st => st.ServerAllowOthers = srvOthers.Checked); applyServer(); };
             var sidralune = Dm.BuiltinGuider;
-            sidralune.CalibrationChanged += () => MainForm.Instance.Post(() => { if (!Dm.Phd2Connected) calText.Text = CalibrationText(sidralune.Calibration); });
+            sidralune.CalibrationChanged += () => MainForm.Instance.Post(() =>
+            {
+                if (!Dm.Phd2Connected) calText.Text = CalibrationText(sidralune.Calibration);
+                aoCalText.Text = AoCalibrationText(sidralune.AoCalibration);
+            });
             Poll += () =>
             {
                 var g = Dm.BuiltinGuider;
                 blNow.Text = g.Settings.BacklashCompensation && g.InGuidingPhase ? T("Now {0:0} ms, as it has adapted.", g.BacklashCompensationMs) : "";
+                var pec = g.PredictivePec;
+                pecStatus.Text = g.Settings.RaAlgorithm != GuideAlgorithmKind.PredictivePec ? ""
+                    : pec == null || !g.InGuidingPhase ? T("Starts learning when guiding starts.")
+                    : pec.Predicting ? T("Predicting, period {0:0} s", pec.PeriodSec) : T("Training: {0:0.0} of 2 periods", pec.Training * 2);
+                bool showAo = Dm.Ao != null;
+                if (aoCard.Visible != showAo) { aoCard.Visible = showAo; aoCalText.Text = AoCalibrationText(g.AoCalibration); }
+                var srv = Dm.GuiderServer;
+                srvStatus.Text = srv.Running ? T("Listening on port {0} · {1} connected", srv.Port, srv.ClientCount)
+                    : g.Settings.ServerEnabled && srv.Problem != null ? srv.Problem : T("Off");
+                srvStatus.ForeColor = srv.Running ? Theme.Current.Success : g.Settings.ServerEnabled ? Theme.Current.Danger : Theme.Current.TextDim;
             };
             refresh();
             return page;
@@ -760,6 +1007,13 @@ namespace Sidralune.Views
             var manualText = Note();
             manualGrid.Full(manualText);
             manualGrid.Full(Ui.Hint(T("While looping: one pulse, and how far the star moved, to check the guide cable and the guide rate.")));
+            var aoSteps = manualGrid.Row(T("AO steps"), Ui.Num(5, 1, 100));
+            var aNorth = MakeButton(T("North"), Icons.Up); var aSouth = MakeButton(T("South"), Icons.Down);
+            var aEast = MakeButton(T("East"), Icons.Left); var aWest = MakeButton(T("West"), Icons.Right);
+            var aoButtons = ButtonRow(aNorth, aSouth, aEast, aWest);
+            manualGrid.Full(aoButtons);
+            var aoHint = Ui.Hint(T("The AO moved by hand the same way, along its own axes, to check it."));
+            manualGrid.Full(aoHint);
 
             page.Controls.Add(new Collapsible(T("Manual guide"), manualGrid));
             page.Controls.Add(new Collapsible(T("Comet tracking"), cometGrid));
@@ -807,6 +1061,26 @@ namespace Sidralune.Views
                         if (r.Matches == null) manualText.Text = moved;
                         else manualText.Text = moved + " " + (r.Matches == true ? T("As calibrated ({0:0.0} px towards {1:0}°).", r.ExpectedDistance, r.ExpectedAngleDeg)
                                                                               : T("⚠ The calibration expected {0:0.0} px towards {1:0}°. Check the guide cable, the guide rate and Dec backlash.", r.ExpectedDistance, r.ExpectedAngleDeg));
+                    });
+                };
+            }
+
+            foreach (var p in new[] { new KeyValuePair<FlatButton, AoDirection>(aNorth, AoDirection.North), new KeyValuePair<FlatButton, AoDirection>(aSouth, AoDirection.South),
+                                      new KeyValuePair<FlatButton, AoDirection>(aEast, AoDirection.East), new KeyValuePair<FlatButton, AoDirection>(aWest, AoDirection.West) })
+            {
+                var dir = p.Value;
+                p.Key.Click += (s, e) =>
+                {
+                    var g = Dm.BuiltinGuider;
+                    int steps = (int)aoSteps.Value;
+                    ManualPulseResult r = null;
+                    job.Run(T("Manual guide"), t => r = g.ManualAoStep(dir, steps, t.Cts.Token).GetAwaiter().GetResult(), () =>
+                    {
+                        if (double.IsNaN(r.Distance)) { manualText.Text = T("AO moved. Choose a guide star to see how far it moves."); return; }
+                        string moved = T("The star moved {0:0.0} px towards {1:0}°.", r.Distance, r.AngleDeg);
+                        if (r.Matches == null) manualText.Text = moved;
+                        else manualText.Text = moved + " " + (r.Matches == true ? T("As calibrated ({0:0.0} px towards {1:0}°).", r.ExpectedDistance, r.ExpectedAngleDeg)
+                                                                              : T("⚠ The AO calibration expected {0:0.0} px towards {1:0}°. Calibrate the AO again.", r.ExpectedDistance, r.ExpectedAngleDeg));
                     });
                 };
             }
@@ -868,6 +1142,10 @@ namespace Sidralune.Views
                     : T("While guiding, the lock position follows the comet, so the comet stays put in the imaging camera.");
                 bool looping = g.IsRunning && !g.IsCalibrating && !guiding;
                 foreach (var b in new Control[] { mNorth, mSouth, mEast, mWest }) b.Enabled = !phd2 && looping && !job.Busy;
+                bool ao = Dm.Ao != null;
+                ShowRow(manualGrid, aoSteps, ao);
+                aoButtons.Visible = aoHint.Visible = ao;
+                foreach (var b in new Control[] { aNorth, aSouth, aEast, aWest }) b.Enabled = !phd2 && looping && !job.Busy;
                 pulse.Enabled = !phd2;
             };
             return page;

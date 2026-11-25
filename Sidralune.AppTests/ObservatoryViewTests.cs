@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sidralune.Core.Mathematics;
 using Sidralune.Devices;
 using Sidralune.Devices.Automation;
 using Sidralune.Devices.Guiding;
@@ -139,7 +140,8 @@ namespace Sidralune.AppTests
                 CheckTrue("It pauses corrections", WaitFor(() => g.State == SidraluneGuider.Paused, 3000), g.State);
                 Thread.Sleep(4000);
                 OnUi(() => Button(assist, "Stop and analyse").PerformClick());
-                CheckTrue("It describes what it measured", WaitFor(() => OnUi(() => All(assist).OfType<Label>().Any(l => l.Text.Contains("Seeing: RA "))), 15000));
+                // the live text shows the seeing too: the result is in once its suggestions (and Apply) are there
+                CheckTrue("It describes what it measured", WaitFor(() => OnUi(() => All(assist).OfType<Label>().Any(l => l.Text.Contains("Seeing: RA ")) && Button(assist, "Apply the ticked settings").Visible), 15000));
                 CheckTrue("…and guiding resumes", WaitFor(() => g.IsGuiding, 5000), g.State);
                 OnUi(() => Button(assist, "Apply the ticked settings").PerformClick());
                 double suggested = Math.Max(0.05, Math.Round(0.65 * g.Settings.AssistantResults[0].SeeingRaArcsec / g.PixelScale, 2));
@@ -163,6 +165,221 @@ namespace Sidralune.AppTests
                 Dm.DisconnectAll();
                 Dm.BuiltinGuider.SettlePixels = 1.5; Dm.BuiltinGuider.SettleSeconds = 10;
                 OnUi(() => All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Guiding")).Select(0));
+            }
+        }
+
+        [TestMethod]
+        public void TestGuiderAdvancedUi()
+        {
+            var view = View<ObservatoryView>("observatory");
+            var g = Dm.BuiltinGuider;
+            Func<string, Collapsible> card = title => OnUi(() => All(view).OfType<Collapsible>().First(c => c.Title == title));
+            Func<Control, string, bool> shown = (parent, label) => OnUi(() => All(parent).OfType<Label>().Any(l => l.Text == label && l.Visible));
+            Func<Control, string, bool> has = (parent, label) => OnUi(() => All(parent).OfType<Label>().Any(l => l.Text == label));
+            try
+            {
+                OnUi(() => Dm.DisconnectAll());
+                CheckTrue("Equipment has an AO row", has(view, "AO"));
+                OnUi(() => { var tabs = All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Guiding")); tabs.Select(tabs.Header.Tabs.IndexOf("Guiding")); });
+                var graphs = OnUi(() => All(view).OfType<TabbedPanel>().FirstOrDefault(t => t.Header.Tabs.Contains("Target")));
+                CheckTrue("The graph has Graph, Target and Star profile pages", graphs != null && OnUi(() => graphs.Header.Tabs.SequenceEqual(new[] { "Graph", "Target", "Star profile" })));
+                var side = OnUi(() => All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Assistants")));
+                OnUi(() => side.Select(0));
+
+                // Predictive PEC: its rows when chosen, and its state
+                var raCard = card("RA");
+                var raAlgo = OnUi(() => All(raCard).OfType<ComboBox>().First());
+                int pecIndex = OnUi(() => raAlgo.Items.Cast<object>().Select(o => o.ToString()).ToList().IndexOf("Predictive PEC"));
+                CheckTrue("Predictive PEC is one of the RA algorithms", pecIndex > 0);
+                CheckTrue("Its rows are hidden for Hysteresis", OnUi(() => raAlgo.SelectedIndex == 0) && !shown(raCard, "Worm period (s)") && shown(raCard, "RA hysteresis (%)"));
+                OnUi(() => raAlgo.SelectedIndex = pecIndex);
+                CheckTrue("Choosing Predictive PEC shows its rows", shown(raCard, "Predictive gain (%)") && shown(raCard, "Reactive gain (%)") && shown(raCard, "Worm period (s)") && shown(raCard, "Retain model (%)") && !shown(raCard, "RA hysteresis (%)"));
+                CheckTrue("…and is saved", g.Settings.RaAlgorithm == GuideAlgorithmKind.PredictivePec && GuiderSettings.Load().RaAlgorithm == GuideAlgorithmKind.PredictivePec);
+                CheckTrue("…with its state", WaitFor(() => shown(raCard, "Starts learning when guiding starts.")));
+                OnUi(() => raAlgo.SelectedIndex = 0);
+
+                CheckTrue("The guide camera card has subframes and noise reduction", shown(card("Guide camera"), "Subframes") && shown(card("Guide camera"), "Noise reduction"));
+                CheckTrue("The calibration card has the rotator", shown(card("Calibration"), "Rotator") && shown(card("Calibration"), "Rotator direction"));
+                var noise = OnUi(() => { var l = All(card("Guide camera")).OfType<Label>().First(x => x.Text == "Noise reduction"); var t = (TableLayoutPanel)l.Parent; return (ComboBox)t.GetControlFromPosition(1, t.GetRow(l)); });
+                OnUi(() => noise.SelectedIndex = 2);
+                CheckTrue("Noise reduction is saved", GuiderSettings.Load().NoiseReduction == NoiseReduction.Median3x3);
+                OnUi(() => noise.SelectedIndex = 0);
+
+                // an AO: its card, and its steps on the Tools page
+                var aoCard = card("Adaptive optics");
+                CheckTrue("No AO card without an AO", WaitFor(() => OnUi(() => !aoCard.Visible)));
+                OnUi(() => Dm.Connect(new DeviceInfo { Kind = DeviceKind.AdaptiveOptics, Protocol = DeviceProtocol.Simulator, Name = "AO Simulator", Address = "sim" }));
+                CheckTrue("Connecting an AO shows its card", WaitFor(() => OnUi(() => aoCard.Visible), 5000));
+                CheckTrue("…saying it is not calibrated yet", WaitFor(() => OnUi(() => All(aoCard).OfType<Label>().Any(l => l.Text.StartsWith("The AO is not calibrated yet")))));
+                CheckTrue("…with the bump settings", shown(aoCard, "Bump the mount at (%)") && shown(aoCard, "Bump step (″)"));
+                OnUi(() => side.Select(3));
+                var manual = card("Manual guide");
+                CheckTrue("Manual guide gains AO steps", WaitFor(() => shown(manual, "AO steps"), 5000));
+                OnUi(() => { side.Select(0); Dm.Disconnect(DeviceKind.AdaptiveOptics); });
+                CheckTrue("Without the AO its card goes", WaitFor(() => OnUi(() => !aoCard.Visible), 5000));
+
+                // the PHD2-compatible server
+                var srvCard = card("PHD2-compatible server");
+                var srvOn = OnUi(() => All(srvCard).OfType<CheckBox>().First());
+                var port = OnUi(() => All(srvCard).OfType<NumericUpDown>().First());
+                CheckTrue("The server is off, its port hidden", OnUi(() => !srvOn.Checked) && !shown(srvCard, "Port") && WaitFor(() => shown(srvCard, "Off")));
+                OnUi(() => { port.Value = 4479; srvOn.Checked = true; });
+                CheckTrue("Turning it on listens on the port", WaitFor(() => Dm.GuiderServer.Running && Dm.GuiderServer.Port == 4479, 5000));
+                CheckTrue("…and says so", WaitFor(() => shown(srvCard, "Listening on port 4479 · 0 connected"), 5000));
+                CheckTrue("…and is saved", GuiderSettings.Load().ServerEnabled && GuiderSettings.Load().ServerPort == 4479);
+                OnUi(() => srvOn.Checked = false);
+                CheckTrue("Off stops it", WaitFor(() => !Dm.GuiderServer.Running, 5000) && !GuiderSettings.Load().ServerEnabled);
+
+                // the polar alignment methods
+                var method = Field<ComboBox>(view, "_polarMethod");
+                CheckTrue("Polar alignment offers four methods", OnUi(() => method.Items.Cast<object>().Select(o => o.ToString()).SequenceEqual(new[] { "Three-point (plate solving)", "Drift alignment", "Static polar alignment", "Polar drift alignment" })));
+                OnUi(() => { var tabs = All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Polar alignment")); tabs.Select(tabs.Header.Tabs.IndexOf("Polar alignment")); });
+                Func<string, bool> cardShown = title => OnUi(() => All(view).OfType<Card>().Any(c => c.Title == title && c.Visible));
+                CheckTrue("Three-point is the default", OnUi(() => method.SelectedIndex == 0) && cardShown("Three-point polar alignment") && !cardShown("Drift alignment"));
+                CheckTrue("…with a Stop, greyed out while it is not running", OnUi(() => { var b = Button(Button(view, "Start polar alignment").Parent, "Stop"); return b != null && !b.Enabled; }));
+                OnUi(() => method.SelectedIndex = 1);
+                CheckTrue("Drift alignment has its page", cardShown("Drift alignment") && !cardShown("Three-point polar alignment"));
+                CheckTrue("…which asks for the mount", WaitFor(() => OnUi(() => All(view).OfType<Label>().Any(l => l.Visible && l.Text == "Connect the mount: drift alignment needs to know where it points."))));
+                CheckTrue("…and has a Stop, greyed out while nothing runs", OnUi(() => { var b = Button(All(view).OfType<Card>().First(c => c.Title == "Drift alignment"), "Stop"); return b != null && !b.Enabled; }));
+                // the simulated mount starts at the pole: drift alignment asks to point nearer the equator first
+                OnUi(() =>
+                {
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Telescope", Address = "sim" });
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide camera", Address = "sim" });
+                });
+                OnUi(() => Button(All(view).OfType<Card>().First(c => c.Title == "Drift alignment"), "Start measuring").PerformClick());
+                CheckTrue("At the pole, drift alignment asks to point nearer the equator", WaitFor(() => Toasts().Any(t => t.StartsWith("Point the mount nearer the celestial equator first"))) && !Dm.BuiltinGuider.IsRunning);
+                OnUi(() => Dm.DisconnectAll());
+                OnUi(() => method.SelectedIndex = 2);
+                CheckTrue("Static polar alignment has its page", cardShown("Static polar alignment"));
+                var staticCard = OnUi(() => All(view).OfType<Card>().First(c => c.Title == "Static polar alignment"));
+                var staticCamera = OnUi(() => All(staticCard).OfType<ComboBox>().First());
+                CheckTrue("…with a choice of camera, the imaging camera's exposure and binning shown",
+                    WaitFor(() => OnUi(() => staticCamera.Text == "Imaging camera" && shown(staticCard, "Exposure (s)") && shown(staticCard, "Binning"))));
+                OnUi(() => Button(staticCard, "Start alignment").PerformClick());
+                CheckTrue("…which needs the camera", WaitFor(() => Toasts().Any(t => t.StartsWith("No camera connected."))));
+                OnUi(() => Dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide camera", Address = "sim" }));
+                CheckTrue("With only a guide camera, it is the one used, without the exposure and binning",
+                    WaitFor(() => OnUi(() => staticCamera.Text == "Guide camera" && !shown(staticCard, "Exposure (s)") && !shown(staticCard, "Binning"))));
+                // with the imaging camera, the frames are a camera job: other camera work waits, and the page's Stop ends them
+                OnUi(() =>
+                {
+                    Dm.DisconnectAll();
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Telescope", Address = "sim" });
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera", Address = "sim" });
+                });
+                CheckTrue("With an imaging camera, it is the one used", WaitFor(() => OnUi(() => staticCamera.Text == "Imaging camera")));
+                OnUi(() => Button(staticCard, "Start alignment").PerformClick());
+                CheckTrue("Static polar alignment takes the imaging camera's frames as a camera job",
+                    WaitFor(() => OnUi(() => Field<string>(view, "_cameraJobName") == "Static polar alignment" && Button(staticCard, "Stop").Enabled && !staticCamera.Enabled), 5000));
+                OnUi(() => Button(staticCard, "Stop").PerformClick());
+                CheckTrue("…and Stop ends them", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_cameraJob").Done && !Button(staticCard, "Stop").Enabled && staticCamera.Enabled), 15000));
+                OnUi(() => Dm.DisconnectAll());
+                // without a calibration (an earlier test may have left one), whether the image is mirrored is asked
+                OnUi(() => { g.ClearCalibration(); method.SelectedIndex = 3; });
+                CheckTrue("Polar drift alignment has its page", cardShown("Polar drift alignment"));
+                var driftCard = OnUi(() => All(view).OfType<Card>().First(c => c.Title == "Polar drift alignment"));
+                CheckTrue("…asking whether the imaging camera's image is mirrored", WaitFor(() => OnUi(() => All(driftCard).OfType<Label>().Any(l => l.Visible && l.Text == "Say whether the camera sees a mirror image."))));
+                OnUi(() => Dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide camera", Address = "sim" }));
+                CheckTrue("…and the guide camera's, without a calibration", WaitFor(() => OnUi(() => All(driftCard).OfType<Label>().Any(l => l.Visible && l.Text.StartsWith("Without a calibration, say whether")))));
+            }
+            finally
+            {
+                Dm.DisconnectAll();
+                Dm.GuiderServer.Stop();
+                g.Settings.RaAlgorithm = GuideAlgorithmKind.Hysteresis; g.Settings.ServerEnabled = false; g.Settings.NoiseReduction = NoiseReduction.None; g.SaveSettings();
+                OnUi(() =>
+                {
+                    Field<ComboBox>(view, "_polarMethod").SelectedIndex = 0;
+                    All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Guiding")).Select(0);
+                });
+            }
+        }
+
+        [TestMethod]
+        public void TestSwitchesAndFlatPanel()
+        {
+            var view = View<ObservatoryView>("observatory");
+            Func<string, Card> card = title => OnUi(() => All(view).OfType<Card>().First(c => c.Title == title));
+            try
+            {
+                OnUi(() =>
+                {
+                    Dm.DisconnectAll();
+                    var tabs = All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Dome & weather"));
+                    tabs.Select(tabs.Header.Tabs.IndexOf("Dome & weather"));
+                });
+                var switches = card("Switches");
+                var flat = card("Flat panel");
+                CheckTrue("Without a switch box the Switches card says so", WaitFor(() => OnUi(() => All(switches).OfType<Label>().Any(l => l.Visible && l.Text == "No switch box connected."))));
+                CheckTrue("Without a flat panel its buttons are greyed out", WaitFor(() => OnUi(() => !Button(flat, "Open cover").Enabled && !Button(flat, "Light on").Enabled)));
+
+                OnUi(() =>
+                {
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Switch, Protocol = DeviceProtocol.Simulator, Name = "Switch", Address = "sim" });
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.CoverCalibrator, Protocol = DeviceProtocol.Simulator, Name = "Cover", Address = "sim" });
+                });
+                var sw = (SwitchSimulator)Dm.Switch;
+                var cover = (CoverCalibratorSimulator)Dm.Cover;
+                cover.MoveSeconds = 0.5;
+                CheckTrue("With the switch box, a row for each switch", WaitFor(() => OnUi(() => new[] { "Dew heater 1", "Dew heater 2", "Fan", "Mount power" }.All(n => All(switches).OfType<Label>().Any(l => l.Visible && l.Text == n))), 5000));
+                Func<string, Control> editor = name => OnUi(() => { var l = All(switches).OfType<Label>().First(x => x.Text == name); var t = (TableLayoutPanel)l.Parent; return t.GetControlFromPosition(1, t.GetRow(l)); });
+                CheckTrue("On/off switches are tick boxes, dew heaters have a level", editor("Fan") is CheckBox && editor("Dew heater 1") is NumericUpDown);
+                CheckTrue("…and show the switch box's state (the mount's power on)", WaitFor(() => OnUi(() => ((CheckBox)editor("Mount power")).Checked)));
+                OnUi(() => ((CheckBox)editor("Fan")).Checked = true);
+                CheckTrue("Ticking a switch turns it on", sw.GetSwitch(2));
+                OnUi(() => ((NumericUpDown)editor("Dew heater 1")).Value = 30);
+                CheckTrue("A level sets the dew heater", sw.GetValue(0) == 30);
+
+                CheckTrue("With a flat panel its buttons are available", WaitFor(() => OnUi(() => Button(flat, "Open cover").Enabled && Button(flat, "Light on").Enabled)));
+                OnUi(() => Button(flat, "Open cover").PerformClick());
+                CheckTrue("Open cover opens it, and the card says so", WaitFor(() => cover.CoverState == "Open" && OnUi(() => All(flat).OfType<Label>().Any(l => l.Text == "Cover open · light 0 of 255")), 5000));
+                OnUi(() => { All(flat).OfType<NumericUpDown>().First().Value = 200; Button(flat, "Light on").PerformClick(); });
+                CheckTrue("Light on lights it at the brightness set", cover.Brightness == 200);
+                OnUi(() => Button(flat, "Light off").PerformClick());
+                CheckTrue("Light off puts it out", cover.Brightness == 0);
+            }
+            finally
+            {
+                Dm.DisconnectAll();
+                OnUi(() => All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Dome & weather")).Select(0));
+            }
+        }
+
+        [TestMethod]
+        public void TestDomeParkEndsFollowing()
+        {
+            var view = View<ObservatoryView>("observatory");
+            try
+            {
+                OnUi(() =>
+                {
+                    Dm.DisconnectAll();
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Telescope", Address = "sim" });
+                    Dm.Connect(new DeviceInfo { Kind = DeviceKind.Dome, Protocol = DeviceProtocol.Simulator, Name = "Dome", Address = "sim" });
+                    var tabs = All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Dome & weather"));
+                    tabs.Select(tabs.Header.Tabs.IndexOf("Dome & weather"));
+                });
+                var tel = (TelescopeSimulator)Dm.Telescope;
+                tel.SlewRateDegPerSec = 90;
+                // the telescope low in the east: the dome follows it there
+                Centering.Slew(tel, tel.SiderealTime - 4, 0, CancellationToken.None).Wait();
+                var card = OnUi(() => All(view).OfType<Card>().First(c => c.Title == "Dome / roof"));
+                var follow = OnUi(() => Button(card, "Follow telescope"));
+                OnUi(() => follow.PerformClick());
+                CheckTrue("Follow telescope turns the dome to the telescope", WaitFor(() => Math.Abs(AstroMath.NormalizeDeg180(Dm.Dome.Azimuth - tel.Azimuth)) < 3.5 && !Dm.Dome.Slewing, 15000), Dm.Dome.Azimuth.ToString("0.0"));
+                OnUi(() => Button(card, "Park").PerformClick());
+                CheckTrue("Park turns Follow telescope off", OnUi(() => !follow.Checked));
+                CheckTrue("…and the dome parks and stays parked", WaitFor(() => Dm.Dome.AtPark, 15000) && !WaitFor(() => !Dm.Dome.AtPark, 3000), Dm.Dome.Azimuth.ToString("0.0"));
+                OnUi(() => follow.PerformClick());
+                CheckTrue("Following again moves it back to the telescope", WaitFor(() => Dm.Dome.Slewing || Math.Abs(AstroMath.NormalizeDeg180(Dm.Dome.Azimuth - tel.Azimuth)) < 3.5, 5000));
+                OnUi(() => Button(card, "Slew").PerformClick());
+                CheckTrue("Slew by hand turns it off too", OnUi(() => !follow.Checked));
+            }
+            finally
+            {
+                Dm.DisconnectAll();
+                OnUi(() => All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Dome & weather")).Select(0));
             }
         }
 

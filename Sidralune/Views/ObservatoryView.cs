@@ -67,8 +67,9 @@ namespace Sidralune.Views
                 case DeviceKind.ObservingConditions: return T("Observing conditions");
                 case DeviceKind.SafetyMonitor: return T("Safety monitor");
                 case DeviceKind.Switch: return T("Switch");
-                case DeviceKind.CoverCalibrator: return T("Cover calibrator");
+                case DeviceKind.CoverCalibrator: return T("Flat panel"); // ASCOM calls it a cover calibrator
                 case DeviceKind.Guider: return T("Guider");
+                case DeviceKind.AdaptiveOptics: return T("AO");
                 default: return SplitWords(k.ToString());
             }
         }
@@ -100,7 +101,7 @@ namespace Sidralune.Views
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
             var rowRefreshers = new List<Action>();
-            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator };
+            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.AdaptiveOptics, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator };
             foreach (var k in kinds)
             {
                 var kind = k;
@@ -116,6 +117,8 @@ namespace Sidralune.Views
                 connectWidth = Math.Max(connectWidth, connect.Width);
                 var setup = new FlatButton(T("Setup…"), Icons.Settings) { Margin = new Padding(4, 4, 4, 4) }; setup.AutoSizeToText();
                 var choose = new FlatButton("ASCOM…", Icons.More) { Margin = new Padding(4, 4, 4, 4), ToolTipText = T("Open the ASCOM Chooser") }; choose.AutoSizeToText();
+                // ASCOM has no standard for AO units: SX AO over a serial port, INDI or the simulator
+                if (kind == DeviceKind.AdaptiveOptics) choose.Visible = false;
                 var status = new Label { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "dim" };
                 table.Controls.Add(new Label { Text = KindTitle(kind), AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(0, 0, 8, 0), Font = Theme.UiFontBold }, 0, r);
                 table.Controls.Add(combo, 1, r);
@@ -245,10 +248,12 @@ namespace Sidralune.Views
                         bool isScope = props.Any(p => p.Device == d && p.Name == "EQUATORIAL_EOD_COORD");
                         bool isCam = props.Any(p => p.Device == d && p.Name == "CCD_EXPOSURE");
                         bool isFoc = props.Any(p => p.Device == d && p.Name == "ABS_FOCUS_POSITION");
+                        bool isAo = props.Any(p => p.Device == d && p.Name == "AO_NS");
                         foreach (var combo in table.Controls.OfType<ComboBox>())
                         {
                             var kind = kinds[table.GetRow(combo)];
-                            if ((kind == DeviceKind.Telescope && isScope) || ((kind == DeviceKind.Camera || kind == DeviceKind.GuideCamera) && isCam) || (kind == DeviceKind.Focuser && isFoc))
+                            if ((kind == DeviceKind.Telescope && isScope) || ((kind == DeviceKind.Camera || kind == DeviceKind.GuideCamera) && isCam) || (kind == DeviceKind.Focuser && isFoc)
+                                || (kind == DeviceKind.AdaptiveOptics && isAo))
                                 combo.Items.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Indi, Name = d + " (INDI)", Address = host + "/" + d });
                         }
                     }
@@ -905,35 +910,6 @@ namespace Sidralune.Views
             if (parent.Move(it, dir)) RefreshTree();
         }
 
-        // ================================================================== polar alignment
-
-        private Control BuildPolar()
-        {
-            var card = new Card(T("Three-point polar alignment")) { Dock = DockStyle.Fill };
-            var g = new FormGrid(160);
-            var step = g.Row(T("RA step (°)"), Ui.Num(25, 5, 60));
-            var exp = g.Row(T("Exposure (s)"), Ui.Num(4, 0, 60, 1));
-            var res = new Label { Height = 120, Font = Theme.HeaderFont, AutoSize = false };
-            var go = new FlatButton(T("Start polar alignment"), Icons.Target) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
-            go.Click += (s, e) =>
-            {
-                if (!Have(Dm.Telescope, NoTelescope) || !Have(Dm.Camera, NoCamera) || !CanUseCamera()) return;
-                var pa = new PolarAlignment { Capture = _capture, StepDeg = (double)step.Value, Exposure = (double)exp.Value };
-                pa.Status += st => MainForm.Instance.SetStatus(st);
-                RunCameraJob(T("Polar alignment"), t =>
-                {
-                    var r = pa.Run(t.Cts.Token).GetAwaiter().GetResult();
-                    MainForm.Instance.Post(() => res.Text = T("Altitude error {0:+0.0;-0.0}'   Azimuth error {1:+0.0;-0.0}'", r.AltErrorArcmin, r.AzErrorArcmin) + "\r\n" + T("Total {0:0.0}'", r.TotalErrorArcmin) + "\r\n" + r.Advice);
-                });
-            };
-            g.Full(Ui.Hint(T("Point the mount near the celestial equator/meridian with clear sky to the west or east. Sidralune rotates the RA axis three times, plate-solves each frame, finds the mount's rotation axis and reports how far it is from the refracted celestial pole. Works without a view of Polaris.")));
-            g.Full(go);
-            _cameraButtons.Add(Tuple.Create((Control)go, false));
-            g.Full(res);
-            card.Controls.Add(g);
-            return card;
-        }
-
         // ================================================================== dome & weather
 
         private Control BuildDome()
@@ -946,11 +922,12 @@ namespace Sidralune.Views
             var az = dg.Row(T("Azimuth"), Ui.Num(0, 0, 360, 1));
             var bar = new FlowLayoutPanel { Height = 80 };
             Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); };
+            var slave = new FlatButton(T("Follow telescope"), Icons.Refresh) { Toggle = true }; slave.AutoSizeToText();
             btn(T("Open"), Icons.Up, () => Need(Dm.Dome, NoDome).OpenShutter());
             btn(T("Close"), Icons.Down, () => Need(Dm.Dome, NoDome).CloseShutter());
-            btn(T("Slew"), Icons.Target, () => Need(Dm.Dome, NoDome).SlewToAzimuth((double)az.Value));
-            btn(T("Park"), Icons.Lock, () => Need(Dm.Dome, NoDome).Park());
-            var slave = new FlatButton(T("Follow telescope"), Icons.Refresh) { Toggle = true }; slave.AutoSizeToText();
+            // moving the dome by hand ends following the telescope, which would turn it straight back
+            btn(T("Slew"), Icons.Target, () => { var d = Need(Dm.Dome, NoDome); slave.Checked = false; d.SlewToAzimuth((double)az.Value); });
+            btn(T("Park"), Icons.Lock, () => { var d = Need(Dm.Dome, NoDome); slave.Checked = false; d.Park(); });
             bar.Controls.Add(slave);
             dg.Full(bar);
             dome.Controls.Add(dg);
@@ -969,9 +946,115 @@ namespace Sidralune.Views
                     + "\r\n" + T("Safety: {0}", s == null ? T("no monitor") : s.IsSafe ? T("SAFE") : T("UNSAFE"));
                 wl.ForeColor = s != null && !s.IsSafe ? Theme.Current.Danger : Theme.Current.Text;
             };
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 50)); panel.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
             panel.Controls.Add(dome, 0, 0);
             panel.Controls.Add(weather, 1, 0);
+            panel.Controls.Add(BuildSwitches(), 0, 1);
+            panel.Controls.Add(BuildFlatPanel(), 1, 1);
             return panel;
+        }
+
+        /// <summary>The switch box's switches: on/off ones as tick boxes, ones with levels as numbers; built again when it changes.</summary>
+        private Control BuildSwitches()
+        {
+            var card = new Card(T("Switches")) { Dock = DockStyle.Fill };
+            var g = new FormGrid(160) { AutoScroll = true };
+            var none = new Label { Text = T("No switch box connected."), AutoSize = true, Tag = "dim" };
+            card.Controls.Add(g);
+            ISwitchDevice shown = null;
+            var editors = new List<Tuple<int, Control, double>>();
+            bool loading = false;
+            Action build = () =>
+            {
+                var sw = Dm.Switch;
+                if (sw == shown && g.Controls.Count > 0) return;
+                shown = sw;
+                editors.Clear();
+                g.SuspendLayout();
+                g.Controls.Clear(); g.RowStyles.Clear(); g.RowCount = 0;
+                if (sw == null) { g.Full(none); g.ResumeLayout(); return; }
+                int n = 0;
+                try { n = sw.Count; } catch { }
+                for (int k = 0; k < n; k++)
+                {
+                    int i = k;
+                    string name; double max;
+                    try { name = sw.GetName(i); max = sw.GetMaxValue(i); } catch { continue; }
+                    if (max <= 1)
+                    {
+                        var cb = g.Row(name, new CheckBox { Text = T("On") });
+                        cb.CheckedChanged += (s, e) => { if (!loading) Try(() => sw.SetSwitch(i, cb.Checked)); };
+                        editors.Add(Tuple.Create(i, (Control)cb, max));
+                    }
+                    else
+                    {
+                        var num = g.Row(name, Ui.Num(0, 0, (decimal)max));
+                        num.ValueChanged += (s, e) => { if (!loading) Try(() => sw.SetValue(i, (double)num.Value)); };
+                        editors.Add(Tuple.Create(i, (Control)num, max));
+                    }
+                }
+                g.ResumeLayout(true);
+                Theme.Apply(g);
+            };
+            build();
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(build);
+            Poll += () =>
+            {
+                build();
+                var sw = Dm.Switch;
+                if (sw == null) return;
+                loading = true;
+                try
+                {
+                    foreach (var ed in editors)
+                    {
+                        if (ed.Item2.Focused) continue;
+                        var cb = ed.Item2 as CheckBox;
+                        if (cb != null) cb.Checked = sw.GetSwitch(ed.Item1);
+                        var num = ed.Item2 as NumericUpDown;
+                        if (num != null) num.Value = Math.Max(num.Minimum, Math.Min(num.Maximum, (decimal)sw.GetValue(ed.Item1)));
+                    }
+                }
+                catch { }
+                finally { loading = false; }
+            };
+            return card;
+        }
+
+        /// <summary>The flat panel: its cover opened and closed, and its light on at a brightness or off.</summary>
+        private Control BuildFlatPanel()
+        {
+            var card = new Card(T("Flat panel")) { Dock = DockStyle.Fill };
+            var g = new FormGrid(160);
+            var state = g.Row(T("State"), new Label { Tag = "dim", AutoSize = true, UseMnemonic = false });
+            var brightness = g.Row(T("Brightness"), Ui.Num(128, 0, 255));
+            var open = MakeButton(T("Open cover"), Icons.Up);
+            var close = MakeButton(T("Close cover"), Icons.Down);
+            var on = MakeButton(T("Light on"), Icons.Star);
+            var off = MakeButton(T("Light off"), Icons.Close);
+            g.Full(ButtonRow(open, close, on, off));
+            g.Full(Ui.Hint(T("For flat frames: close the cover over the telescope, light the panel, and take FLAT exposures. The sequencer has a Flat panel instruction for the same.")));
+            card.Controls.Add(g);
+            Func<ICoverCalibrator> panel = () => Need(Dm.Cover, T("No flat panel connected."));
+            open.Click += (s, e) => Try(() => panel().OpenCover());
+            close.Click += (s, e) => Try(() => panel().CloseCover());
+            on.Click += (s, e) => Try(() => { var c = panel(); c.CalibratorOn((int)Math.Min(c.MaxBrightness, brightness.Value)); });
+            off.Click += (s, e) => Try(() => panel().CalibratorOff());
+            Poll += () =>
+            {
+                var c = Dm.Cover;
+                foreach (var b in new Control[] { open, close, on, off, brightness }) b.Enabled = c != null;
+                if (c == null) { state.Text = T("No flat panel connected."); return; }
+                try
+                {
+                    string cover = c.CoverState;
+                    string coverText = cover == "Open" ? T("open") : cover == "Closed" ? T("closed") : cover == "Moving" ? T("moving") : cover;
+                    if (brightness.Maximum != Math.Max(1, c.MaxBrightness)) brightness.Maximum = Math.Max(1, c.MaxBrightness);
+                    state.Text = T("Cover {0} · light {1} of {2}", coverText, c.Brightness, c.MaxBrightness);
+                }
+                catch (Exception ex) { state.Text = ex.Message; }
+            };
+            return card;
         }
 
         public IEnumerable<AppCommand> GetCommands()

@@ -6,10 +6,10 @@ using Sidralune.Imaging;
 
 namespace Sidralune.Devices
 {
-    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider, GuideCamera }
+    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider, GuideCamera, AdaptiveOptics }
 
     /// <summary>How a device is reached. <see cref="Builtin"/> is part of Sidralune itself (the Sidralune guider).</summary>
-    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2, Builtin }
+    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2, Builtin, SxAo }
 
     /// <summary>Identifies a device a user can connect to.</summary>
     public class DeviceInfo
@@ -158,6 +158,24 @@ namespace Sidralune.Devices
         void AbortSlew();
     }
 
+    /// <summary>The AO unit's own axes: North and South move its Y axis, East and West its X axis (as its maker names them).</summary>
+    public enum AoDirection { North, South, East, West }
+
+    /// <summary>
+    /// An adaptive optics unit: a tip-tilt element that moves the image a little, quickly, in steps, within a travel of
+    /// MaxSteps each way from its centre.
+    /// </summary>
+    public interface IAdaptiveOptics : IDevice
+    {
+        int MaxSteps { get; set; }
+        /// <summary>Steps from the centre: X positive West, Y positive North.</summary>
+        int PositionX { get; }
+        int PositionY { get; }
+        /// <summary>Moves by count steps; false when a limit stopped it short.</summary>
+        bool Step(AoDirection dir, int count);
+        void Center();
+    }
+
     public interface IRotator : IDevice
     {
         double Position { get; }
@@ -175,6 +193,8 @@ namespace Sidralune.Devices
         void SetSwitch(int i, bool on);
         double GetValue(int i);
         void SetValue(int i, double v);
+        /// <summary>The highest value a switch takes: 1 for one that is only on or off.</summary>
+        double GetMaxValue(int i);
     }
 
     public interface ISafetyMonitor : IDevice
@@ -214,6 +234,8 @@ namespace Sidralune.Devices
         public int RaPulse, DecPulse;
         public double Snr;
         public double StarMass;
+        /// <summary>The star's offset from the lock position in the image (pixels) and its HFD, when the guider knows them.</summary>
+        public double Dx = double.NaN, Dy = double.NaN, Hfd = double.NaN;
     }
 
     public interface IGuider : IDevice

@@ -8,6 +8,9 @@ namespace Sidralune.Devices.Guiding
     /// <summary>Where the Sidralune guider sends its corrections.</summary>
     public enum GuideOutputKind { Mount, Camera }
 
+    /// <summary>Smoothing of guide frames before the stars are measured.</summary>
+    public enum NoiseReduction { None, Mean2x2, Median3x3 }
+
     /// <summary>The Sidralune guider's options and its last calibration, kept in Settings\guider.json.</summary>
     public class GuiderSettings
     {
@@ -34,14 +37,32 @@ namespace Sidralune.Devices.Guiding
         /// not, which is the default.
         /// </summary>
         public bool MountReversesDecAfterFlip = false;
+        /// <summary>
+        /// The guide camera turns with the rotator (an off-axis guider): the calibration turns with it. Reversed for optical
+        /// trains that mirror the image.
+        /// </summary>
+        public bool GuideCameraOnRotator = false, RotatorReversed = false;
         /// <summary>The last calibration, reused while it fits the equipment; null until there is one.</summary>
         public GuideCalibration Calibration;
+
+        /// <summary>
+        /// An AO unit: its travel (steps each way), calibration (steps per move, steps per leg), when the mount is bumped
+        /// (% of the travel), the bump step (arcsec), bumping after a dither, and the AO's own aggressiveness (%) and
+        /// minimum move (px); its calibration.
+        /// </summary>
+        public int AoTravel = 45, AoCalStep = 5, AoCalSteps = 25;
+        public double AoBumpPercent = 80, AoBumpStepArcsec = 1, AoAggressiveness = 80, AoMinMovePx = 0.1;
+        public bool AoBumpOnDither = false;
+        public AoCalibration AoCalibration;
 
         /// <summary>Auto exposure: the exposure follows the guide star's SNR between a minimum and a maximum (s).</summary>
         public bool AutoExposure = false;
         public double AutoExposureMin = 1, AutoExposureMax = 5, TargetSnr = 10;
         /// <summary>Dark frames subtracted from guide frames, or bad pixels mended; how many darks make a master, and the bad-pixel threshold (σ).</summary>
         public DarkFrameKind DarkFrames = DarkFrameKind.None;
+        /// <summary>While guiding, read out only a box around the stars; and smoothing before measuring.</summary>
+        public bool UseSubframes = false;
+        public NoiseReduction NoiseReduction = NoiseReduction.None;
         public int DarkFrameCount = 5;
         public double BadPixelSigma = 5;
 
@@ -56,6 +77,9 @@ namespace Sidralune.Devices.Guiding
         public GuideAlgorithmKind RaAlgorithm = GuideAlgorithmKind.Hysteresis, DecAlgorithm = GuideAlgorithmKind.ResistSwitch;
         public double RaLowpassAggressiveness = 80, DecLowpassAggressiveness = 80;
         public double RaZFactor = 4, DecZFactor = 4;
+        /// <summary>Predictive PEC (RA): the gains (%), the worm period (s), refining it while guiding, and how long the model is kept (% of the period).</summary>
+        public double PecPredictiveGain = 50, PecReactiveGain = 60, PecPeriodSec = 480, PecRetainPercent = 40;
+        public bool PecAutoPeriod = true;
         public DecGuideMode DecMode = DecGuideMode.Auto;
         /// <summary>Dec backlash compensation: the amount (ms), adapting between the minimum and maximum.</summary>
         public bool BacklashCompensation = false;
@@ -77,6 +101,10 @@ namespace Sidralune.Devices.Guiding
         public CometRateSource CometSource = CometRateSource.Entered;
         public double CometRaArcsecPerHour, CometDecArcsecPerHour;
         public string CometName = "";
+
+        /// <summary>The PHD2-compatible server: on, its port, and whether other computers may connect.</summary>
+        public bool ServerEnabled = false, ServerAllowOthers = false;
+        public int ServerPort = 4400;
 
         /// <summary>The last Guiding Assistant runs, newest first.</summary>
         public List<GuidingAssistantResult> AssistantResults = new List<GuidingAssistantResult>();

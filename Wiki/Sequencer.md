@@ -86,12 +86,18 @@ Containers can be nested, for example a loop of filters inside a target inside a
 | **Wait** | Pauses | **Kind**: Seconds, UntilTime, UntilAltitude (target above **Altitude deg**), UntilAstronomicalDusk, UntilNauticalDusk, UntilSafe (safety monitor reports safe) |
 | **Park telescope** / **Unpark telescope** | Parks or unparks the mount | **Unpark** |
 | **Dome shutter** ("Open dome" / "Close dome") | Opens or closes the dome shutter or roof | **Open** |
-| **Run script** ("Run external program") | Runs a program or batch file, for example to switch dew heaters or send a notification | **Command** (click **…** to choose the file), **Arguments**, **Timeout sec** |
+| **Set switch** | Sets one of the switch box's switches: off at 0, an on/off switch on at any value above 0, a dew heater or other switch with levels to the value | **Switch** (chosen from the switch box's switches; another name can be typed), **Value** |
+| **Flat panel** | Opens or closes the flat panel's cover (and waits until it has), or lights the panel at a brightness or puts it out | **Action**: Open cover, Close cover, Light on, Light off; **Brightness** (0–255 on most panels, for Light on) |
+| **Run script** ("Run external program") | Runs a program or batch file, for example to send a notification | **Command** (click **…** to choose the file), **Arguments**, **Timeout sec** |
 | **Annotation** ("Note") | Writes a note to the log; does nothing else | **Text** |
 
 The **Filter** of an instruction is chosen from the connected filter wheel's filters (the simulator's L, R, G, B, Ha, OIII and SII when no wheel is connected), and another name can still be typed for a wheel that is not connected while you edit. In **Take exposures** and **Record video** the empty choice keeps the current filter.
 
 For a planetary rotation series, put **Record video** in a **Loop** with a **Wait** after it, for example a 90-second video every 5 minutes until the planet sinks below 25°. With a filter wheel, use one **Record video** per filter (R, G, B) in the loop. The videos are named in the WinJUPOS style, so the [Derotation](Planetary,-lunar-and-solar-imaging#derotation) tab can combine them later.
+
+For flat frames with a flat panel: **Flat panel** Close cover, **Flat panel** Light on, **Take exposures** with **Frame type** FLAT, then **Flat panel** Light off and Open cover.
+
+Before it starts, a sequence with **Set switch** needs a switch box, and one with **Flat panel** a flat panel, connected.
 
 If an instruction fails, it is marked ✗, the error is shown in its properties and written to the log, and the sequence continues with the next instruction. Turn on **Stop on error** for instructions that must succeed (for example centring before a long series): when one fails, the rest of the container it is in is skipped (the rest of that target, say), and the sequence continues after that container, so a closing **Park** or **Close dome** still runs. An instruction directly in the sequence's top level ends the whole sequence.
 

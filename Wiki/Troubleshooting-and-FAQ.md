@@ -125,6 +125,18 @@ The compensation is too large for your mount: lower **Backlash** and **Backlash 
 **The Guiding Assistant's Start measuring is greyed out.**
 It measures while guiding, so start guiding first, and wait until Start guiding has settled.
 
+**Predictive PEC does not improve guiding.**
+It needs two worm periods of training (the RA card says how far it has got) with a steady star. Check the **Worm period** against your mount's (its manual, or the period the RA card settles on). If guiding pauses or stops for longer than **Retain model**, or the mount slews, it starts training again. A mount with little or irregular periodic error gains little; Hysteresis may then do as well.
+
+**The AO keeps bumping the mount.**
+The mount's own drift is larger than the AO can hold: improve the polar alignment, check the mount's calibration (Calibrate & guide), or raise **Bump the mount at**. If bumps never bring the AO back to its middle, calibrate the AO again (Clear AO calibration, then Start guiding) and check the **Bump step**.
+
+**The PHD2-compatible server says the port is in use.**
+Another program listens on that port, usually PHD2 with its server enabled. Close PHD2 (or turn off its server), or choose another **Port** in Sidralune and in the program that connects.
+
+**An imaging program does not see Sidralune's guider.**
+Turn on the server in Observatory → Guiding → Settings → PHD2-compatible server and check that the card says **Listening on port 4400**. In the other program choose PHD2 as the guider, host localhost (or this computer's name with **Allow them to connect** on, and the Windows firewall allowing Sidralune), port 4400. A guide camera must be connected in Sidralune.
+
 **The comet drifts in the imaging camera while it is followed.**
 Check the rates: a comet's orbit in the comet list may be old (download the comet data again in Settings), and entered rates for RA must be motion on the sky, that is already multiplied by cos(Dec). Training for a few minutes gives rates that match what you see. Comet tracking needs a calibration, and stops when the mount slews.
 

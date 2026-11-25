@@ -72,7 +72,7 @@ namespace Sidralune.Devices.Automation
         public bool StopOnError { get; set; } = false;
         protected abstract Task Execute(SequenceContext ctx, CancellationToken ct);
 
-        /// <summary>Devices this instruction cannot run without ("camera", "telescope", "focuser", "filter wheel").</summary>
+        /// <summary>Devices this instruction cannot run without ("camera", "telescope", "focuser", "filter wheel", "switch", "flat panel").</summary>
         public virtual string[] RequiredDevices => new string[0];
 
         public virtual void Reset()
@@ -499,6 +499,80 @@ namespace Sidralune.Devices.Automation
         }
     }
 
+    /// <summary>The switch box's switch names as a drop-down list (the simulator's when none is connected); others can be typed.</summary>
+    public class SwitchNameConverter : System.ComponentModel.StringConverter
+    {
+        public static string[] Names()
+        {
+            try
+            {
+                var sw = DeviceManager.Instance.Switch;
+                if (sw != null && sw.Count > 0) return Enumerable.Range(0, sw.Count).Select(sw.GetName).ToArray();
+            }
+            catch { }
+            return new[] { "Dew heater 1", "Dew heater 2", "Fan", "Mount power" };
+        }
+
+        public override bool GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override bool GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext context) => false;
+        public override StandardValuesCollection GetStandardValues(System.ComponentModel.ITypeDescriptorContext context) => new StandardValuesCollection(Names());
+    }
+
+    /// <summary>Sets one of the switch box's switches: on (any value above 0) or off, or a level for one that has levels.</summary>
+    public class SetSwitch : SequenceItem
+    {
+        [System.ComponentModel.TypeConverter(typeof(SwitchNameConverter))]
+        public string Switch { get; set; } = "Dew heater 1";
+        /// <summary>0 is off; an on/off switch is on at any value above 0; one with levels takes the value (up to its highest).</summary>
+        public double Value { get; set; } = 1;
+        public override string Title => Lang.T("Set switch");
+        public override string Summary => Lang.T("{0} to {1}", Switch, Value);
+        public override string[] RequiredDevices => new[] { "switch" };
+
+        protected override Task Execute(SequenceContext ctx, CancellationToken ct) => Task.Run(() =>
+        {
+            var sw = ctx.Devices.Switch;
+            int i = Enumerable.Range(0, sw.Count).Where(k => string.Equals(sw.GetName(k), Switch, StringComparison.OrdinalIgnoreCase)).DefaultIfEmpty(-1).First();
+            if (i < 0) throw new InvalidOperationException(Lang.T("No switch named {0}.", Switch));
+            double max = sw.GetMaxValue(i);
+            if (max <= 1) sw.SetSwitch(i, Value > 0);
+            else sw.SetValue(i, Math.Max(0, Math.Min(max, Value)));
+            ctx.Log(string.Format("{0} set to {1}", Switch, Value));
+        }, ct);
+    }
+
+    public enum FlatPanelAction { OpenCover, CloseCover, LightOn, LightOff }
+
+    /// <summary>The flat panel: its cover opened or closed (waiting until it has), or its light on at a brightness or off.</summary>
+    public class FlatPanel : SequenceItem
+    {
+        public FlatPanelAction Action { get; set; } = FlatPanelAction.CloseCover;
+        /// <summary>For LightOn: from 0 to the panel's highest brightness.</summary>
+        public int Brightness { get; set; } = 128;
+        public override string Title => Lang.T("Flat panel");
+        public override string Summary => Lang.Option(Action.ToString()) + (Action == FlatPanelAction.LightOn ? " " + Brightness : "");
+        public override string[] RequiredDevices => new[] { "flat panel" };
+
+        protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
+        {
+            var c = ctx.Devices.Cover;
+            switch (Action)
+            {
+                case FlatPanelAction.LightOn: c.CalibratorOn(Math.Max(0, Math.Min(c.MaxBrightness, Brightness))); return;
+                case FlatPanelAction.LightOff: c.CalibratorOff(); return;
+            }
+            bool open = Action == FlatPanelAction.OpenCover;
+            if (open) c.OpenCover(); else c.CloseCover();
+            string want = open ? "Open" : "Closed";
+            var until = DateTime.UtcNow.AddMinutes(2);
+            while (c.CoverState != want)
+            {
+                if (DateTime.UtcNow > until) throw new TimeoutException(Lang.T("The flat panel's cover did not finish moving."));
+                await Task.Delay(250, ct);
+            }
+        }
+    }
+
     public class RunScript : SequenceItem
     {
         // a "…" button that opens a file dialog (named by type so this library needs no Windows Forms reference)
@@ -627,7 +701,8 @@ namespace Sidralune.Devices.Automation
                 if (!it.Enabled) return;
                 foreach (var d in it.RequiredDevices)
                 {
-                    bool have = d == "camera" ? dm.Camera != null : d == "telescope" ? dm.Telescope != null : d == "focuser" ? dm.Focuser != null : d == "filter wheel" ? dm.FilterWheel != null : true;
+                    bool have = d == "camera" ? dm.Camera != null : d == "telescope" ? dm.Telescope != null : d == "focuser" ? dm.Focuser != null : d == "filter wheel" ? dm.FilterWheel != null
+                        : d == "switch" ? dm.Switch != null : d == "flat panel" ? dm.Cover != null : true;
                     if (!have && !missing.Contains(d)) missing.Add(d);
                 }
                 if (it.Children != null) foreach (var c in it.Children) walk(c);
@@ -640,7 +715,7 @@ namespace Sidralune.Devices.Automation
         public static string DescribeMissing(List<string> missing)
         {
             var named = missing.Select(d => d == "camera" ? Lang.T("a camera") : d == "telescope" ? Lang.T("a telescope") : d == "focuser" ? Lang.T("a focuser")
-                : d == "filter wheel" ? Lang.T("a filter wheel") : d).ToList();
+                : d == "filter wheel" ? Lang.T("a filter wheel") : d == "switch" ? Lang.T("a switch box") : d == "flat panel" ? Lang.T("a flat panel") : d).ToList();
             string list = named.Count == 1 ? named[0] : Lang.T("{0} and {1}", string.Join(", ", named.Take(named.Count - 1)), named[named.Count - 1]);
             return Lang.Tn("This sequence needs {0}. Connect it in Observatory → Equipment", "This sequence needs {0}. Connect them in Observatory → Equipment", named.Count, list);
         }
@@ -665,7 +740,7 @@ namespace Sidralune.Devices.Automation
         public static readonly Type[] ItemTypes =
         {
             typeof(TargetContainer), typeof(LoopContainer), typeof(SequenceContainer), typeof(SlewToTarget), typeof(CenterTarget), typeof(StartGuiding), typeof(StopGuiding),
-            typeof(TakeExposures), typeof(RecordVideo), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(RunScript), typeof(Annotation)
+            typeof(TakeExposures), typeof(RecordVideo), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(SetSwitch), typeof(FlatPanel), typeof(RunScript), typeof(Annotation)
         };
 
         public static Dictionary<string, object> ToDict(SequenceItem item)

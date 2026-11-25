@@ -32,6 +32,16 @@ namespace Sidralune.Devices.Guiding
         /// a North pulse north, -1 the other way, 0 when the mount did not say. Turns "north on the sky" into pulses.
         /// </summary>
         public int WestSign, NorthSign;
+        /// <summary>The rotator's angle when calibrated, for a guide camera that turns with it (NaN otherwise).</summary>
+        public double RotatorDeg = double.NaN;
+        private double _rotated;
+
+        /// <summary>
+        /// How far the guide camera has turned since calibrating (degrees): set by the guider from the rotator, so both
+        /// directions turn with it and no new calibration is needed.
+        /// </summary>
+        public void SetRotated(double deg) { _rotated = double.IsNaN(deg) ? 0 : deg; }
+        public double Rotated() => _rotated;
         /// <summary>What looked wrong (see the Issue constants), kept to show with the calibration.</summary>
         public List<string> Issues = new List<string>();
 
@@ -50,7 +60,7 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         public void Directions(PierSide now, bool mountReversesDec, out double rx, out double ry, out double dx, out double dy)
         {
-            double ra = RaAngleDeg, de = DecAngleDeg;
+            double ra = RaAngleDeg + _rotated, de = DecAngleDeg + _rotated;
             if (Flipped(now)) { ra += 180; if (mountReversesDec) de += 180; }
             rx = Math.Cos(ra * AstroMath.Deg2Rad); ry = Math.Sin(ra * AstroMath.Deg2Rad);
             dx = Math.Cos(de * AstroMath.Deg2Rad); dy = Math.Sin(de * AstroMath.Deg2Rad);

@@ -25,6 +25,10 @@ namespace Sidralune.Devices.Guiding
         private TaskCompletionSource<bool> _settle;
         public string Host = "localhost";
         public int Instance = 1;
+        /// <summary>Connecting to Sidralune's own PHD2-compatible server is refused, unless allowed (tests).</summary>
+        public bool AllowSidralune;
+        private readonly ManualResetEventSlim _version = new ManualResetEventSlim();
+        private string _subver = "";
         public string State { get; private set; } = "Stopped";
         public double PixelScale { get; private set; } = 1;
         public event Action<GuideStep> Step;
@@ -55,6 +59,13 @@ namespace Sidralune.Devices.Guiding
             _writer = new StreamWriter(ns, new UTF8Encoding(false)) { AutoFlush = true, NewLine = "\r\n" };
             _thread = new Thread(ReadLoop) { IsBackground = true, Name = "PHD2" };
             _thread.Start();
+            // PHD2 introduces itself first: Sidralune's own server is not PHD2, and connecting to it would loop back
+            _version.Wait(1500);
+            if (_subver.IndexOf("Sidralune", StringComparison.OrdinalIgnoreCase) >= 0 && !AllowSidralune)
+            {
+                try { _tcp.Close(); } catch { }
+                throw new InvalidOperationException(Lang.T("That is Sidralune's own PHD2-compatible server, not PHD2."));
+            }
             Connected = true;
             Task.Run(async () =>
             {
@@ -103,6 +114,7 @@ namespace Sidralune.Devices.Guiding
         {
             switch (ev)
             {
+                case "Version": _subver = Json.GetString(m, "PHDSubver") ?? ""; _version.Set(); break;
                 case "AppState": State = Json.GetString(m, "State"); RaiseStateChanged(); break;
                 case "GuideStep":
                     {

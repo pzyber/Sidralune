@@ -98,6 +98,7 @@ namespace Sidralune.Devices.Guiding
             if (double.IsNaN(LockX)) throw new InvalidOperationException(Lang.T("Choose a guide star first."));
             double step = Math.Max(0.01, Settings.NudgeArcsec), ox, oy;
             var cal = Settings.Calibration;
+            SyncRotation();
             if (cal != null)
             {
                 double e = dir == GuideDirection.East ? step : dir == GuideDirection.West ? -step : 0, n = dir == GuideDirection.North ? step : dir == GuideDirection.South ? -step : 0;

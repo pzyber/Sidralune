@@ -27,6 +27,8 @@ namespace Sidralune
             Devices.DeviceManager.Instance.SimulatedMountErrors = true;
             var form = new MainForm();
             string shot = ArgValue(args, "--screenshot");
+            // the PHD2-compatible server, when it is on, listens from the start so other programs find the guider
+            if (shot == null) Devices.DeviceManager.Instance.StartGuiderServerIfWanted();
             if (shot != null)
             {
                 // headless-ish rendering of a view to PNG for documentation and visual checks

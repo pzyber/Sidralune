@@ -2557,6 +2557,618 @@ msgstr "Fokusuotuvas neprijungtas."
 msgid "No guider connected."
 msgstr "Gidavimo sistema neprijungta."
 
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No frame came from the camera."
+msgstr "Iš kameros neatėjo joks kadras."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The camera is not taking frames."
+msgstr "Kamera nedaro kadrų."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Imaging camera"
+msgstr "Pagrindinė kamera"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Frames show here. Connect a camera in Observatory → Equipment."
+msgstr "Čia rodomi kadrai. Prijunkite kamerą skiltyje Observatorija → Įranga."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Say whether the camera sees a mirror image."
+msgstr "Nurodykite, ar kamera mato veidrodinį vaizdą."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "Set switch"
+msgstr "Nustatyti jungiklį"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "{0} to {1}"
+msgstr "{0} į {1}"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "No switch named {0}."
+msgstr "Nėra jungiklio pavadinimu {0}."
+
+#: Sidralune.Devices/Automation/Sequencer.cs Sidralune/Views/ObservatoryView.cs
+msgid "Flat panel"
+msgstr "Flat panelė"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "The flat panel's cover did not finish moving."
+msgstr "Flat panelės dangtis nebaigė judėti."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a switch box"
+msgstr "jungiklių dėžė"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a flat panel"
+msgstr "flat panelė"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Switches"
+msgstr "Jungikliai"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No switch box connected."
+msgstr "Neprijungta jungiklių dėžė."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Brightness"
+msgstr "Ryškumas"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Open cover"
+msgstr "Atidaryti dangtį"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Close cover"
+msgstr "Uždaryti dangtį"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light on"
+msgstr "Įjungti šviesą"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light off"
+msgstr "Išjungti šviesą"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "For flat frames: close the cover over the telescope, light the panel, and take FLAT exposures. The sequencer has a Flat panel instruction for the same."
+msgstr "Flat kadrams: uždarykite dangtį prieš teleskopą, įjunkite panelę ir darykite FLAT ekspozicijas. Sekos vykdyklė tam turi komandą Flat panelė."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No flat panel connected."
+msgstr "Neprijungta flat panelė."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "open"
+msgstr "atidarytas"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "closed"
+msgstr "uždarytas"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Cover {0} · light {1} of {2}"
+msgstr "Dangtis {0} · šviesa {1} iš {2}"
+
+#: Sidralune.Devices/Automation/Capture.cs
+msgid "Plate solving failed at point {0}: {1}"
+msgstr "Astrometrinis sprendimas nepavyko taške {0}: {1}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount within 20° of the celestial pole first."
+msgstr "Pirmiausia nukreipkite montuotę ne toliau kaip 20° nuo dangaus poliaus."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount nearer the celestial equator first (Dec within ±60°)."
+msgstr "Pirmiausia nukreipkite montuotę arčiau dangaus pusiaujo (Dec ±60° ribose)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Let other programs guide with Sidralune"
+msgstr "Leisti kitoms programoms giduoti su Sidralune"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Programs that can guide with PHD2 connect here instead, as if Sidralune's guider were PHD2. PHD2 itself must not use the same port."
+msgstr "Programos, galinčios giduoti su PHD2, jungiasi čia vietoj jo, tarsi Sidralune gidas būtų PHD2. Pats PHD2 negali naudoti to paties prievado."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Drift alignment needs the mount connected, to know where it points."
+msgstr "Lygiavimui dreifu reikia prijungtos montuotės, kad būtų žinoma, kur ji nukreipta."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Point near the celestial equator (Dec within ±30°): near the meridian for the azimuth error, or 25–35° up in the east or west for the altitude error."
+msgstr "Nukreipkite netoli dangaus pusiaujo (Dec ±30° ribose): netoli dienovidinio azimuto paklaidai, arba 25–35° aukštyje rytuose ar vakaruose aukščio paklaidai."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Near the meridian: this measures the azimuth error."
+msgstr "Netoli dienovidinio: čia matuojama azimuto paklaida."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the east: this measures the altitude error."
+msgstr "Rytuose: čia matuojama aukščio paklaida."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the west: this measures the altitude error."
+msgstr "Vakaruose: čia matuojama aukščio paklaida."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the altitude error, though lower in the east or west would tell it better."
+msgstr "Čia matuojama aukščio paklaida, tačiau žemiau rytuose ar vakaruose ji matytųsi geriau."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the azimuth error, though nearer the meridian would tell it better."
+msgstr "Čia matuojama azimuto paklaida, tačiau arčiau dienovidinio ji matytųsi geriau."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Start guiding first: drift alignment measures while guiding with the Dec corrections held back."
+msgstr "Pirmiausia pradėkite gidavimą: lygiavimas dreifu matuoja gidavimo metu, sulaikius Dec pataisas."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Move the polar axis {0} by {1:0.0}′"
+msgstr "Pastumkite poliarinę ašį {0} {1:0.0}′"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: the mount turns between the frames."
+msgstr "Pirmiausia sustabdykite gidavimą: montuotė sukasi tarp kadrų."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No guide frame came."
+msgstr "Neatėjo joks gidavimo kadras."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} of 3…"
+msgstr "Kadras {0} iš 3…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} could not be plate-solved."
+msgstr "Kadro {0} nepavyko išspręsti astrometriškai."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° east…"
+msgstr "RA sukama {0:0}° į rytus…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° west…"
+msgstr "RA sukama {0:0}° į vakarus…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Three frames are needed."
+msgstr "Reikia trijų kadrų."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The frames did not turn: was RA moved between them?"
+msgstr "Kadrai nepasisuko: ar RA pajudėjo tarp jų?"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: polar drift alignment follows a star while the mount only tracks."
+msgstr "Pirmiausia sustabdykite gidavimą: lygiavimas poliariniu dreifu seka žvaigždę, kol montuotė tik seka dangų."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Port {0} is in use (is PHD2 running?)"
+msgstr "Prievadas {0} užimtas (ar veikia PHD2?)"
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Connect the guide camera in Sidralune's Observatory → Equipment."
+msgstr "Prijunkite gidavimo kamerą Sidralune skiltyje Observatorija → Įranga."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Not looping."
+msgstr "Joks ciklas nevyksta."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling is still going on."
+msgstr "Nusistovėjimas dar vyksta."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling timed out."
+msgstr "Nusistovėjimas užtruko per ilgai."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "No AO connected."
+msgstr "Nusistovėjimas nepavyko."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Stop looping first."
+msgstr "Neprijungta jokia AO."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "No guide star."
+msgstr "Pirmiausia sustabdykite ciklą."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling failed."
+msgstr "Nėra gidavimo žvaigždės."
+
+#: Sidralune.Devices/Guiding/Phd2Client.cs
+msgid "That is Sidralune's own PHD2-compatible server, not PHD2."
+msgstr "Tai paties Sidralune su PHD2 suderinamas serveris, o ne PHD2."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's X steps."
+msgstr "AO kalibravimas nepavyko: žvaigždė nepajudėjo su AO X žingsniais."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's Y steps."
+msgstr "AO kalibravimas nepavyko: žvaigždė nepajudėjo su AO Y žingsniais."
+
+#: Sidralune.Devices/Serial/SxAo.cs
+msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
+msgstr "SX AO praneša programinę įrangą 000: ją reikia įrašyti iš naujo."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
+msgstr "AO dar nesukalibruota: ji kalibruojama po montuotės, kai prasideda gidavimas."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO calibrated {0:yyyy-MM-dd HH:mm}: X {1:0.00} px a step towards {2:0}°, Y {3:0.00} px a step towards {4:0}°."
+msgstr "AO sukalibruota {0:yyyy-MM-dd HH:mm}: X {1:0.00} px per žingsnį link {2:0}°, Y {3:0.00} px per žingsnį link {4:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile"
+msgstr "Žvaigždės profilis"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "ADU"
+msgstr "ADU"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "pixels from the star"
+msgstr "pikseliai nuo žvaigždės"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "X"
+msgstr "X"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Y"
+msgstr "Y"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Graph"
+msgstr "Grafikas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframe"
+msgstr "Iškarpa"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO {0:+0;-0;0}, {1:+0;-0;0}"
+msgstr "AO {0:+0;-0;0}, {1:+0;-0;0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "bumping the mount"
+msgstr "montuotė perima"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs Sidralune/Views/ObservatoryView.cs
+msgid "AO"
+msgstr "AO"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile · peak {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+msgstr "Žvaigždės profilis · smailė {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RMS {0:0.00}″"
+msgstr "RMS {0:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframes"
+msgstr "Iškarpos"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, download only a box round the stars"
+msgstr "Gidavimo metu nuskaityti tik sritį aplink žvaigždes"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "2×2 mean"
+msgstr "2×2 vidurkis"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "3×3 median"
+msgstr "3×3 mediana"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The guide camera turns with it"
+msgstr "Gidavimo kamera sukasi kartu su juo"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rotator direction"
+msgstr "Rotatoriaus kryptis"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reversed (a mirrored image)"
+msgstr "Atvirkštinė (veidrodinis vaizdas)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "For an off-axis guider on a rotator: the calibration turns with the rotator, so turning it needs no new calibration."
+msgstr "Nuo ašies nutolusiam gidui ant rotatoriaus: kalibracija sukasi kartu su rotatoriumi, todėl jį pasukus nereikia naujos kalibracijos."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive PEC"
+msgstr "Predictive PEC"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive gain (%)"
+msgstr "Prognozuojamoji dalis (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reactive gain (%)"
+msgstr "Reaguojamoji dalis (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Worm period (s)"
+msgstr "Sraigės periodas (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Period"
+msgstr "Periodas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adjust it from the guiding"
+msgstr "Derinti pagal gidavimą"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Retain model (%)"
+msgstr "Išlaikyti modelį (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Travel (steps each way)"
+msgstr "Eiga (žingsnių į kiekvieną pusę)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration step (steps)"
+msgstr "Kalibravimo žingsnis (žingsniai)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration leg (steps)"
+msgstr "Kalibravimo atkarpa (žingsniai)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump the mount at (%)"
+msgstr "Perimti montuote ties (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump step (″)"
+msgstr "Montuotės žingsnis (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "After a dither"
+msgstr "Po ditheringo"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Recentre the AO with the mount"
+msgstr "Centruoti AO montuote"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO aggressiveness (%)"
+msgstr "AO agresyvumas (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO minimum move (px)"
+msgstr "Mažiausias AO poslinkis (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO corrects every frame; when it passes the bump point of its travel, the mount takes over in small moves. The AO is calibrated after the mount."
+msgstr "AO taiso kiekvieną kadrą; kai ji pereina savo eigos perėmimo tašką, montuotė perima mažais poslinkiais. AO kalibruojama po montuotės."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Clear AO calibration"
+msgstr "Išvalyti AO kalibraciją"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adaptive optics"
+msgstr "Adaptyvioji optika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Port"
+msgstr "Prievadas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Other computers"
+msgstr "Kiti kompiuteriai"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Allow them to connect"
+msgstr "Leisti jiems prisijungti"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2-compatible server"
+msgstr "Su PHD2 suderinamas serveris"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Learns the mount's periodic error while guiding and corrects it before it shows: for mounts with a regular worm error. It trains for two worm periods."
+msgstr "Gidavimo metu mokosi montuotės periodinės paklaidos ir ištaiso ją, kol ji dar nepasimatė: montuotėms su reguliaria sraigės paklaida. Mokosi du sraigės periodus."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Starts learning when guiding starts."
+msgstr "Pradeda mokytis, kai prasideda gidavimas."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predicting, period {0:0} s"
+msgstr "Prognozuoja, periodas {0:0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: {0:0.0} of 2 periods"
+msgstr "Mokymasis: {0:0.0} iš 2 periodų"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Listening on port {0} · {1} connected"
+msgstr "Klausosi prievado {0} · prijungta: {1}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO steps"
+msgstr "AO žingsniai"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO moved by hand the same way, along its own axes, to check it."
+msgstr "Taip pat rankiniu būdu pastumia AO jos pačios ašimis, kad ją patikrintų."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO moved. Choose a guide star to see how far it moves."
+msgstr "AO pastumta. Pasirinkite gidavimo žvaigždę, kad pamatytumėte, kiek ji pasislenka."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The AO calibration expected {0:0.0} px towards {1:0}°. Calibrate the AO again."
+msgstr "⚠ AO kalibracija tikėjosi {0:0.0} px link {1:0}°. Sukalibruokite AO iš naujo."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Three-point (plate solving)"
+msgstr "Trijų taškų (astrometrija)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Drift alignment"
+msgstr "Lygiavimas dreifu"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Static polar alignment"
+msgstr "Statinis poliarinis lygiavimas"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar drift alignment"
+msgstr "Lygiavimas poliariniu dreifu"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "PHD2 is connected: these methods use Sidralune's own guider."
+msgstr "PHD2 prijungtas: šie metodai naudoja paties Sidralune gidą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Stop guiding first: the mount only tracks for this method."
+msgstr "Pirmiausia sustabdykite gidavimą: šiuo metodu montuotė tik seka dangų."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guide frames show here. Connect a guide camera in Observatory → Equipment."
+msgstr "Čia rodomi gidavimo kadrai. Prijunkite gidavimo kamerą skiltyje Observatorija → Įranga."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Sidralune guides with the Dec corrections held back, and the Dec drift tells the polar axis's error: near the meridian and the celestial equator the azimuth error, 25–35° up in the east or west the altitude error. Adjust, measure again, until both are small."
+msgstr "Sidralune giduoja sulaikęs Dec pataisas, o Dec dreifas parodo poliarinės ašies paklaidą: netoli dienovidinio ir dangaus pusiaujo – azimuto paklaidą, 25–35° aukštyje rytuose ar vakaruose – aukščio paklaidą. Pareguliuokite ir matuokite iš naujo, kol abi bus mažos."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start over"
+msgstr "Pradėti iš naujo"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error: not measured yet"
+msgstr "Aukščio paklaida: dar neišmatuota"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error {0:+0.0;-0.0}′"
+msgstr "Aukščio paklaida {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error: not measured yet"
+msgstr "Azimuto paklaida: dar neišmatuota"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error {0:+0.0;-0.0}′"
+msgstr "Azimuto paklaida {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: measure for a minute or two."
+msgstr "Per trumpai, kad būtų galima pasakyti: matuokite minutę ar dvi."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guiding stopped, so the measurement was dropped."
+msgstr "Gidavimas sustojo, todėl matavimas atmestas."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Connect the mount: drift alignment needs to know where it points."
+msgstr "Prijunkite montuotę: lygiavimui dreifu reikia žinoti, kur ji nukreipta."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "altitude error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "aukščio paklaida {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "azimuth error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "azimuto paklaida {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: Dec drift {1:+0.00;-0.00}″/min ± {2:0.00}"
+msgstr "{0:0} s: Dec dreifas {1:+0.00;-0.00}″/min ± {2:0.00}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turning RA"
+msgstr "RA sukimas"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The mount turns itself"
+msgstr "Montuotė suka pati"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. Sidralune takes a frame, turns RA about 15° west twice and plate-solves each frame: the mount's axis is the point the frames turn about, and the plate solution places the refracted pole. Then turn the altitude and azimuth knobs until the star reaches its circle."
+msgstr "Nukreipkite netoli dangaus poliaus. Sidralune padaro kadrą, du kartus pasuka RA apie 15° į vakarus ir astrometriškai išsprendžia kiekvieną kadrą: montuotės ašis yra taškas, apie kurį sukasi kadrai, o astrometrinis sprendimas nustato refrakcijos paslinkto poliaus vietą. Tada sukite aukščio ir azimuto varžtus, kol žvaigždė pasieks savo apskritimą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start alignment"
+msgstr "Pradėti lygiavimą"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Next frame"
+msgstr "Kitas kadras"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mount axis"
+msgstr "Montuotės ašis"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Pole"
+msgstr "Polius"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn RA about {0:0}° west, then click Next frame."
+msgstr "Pasukite RA apie {0:0}° į vakarus, tada spustelėkite Kitas kadras."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The star is not found: turn the knobs more slowly, or click Start alignment again."
+msgstr "Žvaigždė nerasta: sukite varžtus lėčiau arba vėl spustelėkite Pradėti lygiavimą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn the altitude and azimuth knobs until the star is in its circle: {0:0.0}′ to go."
+msgstr "Sukite aukščio ir azimuto varžtus, kol žvaigždė bus savo apskritime: liko {0:0.0}′."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mirrored (an off-axis guider's prism, a diagonal)"
+msgstr "Veidrodinis (nuo ašies nutolusio gido prizmė, diagonalas)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. With the mount only tracking, a star is followed: its drift gives the polar axis's error, with no calibration and no plate solving. Stop when the error has settled, then move the star into its circle with the altitude and azimuth knobs."
+msgstr "Nukreipkite netoli dangaus poliaus. Kol montuotė tik seka dangų, sekama žvaigždė: jos dreifas duoda poliarinės ašies paklaidą be kalibracijos ir be astrometrinio sprendimo. Sustabdykite, kai paklaida nusistovi, tada aukščio ir azimuto varžtais perkelkite žvaigždę į jos apskritimą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Follow a star"
+msgstr "Sekti žvaigždę"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: follow the star for a minute or two."
+msgstr "Per trumpai, kad būtų galima pasakyti: sekite žvaigždę minutę ar dvi."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar alignment error {0:0.0}′ ± {1:0.0}′"
+msgstr "Poliarinio lygiavimo paklaida {0:0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Move the star into its circle with the altitude and azimuth knobs."
+msgstr "Aukščio ir azimuto varžtais perkelkite žvaigždę į jos apskritimą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "From the guider's calibration."
+msgstr "Iš gido kalibracijos."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Without a calibration, say whether the guide camera sees a mirror image."
+msgstr "Be kalibracijos nurodykite, ar gidavimo kamera mato veidrodinį vaizdą."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Following the star… {0} frames so far."
+msgstr "Sekama žvaigždė… iki šiol kadrų: {0}."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: error {1:0.0}′ ± {2:0.0}′. Stop when it has settled."
+msgstr "{0:0} s: paklaida {1:0.0}′ ± {2:0.0}′. Sustabdykite, kai nusistovės."
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
 msgstr "Prijunkite gidavimo kamerą skiltyje Observatorija → Įranga arba spustelėkite Prijungti PHD2."
@@ -3536,10 +4148,6 @@ msgstr "Saugos stebiklis"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Switch"
 msgstr "Jungiklis"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Cover calibrator"
-msgstr "Dangtis su kalibratoriumi"
 
 #: Sidralune/Views/ObservatoryView.cs Sidralune/Views/SettingsView.cs
 msgid "Equipment"
@@ -9989,6 +10597,56 @@ msgstr "Parkuoti teleskopą"
 msgctxt "option"
 msgid "Dome Shutter"
 msgstr "Kupolo sklendė"
+
+#: property grid
+msgctxt "option"
+msgid "Switch"
+msgstr "Jungiklis"
+
+#: property grid
+msgctxt "option"
+msgid "Value"
+msgstr "Reikšmė"
+
+#: property grid
+msgctxt "option"
+msgid "Action"
+msgstr "Veiksmas"
+
+#: property grid
+msgctxt "option"
+msgid "Open Cover"
+msgstr "Atidaryti dangtį"
+
+#: property grid
+msgctxt "option"
+msgid "Close Cover"
+msgstr "Uždaryti dangtį"
+
+#: property grid
+msgctxt "option"
+msgid "Light On"
+msgstr "Įjungti šviesą"
+
+#: property grid
+msgctxt "option"
+msgid "Light Off"
+msgstr "Išjungti šviesą"
+
+#: property grid
+msgctxt "option"
+msgid "Brightness"
+msgstr "Ryškumas"
+
+#: property grid
+msgctxt "option"
+msgid "Set Switch"
+msgstr "Nustatyti jungiklį"
+
+#: property grid
+msgctxt "option"
+msgid "Flat Panel"
+msgstr "Flat panelė"
 
 #: property grid
 msgctxt "option"

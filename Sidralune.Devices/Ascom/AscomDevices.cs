@@ -351,6 +351,7 @@ namespace Sidralune.Devices.Ascom
         public void SetSwitch(int i, bool on) => D.SetSwitch((short)i, on);
         public double GetValue(int i) => D.GetSwitchValue((short)i);
         public void SetValue(int i, double v) => D.SetSwitchValue((short)i, v);
+        public double GetMaxValue(int i) => Try(() => (double)D.MaxSwitchValue((short)i), 1);
     }
 
     public class AscomSafety : AscomBase, ISafetyMonitor
@@ -376,7 +377,9 @@ namespace Sidralune.Devices.Ascom
     public class AscomCover : AscomBase, ICoverCalibrator
     {
         public AscomCover(DeviceInfo i) : base(i) { }
-        public string CoverState => Try(() => ((int)D.CoverState).ToString(), "?");
+        private static readonly string[] CoverStates = { "NotPresent", "Closed", "Moving", "Open", "Unknown", "Error" };
+        /// <summary>ASCOM's CoverStatus as its name (Closed, Moving, Open…).</summary>
+        public string CoverState => Try(() => { int s = (int)D.CoverState; return s >= 0 && s < CoverStates.Length ? CoverStates[s] : s.ToString(); }, "?");
         public int Brightness => Try(() => (int)D.Brightness, 0);
         public int MaxBrightness => Try(() => (int)D.MaxBrightness, 0);
         public void OpenCover() => D.OpenCover();

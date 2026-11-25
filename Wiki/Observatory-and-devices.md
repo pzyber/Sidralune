@@ -1,4 +1,4 @@
-The **Observatory** workspace connects and controls your equipment: mount, camera, guide camera, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, cover calibrator and guider. It takes images, focuses automatically, centres targets by plate solving, guides (with its own guider or through PHD2), polar-aligns your mount and runs automated sequences.
+The **Observatory** workspace connects and controls your equipment: mount, camera, guide camera, AO unit, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, switch box, flat panel and guider. It takes images, focuses automatically, centres targets by plate solving, guides (with its own guider or through PHD2), polar-aligns your mount and runs automated sequences.
 
 The sequencer has its own page: [Sequencer](Sequencer).
 
@@ -35,8 +35,18 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Calibration Assistant](#calibration-assistant)
   - [Lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
+  - [Predictive PEC](#predictive-pec)
+  - [Adaptive optics](#adaptive-optics)
+  - [A guide camera on a rotator](#a-guide-camera-on-a-rotator)
+  - [Subframes and noise reduction](#subframes-and-noise-reduction)
+  - [The PHD2-compatible server](#the-phd2-compatible-server)
   - [PHD2](#phd2)
 - [Polar alignment tab](#polar-alignment-tab)
+  - [Three-point polar alignment](#three-point-polar-alignment)
+  - [Drift alignment](#drift-alignment)
+  - [Which camera](#which-camera)
+  - [Static polar alignment](#static-polar-alignment)
+  - [Polar drift alignment](#polar-drift-alignment)
 - [Dome & weather tab](#dome--weather-tab)
 - [Meridian flips](#meridian-flips)
 - [Commands](#commands)
@@ -50,12 +60,13 @@ The sequencer has its own page: [Sequencer](Sequencer).
 | Guide camera | Yes | Yes | Yes | | Yes, a small camera on a guide scope |
 | Focuser | Yes | Yes | Yes | | Yes |
 | Filter wheel | Yes | Yes | Yes | | Yes |
-| Rotator | Yes | | | | |
+| Rotator | Yes | | | | Yes |
+| AO unit (adaptive optics) | | | Yes | SX AO (serial port) | Yes |
 | Dome or roll-off roof | Yes | Yes | | | Yes |
 | Weather station (ObservingConditions) | Yes | | | | Yes |
 | Safety monitor | Yes | Yes | | | Yes (from the simulated weather) |
-| Switch | Yes | | | | |
-| Cover calibrator (flat panel) | Yes | | | | |
+| Switch | Yes | | | | Yes, a power and dew-heater box |
+| Flat panel (ASCOM: cover calibrator) | Yes | | | | Yes |
 | Guider | | | | The Sidralune guider (built in), or PHD2 (connected on the Guiding tab) | The Sidralune guider guides the simulators |
 
 ## Equipment tab
@@ -66,7 +77,7 @@ At the bottom:
 
 | Button | Action |
 |---|---|
-| **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, dome and weather station in one go, guided by the Sidralune guider (PHD2 is disconnected first) |
+| **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, rotator, dome, weather station, switch box and flat panel in one go, guided by the Sidralune guider (PHD2 is disconnected first) |
 | **Discover Alpaca devices** | Searches the local network for Alpaca servers and adds their devices to the lists |
 | **Add INDI server…** | Connects to an INDI server and adds its devices to the lists |
 | **Disconnect all** | Disconnects every device. Available when at least one device is connected |
@@ -109,6 +120,9 @@ The simulators behave like real devices, so you can learn Sidralune, test sequen
 - The **camera** renders a star field around the mount's pointing from the loaded catalogues (plus synthetic faint stars), with a realistic point-spread function that widens when the focuser is out of focus, sky background, read noise and shot noise. Plate solving, autofocus, centring and polar alignment therefore all work for real.
 - The **focuser** has a hidden best-focus position; stars grow along a hyperbola away from it, exactly what autofocus expects. It also reports a slowly varying temperature.
 - The **filter wheel** has per-filter focus offsets, and the **dome** and **weather station** (with a safety monitor) respond to commands and report plausible values.
+- The **switch box** has two dew heaters with a level from 0 to 100 %, a fan and the mount's power (on at the start), and the **flat panel** has a dust cover that takes 3 seconds to open or close and a light from 0 to 255. Both are on the [Dome & weather tab](#dome--weather-tab), and in scripts as Devices.Switch and Devices.Cover.
+- The **rotator** turns the imaging camera at 10° a second. The **AO simulator** (in the AO row; not part of the simulated observatory) tilts the guide camera's image 0.4″ a step, 45 steps each way.
+- The mount can be given a **polar misalignment** (from a script or a test): it then turns about its own tilted axis, so the stars drift and the camera's angle on the sky changes exactly as with a real misaligned mount, and every polar alignment method can be tried against a known error.
 
 ### Optics
 
@@ -238,6 +252,8 @@ Type an object name or coordinates in **Go to**, then:
 
 **Center** (and the sequencer's Center instruction) runs a closed loop: slew, take a short binned exposure, plate solve it, sync the mount to the solution, and slew again, until the target is within 1′ of the image centre or five attempts have been made. This removes pointing-model errors, and after a sync the mount's next slews are more accurate too. It needs a camera and the plate solver (see [Astrometry](Astrometry-and-framing#plate-solving)).
 
+Centring, three-point and static polar alignment solve against Gaia DR3 from VizieR, near the position the mount reports. Each field downloaded is cached, so solving the same field again works offline. Without a connection they use the loaded star catalogue instead, which only reaches faint enough stars for wide fields. With the simulated cameras they solve against the stars the simulator draws, including its extra faint ones, so they work offline in the simulator.
+
 ## Guiding tab
 
 Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2](https://openphdguiding.org). The Sidralune guider is part of Sidralune, so there is nothing to connect: it guides as soon as a guide camera is connected in the Equipment tab. To guide with PHD2 instead, click **Connect PHD2**.
@@ -255,7 +271,13 @@ Sidralune guides with its own guider, the **Sidralune guider**, or through [PHD2
 
 Start guiding, Calibrate & guide and Dither run one at a time; the others are greyed out while one runs.
 
-The **Guiding error** graph plots the star's offset in RA and Dec in arcseconds at each guide step. The status line shows the guider state and the RMS error in RA, Dec and total over the last 100 steps, then how many stars it guides on, the exposure auto exposure has chosen, and **Comet** while it follows a comet. Total RMS well below your image scale (arcseconds per pixel) means round stars.
+Under the frame are three pages:
+
+- **Graph**: the **Guiding error** graph, the star's offset in RA and Dec in arcseconds at each guide step;
+- **Target**: the last 100 offsets as points round the lock position (RA across, Dec up, the newest highlighted) on rings of whole arcseconds, with the RMS as a dashed circle. It is scaled to nine in ten of the points, so one large jump does not shrink the rest; points further out sit on the edge;
+- **Star profile**: the guide star's cross-sections through X and Y, with its peak, HFD and FWHM.
+
+The status line shows the guider state and the RMS error in RA, Dec and total over the last 100 steps, then how many stars it guides on, the exposure auto exposure has chosen, **Subframe** while only a part of the frame is read, the AO's position, and **Comet** while it follows a comet. Total RMS well below your image scale (arcseconds per pixel) means round stars.
 
 Beside the frame, the Sidralune guider has four pages: **Settings**, **Assistants** (the [Guiding Assistant](#guiding-assistant) and the [Calibration Assistant](#calibration-assistant)), **Darks** ([dark frames](#dark-frames)) and **Tools** ([lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)). All are greyed out while PHD2 guides instead.
 
@@ -273,6 +295,7 @@ Each axis has its own algorithm, chosen on the Settings page; only that algorith
 - **Resist Switch** (Dec's default) keeps correcting Dec in one direction, and changes direction only after three errors in a row the other way, each over the minimum move and not shrinking. Backlash makes every change of direction in Dec costly. With **Correct at once** on, an error more than three minimum moves the other way (a gust of wind, a cable) is corrected straight away.
 - **Lowpass2** fits a straight line through the last ten errors and corrects a share of where the line is now, so the seeing averages out. It never corrects more than the error just measured. It suits mounts that drift smoothly, in good seeing.
 - **Z-filter** guides as if each exposure were several times longer (the exposure factor), by low-pass filtering the star's motion. It suits slow errors in poor seeing; with short exposures, try a factor of 2–4.
+- **Predictive PEC** (RA only) learns the mount's periodic error while it guides and corrects it before it shows. See [Predictive PEC](#predictive-pec).
 
 **Guide Dec** can be limited to **North only** or **South only** (for a mount with a lot of backlash and a steady Dec drift: guide against the drift only) or **Off**. **Backlash compensation** lengthens the first Dec pulse after Dec changes direction by the backlash, so the gears are taken up and the correction still works. The amount adapts as it guides: a turn that overshoots shortens it by 10 %, one that hardly moved the star lengthens it by 10 %, always between the least and most you set (with no most set, up to twice the amount). The [Guiding Assistant](#guiding-assistant) measures the backlash and fills these in.
 
@@ -306,12 +329,15 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Guide through | The mount | Or the guide camera's ST-4 port |
 | Guide scope focal length (mm) | 240 | For the pixel scale and the calibration step |
 | Search box radius (px) | 15 | How far the star may move between frames |
+| Subframes | Off | See [Subframes and noise reduction](#subframes-and-noise-reduction) |
+| Noise reduction | None | Or 2×2 mean or 3×3 median |
 | Multi-star: Guide on several stars | On, up to 9 stars | See [Guiding on several stars](#guiding-on-several-stars) |
 | Star brightness: Skip frames where it jumps | On, 50 % | A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction |
 | Calibration step (ms) | 0 (automatic) | |
 | Calibration distance (px) | 20 | How far each calibration leg moves the star |
 | After a meridian flip: Mount reverses Dec | Off | |
-| RA algorithm | Hysteresis | Or Lowpass2 or Z-filter |
+| Rotator: The guide camera turns with it; Rotator direction: Reversed | Off, off | See [A guide camera on a rotator](#a-guide-camera-on-a-rotator) |
+| RA algorithm | Hysteresis | Or Lowpass2, Z-filter or Predictive PEC (predictive gain 50 %, reactive gain 60 %, worm period 480 s adjusted from the guiding, model kept through gaps of 40 % of a period) |
 | RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | Lowpass2: aggressiveness 80 %; Z-filter: exposure factor 4 |
 | RA maximum pulse | 2500 ms | |
 | Dec algorithm | Resist Switch | Or Lowpass2 or Z-filter |
@@ -320,6 +346,8 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Large Dec errors: Correct at once | On | Resist Switch only |
 | Guide Dec | Both ways | Or North only, South only, Off |
 | Backlash compensation | Off | With the backlash and the least and most it may adapt to |
+| Adaptive optics | Travel 45 steps, calibration step 5 and leg 25 steps, bump at 80 %, bump step 1″, AO aggressiveness 80 %, minimum move 0.1 px, no bump after a dither | Shown when an AO is connected. See [Adaptive optics](#adaptive-optics) |
+| PHD2-compatible server | Off, port 4400, this computer only | See [The PHD2-compatible server](#the-phd2-compatible-server) |
 
 If guiding chases the seeing (many small corrections back and forth), raise the minimum moves. If it lags behind the drift, raise the aggressiveness. The [Guiding Assistant](#guiding-assistant) suggests both minimum moves from the seeing it measures.
 
@@ -373,7 +401,7 @@ The **Tools** page:
 
 - **Lock position**: where guiding holds the star. Type X and Y and click **Set**, or right-click the frame. While guiding, the stars are guided there like a dither. **North**, **South**, **East** and **West** move it by the step: on the sky through the calibration, so North moves the telescope north by that many arcseconds whatever the camera's angle; without a calibration, that many pixels in the frame. **Sticky lock position** keeps it through stops, lost stars and choosing the star again (the star nearest it is chosen), so the framing stays the same; a slew forgets it.
 - **Comet tracking**: while guiding with **Follow the comet** on, the lock position moves with the comet, so the comet stays put in the imaging camera and the stars trail. The rates (arcseconds an hour, RA as motion on the sky) come from entered rates, from a comet's orbit in Sidralune's comet list (worked out again every 10 minutes, for your site), or from **training**: start training, keep the comet centred by moving the lock position, and stop training; the moves over the time become the rates.
-- **Manual guide**: while looping, one pulse North, South, East or West of the set length, and how far the star moved and which way. With a calibration it says whether that agrees with the calibration: a quick check of the guide cable, the guide rate and Dec backlash.
+- **Manual guide**: while looping, one pulse North, South, East or West of the set length, and how far the star moved and which way. With a calibration it says whether that agrees with the calibration: a quick check of the guide cable, the guide rate and Dec backlash. With an AO connected, **AO steps** moves the AO the same way, along its own axes, and checks it against the AO calibration.
 
 ### Lost stars, slews and the guide log
 
@@ -381,17 +409,71 @@ When the star is not found in its search area (a cloud, a tree), the state becom
 
 Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
 
+### Predictive PEC
+
+Most mounts' RA has a **periodic error**: the worm gear's turn (often 4–10 minutes) pushes RA back and forth by some arcseconds, again and again. Ordinary algorithms only correct it after the star has moved. **Predictive PEC** (choose it as the RA algorithm) learns the error's shape while guiding and corrects it in advance.
+
+- It rebuilds the mount's own error from each frame (the star's offset plus every RA correction sent so far) and fits a Gaussian-process model to it: a smooth trend plus a periodic part with the worm's period.
+- Each frame it corrects a share of the error measured (the **reactive gain**, 60 %, with the minimum move) plus a share of the change the model predicts over the next frame (the **predictive gain**, 50 %).
+- For the first two worm periods it **trains**: the correction blends from Hysteresis to the model. The RA card says how far training has got, then **Predicting, period 478 s**.
+- **Worm period (s)**: your mount's worm period (480 s by default). With **Adjust it from the guiding**, it is measured again every five minutes once two periods are recorded, and moved a quarter of the way to a clear peak.
+- Dithers and lock position moves are taken out of the record, so the model survives them. Pauses and stops shorter than **Retain model** (40 % of a period) keep it; a slew or a longer gap starts it again.
+
+It helps most with a mount whose periodic error is large and regular, in seeing good enough to see it. It needs a stable star: train it on a clear night.
+
+### Adaptive optics
+
+An **AO unit** (adaptive optics) is a small tilting window in front of the guide camera (and the imaging camera) that moves the image in fast small steps, so it can correct seeing and wind faster than the mount. Connect it in the **AO** row of the Equipment tab: the **SX AO** on its serial port, an INDI AO, or the simulator. The Settings page then shows an **Adaptive optics** card.
+
+- **Calibration**: after the mount's calibration, the AO is calibrated too: its X and Y axes are stepped (5 steps at a time to 25, by default) and the guider measures which way and how far each step moves the star. It is kept separately from the mount's and redone when the camera or binning changes. **Clear AO calibration** forgets it.
+- **Guiding**: with a calibrated AO, the AO corrects every frame (its own aggressiveness and minimum move). When it passes **Bump the mount at** (80 % of its travel) on either axis, the mount takes over in small moves of the **bump step** (1″, growing by half again each frame while the AO stays out there), sent without waiting so the AO frames go on, until the AO is back near its middle. Mount backlash compensation applies to the bumps at a fixed amount.
+- **Dither**: moves the AO's lock position. With **Recentre the AO with the mount** on, the mount takes over the AO's offset after each dither and the stars settle again.
+- The mount must be calibrated too, for the bumps.
+
+A small square in the frame's corner shows the AO's position in its travel, with the bump point dashed; the dot turns red while the mount is being bumped. The status line shows the position in steps.
+
+### A guide camera on a rotator
+
+With an off-axis guider on a camera rotator, turning the rotator turns the guide camera too. Tick **The guide camera turns with it** (Rotator, Calibration card) and the calibration notes the rotator's angle; when the rotator turns, both guide directions turn with it, so no new calibration is needed. While the rotator moves, corrections wait; afterwards a guide star is chosen again and guiding goes on. If your optical train mirrors the image (a prism or an extra mirror), the image turns the other way: tick **Reversed (a mirrored image)**.
+
+### Subframes and noise reduction
+
+With **Subframes** on, once guiding has settled only a box round the stars guided on is read out of the camera (with multi-star, round all of them), which is quicker with slow cameras or connections. The box goes back to the whole frame while looping, choosing a star and calibrating, after a lost star, and whenever it would cover more than half the frame. Positions stay in whole-frame pixels and darks apply to the matching part; the frame shown is the last whole frame with each box pasted in, so it still looks live.
+
+**Noise reduction** treats each frame (after the darks) before the stars are measured: a **2×2 mean** averages neighbouring pixels, a **3×3 median** removes single hot pixels and noise spikes. Use it for noisy cameras or very short exposures; with good frames, None measures the star most precisely.
+
+### The PHD2-compatible server
+
+Any program that can guide with PHD2 can use the Sidralune guider instead: Sidralune answers it as PHD2 would. Turn it on in the **PHD2-compatible server** card on the Settings page: **Let other programs guide with Sidralune**, the **Port** (4400, PHD2's own) and **Allow them to connect** from other computers (off: this computer only). It starts with Sidralune while it is on, and the card says **Listening on port 4400 · 1 connected**, or that the port is in use.
+
+In the other program, choose PHD2 as the guider, on this computer and port 4400. It can then loop, choose the star, guide (calibrating when needed), dither, pause, stop, take a single frame, change the exposure and Dec guide mode, and read the pixel scale, the calibration, the star image and the guide steps. Settling, dithers and star loss reach it as PHD2's events. Sidralune's own Guiding tab keeps working alongside.
+
+PHD2 itself must not use the same port. **Connect PHD2** knows Sidralune's server and refuses to connect to it, so Sidralune never guides itself in a loop.
+
 ### PHD2
 
 To guide with PHD2, choose **Tools → Enable Server** in PHD2 and click **Connect PHD2**. PHD2 opens the guide camera itself, and most camera drivers serve one program at a time, so the guide camera belongs to one guider at a time: while a guide camera is connected in Sidralune, **Connect PHD2** is greyed out until you disconnect it, and while PHD2 is connected the Guide camera row in the Equipment tab says **In use by PHD2** until you click **Disconnect PHD2**. PHD2 takes and shows its guide frames and has its own settings and tools, so Loop, Select star and the Settings, Assistants, Darks and Tools pages are greyed out meanwhile. The sequencer, dithering, the meridian flip and the graph work the same with either guider, and the status line and the Guider pill name the guider in use.
 
 ## Polar alignment tab
 
+The tab offers four methods under **Method**. Three-point uses the imaging camera and plate solving, and drift alignment the guide camera through the Sidralune guider (not while PHD2 is connected). Static and polar drift alignment work with either: see [Which camera](#which-camera).
+
+| Method | Where to point | Needs |
+|---|---|---|
+| **Three-point (plate solving)** | Near the meridian and equator | The imaging camera, a mount that slews, plate solving |
+| **Drift alignment** | Near the meridian and equator, then low in the east or west | The guide camera, guiding, the mount connected |
+| **Static polar alignment** | Near the celestial pole | The imaging or the guide camera, plate solving; a mount that slews, or RA turned by hand |
+| **Polar drift alignment** | Near the celestial pole | The imaging or the guide camera only: no calibration, no plate solving |
+
+All four report the error in arcminutes and which way to move the polar axis. With the mount connected, each checks first that it points where the method needs it: three-point and drift alignment within 60° of the celestial equator, static and polar drift alignment within 20° of the pole. Polar alignment is done with the mount's altitude and azimuth adjusters; Sidralune measures and shows the way.
+
+### Three-point polar alignment
+
 **Three-point polar alignment** measures how far your equatorial mount's polar axis is from the celestial pole, without needing to see Polaris:
 
 1. Point the mount at a part of the sky near the meridian and celestial equator with clear sky on one side (to the east or west).
 2. Set **RA step (°)** (25° by default) and **Exposure (s)**.
-3. Click **Start polar alignment**.
+3. Click **Start polar alignment**. **Stop** ends it at any point.
 
 Sidralune takes and plate-solves an image, rotates the RA axis by the step, repeats twice more, and computes the rotation axis of the mount from the three solutions. It reports:
 
@@ -401,6 +483,48 @@ Sidralune takes and plate-solves an image, rotates the RA axis by the step, repe
 
 The calculation compares the axis with the refracted pole, so the result is correct for the altitude you are at. Adjust your mount's altitude and azimuth bolts, then run the routine again until the total error is below a few arcminutes. The routine works with any mount that can slew in RA, and also in the [simulator](#the-simulated-observatory).
 
+### Drift alignment
+
+The classic method, with the guider doing the watching. A misaligned polar axis makes the stars drift in Dec at a rate that depends on the hour angle: near the meridian the drift tells the **azimuth** error, low in the east or west (25–35° up) the **altitude** error.
+
+1. Point near the meridian and the celestial equator. The page says what the place measures, or where to point instead.
+2. Click **Start measuring**. Sidralune starts guiding if it is not guiding yet, then holds back the Dec corrections (RA is still guided) and follows the Dec drift. The page shows the drift and the error it gives, with its uncertainty.
+3. After a minute or two, when the error has settled, click **Stop**: the measurement ends and the error is shown. Dec corrections start again, and guiding goes on for the next measurement. Turn the azimuth adjuster the way it says, by the amount it says.
+4. Measure again until the error is small, then point low in the east or west and do the same for the altitude.
+
+Each measurement takes out the other error's last measurement, so the two converge. Unlike the usual drift method, which way to turn comes from the drift's sign and the hour angle, not a guess. **Start over** forgets both errors. Clicked while guiding is still starting, **Stop** cancels that instead (and stops guiding again when the page started it); guiding itself is stopped on the Guiding tab.
+
+### Which camera
+
+Static and polar drift alignment have a **Camera** choice: **Imaging camera** or **Guide camera**. The imaging camera is chosen when one is connected, the guide camera otherwise, until you choose yourself.
+
+- **Imaging camera**: Sidralune takes short frames one after another (**Exposure (s)**, 2 s by default, and **Binning**, 2 by default), not saved. They show on the page and on the Imaging tab. The camera does one thing at a time, so captures, autofocus and sequences wait meanwhile, and the camera tabs' **Stop** ends the frames, as the page's own **Stop** does.
+- **Guide camera**: the frames come from the Sidralune guider's loop, started when it is not running (and stopped again when the page started it). Not while PHD2 is connected, and not while guiding.
+
+The camera can't be changed while frames are being taken.
+
+### Static polar alignment
+
+Fast, near the pole, with either camera:
+
+1. Point near the celestial pole (a degree or two away is fine). Plate solving must work there: the star catalogue must cover the camera's field.
+2. Click **Start alignment**. Sidralune takes a frame, turns RA about 15° (**RA step**) west, takes another, turns again and takes a third, and plate-solves each. Without **The mount turns itself**, turn RA by hand (or with the hand controller) between the frames and click **Next frame**.
+3. A point fixed to the camera turns about the mount's axis, so the three frames give the axis; the plate solution places the refracted celestial pole. The frame shows the **Mount axis** (a cross), the **Pole** (a circle) and a star with its **Target** circle: correcting the alignment moves every star the way the pole must move to reach the axis.
+4. Turn the altitude and azimuth adjusters until the star is in its circle. The page follows the star in each new frame and says how far it still has to go. **Stop** ends following it, and the frames.
+
+The errors are shown too, with the advice. If the axis is outside the frame (a large error), the target may be too; turn the adjusters roughly first and start again.
+
+### Polar drift alignment
+
+Near the pole, with no calibration and no plate solving:
+
+1. Point near the celestial pole and click **Follow a star**. Sidralune chooses the brightest star that is not saturated and follows it while the mount only tracks.
+2. With a misaligned axis the stars drift slowly, at right angles to the error, at a rate set by its size. The page shows the error and its uncertainty as they settle (give it a few minutes for small errors).
+3. Click **Stop**: measuring ends, and a circle shows where the star must go. The star is still followed.
+4. Move the star into its circle with the altitude and azimuth adjusters, then click **Stop** again to end following it, and the frames.
+
+Which way the error lies depends on whether the camera sees a mirror image (an off-axis guider's prism or a diagonal mirrors it). For the guide camera with a guider calibration this is known; otherwise, tick **Mirrored** if your image is mirrored.
+
 ## Dome & weather tab
 
 **Dome / roof** shows the shutter state and azimuth.
@@ -408,11 +532,15 @@ The calculation compares the axis with the refracted pole, so the result is corr
 | Button | Action |
 |---|---|
 | **Open** / **Close** | Open or close the shutter or roof |
-| **Slew** | Turn the dome to the **Azimuth** entered |
-| **Park** | Park the dome |
+| **Slew** | Turn the dome to the **Azimuth** entered (Follow telescope turns off) |
+| **Park** | Park the dome (Follow telescope turns off, so the dome stays parked) |
 | **Follow telescope** | Keeps the dome slit aligned with the telescope as it moves (slaving) |
 
 **Weather & safety** shows the readings of the weather station: temperature, humidity and dew point, cloud cover, wind speed, rain rate, sky quality and sky temperature, and the safety monitor's verdict (**SAFE** or **UNSAFE**). The [sequencer's safety trigger](Sequencer#triggers) uses this to stop imaging, park and close up when conditions turn bad.
+
+**Switches** lists the switches of the switch box connected in the Switch row (a power box, for example), as its driver names them: a tick box for one that is only on or off, a number for one with levels, such as a dew heater from 0 to 100 %. They follow the switch box, so a change made elsewhere shows within a second.
+
+**Flat panel** (the Flat panel row in Equipment; ASCOM calls it a cover calibrator) shows the cover's state and the light's brightness. **Open cover** and **Close cover** move the dust cover; **Light on** lights the panel at the **Brightness** set, and **Light off** puts it out. For flat frames, close the cover, light the panel and take FLAT exposures; the sequencer's **Flat panel** and **Set switch** instructions do the same in a sequence.
 
 ## Meridian flips
 

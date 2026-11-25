@@ -883,7 +883,7 @@ namespace Sidralune.Tests
             var wx = Wrap((AscomWeather)AscomDiscovery.Create(info(DeviceKind.ObservingConditions)), misc);
             var cover = Wrap((AscomCover)AscomDiscovery.Create(info(DeviceKind.CoverCalibrator)), misc);
             cover.CalibratorOn(42);
-            CheckTrue("ASCOM safety, weather and cover", safe.IsSafe && wx.Humidity == 71.5 && wx.SkyQuality == 21.2 && double.IsNaN(wx.WindSpeed) && cover.CoverState == "3" && cover.MaxBrightness == 255 && misc.CalibratorLevel == 42);
+            CheckTrue("ASCOM safety, weather and cover", safe.IsSafe && wx.Humidity == 71.5 && wx.SkyQuality == 21.2 && double.IsNaN(wx.WindSpeed) && cover.CoverState == "Open" && cover.MaxBrightness == 255 && misc.CalibratorLevel == 42);
             var domeDrv = new FakeAscomDome();
             var dome = Wrap((AscomDome)AscomDiscovery.Create(info(DeviceKind.Dome)), domeDrv);
             dome.SlewToAzimuth(123.5); dome.OpenShutter(); dome.Slaved = true;
@@ -923,16 +923,16 @@ namespace Sidralune.Tests
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Indi, Address = "h:1/G" }) is IndiCamera);
             dm.ConnectSimulators();
             CheckTrue("Simulated observatory connected", dm.Telescope is TelescopeSimulator && dm.Camera is CameraSimulator && dm.GuideCamera is CameraSimulator && dm.Focuser != null && dm.FilterWheel != null
-                && dm.Dome != null && dm.Weather != null && dm.Safety != null && dm.Guider == dm.BuiltinGuider && changes == 7);
+                && dm.Dome != null && dm.Weather != null && dm.Safety != null && dm.Rotator is RotatorSimulator && dm.Switch is SwitchSimulator && dm.Cover is CoverCalibratorSimulator && dm.Guider == dm.BuiltinGuider && changes == 10);
             var cs = (CameraSimulator)dm.Camera;
-            CheckTrue("Camera simulator linked to mount, focuser and wheel", cs.Mount == dm.Telescope && cs.Focuser == dm.Focuser && cs.Wheel == dm.FilterWheel);
+            CheckTrue("Camera simulator linked to mount, focuser, wheel and rotator", cs.Mount == dm.Telescope && cs.Focuser == dm.Focuser && cs.Wheel == dm.FilterWheel && cs.Rotator == dm.Rotator && cs.OnRotator);
             var gcs = (CameraSimulator)dm.GuideCamera;
             CheckTrue("Guide camera simulator: its own small sensor and guide scope, on the same mount", gcs.Mount == dm.Telescope && gcs.SensorWidth == 1280 && gcs.FocalLengthMm == 240 && gcs.CanPulseGuide
                 && gcs.Info.Kind == DeviceKind.GuideCamera && dm.Get(DeviceKind.GuideCamera) == gcs);
             var oldFocuser = dm.Focuser;
             dm.Connect(new DeviceInfo { Kind = DeviceKind.Focuser, Protocol = DeviceProtocol.Simulator });
             CheckTrue("Replacing a device disconnects the old one and relinks the camera", !oldFocuser.Connected && dm.Focuser != oldFocuser && cs.Focuser == dm.Focuser);
-            CheckTrue("Get by kind", dm.Get(DeviceKind.Dome) == dm.Dome && dm.Get(DeviceKind.Rotator) == null && dm.All.Count() == 9);
+            CheckTrue("Get by kind", dm.Get(DeviceKind.Dome) == dm.Dome && dm.Get(DeviceKind.Rotator) == dm.Rotator && dm.Get(DeviceKind.AdaptiveOptics) == null && dm.All.Count() == 12);
             dm.Disconnect(DeviceKind.Dome);
             CheckTrue("Disconnect one", dm.Dome == null);
             dm.DisconnectAll();
@@ -956,8 +956,12 @@ namespace Sidralune.Tests
             CheckTrue("After PHD2, the Sidralune guider guides again with the guide camera", !dm.Phd2Connected && dm.Guider == dm.BuiltinGuider);
             dm.DisconnectAll();
             bool noSim = false;
-            try { dm.Create(new DeviceInfo { Kind = DeviceKind.Rotator, Protocol = DeviceProtocol.Simulator }); } catch (NotSupportedException) { noSim = true; }
-            CheckTrue("No rotator simulator", noSim);
+            try { dm.Create(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Simulator }); } catch (NotSupportedException) { noSim = true; }
+            CheckTrue("No guider simulator (the Sidralune guider guides the simulators)", noSim);
+            CheckTrue("Every kind of device but the guider has a simulator, and discovery offers it", Enum.GetValues(typeof(DeviceKind)).Cast<DeviceKind>().Where(k => k != DeviceKind.Guider)
+                .All(k => dm.Discover(k, false).Any(d => d.Protocol == DeviceProtocol.Simulator && dm.Create(d) != null)));
+            CheckTrue("Rotator and AO simulators", dm.Create(new DeviceInfo { Kind = DeviceKind.Rotator, Protocol = DeviceProtocol.Simulator }) is RotatorSimulator
+                && dm.Create(new DeviceInfo { Kind = DeviceKind.AdaptiveOptics, Protocol = DeviceProtocol.Simulator }) is AoSimulator);
         }
     }
 }

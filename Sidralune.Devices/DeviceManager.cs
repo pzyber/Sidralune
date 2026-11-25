@@ -24,6 +24,8 @@ namespace Sidralune.Devices
         public IFilterWheel FilterWheel { get; private set; }
         public IDome Dome { get; private set; }
         public IRotator Rotator { get; private set; }
+        /// <summary>An adaptive optics unit in front of the guide camera, or null.</summary>
+        public IAdaptiveOptics Ao { get; private set; }
         public ISwitchDevice Switch { get; private set; }
         public ISafetyMonitor Safety { get; private set; }
         public IObservingConditions Weather { get; private set; }
@@ -68,10 +70,38 @@ namespace Sidralune.Devices
 
         public event EventHandler DevicesChanged;
 
-        public IEnumerable<IDevice> All => new IDevice[] { Telescope, Camera, GuideCamera, Focuser, FilterWheel, Dome, Rotator, Switch, Safety, Weather, Cover, Guider }.Where(d => d != null);
+        public IEnumerable<IDevice> All => new IDevice[] { Telescope, Camera, GuideCamera, Focuser, FilterWheel, Dome, Rotator, Switch, Safety, Weather, Cover, Ao, Guider }.Where(d => d != null);
 
         /// <summary>The name of the built-in guider (in the interface language).</summary>
         public static string BuiltinGuiderName => Lang.T("Sidralune guider");
+
+        private GuiderServer _server;
+
+        /// <summary>The PHD2-compatible server for the Sidralune guider (not listening until started).</summary>
+        public GuiderServer GuiderServer => _server ?? (_server = new GuiderServer(this));
+
+        /// <summary>
+        /// Plate solving a camera's frames: against the stars a simulated camera draws; otherwise against Gaia DR3 online
+        /// (cached, so a field solves offline the second time), falling back to the loaded catalogue without a connection.
+        /// Each online miss is a query, so the search round the hint is kept to 2°.
+        /// </summary>
+        public void PrepareSolve(Science.Astrometry.SolveOptions opt, ICamera cam)
+        {
+            if (opt.Catalog == null)
+            {
+                var sim = cam as CameraSimulator;
+                opt.Catalog = sim != null ? (Science.Astrometry.IStarCatalogProvider)new SimulatedSkyProvider { Synthetic = sim.SyntheticFieldStars }
+                    : new Science.Astrometry.FallbackCatalogProvider(new Science.Astrometry.VizierProvider(), new Science.Astrometry.LocalCatalogProvider());
+            }
+            if (opt.Catalog.IsOnline) opt.SearchRadius = Math.Min(opt.SearchRadius, 2);
+        }
+
+        /// <summary>Starts the PHD2-compatible server when the guider's settings have it on.</summary>
+        public void StartGuiderServerIfWanted()
+        {
+            var st = BuiltinGuider.Settings;
+            if (st.ServerEnabled) GuiderServer.Start(st.ServerPort, st.ServerAllowOthers);
+        }
 
         /// <summary>Discover available devices of a kind across protocols (Alpaca discovery may take ~1.5 s).</summary>
         public List<DeviceInfo> Discover(DeviceKind kind, bool includeAlpaca = true)
@@ -95,10 +125,14 @@ namespace Sidralune.Devices
                 foreach (var p in Lx200Telescope.SerialPorts())
                     list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Lx200, Name = "LX200 / OnStep on " + p, Address = p + ":9600" });
             if (kind == DeviceKind.Guider) list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Phd2, Name = "PHD2 (localhost)", Address = "localhost:4400" });
+            if (kind == DeviceKind.AdaptiveOptics)
+                foreach (var p in Lx200Telescope.SerialPorts())
+                    list.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.SxAo, Name = "SX AO on " + p, Address = p });
             return list;
         }
 
-        private static string SimulatorName(DeviceKind kind) => kind == DeviceKind.GuideCamera ? "Guide Camera Simulator" : kind + " Simulator";
+        private static string SimulatorName(DeviceKind kind) => kind == DeviceKind.GuideCamera ? "Guide Camera Simulator" : kind == DeviceKind.AdaptiveOptics ? "AO Simulator"
+            : kind == DeviceKind.CoverCalibrator ? "Flat Panel Simulator" : kind + " Simulator";
 
         public IDevice Create(DeviceInfo info)
         {
@@ -108,6 +142,7 @@ namespace Sidralune.Devices
                 case DeviceProtocol.Alpaca: return AlpacaDiscovery.Create(info);
                 case DeviceProtocol.Indi: return IndiClient.Create(info);
                 case DeviceProtocol.Lx200: return new Lx200Telescope(info);
+                case DeviceProtocol.SxAo: return new SxAo(info);
                 case DeviceProtocol.Phd2:
                     {
                         var p = new Phd2Client();
@@ -135,6 +170,10 @@ namespace Sidralune.Devices
                 case DeviceKind.Focuser: return new FocuserSimulator();
                 case DeviceKind.FilterWheel: return new FilterWheelSimulator();
                 case DeviceKind.Dome: return new DomeSimulator();
+                case DeviceKind.Rotator: return new RotatorSimulator();
+                case DeviceKind.AdaptiveOptics: return new AoSimulator();
+                case DeviceKind.Switch: return new SwitchSimulator();
+                case DeviceKind.CoverCalibrator: return new CoverCalibratorSimulator();
                 case DeviceKind.SafetyMonitor:
                 case DeviceKind.ObservingConditions: return new WeatherSimulator();
             }
@@ -161,9 +200,14 @@ namespace Sidralune.Devices
             Assign(info.Kind, dev);
             // link simulators together for a coherent virtual observatory
             var cs = Camera as CameraSimulator;
-            if (cs != null) { cs.Mount = Telescope as TelescopeSimulator ?? cs.Mount; cs.Focuser = Focuser as FocuserSimulator ?? cs.Focuser; cs.Wheel = FilterWheel as FilterWheelSimulator ?? cs.Wheel; }
+            if (cs != null)
+            {
+                cs.Mount = Telescope as TelescopeSimulator ?? cs.Mount; cs.Focuser = Focuser as FocuserSimulator ?? cs.Focuser; cs.Wheel = FilterWheel as FilterWheelSimulator ?? cs.Wheel;
+                // the imaging camera sits on the rotator
+                cs.Rotator = Rotator as RotatorSimulator; cs.OnRotator = true;
+            }
             var gs = GuideCamera as CameraSimulator;
-            if (gs != null) gs.Mount = Telescope as TelescopeSimulator ?? gs.Mount;
+            if (gs != null) { gs.Mount = Telescope as TelescopeSimulator ?? gs.Mount; gs.Rotator = Rotator as RotatorSimulator; gs.Ao = Ao as AoSimulator; }
             Log.Info("Devices", "Connected " + info);
             DevicesChanged?.Invoke(this, EventArgs.Empty);
             return dev;
@@ -196,6 +240,7 @@ namespace Sidralune.Devices
                 case DeviceKind.SafetyMonitor: return Safety;
                 case DeviceKind.ObservingConditions: return Weather;
                 case DeviceKind.CoverCalibrator: return Cover;
+                case DeviceKind.AdaptiveOptics: return Ao;
                 case DeviceKind.Guider: return Guider;
             }
             return null;
@@ -218,18 +263,21 @@ namespace Sidralune.Devices
                 case DeviceKind.SafetyMonitor: Safety = d as ISafetyMonitor; break;
                 case DeviceKind.ObservingConditions: Weather = d as IObservingConditions; if (d is ISafetyMonitor && Safety == null) Safety = (ISafetyMonitor)d; break;
                 case DeviceKind.CoverCalibrator: Cover = (ICoverCalibrator)d; break;
+                case DeviceKind.AdaptiveOptics: Ao = (IAdaptiveOptics)d; break;
                 case DeviceKind.Guider: _phd2 = (IGuider)d; break;
             }
         }
 
         /// <summary>
-        /// Connect the full simulated observatory (mount, camera, guide camera, focuser, wheel, dome, weather), guided by the
+        /// Connect the full simulated observatory (mount, camera, guide camera, focuser, wheel, rotator, dome, weather, switch box,
+        /// flat panel), guided by the
         /// Sidralune guider (PHD2 is disconnected first, as it would use the guide camera itself).
         /// </summary>
         public void ConnectSimulators()
         {
             if (_phd2 != null) Disconnect(DeviceKind.Guider);
-            foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Dome, DeviceKind.ObservingConditions })
+            foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.Dome, DeviceKind.ObservingConditions,
+                                      DeviceKind.Switch, DeviceKind.CoverCalibrator })
                 Connect(new DeviceInfo { Kind = k, Protocol = DeviceProtocol.Simulator, Name = SimulatorName(k), Address = "sim" });
         }
 

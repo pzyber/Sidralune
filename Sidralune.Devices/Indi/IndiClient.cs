@@ -176,6 +176,7 @@ namespace Sidralune.Devices.Indi
                 case DeviceKind.Camera:
                 case DeviceKind.GuideCamera: return new IndiCamera(info);
                 case DeviceKind.Focuser: return new IndiFocuser(info);
+                case DeviceKind.AdaptiveOptics: return new IndiAo(info);
             }
             throw new NotSupportedException("INDI " + info.Kind + " is not supported yet");
         }
@@ -352,5 +353,41 @@ namespace Sidralune.Devices.Indi
         public double StepSizeMicrons => double.NaN;
         public void Move(int p) => C.SetNumber(Dev, "ABS_FOCUS_POSITION", Tuple.Create("FOCUS_ABSOLUTE_POSITION", (double)p));
         public void Halt() => C.SetSwitch(Dev, "FOCUS_ABORT_MOTION", Tuple.Create("ABORT", true));
+    }
+
+    /// <summary>An AO unit through INDI's standard properties: AO_NS and AO_WE (steps) and AO_CENTER.</summary>
+    public class IndiAo : IndiBase, IAdaptiveOptics
+    {
+        private int _x, _y;
+        public IndiAo(DeviceInfo i) : base(i) { }
+        public int MaxSteps { get; set; } = 45;
+        public int PositionX => _x;
+        public int PositionY => _y;
+
+        public bool Step(AoDirection dir, int count)
+        {
+            if (count <= 0) return true;
+            bool ns = dir == AoDirection.North || dir == AoDirection.South;
+            int sign = dir == AoDirection.North || dir == AoDirection.West ? 1 : -1;
+            int now = ns ? _y : _x, to = Math.Max(-MaxSteps, Math.Min(MaxSteps, now + sign * count));
+            int done = Math.Abs(to - now);
+            if (done > 0)
+            {
+                if (ns) C.SetNumber(Dev, "AO_NS", Tuple.Create("AO_N", dir == AoDirection.North ? (double)done : 0), Tuple.Create("AO_S", dir == AoDirection.South ? (double)done : 0));
+                else C.SetNumber(Dev, "AO_WE", Tuple.Create("AO_W", dir == AoDirection.West ? (double)done : 0), Tuple.Create("AO_E", dir == AoDirection.East ? (double)done : 0));
+                var until = DateTime.UtcNow.AddSeconds(2);
+                while ((Busy("AO_NS") || Busy("AO_WE")) && DateTime.UtcNow < until) Thread.Sleep(5);
+            }
+            if (ns) _y = to; else _x = to;
+            return done == count;
+        }
+
+        public void Center()
+        {
+            C.SetSwitch(Dev, "AO_CENTER", Tuple.Create("CENTER", true));
+            var until = DateTime.UtcNow.AddSeconds(30);
+            while (Busy("AO_CENTER") && DateTime.UtcNow < until) Thread.Sleep(50);
+            _x = _y = 0;
+        }
     }
 }

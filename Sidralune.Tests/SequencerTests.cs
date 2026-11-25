@@ -352,6 +352,53 @@ namespace Sidralune.Tests
             dm.DisconnectAll();
         }
 
+        [TestMethod]
+        public void TestSwitchAndFlatPanelInstructions()
+        {
+            var log = new List<string>();
+            var dm = Observatory(DeviceKind.Switch, DeviceKind.CoverCalibrator);
+            var ctx = Context(dm, log, "sequence-switch");
+            var sw = (SwitchSimulator)dm.Switch;
+            var cover = (CoverCalibratorSimulator)dm.Cover;
+            cover.MoveSeconds = 0.5;
+            try
+            {
+                new SetSwitch { Switch = "dew heater 1", Value = 60 }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("Set switch sets a level, the name in any case", sw.GetValue(0) == 60);
+                new SetSwitch { Switch = "Fan", Value = 5 }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("…and turns an on/off switch on at any value above 0", sw.GetSwitch(2) && sw.GetValue(2) == 1);
+                new SetSwitch { Switch = "Mount power", Value = 0 }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("…or off at 0", !sw.GetSwitch(3));
+                var wrong = new SetSwitch { Switch = "Heater 9" };
+                wrong.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("A switch that is not there fails the instruction, saying which", wrong.Status == ItemStatus.Failed && wrong.Error == "No switch named Heater 9.", wrong.Error);
+                CheckTrue("The switch names are offered from the switch box", SwitchNameConverter.Names().Length == 4);
+
+                var close = new FlatPanel { Action = FlatPanelAction.OpenCover };
+                var sw0 = Stopwatch.StartNew();
+                close.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("Flat panel: Open cover waits until the cover is open", cover.CoverState == "Open" && sw0.Elapsed.TotalSeconds >= 0.4, cover.CoverState);
+                new FlatPanel { Action = FlatPanelAction.CloseCover }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("…and Close cover until it is closed", cover.CoverState == "Closed");
+                new FlatPanel { Action = FlatPanelAction.LightOn, Brightness = 300 }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("Light on lights the panel, at most at its highest", cover.Brightness == 255);
+                new FlatPanel { Action = FlatPanelAction.LightOff }.Run(ctx, CancellationToken.None).Wait();
+                CheckTrue("…and Light off puts it out", cover.Brightness == 0);
+                CheckTrue("Both are in the Add menu", Sequencer.ItemTypes.Contains(typeof(SetSwitch)) && Sequencer.ItemTypes.Contains(typeof(FlatPanel)));
+            }
+            finally { dm.DisconnectAll(); }
+
+            // the sequencer asks for a switch box and a flat panel when they are needed but not connected
+            var seq = new Sequencer();
+            seq.Root = new SequenceContainer { Items = { new SetSwitch(), new FlatPanel() } };
+            if (DeviceManager.Instance.Switch == null && DeviceManager.Instance.Cover == null)
+            {
+                var missing = seq.MissingDevices();
+                CheckTrue("Missing: a switch box and a flat panel", missing.SequenceEqual(new[] { "switch", "flat panel" }), string.Join(", ", missing));
+                CheckTrue("…described", Sequencer.DescribeMissing(missing) == "This sequence needs a switch box and a flat panel. Connect them in Observatory → Equipment", Sequencer.DescribeMissing(missing));
+            }
+        }
+
         private static bool SpinUntil(Func<bool> cond, int ms)
         {
             var until = DateTime.UtcNow.AddMilliseconds(ms);

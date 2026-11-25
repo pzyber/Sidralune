@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace Sidralune.Devices.Guiding
 {
-    /// <summary>The guide algorithms an axis can use (RA: Hysteresis, Lowpass2, Z-filter; Dec: Resist Switch, Lowpass2, Z-filter).</summary>
-    public enum GuideAlgorithmKind { Hysteresis, ResistSwitch, Lowpass2, ZFilter }
+    /// <summary>The guide algorithms an axis can use (RA: Hysteresis, Lowpass2, Z-filter, Predictive PEC; Dec: Resist Switch, Lowpass2, Z-filter).</summary>
+    public enum GuideAlgorithmKind { Hysteresis, ResistSwitch, Lowpass2, ZFilter, PredictivePec }
 
     /// <summary>Turns one axis's guide error (pixels along that axis) into the correction to make (pixels, same sign).</summary>
     public interface IAxisAlgorithm

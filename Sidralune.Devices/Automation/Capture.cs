@@ -493,6 +493,7 @@ namespace Sidralune.Devices.Automation
                 opt.HintRa = raJ2000Deg; opt.HintDec = decJ2000Deg;
                 var cam = Capture.Devices.Camera;
                 opt.ScaleHint = 206.265 * cam.PixelSizeX * Bin / Capture.Devices.FocalLengthMm;
+                Capture.Devices.PrepareSolve(opt, cam);
                 var sr = await Task.Run(() => PlateSolver.Solve(cap.Image, opt, null, ct), ct);
                 if (!sr.Success) { Status?.Invoke(Lang.T("Plate solve failed: {0}", sr.Message)); continue; }
                 last = sr.Wcs;
@@ -566,8 +567,9 @@ namespace Sidralune.Devices.Automation
                 var guess = ctx.ApparentToIcrs(tel.RightAscension * AstroMath.Hour2Rad, tel.Declination * AstroMath.Deg2Rad);
                 opt.HintRa = guess.RaHours * 15; opt.HintDec = guess.DecDeg; opt.SearchRadius = 10;
                 opt.ScaleHint = 206.265 * cam.PixelSizeX * Bin / Capture.Devices.FocalLengthMm;
+                Capture.Devices.PrepareSolve(opt, cam);
                 var sr = await Task.Run(() => PlateSolver.Solve(cap.Image, opt, null, ct), ct);
-                if (!sr.Success) throw new InvalidOperationException("Plate solve failed at point " + (k + 1));
+                if (!sr.Success) throw new InvalidOperationException(Lang.T("Plate solving failed at point {0}: {1}", k + 1, sr.Message));
                 double cra, cdec;
                 sr.Wcs.Centre(out cra, out cdec);
                 // to apparent topocentric frame of date, but expressed in a frame fixed to the Earth (HA, Dec) so sky rotation between frames is removed
@@ -578,15 +580,56 @@ namespace Sidralune.Devices.Automation
                 Status?.Invoke(Lang.T("Point {0}: {1}", k + 1, sr.Wcs));
             }
             // normal of the plane through the three points = mount rotation axis
-            var n = Vec3.Cross(pts[1] - pts[0], pts[2] - pts[0]).Normalized();
+            return PolarAxis.Error(Vec3.Cross(pts[1] - pts[0], pts[2] - pts[0]), site, true);
+        }
+    }
+
+    /// <summary>
+    /// How far a mount's RA axis is from the celestial pole, and which way to move it. Directions are in the Earth-fixed
+    /// equatorial frame: longitude = −hour angle, latitude = declination.
+    /// </summary>
+    public static class PolarAxis
+    {
+        /// <summary>The sky's turn (radians per second): once a sidereal day.</summary>
+        public const double SiderealRadPerSec = 2 * Math.PI / 86164.0905;
+
+        /// <summary>The Earth-fixed direction of apparent RA and Dec (radians) at a local sidereal time (radians).</summary>
+        public static Vec3 FromApparent(double ra, double dec, double last) => Vec3.FromSpherical(ra - last, dec);
+
+        public static void ToApparent(Vec3 v, double last, out double ra, out double dec)
+        {
+            double lon;
+            v.ToSpherical(out lon, out dec);
+            ra = AstroMath.NormalizeRad(last + lon);
+        }
+
+        /// <summary>The celestial pole above the horizon, raised by refraction when asked.</summary>
+        public static Vec3 Pole(Observer site, bool refracted)
+        {
+            double alt = Math.Abs(site.LatRad);
+            if (refracted) alt += Transforms.RefractionFromTrue(alt, site.PressureHpa, site.TemperatureC);
+            double ha, dec;
+            Transforms.AltAzToHaDec(site.LatitudeDeg >= 0 ? 0 : Math.PI, alt, site.LatRad, out ha, out dec);
+            return Vec3.FromSpherical(-ha, dec);
+        }
+
+        /// <summary>An axis a small way (radians) from the north celestial pole, towards the meridian above it and towards the east.</summary>
+        public static Vec3 FromOffsets(double towardMeridian, double towardEast) => new Vec3(towardMeridian, towardEast, 1).Normalized();
+
+        /// <summary>
+        /// The altitude and azimuth errors (arcmin on the sky) of an axis (either end of it), against the pole refracted or
+        /// not, and the advice.
+        /// </summary>
+        public static PolarAlignmentResult Error(Vec3 axis, Observer site, bool refracted)
+        {
+            var n = axis.Normalized();
             if (n.Z * Math.Sign(site.LatitudeDeg == 0 ? 1 : site.LatitudeDeg) < 0) n = -n;
             double axLon, axLat;
             n.ToSpherical(out axLon, out axLat);
             double axHa = -axLon;
             var hz = Transforms.HaDecToAltAz(axHa, axLat, site.LatRad);
-            // refracted celestial pole position
             double poleAlt = Math.Abs(site.LatRad);
-            poleAlt += Transforms.RefractionFromTrue(poleAlt, site.PressureHpa, site.TemperatureC);
+            if (refracted) poleAlt += Transforms.RefractionFromTrue(poleAlt, site.PressureHpa, site.TemperatureC);
             double poleAz = site.LatitudeDeg >= 0 ? 0 : Math.PI;
             var res = new PolarAlignmentResult
             {
@@ -595,11 +638,16 @@ namespace Sidralune.Devices.Automation
                 AxisRa = AstroMath.NormalizeDeg(-axHa * AstroMath.Rad2Deg), AxisDec = axLat * AstroMath.Rad2Deg
             };
             res.TotalErrorArcmin = Math.Sqrt(res.AltErrorArcmin * res.AltErrorArcmin + res.AzErrorArcmin * res.AzErrorArcmin);
-            bool west = res.AzErrorArcmin > 0 == site.LatitudeDeg >= 0;
             res.Advice = Lang.T("Move the polar axis {0} by {1:0.0}' and {2} by {3:0.0}'",
-                res.AltErrorArcmin > 0 ? Lang.T("down") : Lang.T("up"), Math.Abs(res.AltErrorArcmin), west ? Lang.T("west") : Lang.T("east"), Math.Abs(res.AzErrorArcmin));
+                AltWord(res.AltErrorArcmin), Math.Abs(res.AltErrorArcmin), AzWord(res.AzErrorArcmin, site), Math.Abs(res.AzErrorArcmin));
             return res;
         }
+
+        /// <summary>Which way the axis moves to take out an altitude error: down when it is too high.</summary>
+        public static string AltWord(double altErrorArcmin) => altErrorArcmin > 0 ? Lang.T("down") : Lang.T("up");
+
+        /// <summary>Which way the axis moves to take out an azimuth error (positive: east of the pole, in the north).</summary>
+        public static string AzWord(double azErrorArcmin, Observer site) => azErrorArcmin > 0 == site.LatitudeDeg >= 0 ? Lang.T("west") : Lang.T("east");
     }
 
     /// <summary>Meridian flip helper for German equatorial mounts.</summary>

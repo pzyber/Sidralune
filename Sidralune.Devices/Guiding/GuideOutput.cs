@@ -37,6 +37,16 @@ namespace Sidralune.Devices.Guiding
 
         private bool Busy() => Output == GuideOutputKind.Camera ? _dm.GuideCamera?.IsPulseGuiding == true : _dm.Telescope?.IsPulseGuiding == true;
 
+        /// <summary>Starts a pulse without waiting for it (an AO bump: AO frames go on meanwhile).</summary>
+        public void Start(GuideDirection dir, int ms)
+        {
+            if (ms <= 0) return;
+            var tel = _dm.Telescope;
+            if (tel != null && tel.Slewing) return;
+            if (Output == GuideOutputKind.Camera) _dm.GuideCamera.PulseGuide(dir, ms);
+            else tel.PulseGuide(dir, ms);
+        }
+
         /// <summary>One pulse, waited for. Nothing is sent while the mount slews.</summary>
         public async Task Pulse(GuideDirection dir, int ms, CancellationToken ct)
         {
