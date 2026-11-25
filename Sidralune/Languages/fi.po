@@ -2545,6 +2545,18 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} on käynnissä"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} on käynnissä, ja jalustan pitää vain seurata taivasta"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Kuvat lakkasivat tulemasta, joten kohdistus lopetettiin."
+
 #: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
 msgid "No frame came from the camera."
 msgstr "Kamerasta ei tullut kuvaa."

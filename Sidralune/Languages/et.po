@@ -2545,6 +2545,18 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} töötab"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} töötab ja monteering peab ainult taevast jälgima"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Kaadrid lakkasid tulemast, seega joondamine peatati."
+
 #: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
 msgid "No frame came from the camera."
 msgstr "Kaamerast ei tulnud kaadrit."

@@ -2557,6 +2557,18 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} darbojas"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} darbojas, un montējumam jāseko tikai debesīm"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Kadri vairs nenāca, tāpēc izlīdzināšana tika apturēta."
+
 #: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
 msgid "No frame came from the camera."
 msgstr "No kameras nepienāca neviens kadrs."

@@ -87,6 +87,8 @@ namespace Sidralune.Views
             _tabs.AddPage(T("Polar alignment"), BuildPolar());
             _tabs.AddPage(T("Dome & weather"), BuildDome());
             _poll.Tick += (s, e) => { if (Visible) Poll?.Invoke(); };
+            // what is busy elsewhere can change without a job starting or ending (guiding started by another program)
+            Poll += Availability.Sync;
             _poll.Start();
         }
 
@@ -274,10 +276,8 @@ namespace Sidralune.Views
         private bool SequenceActive => (_sequenceTask != null && !_sequenceTask.Done) || _sequencer.Running;
         private BackgroundTask _cameraJob;
         private string _cameraJobName;
-        // buttons that start camera work; true marks Imaging's Start/Loop, which may replace a running manual capture
-        private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
-        // buttons that may take over the camera from a live view (Record): the live view stops and they start
-        private readonly HashSet<Control> _replacesLiveView = new HashSet<Control>();
+        // the camera job also moves the mount (centring, three-point polar alignment)
+        private bool _cameraJobMovesMount;
         // the sequencer's Template, Open and Save, which wait while a sequence runs
         private readonly List<Control> _sequenceFileButtons = new List<Control>();
         // the camera tabs' Stop buttons (enabled while something uses the camera) and the sequencer's (while a sequence runs)
@@ -288,8 +288,8 @@ namespace Sidralune.Views
         private Label _busyNote;
 
         /// <summary>
-        /// What is using the camera, or null when it is free. Start and Loop replace each other's capture (ignoreManual), and
-        /// Record takes over from a live view (ignoreLiveView).
+        /// What is using the camera, or null when it is free. The note under the camera controls leaves out Imaging's own
+        /// capture (ignoreManual), and Record takes over from a live view (ignoreLiveView).
         /// </summary>
         private string CameraBusyReason(bool ignoreManual = false, bool ignoreLiveView = false)
         {
@@ -310,6 +310,12 @@ namespace Sidralune.Views
             _sequencer.Stop();
         }
 
+        /// <summary>
+        /// A button that starts camera work: greyed out while the camera is busy with something else. Record stays
+        /// available during a live view, which it takes over.
+        /// </summary>
+        private void CameraButton(Control c, bool takesOverLiveView = false) => Availability.When(c, () => CameraBusyReason(false, takesOverLiveView) == null);
+
         private bool CanUseCamera(bool ignoreManual = false, bool ignoreLiveView = false)
         {
             var why = CameraBusyReason(ignoreManual, ignoreLiveView);
@@ -318,16 +324,17 @@ namespace Sidralune.Views
         }
 
         /// <summary>Start camera work other than Imaging's own capture: autofocus, centring, polar alignment.</summary>
-        private void RunCameraJob(string name, Action<BackgroundTask> work, Action onDone = null)
+        private void RunCameraJob(string name, Action<BackgroundTask> work, Action onDone = null, bool movesMount = false)
         {
             _cameraJobName = name;
+            _cameraJobMovesMount = movesMount;
             _cameraJob = Tasks.Run(name, work, onDone);
             SyncCameraButtons();
         }
 
         private void SyncCameraButtons()
         {
-            foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2, _replacesLiveView.Contains(b.Item1)) == null;
+            Availability.Sync();
             foreach (var b in _sequenceFileButtons) b.Enabled = !SequenceActive;
             foreach (var b in _cameraStops) b.Enabled = CameraBusyReason() != null;
             if (_sequenceStop != null) _sequenceStop.Enabled = SequenceActive;
@@ -474,7 +481,7 @@ namespace Sidralune.Views
                     MainForm.Instance.Post(() => { if (_cameraJob == t) vidStatus.Text = T("Live view stopped"); }); // unless Record took over
                 });
             };
-            _cameraButtons.Add(Tuple.Create((Control)live, false));
+            CameraButton(live);
             rec.Click += (s, e) =>
             {
                 if (!Have(Dm.Camera, NoCamera) || !CanUseCamera(false, true)) return;
@@ -516,8 +523,7 @@ namespace Sidralune.Views
                         T("Saved {0}", System.IO.Path.GetFileName(r.Path));
                 });
             };
-            _cameraButtons.Add(Tuple.Create((Control)rec, false));
-            _replacesLiveView.Add(rec);
+            CameraButton(rec, true);
             openPl.Click += (s, e) =>
             {
                 if (lastVideo == null) return;
@@ -532,8 +538,7 @@ namespace Sidralune.Views
             Action<bool> run = previewLoop =>
             {
                 if (!Have(Dm.Camera, NoCamera)) return;
-                if (!CanUseCamera(true)) return;
-                var previous = ManualCapturing ? _manualTask : null; // switching between Loop and Start: let its exposure end first
+                if (!CanUseCamera()) return;
                 _captureCts?.Cancel();
                 _captureCts = new CancellationTokenSource();
                 var ct = _captureCts.Token;
@@ -548,7 +553,6 @@ namespace Sidralune.Views
                 int n = previewLoop ? int.MaxValue : (int)count.Value;
                 _manualTask = Tasks.Run(previewLoop ? T("Preview loop") : Tn("Capturing {0} frame", "Capturing {0} frames", n), t =>
                 {
-                    while (previous != null && !previous.Done && !ct.IsCancellationRequested) Thread.Sleep(50);
                     for (int i = 0; i < n && !ct.IsCancellationRequested; i++)
                     {
                         Tasks.Report(t, previewLoop ? double.NaN : (double)i / n, (i + 1) + "/" + (previewLoop ? "∞" : n.ToString()));
@@ -558,8 +562,9 @@ namespace Sidralune.Views
             };
             start.Click += (s, e) => run(false);
             loop.Click += (s, e) => run(true);
-            _cameraButtons.Add(Tuple.Create((Control)start, true));
-            _cameraButtons.Add(Tuple.Create((Control)loop, true));
+            // greyed out while the camera is busy, a capture or preview loop of their own included: Stop first
+            CameraButton(start);
+            CameraButton(loop);
             // every frame the camera delivers (manual, sequence, autofocus) is shown here
             _capture.ImageCaptured += res =>
             {
@@ -608,7 +613,9 @@ namespace Sidralune.Views
             var mb = new FlowLayoutPanel { Height = 76 };
             Func<string, string, Action, FlatButton> mbtn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning, Theme.Current.Danger); } }); b.AutoSizeToText(); mb.Controls.Add(b); return b; };
             mbtn(T("Slew"), Icons.Target, () => GotoObject(gotoBox.Text, false));
-            _cameraButtons.Add(Tuple.Create((Control)mbtn(T("Center"), Icons.Solve, () => GotoObject(gotoBox.Text, true)), false)); // plate solves
+            var centre = mbtn(T("Center"), Icons.Solve, () => GotoObject(gotoBox.Text, true));
+            CameraButton(centre); // plate solves
+            Availability.When(centre, () => PolarBusyReason() == null);
             mbtn(T("Park"), Icons.Lock, () => { var tel = Need(Dm.Telescope, NoTelescope); Tasks.Run(T("Parking"), t => tel.Park()); });
             mbtn(T("Unpark"), Icons.Play, () => Need(Dm.Telescope, NoTelescope).Unpark());
             var track = new FlatButton(T("Tracking"), Icons.Clock) { Toggle = true, Checked = true }; track.AutoSizeToText();
@@ -667,10 +674,10 @@ namespace Sidralune.Views
             if (center)
             {
                 Need(Dm.Camera, NoCamera); // centring plate-solves its own frames
-                if (!CanUseCamera()) return;
+                if (!CanUseCamera() || !PolarFree()) return;
                 var c = new Centering { Capture = _capture };
                 c.Status += s => MainForm.Instance.SetStatus(s);
-                RunCameraJob(T("Centering {0}", q), t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast(T("Centered on {0}", q)));
+                RunCameraJob(T("Centering {0}", q), t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast(T("Centered on {0}", q)), movesMount: true);
             }
             else
             {
@@ -720,7 +727,7 @@ namespace Sidralune.Views
                 });
             };
             g.Full(af);
-            _cameraButtons.Add(Tuple.Create((Control)af, false));
+            CameraButton(af);
             g.Full(plot);
             Poll += () => { var f = Dm.Focuser; pos.Text = f != null && f.Connected ? f.Position + (f.IsMoving ? " " + T("(moving)") : "") + "  " + (double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0") + " °C") : T("No focuser"); };
             return g;
@@ -817,14 +824,15 @@ namespace Sidralune.Views
             var run = new FlatButton(T("Run sequence"), Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
-                if (SequenceActive || !CanUseCamera()) return;
+                if (SequenceActive || !CanUseCamera() || !PolarFree()) return;
                 var missing = _sequencer.MissingDevices();
                 if (missing.Count > 0) { MainForm.Instance.Toast(Sequencer.DescribeMissing(missing) + T(", or click Connect simulated observatory."), Icons.Warning); return; }
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
                 _sequenceTask = Tasks.Run(T("Sequence"), t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
             };
             bar.Controls.Add(run);
-            _cameraButtons.Add(Tuple.Create((Control)run, false));
+            CameraButton(run);
+            Availability.When(run, () => PolarBusyReason() == null);
             // the running sequence can still be edited, but not replaced or saved half done
             _sequenceFileButtons.AddRange(new Control[] { template, openSeq, saveSeq });
             var seqStop = btn(T("Stop"), Icons.Stop, () => _sequencer.Stop());

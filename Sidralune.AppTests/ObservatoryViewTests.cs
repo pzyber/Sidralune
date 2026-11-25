@@ -159,6 +159,14 @@ namespace Sidralune.AppTests
                 CheckTrue("It asks to cover the guide scope first", OnUi(() => cover.Visible && All(cover).OfType<Label>().Any(l => l.Visible && l.Text.StartsWith("Cover the guide scope"))));
                 OnUi(() => Button(cover, "Cancel").PerformClick());
                 CheckTrue("Cancel takes no dark frames", OnUi(() => !cover.Visible) && !g.IsRunning && WaitFor(() => OnUi(() => Button(darkCard, "Build dark library").Enabled), 3000));
+                // while they are taken: the guider cannot loop or guide (greyed out), and the dark settings stay editable
+                OnUi(() => Button(darkCard, "Build dark library").PerformClick());
+                OnUi(() => Button(cover, "Continue").PerformClick());
+                CheckTrue("While dark frames are taken, Loop, Select star and Start guiding are greyed out",
+                    WaitFor(() => g.CameraInUse && OnUi(() => !Button(bar, "Loop").Enabled && !Button(bar, "Select star").Enabled && !Button(bar, "Start guiding").Enabled), 10000));
+                CheckTrue("…the dark settings stay editable", OnUi(() => All(darkCard).OfType<NumericUpDown>().All(n => n.Enabled)));
+                OnUi(() => Button(cover, "Stop").PerformClick());
+                CheckTrue("Stopped, the guider can loop again", WaitFor(() => !g.CameraInUse && OnUi(() => Button(bar, "Loop").Enabled && Button(bar, "Start guiding").Enabled), 15000));
             }
             finally
             {
@@ -271,9 +279,39 @@ namespace Sidralune.AppTests
                 CheckTrue("With an imaging camera, it is the one used", WaitFor(() => OnUi(() => staticCamera.Text == "Imaging camera")));
                 OnUi(() => Button(staticCard, "Start alignment").PerformClick());
                 CheckTrue("Static polar alignment takes the imaging camera's frames as a camera job",
-                    WaitFor(() => OnUi(() => Field<string>(view, "_cameraJobName") == "Static polar alignment" && Button(staticCard, "Stop").Enabled && !staticCamera.Enabled), 5000));
+                    WaitFor(() => OnUi(() => Field<string>(view, "_cameraJobName") == "Static polar alignment" && Button(staticCard, "Stop").Enabled), 5000));
+                CheckTrue("…holding guiding back meanwhile", g.GuidingHeldBy == "Static polar alignment");
+                CheckTrue("Start alignment is greyed out while it runs: Stop ends it first", OnUi(() => !Button(staticCard, "Start alignment").Enabled));
+                // its settings were read when it started: they stay editable, and a change is for the next alignment
+                Func<string, Control> row = label => OnUi(() => { var l = Find<Label>(staticCard, x => x.Text == label); var t = (TableLayoutPanel)l.Parent; return t.GetControlFromPosition(1, t.GetRow(l)); });
+                CheckTrue("Its settings stay editable while it runs", OnUi(() => staticCamera.Enabled && row("Exposure (s)").Enabled && row("Binning").Enabled && row("RA step (°)").Enabled && row("Turning RA").Enabled));
+                OnUi(() => staticCamera.SelectedIndex = 1);
+                Thread.Sleep(1500);
+                CheckTrue("Choosing another camera while it runs leaves the running alignment on its camera",
+                    OnUi(() => Button(staticCard, "Stop").Enabled && Field<string>(view, "_cameraJobName") == "Static polar alignment" && !Field<BackgroundTask>(view, "_cameraJob").Done) && !g.IsRunning);
+                OnUi(() => staticCamera.SelectedIndex = 0);
+                // nothing else that guides or moves the mount can start meanwhile: greyed out
+                // the Guiding Assistant has a Start measuring too: drift alignment's is on its card
+                var driftAlignCard = OnUi(() => All(view).OfType<Card>().First(c => c.Title == "Drift alignment"));
+                Func<string, bool> greyed = text => OnUi(() => !Button(text == "Start measuring" ? (Control)driftAlignCard : view, text).Enabled);
+                CheckTrue("Starting guiding, calibrating and dithering on the Guiding tab are greyed out",
+                    WaitFor(() => greyed("Start guiding") && greyed("Calibrate & guide") && greyed("Dither")));
+                CheckTrue("…and the other polar alignment methods", greyed("Start measuring") && greyed("Follow a star") && greyed("Start polar alignment"));
+                CheckTrue("…and sequences and centring", greyed("Run sequence") && greyed("Center"));
+                OnUi(() => Button(view, "Start guiding").PerformClick());
+                CheckTrue("A greyed-out button does nothing", !g.IsRunning && !g.InGuidingPhase);
+                // a camera tab's Stop ends the frames: the alignment ends with them, and says so
+                OnUi(() => typeof(ObservatoryView).GetMethod("StopCameraWork", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(view, null));
+                CheckTrue("A camera tab's Stop ends the alignment, not only its frames",
+                    WaitFor(() => OnUi(() => shown(staticCard, "The frames stopped, so the alignment was stopped.") && !Button(staticCard, "Stop").Enabled), 15000));
+                CheckTrue("…and guiding may start again", g.GuidingHeldBy == null && OnUi(() => Field<BackgroundTask>(view, "_cameraJob").Done));
+                var freed = new[] { "Start guiding", "Calibrate & guide", "Start measuring", "Follow a star", "Run sequence" };
+                CheckTrue("…its buttons available again", WaitFor(() => freed.All(t => !greyed(t))), string.Join(", ", freed.Where(t => greyed(t))));
+                CheckTrue("Start alignment is available again", WaitFor(() => OnUi(() => Button(staticCard, "Start alignment").Enabled), 15000));
+                OnUi(() => Button(staticCard, "Start alignment").PerformClick());
+                CheckTrue("Started again", WaitFor(() => OnUi(() => Button(staticCard, "Stop").Enabled && Field<string>(view, "_cameraJobName") == "Static polar alignment" && !Field<BackgroundTask>(view, "_cameraJob").Done), 15000));
                 OnUi(() => Button(staticCard, "Stop").PerformClick());
-                CheckTrue("…and Stop ends them", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_cameraJob").Done && !Button(staticCard, "Stop").Enabled && staticCamera.Enabled), 15000));
+                CheckTrue("…and Stop ends them", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_cameraJob").Done && !Button(staticCard, "Stop").Enabled), 15000));
                 OnUi(() => Dm.DisconnectAll());
                 // without a calibration (an earlier test may have left one), whether the image is mirrored is asked
                 OnUi(() => { g.ClearCalibration(); method.SelectedIndex = 3; });
@@ -415,7 +453,7 @@ namespace Sidralune.AppTests
                 OnUi(() => loop.PerformClick());
                 CheckTrue("A preview loop blocks the other camera jobs", WaitFor(() => !record.Enabled && !af.Enabled && !polar.Enabled && !run.Enabled));
                 CheckTrue("Both camera tabs' Stop buttons are available while it runs", OnUi(() => stop.Enabled && videoStop.Enabled));
-                CheckTrue("Start and Loop stay available, to replace each other's capture", WaitFor(() => loop.Enabled && start.Enabled));
+                CheckTrue("Start and Loop are greyed out while it runs", WaitFor(() => !loop.Enabled && !start.Enabled));
                 CheckTrue("Frames arrive in the viewer", WaitFor(() => Field<ImageViewer>(view, "_viewer").Image != null, 15000));
                 OnUi(() => stop.PerformClick());
                 CheckTrue("Stop frees the camera", WaitFor(() => record.Enabled && af.Enabled && polar.Enabled && run.Enabled && loop.Enabled && start.Enabled, 15000));
@@ -423,8 +461,13 @@ namespace Sidralune.AppTests
                 OnUi(() => { var e = Find<Label>(view, l => l.Text == "Exposure (s)"); var row = (TableLayoutPanel)e.Parent; ((NumericUpDown)row.GetControlFromPosition(1, row.GetRow(e))).Value = 0.5m; });
                 OnUi(() => loop.PerformClick());
                 CheckTrue("Loop again", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name == "Preview loop")));
+                CheckTrue("…greying out Start", WaitFor(() => !start.Enabled && !loop.Enabled));
                 OnUi(() => start.PerformClick());
-                CheckTrue("Start replaces the loop, and both stay available", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name.StartsWith("Capturing")) && start.Enabled && loop.Enabled, 15000));
+                CheckTrue("…which then does nothing", OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name == "Preview loop"));
+                OnUi(() => stop.PerformClick());
+                CheckTrue("Stop makes Start available", WaitFor(() => start.Enabled && loop.Enabled, 15000));
+                OnUi(() => start.PerformClick());
+                CheckTrue("Start captures", WaitFor(() => OnUi(() => Field<BackgroundTask>(view, "_manualTask").Name.StartsWith("Capturing")), 15000));
                 CheckTrue("When the capture is done the camera is free", WaitFor(() => start.Enabled && loop.Enabled && record.Enabled, 20000));
                 var planetaryStop = OnUi(() => All(record.Parent).OfType<FlatButton>().First(b => b.Text == "Stop"));
                 OnUi(() => loop.PerformClick());

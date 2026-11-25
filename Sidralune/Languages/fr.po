@@ -2545,6 +2545,18 @@ msgstr "Aucun focuseur connecté."
 msgid "No guider connected."
 msgstr "Aucun autoguideur connecté."
 
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} est en cours"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} est en cours et la monture doit seulement suivre le ciel"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Les images se sont arrêtées, l'alignement a donc été arrêté."
+
 #: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
 msgid "No frame came from the camera."
 msgstr "Aucune image n'est arrivée de la caméra."

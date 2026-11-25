@@ -400,8 +400,59 @@ namespace Sidralune
 
         private void Sync()
         {
-            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = Guards[c].All(s => s._job == null);
+            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = IdleFor(c) && Availability.Holds(c);
             Changed?.Invoke();
+        }
+
+        /// <summary>Whether every slot guarding a control is idle (true for a control no slot guards).</summary>
+        internal static bool IdleFor(Control c)
+        {
+            List<JobSlot> slots;
+            return !Guards.TryGetValue(c, out slots) || slots.All(s => s._job == null);
+        }
+    }
+
+    /// <summary>
+    /// When buttons are available: greyed out while something elsewhere is busy with what they need (the camera, the mount,
+    /// the guider), as well as while a JobSlot guarding them runs. Their Enabled is set here and by JobSlot only, so the two
+    /// never disagree. Sync looks again after a change neither can see (a view calls it on its timer).
+    /// </summary>
+    public static class Availability
+    {
+        private static readonly Dictionary<Control, List<Func<bool>>> Conditions = new Dictionary<Control, List<Func<bool>>>();
+
+        /// <summary>The control is also greyed out while available does not hold. Several conditions all must hold.</summary>
+        public static void When(Control c, Func<bool> available)
+        {
+            List<Func<bool>> list;
+            if (!Conditions.TryGetValue(c, out list)) Conditions[c] = list = new List<Func<bool>>();
+            list.Add(available);
+            Apply(c);
+        }
+
+        /// <summary>Whether a control's conditions all hold (true without any).</summary>
+        internal static bool Holds(Control c)
+        {
+            List<Func<bool>> list;
+            if (!Conditions.TryGetValue(c, out list)) return true;
+            // a condition that cannot be told yet (a view still being built) does not grey the control out
+            foreach (var f in list) { bool ok; try { ok = f(); } catch { ok = true; } if (!ok) return false; }
+            return true;
+        }
+
+        private static void Apply(Control c)
+        {
+            if (!c.IsDisposed) c.Enabled = JobSlot.IdleFor(c) && Holds(c);
+        }
+
+        /// <summary>Sets every control with conditions again; call on the UI thread.</summary>
+        public static void Sync()
+        {
+            foreach (var c in Conditions.Keys.ToList())
+            {
+                if (c.IsDisposed) { Conditions.Remove(c); continue; }
+                Apply(c);
+            }
         }
     }
 }

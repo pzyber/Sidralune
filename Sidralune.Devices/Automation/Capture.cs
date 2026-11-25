@@ -515,13 +515,18 @@ namespace Sidralune.Devices.Automation
             return last;
         }
 
+        /// <summary>Slews and waits for the mount to arrive and settle. Stopped (ct), the mount stops too, wherever it is.</summary>
         public static async Task Slew(ITelescope tel, double raH, double decD, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             if (tel.AtPark) tel.Unpark();
             tel.SlewToCoordinatesAsync(raH, decD);
-            await Task.Delay(300, ct);
-            var until = DateTime.UtcNow.AddMinutes(5);
-            while (tel.Slewing) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Slew timeout"); await Task.Delay(200, ct); }
+            using (ct.Register(() => { try { if (tel.Slewing) tel.AbortSlew(); } catch { } }))
+            {
+                await Task.Delay(300, ct);
+                var until = DateTime.UtcNow.AddMinutes(5);
+                while (tel.Slewing) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Slew timeout"); await Task.Delay(200, ct); }
+            }
             await Task.Delay(1000, ct); // settle
         }
     }

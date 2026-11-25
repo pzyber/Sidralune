@@ -2557,6 +2557,18 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} trwa"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} trwa, a montaż ma tylko podążać za niebem"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Klatki przestały napływać, więc ustawianie zostało zatrzymane."
+
 #: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
 msgid "No frame came from the camera."
 msgstr "Z kamery nie nadeszła żadna klatka."

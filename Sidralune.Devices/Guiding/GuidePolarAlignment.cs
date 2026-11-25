@@ -212,11 +212,15 @@ namespace Sidralune.Devices.Guiding
 
     /// <summary>
     /// Where polar alignment gets its frames: the Sidralune guider's loop (the guide camera) or the imaging camera. Frames
-    /// arrive through FrameReady, and Next waits for the first begun after a moment.
+    /// arrive through FrameReady, and Next waits for the first begun after a moment. Stopped says when they stop coming
+    /// (stopped elsewhere, or failed): an alignment using them ends then.
     /// </summary>
     public abstract class AlignmentFrames
     {
         public abstract event Action<AstroImage> FrameReady;
+        /// <summary>The frames stopped coming (raised on the thread that stopped them).</summary>
+        public event Action Stopped;
+        protected void RaiseStopped() => Stopped?.Invoke();
         public abstract ICamera Camera { get; }
         /// <summary>Arcseconds per pixel of the frames.</summary>
         public abstract double PixelScale { get; }
@@ -232,7 +236,10 @@ namespace Sidralune.Devices.Guiding
         {
             var tcs = new TaskCompletionSource<AstroImage>();
             Action<AstroImage> h = f => { if ((f.DateObs ?? DateTime.UtcNow) >= afterUtc) tcs.TrySetResult(f); };
+            // frames stopped while waiting: no frame is coming
+            Action stopped = () => tcs.TrySetException(new InvalidOperationException(NoFrameReason));
             FrameReady += h;
+            Stopped += stopped;
             try
             {
                 using (ct.Register(() => tcs.TrySetCanceled()))
@@ -246,7 +253,7 @@ namespace Sidralune.Devices.Guiding
                     return await tcs.Task;
                 }
             }
-            finally { FrameReady -= h; }
+            finally { FrameReady -= h; Stopped -= stopped; }
         }
     }
 
@@ -257,14 +264,25 @@ namespace Sidralune.Devices.Guiding
         /// <summary>The loop was started here (so stopping can stop it again).</summary>
         public bool StartedLoop { get; private set; }
 
-        public GuiderFrames(SidraluneGuider g) { Guider = g; }
+        public GuiderFrames(SidraluneGuider g)
+        {
+            Guider = g;
+            // the loop stopped (Stop on the Guiding tab, a camera failure): Stopped
+            bool was = g.IsRunning;
+            g.StateChanged += (s, e) =>
+            {
+                bool now = g.IsRunning;
+                if (was && !now) RaiseStopped();
+                was = now;
+            };
+        }
 
         public override event Action<AstroImage> FrameReady { add { Guider.FrameReady += value; } remove { Guider.FrameReady -= value; } }
         public override ICamera Camera => Guider.Devices.GuideCamera;
         public override double PixelScale => Guider.PixelScale;
         public override int SearchRadius => Math.Max(10, Guider.Settings.SearchRadius);
         protected override double FrameSeconds => Guider.CurrentExposure;
-        protected override string NoFrameReason => Guider.LastError ?? Lang.T("No guide frame came.");
+        protected override string NoFrameReason => Guider.LastError ?? (Guider.IsRunning ? Lang.T("No guide frame came.") : Lang.T("Guiding was stopped."));
 
         public override void Ensure()
         {
@@ -320,10 +338,10 @@ namespace Sidralune.Devices.Guiding
         /// <summary>Takes frames one after another until cancelled.</summary>
         public async Task Run(CancellationToken ct)
         {
-            if (Camera == null) throw new InvalidOperationException(Lang.T("No camera connected."));
             _running = true;
             try
             {
+                if (Camera == null) throw new InvalidOperationException(Lang.T("No camera connected."));
                 while (true)
                 {
                     ct.ThrowIfCancellationRequested();
@@ -332,7 +350,7 @@ namespace Sidralune.Devices.Guiding
                     FrameReady?.Invoke(r.Image);
                 }
             }
-            finally { _running = false; }
+            finally { _running = false; RaiseStopped(); }
         }
     }
 
@@ -509,13 +527,16 @@ namespace Sidralune.Devices.Guiding
             EnsureLooping();
             _trackX = r.StarX; _trackY = r.StarY;
             _source.FrameReady += OnFrame;
+            _source.Stopped += StopTracking;
             Tracking = true;
         }
 
+        /// <summary>Stops following the reference star (also when the frames stop).</summary>
         public void StopTracking()
         {
             if (!Tracking) return;
             _source.FrameReady -= OnFrame;
+            _source.Stopped -= StopTracking;
             Tracking = false;
         }
 
@@ -615,7 +636,7 @@ namespace Sidralune.Devices.Guiding
             Result = null;
             _x = _y = double.NaN;
             _start = DateTime.UtcNow;
-            if (!Following) _source.FrameReady += OnFrame;
+            if (!Following) { _source.FrameReady += OnFrame; _source.Stopped += Cancel; }
             Following = true;
             Measuring = true;
             Log.Info("Guider", "Polar drift alignment started");
@@ -656,10 +677,10 @@ namespace Sidralune.Devices.Guiding
             return Result;
         }
 
-        /// <summary>Stops following and measuring, without a result.</summary>
+        /// <summary>Stops following and measuring, without a result (also when the frames stop).</summary>
         public void Cancel()
         {
-            if (Following) _source.FrameReady -= OnFrame;
+            if (Following) { _source.FrameReady -= OnFrame; _source.Stopped -= Cancel; }
             Following = false;
             Measuring = false;
         }

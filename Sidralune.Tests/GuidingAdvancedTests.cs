@@ -645,6 +645,21 @@ namespace Sidralune.Tests
                 CheckTrue("After the result the star is still followed", pd.Following && !pd.Measuring && !double.IsNaN(pd.StarX));
                 pd.Cancel();
                 CheckTrue("…until it is stopped", !pd.Following);
+
+                // the frames stopped elsewhere (a camera tab's Stop): waiting for a frame fails at once, and the star is
+                // no longer followed
+                sa.StartTracking();
+                pd.Start();
+                CheckTrue("Following again", sa.Tracking && pd.Following);
+                var waiting = frames.Next(DateTime.UtcNow.AddSeconds(30), ct);
+                var watch = Stopwatch.StartNew();
+                cts.Cancel();
+                bool failed = false;
+                try { waiting.Wait(15000); } catch (AggregateException ex) { failed = ex.InnerException is InvalidOperationException; }
+                Info(string.Format("The wait ended {0:0.0} s after the frames stopped: {1}", watch.Elapsed.TotalSeconds, waiting.Exception?.InnerException?.Message));
+                CheckTrue("When the frames stop, a wait for one fails at once", failed && watch.Elapsed.TotalSeconds < 10);
+                CheckTrue("…the reference star is no longer followed", Spin(() => !sa.Tracking, 2000));
+                CheckTrue("…nor polar drift alignment's star", !pd.Following && !pd.Measuring);
             }
             finally
             {
@@ -655,6 +670,57 @@ namespace Sidralune.Tests
                 CheckTrue("The frames end when cancelled", run == null || run.IsCompleted);
                 dm.DisconnectAll();
                 cm.LoadBuiltIn();
+            }
+        }
+
+        [TestMethod]
+        public void TestPolarAlignmentHoldsGuiding()
+        {
+            var dm = GuidingTests.GuideObservatory("guide-hold");
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            var frames = new GuiderFrames(g);
+            var pd = new PolarDriftAlignment(frames, dm);
+            const string who = "Polar drift alignment";
+            try
+            {
+                frames.Ensure();
+                CheckTrue("The guider's loop starts for the frames", g.IsRunning && frames.StartedLoop);
+                g.HoldGuiding(who);
+                CheckTrue("Guiding is held back", g.GuidingHeldBy == who);
+                Func<Action, string> refused = a => { try { a(); return null; } catch (AggregateException ex) { return ex.InnerException.Message; } catch (InvalidOperationException ex) { return ex.Message; } };
+                string why = refused(() => g.StartGuiding(false, ct).Wait());
+                Info("Start guiding: " + why);
+                CheckTrue("Starting guiding is refused, naming what holds it", why != null && why.Contains(who) && !g.InGuidingPhase && !g.IsCalibrating);
+                CheckTrue("…and calibrating", refused(() => g.StartGuiding(true, ct).Wait()) != null && !g.IsCalibrating);
+                CheckTrue("…and manual pulses", refused(() => g.ManualPulse(GuideDirection.North, 200, ct).Wait()) != null);
+                var tel = dm.Telescope;
+                double ra = tel.RightAscension, dec = tel.Declination;
+                CheckTrue("…and the Calibration Assistant, before it stops the loop or slews",
+                    refused(() => new CalibrationAssistant(dm, g).Run(ct).Wait()) != null && g.IsRunning && Math.Abs(tel.RightAscension - ra) < 0.01 && Math.Abs(tel.Declination - dec) < 0.1);
+                CheckTrue("Frames go on", Spin(() => g.LastFrame != null, 10000));
+
+                // the loop stopped (the Guiding tab's Stop): a wait for a frame fails at once, and following ends
+                pd.Start();
+                var waiting = frames.Next(DateTime.UtcNow.AddSeconds(60), ct);
+                var watch = Stopwatch.StartNew();
+                g.StopGuiding();
+                bool failed = false;
+                try { waiting.Wait(10000); } catch (AggregateException ex) { failed = ex.InnerException is InvalidOperationException; }
+                CheckTrue("When the loop stops, a wait for a frame fails at once", failed && watch.Elapsed.TotalSeconds < 5, waiting.Exception?.InnerException?.Message);
+                CheckTrue("…and the star is no longer followed", !pd.Following);
+
+                g.ReleaseGuiding("something else");
+                CheckTrue("Only what holds guiding releases it", g.GuidingHeldBy == who);
+                g.ReleaseGuiding(who);
+                CheckTrue("Released, it is no longer the reason for refusing", g.GuidingHeldBy == null && !(refused(() => g.ManualPulse(GuideDirection.North, 100, ct).Wait()) ?? "").Contains(who));
+            }
+            finally
+            {
+                pd.Cancel();
+                g.ReleaseGuiding(who);
+                g.StopGuiding();
+                dm.DisconnectAll();
             }
         }
     }

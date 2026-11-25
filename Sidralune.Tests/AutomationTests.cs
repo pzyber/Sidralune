@@ -103,6 +103,32 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestStoppingASlewStopsTheMount()
+        {
+            var tel = new TelescopeSimulator();
+            tel.Connect();
+            try
+            {
+                tel.SlewRateDegPerSec = 4;
+                var cts = new CancellationTokenSource();
+                double ra0 = tel.RightAscension, dec0 = tel.Declination;
+                var slew = Centering.Slew(tel, AstroMath.NormalizeHours(ra0 + 4), Math.Max(-80, dec0 - 60), cts.Token);
+                Thread.Sleep(1000);
+                CheckTrue("The mount slews", tel.Slewing);
+                cts.Cancel();
+                bool cancelled = false;
+                try { slew.Wait(5000); } catch (System.AggregateException ex) { cancelled = ex.InnerException is System.OperationCanceledException; }
+                CheckTrue("Stopping the slew ends it", cancelled);
+                CheckTrue("…and stops the mount", !tel.Slewing);
+                double ra1 = tel.RightAscension, dec1 = tel.Declination;
+                Thread.Sleep(1000);
+                Info(string.Format("Stopped {0:0.0}° short of the target in Dec", Math.Abs(tel.Declination - Math.Max(-80, dec0 - 60))));
+                CheckTrue("…where it was, not at the target", Math.Abs(tel.Declination - dec1) < 0.05 && Math.Abs(tel.Declination - Math.Max(-80, dec0 - 60)) > 10);
+            }
+            finally { tel.Disconnect(); }
+        }
+
+        [TestMethod]
         public void TestSolvingTheSimulatedSky()
         {
             // the simulator's faint synthetic stars are in no catalogue: the Observatory solves against the stars it draws

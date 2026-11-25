@@ -160,7 +160,7 @@ After each frame the status line shows the number of stars, the half-flux radius
 
 The viewer shows every frame the camera takes, not only the ones started here: frames from a running [sequence](Sequencer) and from autofocus appear too, and the status line starts with "Sequence ·" for sequence frames.
 
-The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop, a video recording, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start the others are disabled and a note under the camera controls (on both tabs) says what is using the camera. **Stop** on either tab ends it, including a video recording, autofocus, centring, polar alignment or a sequence. Switching between **Loop** and **Start** is one exception: the new capture replaces the old one and starts as soon as its current exposure has ended. The other is **Record**, which takes over from **Live view** (but **Live view** does not interrupt a recording).
+The camera can take only one exposure at a time, so only one job may use it: a capture or preview loop, a video recording, **Run autofocus**, **Center** (plate-solve centring), **Start polar alignment**, or a sequence. While one of them runs, the buttons that start camera work are greyed out, **Start** and **Loop** included, and a note under the camera controls (on both tabs) says what is using the camera. **Stop** on either tab ends it, including a video recording, autofocus, centring, polar alignment or a sequence. The one exception is **Record**, which takes over from **Live view** (but **Live view** does not interrupt a recording).
 
 #### Planetary video
 
@@ -245,6 +245,8 @@ Type an object name or coordinates in **Go to**, then:
 
 - **Slew** slews there (converting J2000 to the apparent position of date),
 - **Center** slews, then plate-solves and corrects until the object is centred (see below).
+
+Stopping a slew (its task, centring, polar alignment, the Calibration Assistant or a sequence) stops the mount too, wherever it is.
 
 **Park**, **Unpark** and **Tracking** do what they say.
 
@@ -374,7 +376,7 @@ The **Darks** page treats each guide frame before the stars are measured. Under 
 - **The dark library**: a master dark for each guide exposure (the median of several dark frames, 5 by default) is subtracted. With auto exposure, the library holds every exposure from the shortest to the longest; otherwise the exposure set. A frame of another exposure uses the nearest dark.
 - **The bad-pixel map**: the hot and cold pixels found in a master dark (10 dark frames of 10 s, more than 5 noise levels from the median by default) are replaced by the median of their neighbours.
 
-Either removes hot pixels that could be taken for stars. **Build dark library** and **Build bad-pixel map** first ask you to cover the guide scope (or close the camera's shutter), then take the frames, with progress and **Stop**. The guider must be stopped. The page says what exists and whether it still fits the guide camera: a library or map fits only the camera, frame size, binning, gain and offset it was made with, and is not used otherwise. They are kept per camera in `%LOCALAPPDATA%\Sidralune\Settings\Guider darks`.
+Either removes hot pixels that could be taken for stars. **Build dark library** and **Build bad-pixel map** first ask you to cover the guide scope (or close the camera's shutter), then take the frames, with progress and **Stop**. The guider must be stopped, and while the frames are taken **Loop**, **Select star**, **Start guiding**, **Calibrate & guide** and **Dither** are greyed out. The settings are read when you click a Build button, so they stay editable while it runs. The page says what exists and whether it still fits the guide camera: a library or map fits only the camera, frame size, binning, gain and offset it was made with, and is not used otherwise. They are kept per camera in `%LOCALAPPDATA%\Sidralune\Settings\Guider darks`.
 
 ### Guiding Assistant
 
@@ -465,7 +467,7 @@ The tab offers four methods under **Method**. Three-point uses the imaging camer
 | **Static polar alignment** | Near the celestial pole | The imaging or the guide camera, plate solving; a mount that slews, or RA turned by hand |
 | **Polar drift alignment** | Near the celestial pole | The imaging or the guide camera only: no calibration, no plate solving |
 
-All four report the error in arcminutes and which way to move the polar axis. With the mount connected, each checks first that it points where the method needs it: three-point and drift alignment within 60° of the celestial equator, static and polar drift alignment within 20° of the pole. Polar alignment is done with the mount's altitude and azimuth adjusters; Sidralune measures and shows the way.
+All four report the error in arcminutes and which way to move the polar axis. One runs at a time, and nothing else that moves the mount starts meanwhile: the other methods' start buttons, **Run sequence** and **Center** are greyed out until it ends. Static and polar drift alignment need the mount only tracking, whichever camera they use: they are greyed out while guiding, and guiding is held back while they run. **Start guiding**, **Calibrate & guide**, **Dither**, the manual guide buttons and the assistants' start buttons are greyed out meanwhile, and a sequence or a program asking through the [PHD2-compatible server](#the-phd2-compatible-server) is refused. With the mount connected, each checks first that it points where the method needs it: three-point and drift alignment within 60° of the celestial equator, static and polar drift alignment within 20° of the pole. Polar alignment is done with the mount's altitude and azimuth adjusters; Sidralune measures and shows the way.
 
 ### Three-point polar alignment
 
@@ -498,10 +500,10 @@ Each measurement takes out the other error's last measurement, so the two conver
 
 Static and polar drift alignment have a **Camera** choice: **Imaging camera** or **Guide camera**. The imaging camera is chosen when one is connected, the guide camera otherwise, until you choose yourself.
 
-- **Imaging camera**: Sidralune takes short frames one after another (**Exposure (s)**, 2 s by default, and **Binning**, 2 by default), not saved. They show on the page and on the Imaging tab. The camera does one thing at a time, so captures, autofocus and sequences wait meanwhile, and the camera tabs' **Stop** ends the frames, as the page's own **Stop** does.
-- **Guide camera**: the frames come from the Sidralune guider's loop, started when it is not running (and stopped again when the page started it). Not while PHD2 is connected, and not while guiding.
+- **Imaging camera**: Sidralune takes short frames one after another (**Exposure (s)**, 2 s by default, and **Binning**, 2 by default), not saved. They show on the page and on the Imaging tab. The camera does one thing at a time, so captures, autofocus and sequences wait meanwhile. The camera tabs' **Stop** ends the frames, and the alignment with them.
+- **Guide camera**: the frames come from the Sidralune guider's loop, started when it is not running (and stopped again when the page started it). Not while PHD2 is connected. The Guiding tab's **Stop** ends the loop, and the alignment with it.
 
-The camera can't be changed while frames are being taken.
+An alignment reads its settings (the camera, **Exposure (s)**, **Binning**, **RA step**, **The mount turns itself**, **Mirrored**) when it starts, as the rest of Sidralune does: they stay editable while it runs, and a change is for the next start. When its frames stop (stopped elsewhere, or the camera failed), the page says so.
 
 ### Static polar alignment
 
@@ -510,7 +512,7 @@ Fast, near the pole, with either camera:
 1. Point near the celestial pole (a degree or two away is fine). Plate solving must work there: the star catalogue must cover the camera's field.
 2. Click **Start alignment**. Sidralune takes a frame, turns RA about 15° (**RA step**) west, takes another, turns again and takes a third, and plate-solves each. Without **The mount turns itself**, turn RA by hand (or with the hand controller) between the frames and click **Next frame**.
 3. A point fixed to the camera turns about the mount's axis, so the three frames give the axis; the plate solution places the refracted celestial pole. The frame shows the **Mount axis** (a cross), the **Pole** (a circle) and a star with its **Target** circle: correcting the alignment moves every star the way the pole must move to reach the axis.
-4. Turn the altitude and azimuth adjusters until the star is in its circle. The page follows the star in each new frame and says how far it still has to go. **Stop** ends following it, and the frames.
+4. Turn the altitude and azimuth adjusters until the star is in its circle. The page follows the star in each new frame and says how far it still has to go. The alignment runs until you click **Stop**, which ends following the star, and the frames; **Start alignment** stays greyed out until then. Clicked while the mount turns, **Stop** stops the mount too.
 
 The errors are shown too, with the advice. If the axis is outside the frame (a large error), the target may be too; turn the adjusters roughly first and start again.
 
@@ -521,7 +523,7 @@ Near the pole, with no calibration and no plate solving:
 1. Point near the celestial pole and click **Follow a star**. Sidralune chooses the brightest star that is not saturated and follows it while the mount only tracks.
 2. With a misaligned axis the stars drift slowly, at right angles to the error, at a rate set by its size. The page shows the error and its uncertainty as they settle (give it a few minutes for small errors).
 3. Click **Stop**: measuring ends, and a circle shows where the star must go. The star is still followed.
-4. Move the star into its circle with the altitude and azimuth adjusters, then click **Stop** again to end following it, and the frames.
+4. Move the star into its circle with the altitude and azimuth adjusters, then click **Stop** again to end following it, and the frames. **Follow a star** stays greyed out until then.
 
 Which way the error lies depends on whether the camera sees a mirror image (an off-axis guider's prism or a diagonal mirrors it). For the guide camera with a guider calibration this is known; otherwise, tick **Mirrored** if your image is mirrored.
 

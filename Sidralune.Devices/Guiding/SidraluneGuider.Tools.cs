@@ -237,6 +237,7 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         public async Task<ManualPulseResult> ManualPulse(GuideDirection dir, int ms, CancellationToken ct)
         {
+            CheckNotHeld();
             if (!IsRunning) throw new InvalidOperationException(Lang.T("Click Loop first, so the pulse's effect can be seen."));
             if (_phase != Phase.Watching) throw new InvalidOperationException(Lang.T("Manual pulses are for looping, not while calibrating or guiding."));
             var pulser = new GuidePulser(_dm, Settings.Output);
@@ -272,6 +273,8 @@ namespace Sidralune.Devices.Guiding
         // ------------------------------------------------------------------ dark frames
 
         private volatile bool _building;
+        /// <summary>The guide camera is taking dark frames or a single frame: the guider cannot loop or guide until it ends.</summary>
+        public bool CameraInUse => _building;
 
         /// <summary>
         /// Takes a dark library: framesEach dark frames at each exposure, combined into master darks. The guide scope must

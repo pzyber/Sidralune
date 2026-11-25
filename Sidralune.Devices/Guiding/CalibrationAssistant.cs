@@ -83,6 +83,7 @@ namespace Sidralune.Devices.Guiding
         {
             var tel = _dm.Telescope;
             if (tel == null || !tel.Connected) throw new InvalidOperationException(Lang.T("No telescope connected."));
+            _g.CheckNotHeld(); // before it stops the loop and slews
             if (double.IsNaN(TargetHaHours) || double.IsNaN(TargetDecDeg)) Propose();
             StartRa = tel.RightAscension; StartDec = tel.Declination;
             _g.StopGuiding();

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Sidralune.Core.Mathematics;
@@ -42,6 +43,25 @@ namespace Sidralune.UI
         public event Action<string[]> FilesDropped;
         public Func<double, double, string> ExtraReadout;
         private int _renderVersion;
+
+        // Renders run on worker threads and write into locked bitmaps, through Windows' colour system too. When the
+        // program ends (or a test host unloads it) what they write into is torn down even under a render still running,
+        // and the write faults. So ending waits for the renders running (each stops at its next strip), and none starts
+        // after that.
+        private static int _rendering, _ending;
+        internal static bool Ending => Volatile.Read(ref _ending) != 0;
+
+        static ImageViewer()
+        {
+            EventHandler end = (s, e) =>
+            {
+                Interlocked.Exchange(ref _ending, 1);
+                var until = DateTime.UtcNow.AddSeconds(1.5);
+                while (Volatile.Read(ref _rendering) > 0 && DateTime.UtcNow < until) Thread.Sleep(5);
+            };
+            AppDomain.CurrentDomain.ProcessExit += end;
+            AppDomain.CurrentDomain.DomainUnload += end;
+        }
 
         public ImageViewer()
         {
@@ -237,8 +257,9 @@ namespace Sidralune.UI
                 Gamut = _gamut, WarningColor = ColorSettings.GamutWarningColor
             } : null;
             string device = monitor?.Device;
-            Task.Run(() =>
+            Action draw = () =>
             {
+                if (Ending) return;
                 HistogramTransform[] t = null;
                 if (stretch == DisplayStretch.AutoLinked) t = StretchOps.AutoStretch(img, true);
                 else if (stretch == DisplayStretch.AutoUnlinked) t = StretchOps.AutoStretch(img, false);
@@ -266,6 +287,7 @@ namespace Sidralune.UI
                     try { bmp = render.Draw(shown, tf); }
                     catch (Exception ex) { LogOnce("Colour management is off for this image: " + ex.Message); }
                 }
+                if (Ending) return; // the program is ending: nothing more is drawn
                 if (bmp == null) bmp = fc && shown.Channels == 1 ? FalseColorBitmap(shown, tf) : BitmapIO.ToBitmap(shown, tf);
                 if (night) NightTint(bmp);
                 if (IsDisposed) { bmp.Dispose(); return; }
@@ -284,6 +306,13 @@ namespace Sidralune.UI
                     }));
                 }
                 catch { bmp.Dispose(); }
+            };
+            Task.Run(() =>
+            {
+                // counted before Ending is looked at, so ending either waits for this render or it does not start
+                Interlocked.Increment(ref _rendering);
+                try { draw(); }
+                finally { Interlocked.Decrement(ref _rendering); }
             });
         }
 
@@ -336,7 +365,7 @@ namespace Sidralune.UI
                         {
                             const int strip = 32;
                             var buf = new ushort[w * strip * 3];
-                            for (int y = y0; y < y1; y += strip)
+                            for (int y = y0; y < y1 && !Ending; y += strip)
                             {
                                 int rows = Math.Min(strip, y1 - y);
                                 for (int r = 0; r < rows; r++)

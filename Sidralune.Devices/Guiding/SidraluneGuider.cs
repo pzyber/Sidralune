@@ -365,8 +365,37 @@ namespace Sidralune.Devices.Guiding
             UpdateState();
         }
 
+        /// <summary>
+        /// What holds guiding back (null when nothing does): a polar alignment that needs the mount only tracking. Until it
+        /// is released, starting guiding or calibrating and manual pulses are refused, whoever asks (the Guiding tab, a
+        /// sequence, a program through the PHD2-compatible server). Frames can still be taken.
+        /// </summary>
+        public string GuidingHeldBy => _heldBy;
+        private volatile string _heldBy;
+
+        /// <summary>Holds guiding back for something that needs the mount only tracking; refused while guiding or calibrating.</summary>
+        public void HoldGuiding(string who)
+        {
+            if (InGuidingPhase || IsCalibrating) throw new InvalidOperationException(Lang.T("Stop guiding first: the mount only tracks for this method."));
+            _heldBy = who;
+        }
+
+        /// <summary>Lets guiding start again, when it was held for this.</summary>
+        public void ReleaseGuiding(string who)
+        {
+            if (_heldBy == who) _heldBy = null;
+        }
+
+        /// <summary>Throws when guiding is held back.</summary>
+        internal void CheckNotHeld()
+        {
+            var h = _heldBy;
+            if (h != null) throw new InvalidOperationException(Lang.T("{0}. Stop it first.", Lang.T("{0} is running and needs the mount only tracking", h)));
+        }
+
         public async Task StartGuiding(bool recalibrate, CancellationToken ct)
         {
+            CheckNotHeld();
             var problem = new GuidePulser(_dm, Settings.Output).Problem();
             if (problem != null) throw new InvalidOperationException(problem);
             Loop();

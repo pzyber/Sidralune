@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using Sidralune.Devices;
@@ -19,6 +21,32 @@ namespace Sidralune.Views
     public partial class ObservatoryView
     {
         private ComboBox _polarMethod;
+        // the polar alignment methods, each giving its name while it runs: one runs at a time, and nothing else that moves
+        // the mount or guides starts meanwhile
+        private readonly List<Func<string>> _polarRunning = new List<Func<string>>();
+
+        /// <summary>The polar alignment running now (other than one), or null.</summary>
+        private string PolarBusyReason(string except = null) => _polarRunning.Select(f => f()).FirstOrDefault(n => n != null && n != except);
+
+        /// <summary>What moves the mount now (a sequence, centring, a polar alignment), or null.</summary>
+        private string MountBusyReason(string except = null)
+        {
+            if (SequenceActive) return T("Sequence");
+            if (_cameraJob != null && !_cameraJob.Done && _cameraJobMovesMount && _cameraJobName != except) return _cameraJobName;
+            return PolarBusyReason(except);
+        }
+
+        private static bool Refuse(string busy)
+        {
+            if (busy != null) MainForm.Instance.Toast(T("{0}. Stop it first.", T("{0} is running", busy)), Icons.Info);
+            return busy != null;
+        }
+
+        /// <summary>Whether no polar alignment (other than one) runs, saying which does.</summary>
+        private bool PolarFree(string except = null) => !Refuse(PolarBusyReason(except));
+
+        /// <summary>Whether nothing (other than one) moves the mount, saying what does.</summary>
+        private bool MountFree(string except = null) => !Refuse(MountBusyReason(except));
 
         private Control BuildPolar()
         {
@@ -54,22 +82,24 @@ namespace Sidralune.Views
             var go = new FlatButton(T("Start polar alignment"), Icons.Target) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
             var stop = new FlatButton(T("Stop"), Icons.Stop) { Kind = ButtonKind.Danger, Enabled = false }; stop.AutoSizeToText();
             Func<bool> running = () => _cameraJob != null && !_cameraJob.Done && _cameraJobName == T("Polar alignment");
+            _polarRunning.Add(() => running() ? T("Polar alignment") : null);
             stop.Click += (s, e) => { if (running()) _cameraJob.Cts.Cancel(); };
             Poll += () => stop.Enabled = running();
             go.Click += (s, e) =>
             {
-                if (!Have(Dm.Telescope, NoTelescope) || !Have(Dm.Camera, NoCamera) || !CanUseCamera() || !PointingFits(false)) return;
+                if (!Have(Dm.Telescope, NoTelescope) || !Have(Dm.Camera, NoCamera) || !CanUseCamera() || !MountFree(T("Polar alignment")) || !PointingFits(false)) return;
                 var pa = new PolarAlignment { Capture = _capture, StepDeg = (double)step.Value, Exposure = (double)exp.Value };
                 pa.Status += st => MainForm.Instance.SetStatus(st);
                 RunCameraJob(T("Polar alignment"), t =>
                 {
                     var r = pa.Run(t.Cts.Token).GetAwaiter().GetResult();
                     MainForm.Instance.Post(() => res.Text = AlignmentText(r));
-                });
+                }, movesMount: true);
             };
             g.Full(Ui.Hint(T("Point the mount near the celestial equator/meridian with clear sky to the west or east. Sidralune rotates the RA axis three times, plate-solves each frame, finds the mount's rotation axis and reports how far it is from the refracted celestial pole. Works without a view of Polaris.")));
             g.Full(ButtonRow(go, stop));
-            _cameraButtons.Add(Tuple.Create((Control)go, false));
+            CameraButton(go);
+            Availability.When(go, () => MountBusyReason(T("Polar alignment")) == null);
             g.Full(res);
             card.Controls.Add(g);
             return card;
@@ -113,6 +143,13 @@ namespace Sidralune.Views
             public CameraFrames Camera;
             public GuiderFrames Guider;
             public string JobName;
+            /// <summary>The alignment runs: its frames are wanted, and guiding is held back.</summary>
+            public bool Active;
+            /// <summary>The camera the running alignment uses: chosen when it started, whatever is chosen meanwhile.</summary>
+            public bool RunningImaging;
+            /// <summary>The camera used now: the running alignment's, else the one chosen.</summary>
+            public bool UsesImaging => Active ? RunningImaging : Imaging;
+            public AlignmentFrames UsedFrames => UsesImaging ? (AlignmentFrames)Camera : Guider;
             /// <summary>The camera was chosen by hand (else the imaging camera when one is connected, the guide camera otherwise).</summary>
             public bool UserChose;
             /// <summary>Raised when the choice changes: what the page made with the other source is dropped.</summary>
@@ -144,7 +181,7 @@ namespace Sidralune.Views
         /// <summary>The imaging camera when one is connected, else the guide camera, until one is chosen by hand.</summary>
         private void DefaultPolarSource(PolarSource src)
         {
-            if (src.UserChose || PolarFramesRunning(src)) return;
+            if (src.UserChose || src.Active) return;
             int want = Dm.Camera != null || Dm.GuideCamera == null ? 0 : 1;
             if (src.Choice.SelectedIndex != want) src.Choice.SelectedIndex = want;
         }
@@ -152,31 +189,93 @@ namespace Sidralune.Views
         private bool PolarFramesRunning(PolarSource src) => _cameraJob != null && !_cameraJob.Done && _cameraJobName == src.JobName;
 
         /// <summary>Whether frames are coming from the chosen camera.</summary>
-        private bool PolarFramesComing(PolarSource src) => src.Imaging ? PolarFramesRunning(src) : Dm.BuiltinGuider.IsRunning;
+        private bool PolarFramesComing(PolarSource src) => src.UsesImaging ? PolarFramesRunning(src) : Dm.BuiltinGuider.IsRunning;
 
         /// <summary>Whether the chosen camera can be used now, saying why not.</summary>
-        private bool PolarSourceFree(PolarSource src)
+        private bool PolarSourceFree(PolarSource src) => src.Imaging ? Have(Dm.Camera, NoCamera) && CanUseCamera() : GuideCameraFree();
+
+        /// <summary>Guiding or calibrating now, with the Sidralune guider or PHD2.</summary>
+        private bool GuidingNow()
         {
-            if (!src.Imaging) return GuideCameraFree();
-            if (PolarFramesRunning(src)) return true;
-            return Have(Dm.Camera, NoCamera) && CanUseCamera();
+            var b = Dm.BuiltinGuider;
+            bool guiding = b.InGuidingPhase || b.IsCalibrating;
+            if (Dm.Phd2Connected) try { guiding |= Dm.Guider.IsGuiding; } catch { }
+            return guiding;
         }
 
-        /// <summary>Starts the imaging camera's frames, when they are not coming already (the guider's loop starts itself).</summary>
-        private void StartPolarFrames(PolarSource src)
+        /// <summary>Whether the mount only tracks: no guiding or calibrating, with the Sidralune guider or PHD2.</summary>
+        private bool MountOnlyTracks()
         {
-            if (!src.Imaging || PolarFramesRunning(src)) return;
-            var cf = src.Camera;
-            cf.Exposure = (double)src.Exposure.Value;
-            cf.Bin = (int)src.Bin.Value;
-            RunCameraJob(src.JobName, t => cf.Run(t.Cts.Token).GetAwaiter().GetResult());
+            bool guiding = GuidingNow();
+            if (guiding) MainForm.Instance.Toast(T("Stop guiding first: the mount only tracks for this method."), Icons.Warning);
+            return !guiding;
         }
 
-        /// <summary>Ends the frames the page started: the imaging camera's, or the guider's loop when it was started here.</summary>
-        private void StopPolarFrames(PolarSource src)
+        /// <summary>
+        /// Whether a static or polar drift alignment could start now: nothing else moves the mount or guides, and the chosen
+        /// camera is free. Its button is greyed out otherwise. A camera not connected is said when it is clicked.
+        /// </summary>
+        private bool PolarCanStart(PolarSource src)
         {
+            if (src.Active) return true;
+            if (MountBusyReason(src.JobName) != null || GuidingNow()) return false;
+            return src.Imaging ? CameraBusyReason() == null : !Dm.Phd2Connected && !Dm.BuiltinGuider.CameraInUse;
+        }
+
+        /// <summary>
+        /// Starts a static or polar drift alignment: its frames (the imaging camera's as a camera job, or the guider's
+        /// loop), with guiding held back meanwhile, as the mount must only track. False, saying why, when it cannot start.
+        /// </summary>
+        private bool BeginPolarFrames(PolarSource src)
+        {
+            if (src.Active) return true;
+            if (!MountFree(src.JobName) || !PolarSourceFree(src) || !MountOnlyTracks()) return false;
+            try
+            {
+                Dm.BuiltinGuider.HoldGuiding(src.JobName);
+                if (src.Imaging)
+                {
+                    var cf = src.Camera;
+                    cf.Exposure = (double)src.Exposure.Value;
+                    cf.Bin = (int)src.Bin.Value;
+                    RunCameraJob(src.JobName, t => cf.Run(t.Cts.Token).GetAwaiter().GetResult());
+                }
+                else src.Guider.Ensure();
+            }
+            catch (Exception ex)
+            {
+                src.Guider.StopIfStarted();
+                Dm.BuiltinGuider.ReleaseGuiding(src.JobName);
+                MainForm.Instance.Toast(ex.Message, Icons.Warning);
+                return false;
+            }
+            src.RunningImaging = src.Imaging;
+            src.Active = true;
+            Availability.Sync();
+            return true;
+        }
+
+        /// <summary>Ends a static or polar drift alignment's frames (the guider's loop only when it was started for them), and guiding may start again.</summary>
+        private void EndPolarFrames(PolarSource src)
+        {
+            if (!src.Active) return;
+            src.Active = false;
             if (PolarFramesRunning(src)) _cameraJob.Cts.Cancel();
             src.Guider.StopIfStarted();
+            Dm.BuiltinGuider.ReleaseGuiding(src.JobName);
+            Availability.Sync();
+            // another camera was chosen meanwhile: it is the one shown now, and what was measured no longer fits it
+            if (src.Imaging != src.RunningImaging) src.RaiseChanged();
+        }
+
+        /// <summary>Calls ended when the page's frames stop coming while it runs (stopped on a camera tab or the Guiding tab, or failed).</summary>
+        private void WhenPolarFramesStop(PolarSource src, Action ended)
+        {
+            // posted at once, so it comes before what the stop makes fail (the alignment waiting for a frame)
+            src.Camera.Stopped += () => MainForm.Instance.Post(() => { if (src.Active && src.UsesImaging) ended(); });
+            src.Guider.Stopped += () => MainForm.Instance.Post(() => { if (src.Active && !src.UsesImaging) ended(); });
+            // and should a stop go unannounced
+            Poll += () => { if (src.Active && !PolarFramesComing(src)) ended(); };
         }
 
         /// <summary>The chosen camera's frames, with an overlay, shown while the page is.</summary>
@@ -190,16 +289,16 @@ namespace Sidralune.Views
             Action show = () =>
             {
                 Interlocked.Exchange(ref posted, 0);
-                viewer.EmptyText = src.Imaging ? T("Frames show here. Connect a camera in Observatory → Equipment.") : T("Guide frames show here. Connect a guide camera in Observatory → Equipment.");
-                var f = src.Imaging ? lastCamera : Dm.Phd2Connected ? null : Dm.BuiltinGuider.LastFrame;
+                viewer.EmptyText = src.UsesImaging ? T("Frames show here. Connect a camera in Observatory → Equipment.") : T("Guide frames show here. Connect a guide camera in Observatory → Equipment.");
+                var f = src.UsesImaging ? lastCamera : Dm.Phd2Connected ? null : Dm.BuiltinGuider.LastFrame;
                 if (!page.Visible) return;
                 if (f == null) { if (viewer.Image != null) viewer.SetImage(null); else viewer.Invalidate(); return; }
                 bool fit = viewer.Image == null || viewer.Image.Width != f.Width || viewer.Image.Height != f.Height;
                 viewer.SetImage(f, fit);
             };
             Action post = () => { if (Interlocked.Exchange(ref posted, 1) == 0) MainForm.Instance.Post(show); };
-            Dm.BuiltinGuider.FrameReady += f => { if (!src.Imaging) post(); };
-            src.Camera.FrameReady += f => { lastCamera = f; if (src.Imaging) post(); };
+            Dm.BuiltinGuider.FrameReady += f => { if (!src.UsesImaging) post(); };
+            src.Camera.FrameReady += f => { lastCamera = f; if (src.UsesImaging) post(); };
             src.Changed += show;
             page.VisibleChanged += (s, e) => { if (page.Visible) show(); };
             show();
@@ -252,14 +351,14 @@ namespace Sidralune.Views
             bool startedGuiding = false;
             start.Click += (s, e) =>
             {
-                if (!GuideCameraFree(true) || !Have(Dm.Telescope, NoTelescope) || !PointingFits(false)) return;
+                if (!MountFree(T("Drift alignment")) || !GuideCameraFree(true) || !Have(Dm.Telescope, NoTelescope) || !PointingFits(false)) return;
                 var gd = Dm.BuiltinGuider;
                 // guiding first, when it is not on yet
                 startedGuiding = !gd.InGuidingPhase;
                 job.Run(T("Drift alignment"), t =>
                 {
                     if (!gd.InGuidingPhase) gd.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult();
-                }, () => Try(() => get().Start()));
+                }, () => { Try(() => get().Start()); Availability.Sync(); });
             };
             // Stop follows what is going on: while guiding starts, it cancels that (and guiding, when this page started
             // it); while measuring, it ends the measurement and shows the error, and guiding goes on for the next one
@@ -275,9 +374,12 @@ namespace Sidralune.Views
                 var m = get().Stop();
                 live.Text = m == null || double.IsNaN(m.ErrorArcmin) ? T("Too short to tell: measure for a minute or two.") : "";
                 showResult();
+                Availability.Sync();
             });
-            over.Click += (s, e) => { get().Cancel(); get().Forget(); live.Text = ""; showResult(); };
+            over.Click += (s, e) => { get().Cancel(); get().Forget(); live.Text = ""; showResult(); Availability.Sync(); };
+            _polarRunning.Add(() => job.Busy || get().Measuring ? T("Drift alignment") : null);
             job.Guard(start, over);
+            Availability.When(start, () => !get().Measuring && !Dm.Phd2Connected && !Dm.BuiltinGuider.CameraInUse && MountBusyReason(T("Drift alignment")) == null);
             Poll += () =>
             {
                 if (!page.Visible) return;
@@ -294,7 +396,6 @@ namespace Sidralune.Views
                     live.Text = c.Frames < 5 ? T("Measuring… {0} frames so far.", c.Frames)
                         : T("{0:0} s: Dec drift {1:+0.00;-0.00}″/min ± {2:0.00}", c.Seconds, c.DriftArcsecPerMin, c.UncertaintyArcsecPerMin) + error;
                 }
-                start.Enabled = !d.Measuring && !job.Busy && !Dm.Phd2Connected;
                 stop.Enabled = d.Measuring || job.Busy;
             };
             return card;
@@ -324,12 +425,27 @@ namespace Sidralune.Views
             Func<StaticPolarAlignment> get = () =>
             {
                 if (sa != null) return sa;
-                sa = new StaticPolarAlignment(src.Frames, Dm);
+                sa = new StaticPolarAlignment(src.UsedFrames, Dm);
                 sa.Status += m => MainForm.Instance.Post(() => status.Text = m);
                 return sa;
             };
             // another camera: what was measured with the other one no longer fits
-            src.Changed += () => { if (sa != null) { sa.StopTracking(); sa = null; } status.Text = res.Text = ""; };
+            // (a change while it runs is for the next alignment: the running one keeps its camera)
+            src.Changed += () => { if (src.Active) return; if (sa != null) { sa.StopTracking(); sa = null; } status.Text = res.Text = ""; };
+            // the settings the running alignment started with
+            bool byHand = false;
+            double stepUsed = 15;
+            var job = new JobSlot();
+            // the alignment ends: stopped, failed, done, or its frames stopped elsewhere
+            Action<string> end = why =>
+            {
+                job.Cancel();
+                sa?.StopTracking();
+                EndPolarFrames(src);
+                if (why != null) status.Text = why;
+            };
+            _polarRunning.Add(() => src.Active ? T("Static polar alignment") : null);
+            WhenPolarFramesStop(src, () => end(T("The frames stopped, so the alignment was stopped.")));
             var viewer = PolarFrameViewer(page, src, (gr, toScreen) =>
             {
                 var r = sa?.Result;
@@ -350,7 +466,6 @@ namespace Sidralune.Views
                     using (var pen = new Pen(p.Success, 1.5f)) Circle(gr, pen, star, 7);
                 }
             });
-            var job = new JobSlot();
             Action finish = () =>
             {
                 var r = get().Result;
@@ -358,29 +473,34 @@ namespace Sidralune.Views
                 res.Text = AlignmentText(r);
                 get().StartTracking();
                 viewer.Invalidate();
+                Availability.Sync();
             };
             go.Click += (s, e) =>
             {
-                if (!PolarSourceFree(src) || !PointingFits(true)) return;
+                // the camera first, then the mount
+                if (!PolarSourceFree(src)) return;
+                if (!PointingFits(true)) return;
                 if (auto.Checked && !Have(Dm.Telescope, NoTelescope)) return;
+                if (!BeginPolarFrames(src)) return;
+                // the settings are read now: changing them while it runs is for the next alignment
+                sa?.StopTracking();
+                sa = null;
                 var a = get();
-                a.StopTracking();
-                a.StepDeg = (double)step.Value;
+                byHand = !auto.Checked;
+                a.StepDeg = stepUsed = (double)step.Value;
                 res.Text = "";
-                StartPolarFrames(src);
-                if (auto.Checked) job.Run(T("Static polar alignment"), t => a.RunAutomatic(t.Cts.Token).GetAwaiter().GetResult(), finish);
+                if (!byHand) job.Run(T("Static polar alignment"), t => a.RunAutomatic(t.Cts.Token).GetAwaiter().GetResult(), finish);
                 else
                 {
                     a.Reset();
                     job.Run(T("Static polar alignment"), t => a.AddFrame(t.Cts.Token).GetAwaiter().GetResult(),
-                        () => status.Text = T("Turn RA about {0:0}° west, then click Next frame.", step.Value));
+                        () => status.Text = T("Turn RA about {0:0}° west, then click Next frame.", stepUsed));
                 }
             };
             next.Click += (s, e) =>
             {
-                if (!PolarSourceFree(src)) return;
+                if (!BeginPolarFrames(src)) return;
                 var a = get();
-                StartPolarFrames(src);
                 job.Run(T("Static polar alignment"), t =>
                 {
                     a.AddFrame(t.Cts.Token).GetAwaiter().GetResult();
@@ -388,23 +508,25 @@ namespace Sidralune.Views
                 }, () =>
                 {
                     if (a.Frames >= 3) finish();
-                    else status.Text = T("Turn RA about {0:0}° west, then click Next frame.", step.Value);
+                    else status.Text = T("Turn RA about {0:0}° west, then click Next frame.", stepUsed);
                 });
             };
-            stop.Click += (s, e) => { job.Cancel(); get().StopTracking(); StopPolarFrames(src); status.Text = ""; };
-            job.Guard(go, next, step, auto, src.Choice, src.Exposure, src.Bin);
+            stop.Click += (s, e) => { end(null); status.Text = ""; };
+            job.Guard(go, next);
+            // greyed out while they cannot be used: something else moves the mount, guides or uses the camera
+            // while it runs (following the star too, and between frames turned by hand) Stop ends it first
+            Availability.When(go, () => !src.Active && PolarCanStart(src));
+            Availability.When(stop, () => job.Busy || src.Active);
+            Availability.When(next, () => { var a = get(); return a.Frames > 0 && a.Frames < 3 && !a.Tracking && PolarCanStart(src); });
             Poll += () =>
             {
                 var a = get();
-                // the frames end with the alignment: when it failed or was stopped, and when the star is no longer followed
-                if (!job.Busy && !a.Tracking && (a.Frames == 0 || a.Frames >= 3) && (PolarFramesRunning(src) || src.Guider.StartedLoop)) StopPolarFrames(src);
+                // the alignment ended by itself: it failed or was stopped, or the star is no longer followed (between the
+                // frames turned by hand it goes on)
+                if (src.Active && !job.Busy && !a.Tracking && (a.Frames == 0 || a.Frames >= 3)) end(null);
                 if (!page.Visible) return;
                 DefaultPolarSource(src);
-                bool coming = PolarFramesRunning(src);
-                src.Choice.Enabled = src.Exposure.Enabled = src.Bin.Enabled = !job.Busy && !a.Tracking && !coming;
-                next.Visible = !auto.Checked;
-                next.Enabled = !job.Busy && a.Frames > 0 && a.Frames < 3 && !a.Tracking;
-                stop.Enabled = job.Busy || a.Tracking || coming;
+                next.Visible = src.Active ? byHand : !auto.Checked;
                 if (a.Tracking)
                 {
                     double left = a.RemainingArcmin;
@@ -438,9 +560,18 @@ namespace Sidralune.Views
             card.Controls.Add(g);
 
             PolarDriftAlignment pd = null;
-            Func<PolarDriftAlignment> get = () => pd ?? (pd = new PolarDriftAlignment(src.Frames, Dm));
+            Func<PolarDriftAlignment> get = () => pd ?? (pd = new PolarDriftAlignment(src.UsedFrames, Dm));
             PolarDriftResult shown = null;
-            src.Changed += () => { if (pd != null) { pd.Cancel(); pd = null; } shown = null; live.Text = res.Text = ""; };
+            // (a change while it runs is for the next alignment: the running one keeps its camera)
+            src.Changed += () => { if (src.Active) return; if (pd != null) { pd.Cancel(); pd = null; } shown = null; live.Text = res.Text = ""; };
+            // following ends: stopped, or its frames stopped elsewhere
+            Action<string> end = why =>
+            {
+                pd?.Cancel();
+                EndPolarFrames(src);
+                if (why != null) live.Text = why;
+            };
+            _polarRunning.Add(() => src.Active ? T("Polar drift alignment") : null);
             var viewer = PolarFrameViewer(page, src, (gr, toScreen) =>
             {
                 var p = Theme.Current;
@@ -457,37 +588,46 @@ namespace Sidralune.Views
             });
             start.Click += (s, e) =>
             {
-                if (!PolarSourceFree(src) || !PointingFits(true)) return;
-                Try(() => { shown = null; res.Text = ""; StartPolarFrames(src); get().Start(); });
+                if (!PointingFits(true) || !BeginPolarFrames(src)) return;
+                // the settings are read now: changing them while it runs is for the next alignment
+                pd?.Cancel();
+                pd = null;
+                var fromCal = src.Imaging ? null : PolarDriftAlignment.MirroredFromCalibration(Dm.BuiltinGuider);
+                get().Mirrored = fromCal ?? mirrored.Checked;
+                try { shown = null; res.Text = ""; get().Start(); }
+                catch (Exception ex) { end(null); MainForm.Instance.Toast(ex.Message, Icons.Warning); }
+                Availability.Sync();
             };
             // Stop follows what is going on: while measuring, it ends the measurement and shows the target (the star is
             // still followed, to move it into its circle); after that, it stops following and the frames
             stop.Click += (s, e) =>
             {
                 var a = get();
-                if (!a.Measuring) { a.Cancel(); StopPolarFrames(src); live.Text = ""; viewer.Invalidate(); return; }
+                if (!a.Measuring) { end(""); viewer.Invalidate(); return; }
                 var r = a.Stop();
-                if (r == null || double.IsNaN(r.ErrorArcmin)) { a.Cancel(); StopPolarFrames(src); live.Text = T("Too short to tell: follow the star for a minute or two."); return; }
+                if (r == null || double.IsNaN(r.ErrorArcmin)) { end(T("Too short to tell: follow the star for a minute or two.")); return; }
                 shown = r;
                 live.Text = "";
                 res.Text = T("Polar alignment error {0:0.0}′ ± {1:0.0}′", r.ErrorArcmin, r.UncertaintyArcmin) + "\r\n" + T("Move the star into its circle with the altitude and azimuth knobs.");
                 viewer.Invalidate();
+                Availability.Sync(); // Follow a star again
             };
-            bool loading = false;
-            mirrored.CheckedChanged += (s, e) => { if (!loading) get().Mirrored = mirrored.Checked; };
+            WhenPolarFramesStop(src, () => { end(T("The frames stopped, so the alignment was stopped.")); viewer.Invalidate(); });
+            // greyed out while it cannot start: running already (following the star after the target is shown too; Stop
+            // ends it first), or something else moves the mount, guides or uses the camera
+            Availability.When(start, () => !src.Active && (src.Imaging || !Dm.Phd2Connected) && PolarCanStart(src));
+            Availability.When(stop, () => src.Active);
             Poll += () =>
             {
                 var a = get();
-                // the frames ended elsewhere (the camera tabs' Stop, the guider stopped): nothing more to follow
-                if (a.Following && !PolarFramesComing(src)) { a.Cancel(); src.Guider.StopIfStarted(); live.Text = ""; }
+                // following ended by itself (its frames stopped): so does the alignment
+                if (src.Active && !a.Following) end(null);
                 if (!page.Visible) return;
                 DefaultPolarSource(src);
+                // for the next start: the running alignment keeps what it started with
                 var fromCal = src.Imaging ? null : PolarDriftAlignment.MirroredFromCalibration(Dm.BuiltinGuider);
-                loading = true;
-                if (fromCal != null) { mirrored.Checked = fromCal.Value; a.Mirrored = null; }
-                else a.Mirrored = mirrored.Checked;
-                loading = false;
-                mirrored.Enabled = fromCal == null && !a.Measuring;
+                if (fromCal != null) mirrored.Checked = fromCal.Value;
+                mirrored.Enabled = fromCal == null;
                 mirrorNote.Text = fromCal != null ? T("From the guider's calibration.")
                     : src.Imaging ? T("Say whether the camera sees a mirror image.") : T("Without a calibration, say whether the guide camera sees a mirror image.");
                 if (a.Measuring)
@@ -497,10 +637,7 @@ namespace Sidralune.Views
                         : T("{0:0} s: error {1:0.0}′ ± {2:0.0}′. Stop when it has settled.", c.Seconds, c.ErrorArcmin, c.UncertaintyArcmin);
                 }
                 if (a.Following) viewer.Invalidate();
-                bool coming = PolarFramesRunning(src);
-                src.Choice.Enabled = src.Exposure.Enabled = src.Bin.Enabled = !a.Following && !coming;
-                start.Enabled = !a.Measuring && (src.Imaging || !Dm.Phd2Connected);
-                stop.Enabled = a.Following || coming;
+
             };
             root.Controls.Add(viewer);
             root.Controls.Add(card);
