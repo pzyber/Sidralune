@@ -8,6 +8,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
 
 - [Supported equipment](#supported-equipment)
 - [Equipment tab](#equipment-tab)
+  - [Equipment profiles](#equipment-profiles)
   - [Connecting a device](#connecting-a-device)
   - [ASCOM](#ascom)
   - [ASCOM Alpaca](#ascom-alpaca)
@@ -71,16 +72,33 @@ The sequencer has its own page: [Sequencer](Sequencer).
 
 ## Equipment tab
 
-The tab has one row per device type. Each row has a list of available devices, **Connect** (which becomes **Disconnect**), **Setup…**, **ASCOM…** and a status message.
+At the top is the **Equipment profile** in use. Below it, the tab has one row per device type. Each row has a list of available devices, **Connect** (which becomes **Disconnect**), **Setup…**, **ASCOM…** and a status message.
 
-At the bottom:
+Above the rows:
 
 | Button | Action |
 |---|---|
+| **Connect all** | Connects the device the profile remembers in each row, one after another. A device that cannot connect does not stop the others; a message names those that failed. Available while the profile remembers a device that is not connected |
 | **Connect simulated observatory** | Connects a simulated mount, camera, guide camera, focuser, filter wheel, rotator, dome, weather station, switch box and flat panel in one go, guided by the Sidralune guider (PHD2 is disconnected first) |
 | **Discover Alpaca devices** | Searches the local network for Alpaca servers and adds their devices to the lists |
 | **Add INDI server…** | Connects to an INDI server and adds its devices to the lists |
 | **Disconnect all** | Disconnects every device. Available when at least one device is connected |
+
+### Equipment profiles
+
+A profile is one rig, so Sidralune needs no second program set up beside it. It holds:
+
+- the device connected in each row: connecting a device in its row makes it the profile's for that row, and **Connect all** connects them all again next time;
+- the imaging telescope and camera, chosen from the lists in [Settings → Equipment](Settings#equipment), so a telescope's focal length is entered in one place;
+- a **Reducer or Barlow (×)** in front of the imaging camera;
+- how the guide camera sees the sky (**Guides through**): **An off-axis guider** uses the imaging telescope's focal length, **A guide scope** its own (**Guide scope focal length (mm)**);
+- the Sidralune guider's own settings and calibration, which belong to the rig.
+
+The site is not part of a profile: the same rig goes to another site, and the site is chosen in [Settings → Location](Settings#location). The guider takes the focal length from the profile, the pixel size and binning from the camera, the guide rate and pier side from the mount, and the site from Settings.
+
+**New…** makes a profile from the one in use, with a copy of its guider settings in a file of its own; **Rename…** renames it and **Delete** removes it (the last one stays). Another profile is chosen while nothing is connected, since what is connected belongs to the rig in use; **New…** and **Delete** wait likewise. The rig's own details can change at any time and are used at once. Choosing another profile also makes its telescope and camera the planner's.
+
+The first time, Sidralune makes a profile called **My equipment** from what it knew: the planner's telescope and camera in use, and a guide scope of the focal length the guider had.
 
 ### Connecting a device
 
@@ -126,7 +144,7 @@ The simulators behave like real devices, so you can learn Sidralune, test sequen
 
 ### Optics
 
-The **Optics** card holds the **Imaging focal length (mm)** and **Aperture (mm)** of the imaging train. They are written into FITS headers and used as plate-solving hints, so set them to match your telescope including any reducer or flattener.
+The **Optics** card, under the rows, holds the profile's rig: **Telescope**, **Reducer or Barlow (×)**, **Camera**, **Guides through** and **Guide scope focal length (mm)**. It shows the resulting focal length, aperture and focal ratio. The imaging focal length and aperture are written into FITS headers and used as plate-solving hints.
 
 ## Imaging tab
 
@@ -329,7 +347,7 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Auto exposure | Off | The exposure follows the star's SNR between the shortest and longest exposure (1 and 5 s), aiming at the target SNR (10) |
 | Binning | 1 | |
 | Guide through | The mount | Or the guide camera's ST-4 port |
-| Guide scope focal length (mm) | 240 | For the pixel scale and the calibration step |
+| Focal length | From the profile | The guide scope's, or the imaging telescope's through an off-axis guider, set in the [equipment profile](#equipment-profiles); for the pixel scale and the calibration step |
 | Search box radius (px) | 15 | How far the star may move between frames |
 | Subframes | Off | See [Subframes and noise reduction](#subframes-and-noise-reduction) |
 | Noise reduction | None | Or 2×2 mean or 3×3 median |

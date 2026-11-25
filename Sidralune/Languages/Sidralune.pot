@@ -2545,6 +2545,86 @@ msgstr ""
 msgid "No guider connected."
 msgstr ""
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop the guider first."
+msgstr ""
+
+#: Sidralune/AppState.cs
+msgid "My equipment"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Focal length"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} mm, from the equipment profile (Observatory → Equipment)"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect all"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connecting the equipment"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Some devices could not connect: {0}"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The equipment is connected."
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the device remembered in each row for this profile"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New…"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename…"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Equipment profile"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Reducer or Barlow (×)"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guides through"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "An off-axis guider"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A guide scope"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A profile is a rig: the device connected in each row above, which Connect all connects again, the imaging telescope and camera from the lists in Settings → Equipment, and the guider's own settings and calibration. The site is chosen in Settings → Location."
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Focal length {0:0} mm, aperture {1:0} mm, f/{2:0.0}"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New profile"
+msgstr ""
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename profile"
+msgstr ""
+
 #: Sidralune/Views/ObservatoryView.Polar.cs
 msgid "{0} is running"
 msgstr ""
@@ -4267,14 +4347,6 @@ msgstr ""
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Disconnecting all devices"
-msgstr ""
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Imaging focal length (mm)"
-msgstr ""
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Aperture (mm)"
 msgstr ""
 
 #: Sidralune/Views/ObservatoryView.cs

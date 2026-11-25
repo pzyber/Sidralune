@@ -103,6 +103,7 @@ namespace Sidralune.Views
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
             var rowRefreshers = new List<Action>();
+            var combos = new Dictionary<DeviceKind, ComboBox>();
             var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.AdaptiveOptics, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator };
             foreach (var k in kinds)
             {
@@ -112,6 +113,7 @@ namespace Sidralune.Views
                 var combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill, Margin = new Padding(4, 6, 4, 4) };
                 foreach (var d in Dm.Discover(kind, false)) combo.Items.Add(d);
                 if (combo.Items.Count > 0) combo.SelectedIndex = 0;
+                combos[kind] = combo;
                 // sized for the longer label so switching between Connect and Disconnect never re-lays out the table
                 var connect = new FlatButton(T("Disconnect"), Icons.Connect) { Margin = new Padding(4, 4, 4, 4) }; connect.AutoSizeToText();
                 int connectWidth = connect.Width;
@@ -149,7 +151,14 @@ namespace Sidralune.Views
                     if (dev != null && dev.Connected) { job.Run(T("Disconnecting {0}", dev.Info.Name), t => Dm.Disconnect(kind)); return; }
                     var info = combo.SelectedItem as DeviceInfo;
                     if (info == null) return;
-                    job.Run(T("Connecting {0}", info.Name), t => Dm.Connect(info), () => { refresh(); MainForm.Instance.Toast(T("Connected {0}", info.Name)); });
+                    job.Run(T("Connecting {0}", info.Name), t => Dm.Connect(info), () =>
+                    {
+                        refresh();
+                        MainForm.Instance.Toast(T("Connected {0}", info.Name));
+                        // the rig's device for this kind, connected again with Connect all
+                        var p = AppState.Profile;
+                        if (p != null) { p.Remember(info); AppState.Save(); Availability.Sync(); }
+                    });
                 };
                 setup.Click += (s, e) =>
                 {
@@ -190,7 +199,22 @@ namespace Sidralune.Views
             Dm.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref refreshPending, 1) == 0) MainForm.Instance.Post(refreshAll); };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46 };
             var equipment = new JobSlot(); // connecting the simulators, discovery and disconnecting all: one at a time
-            var sim = new FlatButton(T("Connect simulated observatory"), Icons.Observatory, (s, e) => equipment.Run(T("Connecting simulators"), t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast(T("Simulated observatory ready")))) { Kind = ButtonKind.Primary }; sim.AutoSizeToText();
+            var connectAll = new FlatButton(T("Connect all"), Icons.Connect, (s, e) =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                var devices = p.Devices.ToList();
+                List<string> failed = null;
+                equipment.Run(T("Connecting the equipment"), t => failed = Dm.ConnectAll(devices), () =>
+                {
+                    if (failed != null && failed.Count > 0) MainForm.Instance.Toast(T("Some devices could not connect: {0}", string.Join("; ", failed)), Icons.Warning, Theme.Current.Danger);
+                    else MainForm.Instance.Toast(T("The equipment is connected."));
+                });
+            }) { Kind = ButtonKind.Primary, ToolTipText = T("Connect the device remembered in each row for this profile") };
+            connectAll.AutoSizeToText();
+            // available while the profile remembers a device that is not connected
+            Availability.When(connectAll, () => { var p = AppState.Profile; return p != null && p.Devices.Any(d => d.Kind != DeviceKind.Guider && (Dm.Get(d.Kind) == null || !Dm.Get(d.Kind).Connected)); });
+            var sim = new FlatButton(T("Connect simulated observatory"), Icons.Observatory, (s, e) => equipment.Run(T("Connecting simulators"), t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast(T("Simulated observatory ready")))); sim.AutoSizeToText();
             var alpaca = new FlatButton(T("Discover Alpaca devices"), Icons.Search, (s, e) => equipment.Run(T("Alpaca discovery"), t =>
             {
                 var servers = Devices.Alpaca.AlpacaDiscovery.FindServers(2000);
@@ -210,24 +234,164 @@ namespace Sidralune.Views
             })); alpaca.AutoSizeToText();
             var indi = new FlatButton(T("Add INDI server…"), Icons.Add, (s, e) => AddIndi(table, kinds)); indi.AutoSizeToText();
             var disc = new FlatButton(T("Disconnect all"), Icons.Stop, (s, e) => equipment.Run(T("Disconnecting all devices"), t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
-            bar.Controls.AddRange(new Control[] { sim, alpaca, indi, disc });
-            equipment.Guard(sim, alpaca);
+            bar.Controls.AddRange(new Control[] { connectAll, sim, alpaca, indi, disc });
+            equipment.Guard(connectAll, sim, alpaca);
             // Disconnect all needs something to disconnect, and waits for connecting, discovery or a disconnect running
             syncDisconnect = () => disc.Enabled = !equipment.Busy && Dm.All.Any();
             equipment.Changed += syncDisconnect;
             syncDisconnect();
-            var optics = new FormGrid(220);
-            var fl = optics.Row(T("Imaging focal length (mm)"), Ui.Num((decimal)Dm.FocalLengthMm, 10, 20000));
-            var ap = optics.Row(T("Aperture (mm)"), Ui.Num((decimal)Dm.ApertureMm, 10, 2000));
-            fl.ValueChanged += (s, e) => Dm.FocalLengthMm = (double)fl.Value;
-            ap.ValueChanged += (s, e) => Dm.ApertureMm = (double)ap.Value;
-            optics.Full(Ui.Hint(T("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi.")));
-            var card = new Card(T("Optics")) { Dock = DockStyle.Top, Height = 170 };
-            card.Controls.Add(optics);
-            panel.Controls.Add(card);
+            // each row shows the device the profile remembers for it
+            Action selectRemembered = () =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                foreach (var kv in combos)
+                {
+                    var r = p.DeviceFor(kv.Key);
+                    if (r == null) continue;
+                    var item = kv.Value.Items.OfType<DeviceInfo>().FirstOrDefault(d => d.Protocol == r.Protocol && d.Address == r.Address);
+                    if (item == null) { item = new DeviceInfo { Kind = kv.Key, Protocol = r.Protocol, Name = r.Name, Address = r.Address, Description = r.Description }; kv.Value.Items.Add(item); }
+                    kv.Value.SelectedItem = item;
+                }
+            };
+            selectRemembered();
+            AppState.ProfileChanged += (s, e) => MainForm.Instance.Post(selectRemembered);
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(Availability.Sync);
+            Control profileRow;
+            var opticsCard = BuildProfileCard(out profileRow);
+            panel.Controls.Add(opticsCard);
             panel.Controls.Add(table);
             panel.Controls.Add(bar);
+            panel.Controls.Add(profileRow);
             return panel;
+        }
+
+        /// <summary>
+        /// The equipment profile: the rig in use, its imaging telescope (from the planner's list) with any reducer or Barlow,
+        /// the camera the planner uses for it, and how the guide camera sees the sky. Another rig is chosen while nothing is
+        /// connected, since what is connected belongs to the rig in use; the rig's own details can change at any time.
+        /// </summary>
+        private Card BuildProfileCard(out Control profileRow)
+        {
+            // at the top of the tab: the rig in use decides what the rows below connect
+            var pick = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 260, Margin = new Padding(0, 8, 8, 0) };
+            var add = MakeButton(T("New…"), Icons.Add);
+            var rename = MakeButton(T("Rename…"), Icons.More);
+            var remove = MakeButton(T("Delete"), Icons.Remove); remove.Kind = ButtonKind.Danger;
+            var row = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46, WrapContents = false };
+            row.Controls.Add(new Label { Text = T("Equipment profile"), AutoSize = true, Margin = new Padding(0, 11, 10, 0), Font = Theme.UiFontBold });
+            foreach (var b in new Control[] { add, rename, remove }) b.Margin = new Padding(0, 4, 6, 0);
+            row.Controls.AddRange(new Control[] { pick, add, rename, remove });
+            profileRow = row;
+            // at the bottom, where the optics were: the rig's telescope, camera and guiding, at a width that reads well
+            var grid = new FormGrid(220);
+            var scope = grid.Row(T("Telescope"), new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList });
+            var factor = grid.Row(T("Reducer or Barlow (×)"), Ui.Num(1, 0.2m, 5, 2, 0.05m));
+            var optics = Note(true); optics.MaximumSize = new Size(0, 0); grid.Full(optics);
+            var camera = grid.Row(T("Camera"), new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList });
+            var through = grid.Row(T("Guides through"), Ui.Combo(T("An off-axis guider"), T("A guide scope")));
+            var guideFocal = grid.Row(T("Guide scope focal length (mm)"), Ui.Num(240, 20, 5000));
+            grid.Full(Ui.Hint(T("A profile is a rig: the device connected in each row above, which Connect all connects again, the imaging telescope and camera from the lists in Settings → Equipment, and the guider's own settings and calibration. The site is chosen in Settings → Location.")));
+            grid.Full(Ui.Hint(T("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi.")));
+
+            bool loading = false;
+            Action load = () =>
+            {
+                var s = AppState.Settings;
+                var p = AppState.Profile;
+                if (p == null) return;
+                loading = true;
+                try
+                {
+                    pick.Items.Clear();
+                    foreach (var q in s.Profiles) pick.Items.Add(AppState.NameOf(q));
+                    pick.SelectedIndex = Math.Max(0, Math.Min(s.ActiveProfile, pick.Items.Count - 1));
+                    var t = AppState.ProfileTelescope;
+                    scope.Items.Clear();
+                    foreach (var x in s.Telescopes) scope.Items.Add(x.Name);
+                    scope.SelectedIndex = s.Telescopes.IndexOf(t);
+                    camera.Items.Clear();
+                    foreach (var x in s.Cameras) camera.Items.Add(x.Name);
+                    camera.SelectedIndex = s.Cameras.IndexOf(AppState.ProfileCamera);
+                    factor.Value = Math.Max(factor.Minimum, Math.Min(factor.Maximum, (decimal)(p.FocalFactor > 0 ? p.FocalFactor : 1)));
+                    through.SelectedIndex = p.Guiding == GuideOptics.OffAxisGuider ? 0 : 1;
+                    guideFocal.Value = Math.Max(guideFocal.Minimum, Math.Min(guideFocal.Maximum, (decimal)p.GuideFocalLengthMm));
+                    ShowRow(grid, guideFocal, p.Guiding == GuideOptics.GuideScope);
+                    double fl = p.ImagingFocalLength(t.FocalMm);
+                    optics.Text = T("Focal length {0:0} mm, aperture {1:0} mm, f/{2:0.0}", fl, t.ApertureMm, t.ApertureMm > 0 ? fl / t.ApertureMm : 0);
+                }
+                finally { loading = false; }
+            };
+            // the rig's details are read where they are used: each change reaches the observatory and the guider at once
+            Action<Action<EquipmentProfile>> change = set =>
+            {
+                var p = AppState.Profile;
+                if (loading || p == null) return;
+                set(p);
+                AppState.Save();
+                AppState.ApplyProfile();
+            };
+            scope.SelectedIndexChanged += (s, e) => { if (scope.SelectedIndex >= 0) change(p => p.Telescope = AppState.Settings.Telescopes[scope.SelectedIndex].Name); };
+            camera.SelectedIndexChanged += (s, e) => { if (camera.SelectedIndex >= 0) change(p => p.Camera = AppState.Settings.Cameras[camera.SelectedIndex].Name); };
+            factor.ValueChanged += (s, e) => change(p => p.FocalFactor = (double)factor.Value);
+            through.SelectedIndexChanged += (s, e) => change(p => p.Guiding = through.SelectedIndex == 0 ? GuideOptics.OffAxisGuider : GuideOptics.GuideScope);
+            guideFocal.ValueChanged += (s, e) => change(p => p.GuideFocalLengthMm = (double)guideFocal.Value);
+            pick.SelectedIndexChanged += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                if (loading || pick.SelectedIndex < 0 || pick.SelectedIndex == s0.ActiveProfile) return;
+                s0.ActiveProfile = pick.SelectedIndex;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            add.Click += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                var p = AppState.Profile;
+                var name = PlannerView.Prompt(T("New profile"), T("Name"), AppState.NameOf(p) + " 2");
+                if (string.IsNullOrWhiteSpace(name) || p == null) return;
+                // the new rig starts with a copy of this one's guider settings, in a file of its own
+                var file = EquipmentProfile.NewGuiderFile(s0.Profiles);
+                try
+                {
+                    var from = System.IO.Path.Combine(Core.Util.AppPaths.Settings, p.GuiderFile);
+                    if (System.IO.File.Exists(from)) System.IO.File.Copy(from, System.IO.Path.Combine(Core.Util.AppPaths.Settings, file), true);
+                }
+                catch (Exception ex) { Core.Util.Log.Warn("Settings", ex.Message); }
+                s0.Profiles.Add(p.Copy(name.Trim(), file));
+                s0.ActiveProfile = s0.Profiles.Count - 1;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            rename.Click += (s, e) =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                var name = PlannerView.Prompt(T("Rename profile"), T("Name"), AppState.NameOf(p));
+                if (string.IsNullOrWhiteSpace(name)) return;
+                p.Name = name.Trim();
+                AppState.Save();
+                load();
+            };
+            remove.Click += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                if (s0.Profiles.Count < 2) return;
+                s0.Profiles.RemoveAt(Math.Max(0, Math.Min(s0.ActiveProfile, s0.Profiles.Count - 1)));
+                s0.ActiveProfile = 0;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            // another rig only while nothing is connected (what is connected is this rig's), and the last one stays
+            foreach (var c in new Control[] { pick, add }) Availability.When(c, () => !Dm.All.Any());
+            Availability.When(remove, () => !Dm.All.Any() && AppState.Settings.Profiles.Count > 1);
+            AppState.ProfileChanged += (s, e) => MainForm.Instance.Post(load);
+            load();
+            var card = new Card(T("Optics")) { Dock = DockStyle.Top, Height = 360 };
+            var holder = new Panel { Dock = DockStyle.Left, Width = 760 };
+            holder.Controls.Add(grid);
+            card.Controls.Add(holder);
+            return card;
         }
 
         private void AddIndi(TableLayoutPanel table, DeviceKind[] kinds)

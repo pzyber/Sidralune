@@ -161,9 +161,16 @@ namespace Sidralune.Views
                 list.SelectedIndex = Math.Min(Math.Max(0, sel), list.Items.Count - 1);
             };
             list.SelectedIndexChanged += (s, e) => { if (list.SelectedIndex >= 0) pg.SelectedObject = new GridAdapter(items[list.SelectedIndex], title); };
-            pg.PropertyValueChanged += (s, e) => { AppState.Save(); reload(); };
+            pg.PropertyValueChanged += (s, e) =>
+            {
+                if (e.ChangedItem?.PropertyDescriptor?.Name == "Name" && e.OldValue is string && list.SelectedIndex >= 0)
+                    AppState.RenamedInPlanner(items[list.SelectedIndex], (string)e.OldValue, Convert.ToString(e.ChangedItem.Value));
+                AppState.Save(); reload();
+                // the equipment profile's telescope may have changed (its focal length, its aperture)
+                AppState.ApplyProfile();
+            };
             add.Click += (s, e) => { items.Add(create()); reload(); list.SelectedIndex = items.Count - 1; AppState.Save(); };
-            del.Click += (s, e) => { if (items.Count > 1 && list.SelectedIndex >= 0) { items.RemoveAt(list.SelectedIndex); setActive(0); reload(); AppState.Save(); } };
+            del.Click += (s, e) => { if (items.Count > 1 && list.SelectedIndex >= 0) { items.RemoveAt(list.SelectedIndex); setActive(0); reload(); AppState.Save(); AppState.ApplyProfile(); } };
             act.Click += (s, e) => { if (list.SelectedIndex >= 0) { setActive(list.SelectedIndex); reload(); AppState.Save(); MainForm.Instance.Toast(T("{0}: active profile changed", title)); } };
             card.Controls.Add(pg);
             card.Controls.Add(bar);

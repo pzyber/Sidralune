@@ -49,7 +49,7 @@ namespace Sidralune.Devices
             {
                 lock (_builtinLock)
                 {
-                    if (_builtin == null) { _builtin = new SidraluneGuider(this, GuiderSettingsPath) { LogFolder = GuideLogFolder }; _builtin.Connect(); }
+                    if (_builtin == null) { _builtin = new SidraluneGuider(this, GuiderSettingsPath) { LogFolder = GuideLogFolder }; _builtin.Connect(); ApplyGuideFocal(_builtin); }
                     return _builtin;
                 }
             }
@@ -284,6 +284,57 @@ namespace Sidralune.Devices
         public void DisconnectAll()
         {
             foreach (DeviceKind k in Enum.GetValues(typeof(DeviceKind))) Disconnect(k);
+        }
+
+        /// <summary>
+        /// The rig's optics from its equipment profile: the imaging focal length and aperture (plate solving, FITS headers),
+        /// and the guide camera's focal length, which the guider takes from here rather than having it entered again.
+        /// </summary>
+        public void ApplyOptics(double imagingFocalMm, double apertureMm, double guideFocalMm)
+        {
+            if (imagingFocalMm > 0) FocalLengthMm = imagingFocalMm;
+            if (apertureMm > 0) ApertureMm = apertureMm;
+            if (guideFocalMm > 0) GuideFocalLengthMm = guideFocalMm;
+            SidraluneGuider g;
+            lock (_builtinLock) g = _builtin;
+            if (g != null) ApplyGuideFocal(g);
+        }
+
+        /// <summary>The guide camera's focal length from the equipment profile (NaN: the guider keeps its own).</summary>
+        public double GuideFocalLengthMm = double.NaN;
+
+        private void ApplyGuideFocal(SidraluneGuider g)
+        {
+            if (double.IsNaN(GuideFocalLengthMm) || Math.Abs(g.Settings.FocalLengthMm - GuideFocalLengthMm) < 1e-9) return;
+            g.Settings.FocalLengthMm = GuideFocalLengthMm;
+            g.SaveSettings();
+        }
+
+        /// <summary>The guider's settings file (each equipment profile has its own); the guider must be stopped to change it.</summary>
+        public void UseGuiderSettings(string path)
+        {
+            SidraluneGuider g;
+            lock (_builtinLock) g = _builtin;
+            g?.UseSettingsFile(path);
+            GuiderSettingsPath = path;
+            if (g != null) ApplyGuideFocal(g);
+        }
+
+        /// <summary>
+        /// Connects the devices given (an equipment profile's) that are not connected yet, one after another. A device that
+        /// fails does not stop the others: the messages of those that failed are returned.
+        /// </summary>
+        public List<string> ConnectAll(IEnumerable<DeviceInfo> devices)
+        {
+            var failed = new List<string>();
+            foreach (var d in devices.Where(d => d != null && d.Kind != DeviceKind.Guider))
+            {
+                var now = Get(d.Kind);
+                if (now != null && now.Connected) continue;
+                try { Connect(d); }
+                catch (Exception ex) { failed.Add(d.Name + ": " + ex.Message); Log.Warn("Devices", "Could not connect " + d + ": " + ex.Message); }
+            }
+            return failed;
         }
     }
 }

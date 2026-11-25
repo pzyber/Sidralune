@@ -106,6 +106,25 @@ namespace Sidralune.Devices.Guiding
         }
 
         public override void Connect() { Connected = true; }
+
+        /// <summary>
+        /// Uses another settings file (another equipment profile's): its calibration, algorithms and tuning. Refused while
+        /// the guider takes frames.
+        /// </summary>
+        public void UseSettingsFile(string path)
+        {
+            if (string.Equals(path ?? GuiderSettings.DefaultPath, SettingsPath ?? GuiderSettings.DefaultPath, StringComparison.OrdinalIgnoreCase)) return;
+            if (IsRunning || _building) throw new InvalidOperationException(Lang.T("Stop the guider first."));
+            SettingsPath = path;
+            Settings = GuiderSettings.Load(path);
+            // the algorithms are made again from the new settings
+            _raAlgo = null; _decAlgo = null;
+            CalibrationChanged?.Invoke();
+            SettingsReplaced?.Invoke();
+        }
+
+        /// <summary>Raised when another settings file is used (another equipment profile).</summary>
+        public event Action SettingsReplaced;
         public override void Disconnect() { EndSession(); Connected = false; }
 
         public string State => _state;

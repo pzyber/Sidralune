@@ -234,6 +234,8 @@ namespace Sidralune.Views
                 refreshSettings();
             };
             Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(hook);
+            // another equipment profile: its guider settings and calibration, and its focal length
+            AppState.ProfileChanged += (s, e) => MainForm.Instance.Post(refreshSettings);
             hook();
             Poll += () =>
             {
@@ -415,7 +417,8 @@ namespace Sidralune.Views
             var target = camGrid.Row(T("Target SNR"), Ui.Num(10, 3, 100));
             var binning = camGrid.Row(T("Binning"), Ui.Combo("1", "2", "3", "4"));
             var output = camGrid.Row(T("Guide through"), Ui.Combo(T("The mount"), T("The guide camera (ST-4)")));
-            var focal = camGrid.Row(T("Guide scope focal length (mm)"), Ui.Num(240, 20, 5000));
+            // from the equipment profile: the guide scope's, or the imaging telescope's through an off-axis guider
+            var focal = camGrid.Row(T("Focal length"), new Label { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, UseMnemonic = false });
             var radius = camGrid.Row(T("Search box radius (px)"), Ui.Num(15, 5, 50));
             var subframes = camGrid.Row(T("Subframes"), new CheckBox { Text = T("While guiding, download only a box round the stars") });
             var noise = camGrid.Row(T("Noise reduction"), Ui.Combo(T("None"), T("2×2 mean"), T("3×3 median")));
@@ -541,7 +544,7 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, focal, radius, subframes, noise, multi, maxStars, mass, massTol, step, distance, reverses, onRotator, rotReversed, clearCal,
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, radius, subframes, noise, multi, maxStars, mass, massTol, step, distance, reverses, onRotator, rotReversed, clearCal,
                 raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
                 aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
@@ -559,7 +562,7 @@ namespace Sidralune.Views
                     Func<NumericUpDown, double, decimal> clamp = (n, v) => double.IsNaN(v) ? n.Minimum : Math.Max(n.Minimum, Math.Min(n.Maximum, (decimal)v));
                     exposure.Value = clamp(exposure, st.ExposureSeconds); auto.Checked = st.AutoExposure; autoMin.Value = clamp(autoMin, st.AutoExposureMin); autoMax.Value = clamp(autoMax, st.AutoExposureMax);
                     target.Value = clamp(target, st.TargetSnr); binning.SelectedIndex = Math.Max(0, Math.Min(3, st.Binning - 1));
-                    output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Value = clamp(focal, st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
+                    output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Text = T("{0:0} mm, from the equipment profile (Observatory → Equipment)", st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
                     multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
                     step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
                     raAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(raKinds, st.RaAlgorithm));
@@ -598,7 +601,6 @@ namespace Sidralune.Views
             target.ValueChanged += (s, e) => save(st => st.TargetSnr = (double)target.Value);
             binning.SelectedIndexChanged += (s, e) => save(st => st.Binning = binning.SelectedIndex + 1);
             output.SelectedIndexChanged += (s, e) => save(st => st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount);
-            focal.ValueChanged += (s, e) => save(st => st.FocalLengthMm = (double)focal.Value);
             radius.ValueChanged += (s, e) => save(st => st.SearchRadius = (int)radius.Value);
             multi.CheckedChanged += (s, e) => save(st => st.MultiStar = multi.Checked);
             maxStars.ValueChanged += (s, e) => save(st => st.MaxStars = (int)maxStars.Value);

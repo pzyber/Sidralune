@@ -36,7 +36,7 @@ The list on the left shows your sites. **New site** adds one, **Delete** removes
 
 ## Equipment
 
-Three lists describe your equipment. Select an entry to edit its properties in the grid below the list. **Add** creates an entry, **Remove** deletes it and **Use** makes it active (marked with ●).
+Three lists describe your equipment. Select an entry to edit its properties in the grid below the list. **Add** creates an entry, **Remove** deletes it and **Use** makes it active (marked with ●). An [equipment profile](Observatory-and-devices#equipment-profiles) picks its imaging telescope and camera from these lists; renaming one keeps the profiles using it.
 
 ### Telescopes
 
@@ -44,7 +44,7 @@ Three lists describe your equipment. Select an entry to edit its properties in t
 |---|---|
 | **Name** | For example `8" f/6 Dobsonian` |
 | **Aperture mm** | Clear aperture |
-| **Focal mm** | Focal length, including any reducer or Barlow you normally use |
+| **Focal mm** | Focal length. For imaging, a reducer or Barlow is set in the [equipment profile](Observatory-and-devices#equipment-profiles) instead |
 | **Obstruction** | Central obstruction as a fraction of the aperture diameter (0.22 for a typical Newtonian, 0.33 for an SCT, 0 for a refractor) |
 | **Transmission** | Fraction of light reaching the eye or sensor (0.85 for a reflector with an eyepiece, 0.92 for a good refractor) |
 

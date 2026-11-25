@@ -851,5 +851,73 @@ namespace Sidralune.Tests
             g.StopGuiding();
             dm.DisconnectAll();
         }
+
+        [TestMethod]
+        public void TestEquipmentProfiles()
+        {
+            // the model: one device per kind, focal lengths through a reducer and an off-axis guider, copies of their own
+            var p = new EquipmentProfile { Name = "Refractor", FocalFactor = 0.8, Guiding = GuideOptics.GuideScope, GuideFocalLengthMm = 180 };
+            p.Remember(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Mount A", Address = "sim" });
+            p.Remember(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Mount B", Address = "sim" });
+            p.Remember(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Name = "Guide camera", Address = "sim" });
+            CheckTrue("A profile remembers one device per kind, the last connected", p.Devices.Count == 2 && p.DeviceFor(DeviceKind.Telescope).Name == "Mount B");
+            Check("The imaging focal length goes through the reducer (mm)", p.ImagingFocalLength(600), 480, 1e-9);
+            Check("With a guide scope the guide camera has its focal length (mm)", p.GuideFocalLength(480), 180, 1e-9);
+            p.Guiding = GuideOptics.OffAxisGuider;
+            Check("Through an off-axis guider it has the imaging focal length (mm)", p.GuideFocalLength(480), 480, 1e-9);
+            var copy = p.Copy("Refractor 2", EquipmentProfile.NewGuiderFile(new[] { p }));
+            copy.Remember(new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera", Address = "sim" });
+            CheckTrue("A copy has its own devices and guider settings file", p.Devices.Count == 2 && copy.Devices.Count == 3 && copy.GuiderFile != p.GuiderFile && copy.Name == "Refractor 2");
+            var back = (EquipmentProfile)Core.Util.Json.PopulateType(typeof(EquipmentProfile), Core.Util.Json.ParseObject(Core.Util.Json.Serialize(copy)));
+            CheckTrue("A profile is saved and read back", back.Name == copy.Name && back.Guiding == GuideOptics.OffAxisGuider && back.FocalFactor == 0.8 && back.Devices.Count == 3
+                && back.DeviceFor(DeviceKind.Camera).Protocol == DeviceProtocol.Simulator && back.GuiderFile == copy.GuiderFile);
+
+            // the observatory takes the rig's optics; the guider its focal length, also when it is made later
+            var dm = GuideObservatory("equipment-profiles");
+            string dir = Path.GetDirectoryName(dm.GuiderSettingsPath);
+            try
+            {
+                dm.ApplyOptics(480, 80, 180);
+                var g = dm.BuiltinGuider;
+                CheckTrue("The imaging optics and the guide focal length come from the profile", dm.FocalLengthMm == 480 && dm.ApertureMm == 80 && g.Settings.FocalLengthMm == 180
+                    && GuiderSettings.Load(dm.GuiderSettingsPath).FocalLengthMm == 180);
+                var fresh = new DeviceManager { GuiderSettingsPath = Path.Combine(dir, "fresh.json"), GuideLogFolder = dir };
+                fresh.ApplyOptics(600, 100, 600);
+                CheckTrue("…also for a guider made afterwards", fresh.BuiltinGuider.Settings.FocalLengthMm == 600);
+
+                // each profile has its own guider settings: switching files brings the other rig's settings and calibration
+                g.Settings.ExposureSeconds = 1.5; g.SaveSettings();
+                string second = Path.Combine(dir, "guider-2.json");
+                if (File.Exists(second)) File.Delete(second);
+                bool replaced = false;
+                g.SettingsReplaced += () => replaced = true;
+                dm.UseGuiderSettings(second);
+                g.Settings.ExposureSeconds = 3; g.SaveSettings();
+                CheckTrue("Another profile's guider settings are used", replaced && g.SettingsPath == second && g.Settings.ExposureSeconds == 3 && GuiderSettings.Load(second).ExposureSeconds == 3);
+                CheckTrue("…and the guide focal length stays the profile's", g.Settings.FocalLengthMm == 180);
+                dm.UseGuiderSettings(Path.Combine(dir, "guider.json"));
+                CheckTrue("Back to the first profile's", g.Settings.ExposureSeconds == 1.5);
+                g.Loop();
+                bool refused = false;
+                try { dm.UseGuiderSettings(second); } catch (InvalidOperationException) { refused = true; }
+                CheckTrue("Not while the guider takes frames", refused && g.SettingsPath == Path.Combine(dir, "guider.json"));
+                g.StopGuiding();
+
+                // Connect all: the remembered devices not connected yet; one that fails does not stop the others
+                dm.DisconnectAll();
+                var rig = new EquipmentProfile();
+                rig.Remember(new DeviceInfo { Kind = DeviceKind.Telescope, Protocol = DeviceProtocol.Simulator, Name = "Telescope", Address = "sim" });
+                rig.Remember(new DeviceInfo { Kind = DeviceKind.Focuser, Protocol = DeviceProtocol.Ascom, Name = "No such focuser", Address = "Sidralune.NoSuchFocuser" });
+                rig.Remember(new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera", Address = "sim" });
+                var failed = dm.ConnectAll(rig.Devices);
+                Info("Failed: " + string.Join("; ", failed));
+                CheckTrue("Connect all connects the profile's devices", dm.Telescope != null && dm.Telescope.Connected && dm.Camera != null && dm.Camera.Connected);
+                CheckTrue("…and says which could not connect", failed.Count == 1 && failed[0].StartsWith("No such focuser") && dm.Focuser == null);
+                var mount = dm.Telescope;
+                dm.ConnectAll(rig.Devices);
+                CheckTrue("…leaving those already connected alone", dm.Telescope == mount);
+            }
+            finally { dm.DisconnectAll(); }
+        }
     }
 }

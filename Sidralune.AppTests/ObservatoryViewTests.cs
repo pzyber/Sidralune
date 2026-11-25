@@ -335,6 +335,102 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestEquipmentProfiles()
+        {
+            var view = View<ObservatoryView>("observatory");
+            var s = AppState.Settings;
+            var g = Dm.BuiltinGuider;
+            var first = AppState.Profile;
+            string firstTelescope = first.Telescope, firstCamera = first.Camera;
+            double firstFactor = first.FocalFactor, firstGuideFocal = first.GuideFocalLengthMm;
+            var firstGuiding = first.Guiding;
+            var firstDevices = first.Devices.ToList();
+            try
+            {
+                OnUi(() =>
+                {
+                    Dm.DisconnectAll();
+                    All(view).OfType<TabbedPanel>().First(t => t.Header.Tabs.Contains("Equipment")).Select(0);
+                });
+                CheckTrue("There is a first profile, from the setup so far", s.Profiles.Count >= 1 && AppState.NameOf(first) == (string.IsNullOrEmpty(first.Name) ? "My equipment" : first.Name)
+                    && s.Telescopes.Any(t => t.Name == first.Telescope));
+                var row = OnUi(() => All(view).OfType<FlowLayoutPanel>().First(f => f.Controls.OfType<Label>().Any(l => l.Text == "Equipment profile")));
+                var pick = OnUi(() => row.Controls.OfType<ComboBox>().First());
+                var optics = OnUi(() => All(view).OfType<Card>().First(c => c.Title == "Optics"));
+                var combos = OnUi(() => All(optics).OfType<ComboBox>().ToList());
+                var nums = OnUi(() => All(optics).OfType<NumericUpDown>().ToList());
+                ComboBox scope = combos[0], camera = combos[1], through = combos[2];
+                NumericUpDown factor = nums[0], guideFocal = nums[1];
+                CheckTrue("The tab shows the profile in use", OnUi(() => pick.Text == AppState.NameOf(first) && scope.Text == first.Telescope));
+
+                // the imaging focal length: the telescope's, through the reducer; the guider's: the guide scope's or, through an
+                // off-axis guider, the imaging one
+                var apo = s.Telescopes.FirstOrDefault(t => t.Name != first.Telescope) ?? s.Telescopes[0];
+                OnUi(() => { scope.SelectedIndex = s.Telescopes.IndexOf(apo); factor.Value = 0.8m; through.SelectedIndex = 1; guideFocal.Value = 180; });
+                CheckTrue("The imaging optics follow the telescope and the reducer", WaitFor(() => Math.Abs(Dm.FocalLengthMm - apo.FocalMm * 0.8) < 1e-6 && Dm.ApertureMm == apo.ApertureMm),
+                    Dm.FocalLengthMm + " mm");
+                CheckTrue("…the guider takes the guide scope's focal length", g.Settings.FocalLengthMm == 180 && first.Telescope == apo.Name && first.FocalFactor == 0.8);
+                CheckTrue("…and the planner the reducer", Math.Abs(AppState.ImagingRig.FocalLengthMm - apo.FocalMm * 0.8) < 1e-6 || s.Telescopes[s.ActiveTelescope] != apo);
+                OnUi(() => through.SelectedIndex = 0);
+                CheckTrue("Through an off-axis guider the guider takes the imaging focal length", WaitFor(() => Math.Abs(g.Settings.FocalLengthMm - Dm.FocalLengthMm) < 1e-6));
+                CheckTrue("The Guiding tab shows where its focal length comes from", WaitFor(() => OnUi(() => All(view).OfType<Label>().Any(l => l.Text == string.Format("{0:0} mm, from the equipment profile (Observatory → Equipment)", g.Settings.FocalLengthMm)))));
+
+                // a renamed telescope keeps its profiles
+                string apoName = apo.Name;
+                apo.Name = apoName + " (renamed)";
+                AppState.RenamedInPlanner(apo, apoName, apo.Name);
+                CheckTrue("Renaming the telescope in Settings keeps the profile on it", first.Telescope == apo.Name);
+                apo.Name = apoName;
+                AppState.RenamedInPlanner(apo, apo.Name + " (renamed)", apoName);
+
+                // a device connected in its row is the rig's; Connect all connects it again
+                var mountRow = OnUi(() => All(view).OfType<ComboBox>().First(c => c.Items.OfType<DeviceInfo>().Any(d => d.Kind == DeviceKind.Telescope)));
+                OnUi(() => mountRow.SelectedItem = mountRow.Items.OfType<DeviceInfo>().First(d => d.Protocol == DeviceProtocol.Simulator));
+                var table = (TableLayoutPanel)OnUi(() => mountRow.Parent);
+                var mountConnect = OnUi(() => (FlatButton)table.GetControlFromPosition(2, table.GetRow(mountRow)));
+                OnUi(() => mountConnect.PerformClick());
+                CheckTrue("A device connected in its row is remembered by the profile", WaitFor(() => Dm.Telescope != null && first.DeviceFor(DeviceKind.Telescope) != null
+                    && first.DeviceFor(DeviceKind.Telescope).Protocol == DeviceProtocol.Simulator, 10000));
+                CheckTrue("Another profile waits while devices are connected (greyed out)", WaitFor(() => OnUi(() => !pick.Enabled && !Button(row, "New…").Enabled && !Button(row, "Delete").Enabled)));
+                CheckTrue("…renaming does not", OnUi(() => Button(row, "Rename…").Enabled));
+                OnUi(() => Dm.DisconnectAll());
+                CheckTrue("Disconnected, Connect all is available", WaitFor(() => OnUi(() => Button(view, "Connect all").Enabled && pick.Enabled)));
+                OnUi(() => Button(view, "Connect all").PerformClick());
+                CheckTrue("Connect all connects the profile's devices", WaitFor(() => Dm.Telescope != null && Dm.Telescope.Connected, 10000));
+                CheckTrue("…and is greyed out when they all are", WaitFor(() => OnUi(() => !Button(view, "Connect all").Enabled)));
+                OnUi(() => Dm.DisconnectAll());
+
+                // a second rig: its own optics and guider settings; switching brings each back
+                g.Settings.ExposureSeconds = 1.5; g.SaveSettings();
+                var second = first.Copy("Second rig", EquipmentProfile.NewGuiderFile(s.Profiles));
+                second.FocalFactor = 1; second.Guiding = GuideOptics.GuideScope; second.GuideFocalLengthMm = 400; second.Devices.Clear();
+                OnUi(() => { s.Profiles.Add(second); AppState.ApplyProfile(); });
+                CheckTrue("A new profile is listed", WaitFor(() => OnUi(() => pick.Items.Count == s.Profiles.Count && pick.Items.Contains("Second rig"))));
+                OnUi(() => pick.SelectedIndex = s.Profiles.IndexOf(second));
+                CheckTrue("Choosing it uses its optics", WaitFor(() => AppState.Profile == second && Math.Abs(Dm.FocalLengthMm - apo.FocalMm) < 1e-6 && g.Settings.FocalLengthMm == 400));
+                CheckTrue("…and its own guider settings file", g.SettingsPath.EndsWith(second.GuiderFile));
+                g.Settings.ExposureSeconds = 3; g.SaveSettings();
+                CheckTrue("…shown on the Optics card", WaitFor(() => OnUi(() => through.SelectedIndex == 1 && guideFocal.Value == 400 && guideFocal.Visible)));
+                OnUi(() => pick.SelectedIndex = s.Profiles.IndexOf(first));
+                CheckTrue("Back to the first rig, its guider settings come back", WaitFor(() => AppState.Profile == first && g.Settings.ExposureSeconds == 1.5));
+                CheckTrue("…its rows show its devices", WaitFor(() => OnUi(() => ((DeviceInfo)mountRow.SelectedItem).Protocol == DeviceProtocol.Simulator)));
+            }
+            finally
+            {
+                OnUi(() =>
+                {
+                    Dm.DisconnectAll();
+                    s.Profiles.RemoveAll(p => p != first);
+                    s.ActiveProfile = 0;
+                    first.Telescope = firstTelescope; first.Camera = firstCamera; first.FocalFactor = firstFactor; first.Guiding = firstGuiding; first.GuideFocalLengthMm = firstGuideFocal;
+                    first.Devices.Clear(); foreach (var d in firstDevices) first.Remember(d);
+                    AppState.Save();
+                    AppState.ApplyProfile();
+                });
+            }
+        }
+
+        [TestMethod]
         public void TestSwitchesAndFlatPanel()
         {
             var view = View<ObservatoryView>("observatory");
