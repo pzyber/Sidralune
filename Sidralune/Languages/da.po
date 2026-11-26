@@ -2545,6 +2545,78 @@ msgstr "Ingen fokuserer tilsluttet."
 msgid "No guider connected."
 msgstr "Ingen guider tilsluttet."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Guidestjernen blev tabt under Star-Cross-testen."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross-testen stoppede, fordi monteringen slewede."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Fejlfinding"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Gem billeder ved problemer"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Når guidestjernen tabes eller en kalibrering mislykkes, gemmes de fem seneste guidebilleder (og for en tabt stjerne de tre næste) som FITS i mappen Guide frames i Logs, højst én gang hvert femte minut, så man bagefter kan se, hvad der skete."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass-hældningsvægt"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Korrigerer medianen af de seneste fejl, foran med deres hældning gange hældningsvægten: til fejl, der vandrer langsomt i middel seeing. Aldrig mere end fejlen, der lige blev målt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Under guidning køres stjernen ud og tilbage langs hver akse i et kors: vest, øst og vest, så nord, syd og nord. Det viser, om RA og Dec står vinkelret, hastigheden hver vej, slør når en akse vender, og stiktion når den starter. Guidningen fortsætter bagefter."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Kør Star-Cross-testen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross-test"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA og Dec er {0:0.0}° fra vinkelret."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Hastigheder: vest {0:0.00}, øst {1:0.00}, nord {2:0.00}, syd {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Slør: RA {0} ved vending mod øst, {1} tilbage; Dec {2} ved vending mod syd, {3} tilbage."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Den første puls fra hvile flyttede stjernen {0:0}% (RA) og {1:0}% (Dec) så langt som en senere: meget mindre er stiktion eller slør tilbage fra guidningen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Korset som billede: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross-testen er færdig"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Ikke en guidelog fra Sidralune eller PHD2."

@@ -1245,5 +1245,94 @@ namespace Sidralune.Tests
                 dm.DisconnectAll();
             }
         }
+
+        [TestMethod]
+        public void TestGuidingToolbox()
+        {
+            // Lowpass: the median of the last errors plus their slope, never more than the error nor the other way
+            var lp = new LowpassAlgorithm { MinMovePx = 0.2, SlopeWeight = 0 };
+            double c = 0;
+            foreach (var e in new[] { 1.0, 1.1, 0.9, 3.0, 1.0 }) c = lp.Correction(e);
+            CheckTrue("Lowpass without slope corrects the median, a frame thrown by the seeing counting for little", Math.Abs(c - 1.0) < 1e-9, c.ToString());
+            lp = new LowpassAlgorithm { MinMovePx = 0.2, SlopeWeight = 5 };
+            foreach (var e in new[] { 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 }) c = lp.Correction(e);
+            CheckTrue("…with slope it meets a drift ahead, but no further than the error", Math.Abs(c - 0.8) < 1e-9, c.ToString());
+            lp.Reset();
+            foreach (var e in new[] { 0.3, 0.32, 0.34, 0.36 }) c = lp.Correction(e);
+            CheckTrue("…its correction lies between the median and the error", c > 0.33 && c <= 0.36, c.ToString());
+            CheckTrue("…an error under the minimum move is left alone", lp.Correction(0.1) == 0);
+            var flat = new LowpassAlgorithm { MinMovePx = 0.2, SlopeWeight = 0 };
+            foreach (var e in new[] { 1.0, 1.0, 1.0, 1.0 }) flat.Correction(e);
+            CheckTrue("…and nothing the other way", flat.Correction(-0.5) == 0);
+
+            var dm = GuideObservatory("guide-toolbox");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            string dir = Path.GetDirectoryName(dm.GuiderSettingsPath);
+            try
+            {
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                g.Settings.RaAlgorithm = GuideAlgorithmKind.Lowpass;
+                g.Settings.DecAlgorithm = GuideAlgorithmKind.Lowpass;
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("It guides with Lowpass on both axes", g.IsGuiding && g.RmsTotalArcsec < 2, g.RmsTotalArcsec.ToString("0.00"));
+
+                // the Star-Cross test: square axes, equal speeds both ways, the Dec backlash at each turn and none in RA
+                tel.DecBacklashMs = 800;
+                var cal = g.Calibration;
+                var sc = g.RunStarCross(ct).Result;
+                Info(string.Format("Star-Cross: {0:0.0}° from square; W {1:0.00} E {2:0.00} N {3:0.00} S {4:0.00} px/s (calibration RA {5:0.00}, Dec {6:0.00}); turns RA {7:0}/{8:0} ms, Dec {9:0}/{10:0} ms; first steps {11:0.00}/{12:0.00}",
+                    sc.OrthogonalityErrorDeg, sc.WestRate, sc.EastRate, sc.NorthRate, sc.SouthRate, cal.RaRateAt(tel.Declination), cal.DecRatePxPerSec,
+                    sc.RaTurnMs, sc.RaReturnMs, sc.DecTurnMs, sc.DecReturnMs, sc.RaFirstStep, sc.DecFirstStep));
+                Func<double, double, bool> near = (a, b) => Math.Abs(a / b - 1) < 0.15;
+                CheckTrue("The Star-Cross test draws a cross", sc.Track.Count >= 1 + 8 * sc.StepsOut && new[] { "West", "East", "North", "South" }.All(l => sc.Track.Any(p => p.Leg == l)), sc.Track.Count.ToString());
+                CheckTrue("…RA and Dec at right angles", sc.OrthogonalityErrorDeg < 3);
+                CheckTrue("…each direction at the calibration's speed", near(sc.WestRate, cal.RaRateAt(tel.Declination)) && near(sc.EastRate, sc.WestRate) && near(sc.NorthRate, cal.DecRatePxPerSec) && near(sc.SouthRate, sc.NorthRate));
+                CheckTrue("…no backlash in RA", sc.RaTurnMs < 150 && sc.RaReturnMs < 150);
+                CheckTrue("…the Dec backlash at both turns", Math.Abs(sc.DecTurnMs - 800) < 250 && Math.Abs(sc.DecReturnMs - 800) < 250);
+                CheckTrue("…no stiction in RA", sc.RaFirstStep > 0.7 && sc.RaFirstStep < 1.3);
+                CheckTrue("…and an image of the cross", sc.ImagePath != null && File.Exists(sc.ImagePath) && Sidralune.Imaging.IO.ImageFile.Load(sc.ImagePath).Width > 0);
+                CheckTrue("Guiding goes on afterwards", g.Settle(3, 2, 60, ct).Result && g.IsGuiding);
+                tel.DecBacklashMs = 0;
+
+                // guide frames saved around a lost star: the five before and the three after
+                g.Settings.SaveDiagnosticFrames = true;
+                g.DiagnosisInterval = TimeSpan.Zero;
+                Thread.Sleep(4000); // frames kept before the cloud
+                var gcam = (CameraSimulator)dm.GuideCamera;
+                gcam.Transparency = 0;
+                CheckTrue("Behind a cloud the star is lost", SpinUntil(() => g.Lost, 10000));
+                CheckTrue("…and the frames around it are saved", SpinUntil(() => g.LastDiagnosisFolder != null && Directory.Exists(g.LastDiagnosisFolder) && Directory.GetFiles(g.LastDiagnosisFolder, "*.fits").Length == 8, 15000),
+                    g.LastDiagnosisFolder ?? "none");
+                var saved = Directory.GetFiles(g.LastDiagnosisFolder, "*.fits").OrderBy(f => f).ToList();
+                var first = Sidralune.Imaging.IO.ImageFile.Load(saved[0]);
+                CheckTrue("…named and marked for what happened", g.LastDiagnosisFolder.EndsWith("Star lost") && (first.Header.Get("OBJECT") ?? "").Contains("Star lost") && first.Header.Has("LOCKX"),
+                    first.Header.Get("OBJECT"));
+                gcam.Transparency = 1;
+                CheckTrue("The star comes back", SpinUntil(() => g.IsGuiding && !g.Lost, 20000));
+                g.StopGuiding();
+
+                // and around a failed calibration: a mount that does not move
+                string before = g.LastDiagnosisFolder;
+                g.Settings.SolveGuideFrames = false;
+                tel.TrueGuideRateFactor = 0;
+                bool failed = false;
+                try { g.StartGuiding(true, ct).Wait(); } catch (AggregateException) { failed = true; }
+                CheckTrue("A calibration that fails…", failed);
+                CheckTrue("…saves the frames before it", SpinUntil(() => g.LastDiagnosisFolder != before && g.LastDiagnosisFolder.EndsWith("Calibration failed") && Directory.Exists(g.LastDiagnosisFolder) && Directory.GetFiles(g.LastDiagnosisFolder, "*.fits").Length == 5, 15000),
+                    g.LastDiagnosisFolder ?? "none");
+            }
+            finally
+            {
+                tel.TrueGuideRateFactor = 1;
+                g.Settings.SaveDiagnosticFrames = false;
+                g.Settings.SolveGuideFrames = true;
+                g.Settings.RaAlgorithm = GuideAlgorithmKind.Hysteresis;
+                g.Settings.DecAlgorithm = GuideAlgorithmKind.ResistSwitch;
+                g.StopGuiding();
+                dm.DisconnectAll();
+            }
+        }
     }
 }

@@ -2557,6 +2557,78 @@ msgstr "Fokusuotuvas neprijungtas."
 msgid "No guider connected."
 msgstr "Gidavimo sistema neprijungta."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Gidavimo žvaigždė pasimetė per Star-Cross testą."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross testas sustojo, nes montuotė pasisuko."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Įrašyti kadrus esant bėdai"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Kai gidavimo žvaigždė pasimeta arba kalibravimas nepavyksta, paskutiniai penki gidavimo kadrai (o pasimetus žvaigždei ir kiti trys) įrašomi kaip FITS į Logs aplanko Guide frames aplanką, ne dažniau kaip kas penkias minutes, kad vėliau būtų matyti, kas nutiko."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass nuolydžio svoris"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Taiso paskutinių klaidų medianą, į priekį per jų nuolydį kart nuolydžio svorį: lėtai klaidžiojančioms klaidoms esant vidutiniam matomumui. Niekada daugiau nei ką tik išmatuota klaida."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Gidavimo metu veda žvaigždę pirmyn ir atgal išilgai kiekvienos ašies kryžiumi: vakarai, rytai ir vakarai, tada šiaurė, pietūs ir šiaurė. Parodo, ar RA ir Dec statmenos, greitį kiekviena kryptimi, laisvumą ašiai apsisukant ir strigimą pajudant. Gidavimas po to tęsiamas."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Paleisti Star-Cross testą"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross testas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA ir Dec nuo stataus kampo nukrypsta {0:0.0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Greičiai: vakarai {0:0.00}, rytai {1:0.00}, šiaurė {2:0.00}, pietūs {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Laisvumas: RA {0} sukant į rytus, {1} atgal; Dec {2} sukant į pietus, {3} atgal."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Pirmasis impulsas iš ramybės pastūmė žvaigždę {0:0}% (RA) ir {1:0}% (Dec) tiek, kiek vėlesnis: daug mažiau yra strigimas arba po gidavimo likęs laisvumas."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Kryžius kaip vaizdas: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross testas baigtas"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Tai ne Sidralune ar PHD2 gidavimo žurnalas."

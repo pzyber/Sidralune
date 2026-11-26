@@ -2545,6 +2545,78 @@ msgstr "Нема поврзан фокусер."
 msgid "No guider connected."
 msgstr "Нема поврзан систем за водење."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Ѕвездата за водење се изгуби за време на тестот Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Тестот Star-Cross запре бидејќи монтажата се сврте."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Дијагностика"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Зачувај снимки при проблем"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Кога ѕвездата за водење ќе се изгуби или калибрацијата ќе пропадне, последните пет снимки за водење (а за изгубена ѕвезда и следните три) се зачувуваат како FITS во папката Guide frames во Logs, најмногу еднаш на пет минути, за потоа да се види што се случило."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Тежина на наклонот Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Ја поправа медијаната на последните грешки, однапред за нивниот наклон по тежината на наклонот: за грешки што бавно талкаат при просечен сиинг. Никогаш повеќе од штотуку измерената грешка."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "За време на водењето ја води ѕвездата напред и назад по секоја оска во крст: запад, исток и запад, па север, југ и север. Покажува дали RA и Dec се под прав агол, брзината во секоја насока, лаздењето кога оската се врти и лепењето при тргнување. Водењето продолжува потоа."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Пушти го тестот Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Тест Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA и Dec се {0:0.0}° од правиот агол."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Брзини: запад {0:0.00}, исток {1:0.00}, север {2:0.00}, југ {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Лаздење: RA {0} при вртење кон исток, {1} назад; Dec {2} при вртење кон југ, {3} назад."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Првиот импулс од мирување ја помести ѕвездата {0:0}% (RA) и {1:0}% (Dec) колку подоцнежен: многу помалку е лепење или лаздење останато од водењето."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Крстот како слика: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Тестот Star-Cross заврши"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Ова не е дневник на водење од Sidralune или PHD2."

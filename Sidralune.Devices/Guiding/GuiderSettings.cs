@@ -77,6 +77,8 @@ namespace Sidralune.Devices.Guiding
         public DarkFrameKind DarkFrames = DarkFrameKind.None;
         /// <summary>While guiding, read out only a box around the stars; and smoothing before measuring.</summary>
         public bool UseSubframes = false;
+        /// <summary>Saves the guide frames around a lost star or a failed calibration, to see afterwards what happened.</summary>
+        public bool SaveDiagnosticFrames = false;
         public NoiseReduction NoiseReduction = NoiseReduction.None;
         public int DarkFrameCount = 5;
         public double BadPixelSigma = 5;
@@ -91,6 +93,8 @@ namespace Sidralune.Devices.Guiding
         /// <summary>The algorithm for each axis, and the settings of Lowpass2 (aggressiveness, %) and the Z-filter (exposure factor).</summary>
         public GuideAlgorithmKind RaAlgorithm = GuideAlgorithmKind.Hysteresis, DecAlgorithm = GuideAlgorithmKind.ResistSwitch;
         public double RaLowpassAggressiveness = 80, DecLowpassAggressiveness = 80;
+        /// <summary>Lowpass: how much of the errors' slope is added to their median.</summary>
+        public double RaLowpassSlopeWeight = 5, DecLowpassSlopeWeight = 5;
         public double RaZFactor = 4, DecZFactor = 4;
         /// <summary>Predictive PEC (RA): the gains (%), the worm period (s), refining it while guiding, and how long the model is kept (% of the period).</summary>
         public double PecPredictiveGain = 50, PecReactiveGain = 60, PecPeriodSec = 480, PecRetainPercent = 40;

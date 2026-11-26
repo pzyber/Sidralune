@@ -2557,6 +2557,78 @@ msgstr "Není připojen ostřič."
 msgid "No guider connected."
 msgstr "Není připojen pointační systém."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Pointační hvězda se během testu Star-Cross ztratila."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Test Star-Cross se zastavil, protože se montáž přestavila."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Uložit snímky při potížích"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Když se pointační hvězda ztratí nebo selže kalibrace, uloží se posledních pět pointačních snímků (a u ztracené hvězdy další tři) jako FITS do složky Guide frames v Logs, nejvýš jednou za pět minut, aby šlo později vidět, co se stalo."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Váha sklonu Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Opravuje medián posledních chyb, s předstihem o jejich sklon krát váhu sklonu: pro chyby, které pomalu bloudí při průměrném seeingu. Nikdy víc než právě změřená chyba."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Během pointace vede hvězdu tam a zpět podél každé osy do kříže: západ, východ a západ, pak sever, jih a sever. Ukáže, zda jsou RA a Dec na sebe kolmé, rychlost v každém směru, vůli při obrácení osy a lepení při rozjezdu. Pointace pak pokračuje."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Spustit test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA a Dec jsou {0:0.0}° od pravého úhlu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Rychlosti: západ {0:0.00}, východ {1:0.00}, sever {2:0.00}, jih {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Vůle: RA {0} při obratu na východ, {1} zpět; Dec {2} při obratu na jih, {3} zpět."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "První pulz z klidu posunul hvězdu o {0:0} % (RA) a {1:0} % (Dec) toho, co pozdější: mnohem méně je lepení, nebo vůle zbylá z pointace."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Kříž jako obrázek: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Test Star-Cross dokončen"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Není to pointační záznam ze Sidralune ani z PHD2."

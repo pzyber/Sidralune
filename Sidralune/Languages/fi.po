@@ -2545,6 +2545,78 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Ohjaustähti katosi Star-Cross-testin aikana."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross-testi pysähtyi, koska jalusta kääntyi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Vianetsintä"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Tallenna kuvat ongelmissa"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Kun ohjaustähti katoaa tai kalibrointi epäonnistuu, viisi viimeisintä ohjauskuvaa (ja kadonneelle tähdelle kolme seuraavaa) tallennetaan FITS-muodossa Logs-kansion Guide frames -kansioon, enintään kerran viidessä minuutissa, jotta jälkeenpäin näkee mitä tapahtui."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass-kulmakertoimen paino"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Korjaa viimeisten virheiden mediaanin, ennakoiden niiden kulmakertoimella kertaa painolla: hitaasti vaeltaville virheille keskinkertaisessa seeingissä. Ei koskaan enempää kuin juuri mitattu virhe."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Ohjauksen aikana ajaa tähden ristissä kunkin akselin suuntaan ja takaisin: länteen, itään ja länteen, sitten pohjoiseen, etelään ja pohjoiseen. Se näyttää, ovatko RA ja Dec suorassa kulmassa, nopeuden kumpaankin suuntaan, välyksen akselin kääntyessä ja tarttumisen liikkeelle lähdettäessä. Ohjaus jatkuu sen jälkeen."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Aja Star-Cross-testi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross-testi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA ja Dec ovat {0:0.0}° suorasta kulmasta."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Nopeudet: länsi {0:0.00}, itä {1:0.00}, pohjoinen {2:0.00}, etelä {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Välys: RA {0} käännyttäessä itään, {1} takaisin; Dec {2} käännyttäessä etelään, {3} takaisin."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Ensimmäinen pulssi levosta siirsi tähteä {0:0} % (RA) ja {1:0} % (Dec) myöhemmän pulssin matkasta: paljon vähemmän on tarttumista tai ohjauksesta jäänyttä välystä."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Risti kuvana: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross-testi valmis"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Ei Sidralunen tai PHD2:n ohjausloki."

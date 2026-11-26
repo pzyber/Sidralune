@@ -2545,6 +2545,78 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Το αστέρι οδήγησης χάθηκε κατά τη δοκιμή Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Η δοκιμή Star-Cross σταμάτησε επειδή η βάση μετακινήθηκε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Διάγνωση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Αποθήκευση καρέ σε πρόβλημα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Όταν χάνεται το αστέρι οδήγησης ή αποτυγχάνει μια βαθμονόμηση, τα πέντε τελευταία καρέ οδήγησης (και για χαμένο αστέρι τα τρία επόμενα) αποθηκεύονται ως FITS στον φάκελο Guide frames του Logs, το πολύ μία φορά ανά πέντε λεπτά, για να φανεί μετά τι έγινε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Βάρος κλίσης Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Διορθώνει τη διάμεσο των τελευταίων σφαλμάτων, μπροστά κατά την κλίση τους επί το βάρος κλίσης: για σφάλματα που περιπλανώνται αργά με μέτριο seeing. Ποτέ περισσότερο από το σφάλμα που μόλις μετρήθηκε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Κατά την οδήγηση, πηγαίνει το αστέρι πέρα-δώθε σε κάθε άξονα σε σταυρό: δύση, ανατολή και δύση, έπειτα βορράς, νότος και βορράς. Δείχνει αν RA και Dec είναι κάθετοι, την ταχύτητα σε κάθε κατεύθυνση, το τζόγο όταν ένας άξονας αλλάζει φορά και την κόλληση στην εκκίνηση. Η οδήγηση συνεχίζεται μετά."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Εκτέλεση δοκιμής Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Δοκιμή Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "Οι RA και Dec απέχουν {0:0.0}° από την καθετότητα."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Ταχύτητες: δύση {0:0.00}, ανατολή {1:0.00}, βορράς {2:0.00}, νότος {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Τζόγος: RA {0} στη στροφή προς ανατολή, {1} στην επιστροφή· Dec {2} στη στροφή προς νότο, {3} στην επιστροφή."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Ο πρώτος παλμός από ακινησία μετακίνησε το αστέρι {0:0}% (RA) και {1:0}% (Dec) όσο ένας μεταγενέστερος: πολύ λιγότερο είναι κόλληση ή τζόγος που έμεινε από την οδήγηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Ο σταυρός ως εικόνα: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Η δοκιμή Star-Cross ολοκληρώθηκε"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Δεν είναι αρχείο καταγραφής οδήγησης του Sidralune ή του PHD2."

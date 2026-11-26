@@ -2545,6 +2545,78 @@ msgstr "Enginn fókusari tengdur."
 msgid "No guider connected."
 msgstr "Enginn stýribúnaður tengdur."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Stýristjarnan týndist í Star-Cross-prófinu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross-prófið stöðvaðist því festingin snerist."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Greining"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Vista myndir við vandræði"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Þegar stýristjarnan týnist eða kvörðun mistekst eru síðustu fimm stýrimyndirnar (og fyrir týnda stjörnu næstu þrjár) vistaðar sem FITS í möppunni Guide frames í Logs, mest einu sinni á fimm mínútna fresti, til að sjá síðar hvað gerðist."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Hallavægi Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Leiðréttir miðgildi síðustu skekkna, á undan um halla þeirra sinnum hallavægið: fyrir skekkjur sem reika hægt í meðalgóðu sjónarástandi. Aldrei meira en skekkjan sem var mæld."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Við stýringu er stjarnan færð út og til baka eftir hvorum ás í kross: vestur, austur og vestur, síðan norður, suður og norður. Það sýnir hvort RA og Dec séu hornrétt, hraðann í hvora átt, slakann þegar ás snýr við og festu þegar hann fer af stað. Stýring heldur áfram á eftir."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Keyra Star-Cross-prófið"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross-próf"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA og Dec eru {0:0.0}° frá hornréttu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Hraðar: vestur {0:0.00}, austur {1:0.00}, norður {2:0.00}, suður {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Slaki: RA {0} við snúning í austur, {1} til baka; Dec {2} við snúning í suður, {3} til baka."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Fyrsti púlsinn úr kyrrstöðu færði stjörnuna {0:0}% (RA) og {1:0}% (Dec) af því sem síðari púls færir: mun minna er festa, eða slaki eftir stýringuna."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Krossinn sem mynd: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross-prófi lokið"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Ekki stýriskrá frá Sidralune eða PHD2."

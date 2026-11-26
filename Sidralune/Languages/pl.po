@@ -2557,6 +2557,78 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Gwiazda prowadząca zgubiła się podczas testu Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Test Star-Cross przerwano, bo montaż się przesunął."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostyka"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Zapisz klatki przy kłopotach"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Gdy gwiazda prowadząca się zgubi lub kalibracja się nie uda, ostatnie pięć klatek prowadzenia (a przy zgubionej gwieździe następne trzy) jest zapisywanych jako FITS w folderze Guide frames w Logs, najwyżej raz na pięć minut, by potem zobaczyć, co się stało."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Waga nachylenia Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Koryguje medianę ostatnich błędów, z wyprzedzeniem o ich nachylenie razy wagę nachylenia: dla błędów wędrujących powoli przy średnim seeingu. Nigdy więcej niż właśnie zmierzony błąd."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Podczas prowadzenia przesuwa gwiazdę tam i z powrotem wzdłuż każdej osi w krzyż: zachód, wschód i zachód, potem północ, południe i północ. Pokazuje, czy RA i Dec są prostopadłe, prędkość w każdą stronę, luz przy zmianie kierunku osi i zacinanie przy ruszaniu. Prowadzenie trwa dalej."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Wykonaj test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA i Dec odbiegają o {0:0.0}° od kąta prostego."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Prędkości: zachód {0:0.00}, wschód {1:0.00}, północ {2:0.00}, południe {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Luz: RA {0} przy zwrocie na wschód, {1} z powrotem; Dec {2} przy zwrocie na południe, {3} z powrotem."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Pierwszy impuls ze spoczynku przesunął gwiazdę o {0:0}% (RA) i {1:0}% (Dec) tego, co późniejszy: znacznie mniej to zacinanie lub luz pozostały po prowadzeniu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Krzyż jako obraz: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Test Star-Cross zakończony"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "To nie jest dziennik prowadzenia z Sidralune ani PHD2."

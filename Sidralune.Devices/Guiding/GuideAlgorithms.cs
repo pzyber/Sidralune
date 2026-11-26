@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace Sidralune.Devices.Guiding
 {
-    /// <summary>The guide algorithms an axis can use (RA: Hysteresis, Lowpass2, Z-filter, Predictive PEC; Dec: Resist Switch, Lowpass2, Z-filter).</summary>
-    public enum GuideAlgorithmKind { Hysteresis, ResistSwitch, Lowpass2, ZFilter, PredictivePec }
+    /// <summary>The guide algorithms an axis can use (RA: Hysteresis, Lowpass, Lowpass2, Z-filter, Predictive PEC; Dec: Resist Switch, Lowpass, Lowpass2, Z-filter).</summary>
+    public enum GuideAlgorithmKind { Hysteresis, ResistSwitch, Lowpass2, ZFilter, PredictivePec, Lowpass }
 
     /// <summary>Turns one axis's guide error (pixels along that axis) into the correction to make (pixels, same sign).</summary>
     public interface IAxisAlgorithm
@@ -111,6 +111,47 @@ namespace Sidralune.Devices.Guiding
             }
             if (Math.Abs(now) < MinMovePx || Math.Sign(now) != Math.Sign(errorPx)) return 0;
             double c = now * Aggressiveness;
+            return Math.Abs(c) > Math.Abs(errorPx) ? errorPx : c;
+        }
+
+        public void Sent(double correctionPx) { }
+        public void Reset() { _errors.Clear(); }
+    }
+
+    /// <summary>
+    /// For errors that wander slowly under the seeing: the median of the last errors (so a frame thrown by the seeing
+    /// counts for little), plus the slope of a line through them times the slope weight, which meets a steady drift
+    /// ahead. The correction is never larger than the error just measured, nor the other way; an error under the minimum
+    /// move is left alone.
+    /// </summary>
+    public class LowpassAlgorithm : IAxisAlgorithm
+    {
+        public double MinMovePx = 0.2;
+        /// <summary>How much of the slope (pixels a frame) is added: 0 for the median alone.</summary>
+        public double SlopeWeight = 5;
+        /// <summary>How many errors the median and the slope are taken over.</summary>
+        public int Length = 10;
+        private readonly List<double> _errors = new List<double>();
+
+        public double Correction(double errorPx)
+        {
+            _errors.Add(errorPx);
+            if (_errors.Count > Math.Max(3, Length)) _errors.RemoveAt(0);
+            if (Math.Abs(errorPx) < MinMovePx) return 0;
+            int n = _errors.Count;
+            var sorted = new List<double>(_errors);
+            sorted.Sort();
+            double median = n % 2 == 1 ? sorted[n / 2] : 0.5 * (sorted[n / 2 - 1] + sorted[n / 2]);
+            double slope = 0;
+            if (n >= 3)
+            {
+                double sx = 0, sy = 0, sxx = 0, sxy = 0;
+                for (int i = 0; i < n; i++) { sx += i; sy += _errors[i]; sxx += i * i; sxy += i * _errors[i]; }
+                double den = n * sxx - sx * sx;
+                if (den > 0) slope = (n * sxy - sx * sy) / den;
+            }
+            double c = median + SlopeWeight * slope;
+            if (Math.Sign(c) != Math.Sign(errorPx)) return 0;
             return Math.Abs(c) > Math.Abs(errorPx) ? errorPx : c;
         }
 

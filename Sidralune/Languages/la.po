@@ -2545,6 +2545,78 @@ msgstr "Nullus focator coniunctus."
 msgid "No guider connected."
 msgstr "Nullus ductor coniunctus."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Stella ducis inter probationem Star-Cross amissa est."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Probatio Star-Cross substitit quia mons se convertit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnosis"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Imagines in molestia serva"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Cum stella ducis amittitur aut calibratio deficit, quinque ultimae imagines ductus (et stella amissa tres sequentes) ut FITS in tabulario Guide frames intra Logs servantur, semel quinque minutis ad summum, ut postea videatur quid acciderit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Pondus declivitatis Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Medianum ultimorum errorum corrigit, praeveniens declivitate eorum pondere multiplicata: erroribus qui lente vagantur sub aere mediocri. Numquam plus quam error modo mensus."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Dum ducitur, stellam per utrumque axem in crucem et redit agit: occidentem, orientem et occidentem, deinde septentrionem, meridiem et septentrionem. Ostendit an RA et Dec recti sint, celeritatem utrimque, laxitatem cum axis vertitur et adhaesionem cum incipit. Ductus postea pergit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Probationem Star-Cross age"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Probatio Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA et Dec {0:0.0}° a recto distant."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Celeritates: occidens {0:0.00}, oriens {1:0.00}, septentrio {2:0.00}, meridies {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Laxitas: RA {0} ad orientem versa, {1} rediens; Dec {2} ad meridiem versa, {3} rediens."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Primus pulsus a quiete stellam {0:0}% (RA) et {1:0}% (Dec) tantum quantum posterior movit: multo minus adhaesio est, aut laxitas a ductu relicta."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Crux ut imago: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Probatio Star-Cross finita"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Non est commentarius ductus Sidralunae aut PHD2."

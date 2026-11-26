@@ -106,9 +106,12 @@ namespace Sidralune.AppTests
                 var decAlgo = OnUi(() => All(decCard).OfType<ComboBox>().First());
                 Func<string, bool> rowShown = label => OnUi(() => All(decCard).OfType<Label>().Any(l => l.Text == label && l.Visible));
                 CheckTrue("Resist Switch shows its own rows", rowShown("Dec aggressiveness (%)") && !rowShown("Lowpass2 aggressiveness (%)"));
-                OnUi(() => decAlgo.SelectedIndex = 1);
-                CheckTrue("Choosing Lowpass2 shows its rows instead", rowShown("Lowpass2 aggressiveness (%)") && !rowShown("Dec aggressiveness (%)"));
+                OnUi(() => decAlgo.SelectedIndex = decAlgo.Items.IndexOf("Lowpass2"));
+                CheckTrue("Choosing Lowpass2 shows its rows instead", rowShown("Lowpass2 aggressiveness (%)") && !rowShown("Dec aggressiveness (%)") && !rowShown("Lowpass slope weight"));
                 CheckTrue("…and is saved", g.Settings.DecAlgorithm == GuideAlgorithmKind.Lowpass2 && GuiderSettings.Load().DecAlgorithm == GuideAlgorithmKind.Lowpass2);
+                OnUi(() => decAlgo.SelectedIndex = decAlgo.Items.IndexOf("Lowpass"));
+                CheckTrue("Choosing Lowpass shows its slope weight", rowShown("Lowpass slope weight") && !rowShown("Lowpass2 aggressiveness (%)"));
+                CheckTrue("…and is saved", g.Settings.DecAlgorithm == GuideAlgorithmKind.Lowpass && GuiderSettings.Load().DecAlgorithm == GuideAlgorithmKind.Lowpass);
                 OnUi(() => decAlgo.SelectedIndex = 0);
 
                 OnUi(() => Button(bar, "Start guiding").PerformClick());

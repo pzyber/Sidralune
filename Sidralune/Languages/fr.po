@@ -2545,6 +2545,78 @@ msgstr "Aucun focuseur connecté."
 msgid "No guider connected."
 msgstr "Aucun autoguideur connecté."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "L'étoile guide a été perdue pendant le test Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Le test Star-Cross s'est arrêté car la monture a pointé ailleurs."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostic"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Garder les images en cas d'ennui"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Quand l'étoile guide est perdue ou qu'une calibration échoue, les cinq dernières images de guidage (et pour une étoile perdue les trois suivantes) sont enregistrées en FITS dans le dossier Guide frames de Logs, au plus une fois toutes les cinq minutes, pour voir ensuite ce qui s'est passé."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Poids de la pente Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Corrige la médiane des dernières erreurs, en avance de leur pente fois le poids de la pente : pour les erreurs qui dérivent lentement sous un seeing moyen. Jamais plus que l'erreur qui vient d'être mesurée."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Pendant le guidage, mène l'étoile aller et retour le long de chaque axe en croix : ouest, est et ouest, puis nord, sud et nord. Il montre si l'AD et la Déc sont à angle droit, la vitesse dans chaque sens, le jeu quand un axe s'inverse et le collage au démarrage. Le guidage reprend ensuite."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Lancer le test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Test Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "L'AD et la Déc sont à {0:0.0}° de l'angle droit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Vitesses : ouest {0:0.00}, est {1:0.00}, nord {2:0.00}, sud {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Jeu : AD {0} en repartant vers l'est, {1} au retour ; Déc {2} en repartant vers le sud, {3} au retour."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "La première impulsion depuis l'arrêt a déplacé l'étoile de {0:0} % (AD) et {1:0} % (Déc) de ce qu'en fait une suivante : bien moins indique du collage, ou du jeu resté du guidage."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "La croix en image : {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Test Star-Cross terminé"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Ce n'est pas un journal de guidage de Sidralune ou de PHD2."

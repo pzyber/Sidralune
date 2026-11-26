@@ -720,6 +720,7 @@ namespace Sidralune.Devices.Guiding
                         {
                             Log.Warn("Guider", ex.Message);
                             _log.Event("Calibration failed", ex.Message);
+                            SaveDiagnosis("Calibration failed", false);
                             _phase = Phase.Watching;
                             UpdateState();
                             done.TrySetException(ex);
@@ -1089,6 +1090,9 @@ namespace Sidralune.Devices.Guiding
             if (r != null) foreach (var n in r.Notes) { _log.Event("Stars", n); Log.Info("Guider", n); }
             if (r != null && r.Promoted) RememberLock();
             AdjustExposure();
+            // kept a while, so the frames around a lost star can be saved
+            KeepForDiagnosis(frame);
+            if (lostNow) SaveDiagnosis("Star lost");
             LastFrame = frame;
             Interlocked.Increment(ref _frames);
             UpdateState();
@@ -1103,6 +1107,7 @@ namespace Sidralune.Devices.Guiding
             {
                 case GuideAlgorithmKind.ResistSwitch: return new ResistSwitchAlgorithm();
                 case GuideAlgorithmKind.Lowpass2: return new Lowpass2Algorithm();
+                case GuideAlgorithmKind.Lowpass: return new LowpassAlgorithm();
                 case GuideAlgorithmKind.ZFilter: return new ZFilterAlgorithm();
                 case GuideAlgorithmKind.PredictivePec: return new PredictivePecAlgorithm();
                 default: return new HysteresisAlgorithm();
@@ -1143,6 +1148,8 @@ namespace Sidralune.Devices.Guiding
             if (r != null) { r.MinMovePx = minMove; r.Aggressiveness = aggr; r.FastSwitch = st.DecFastSwitch; }
             var l = a as Lowpass2Algorithm;
             if (l != null) { l.MinMovePx = minMove; l.Aggressiveness = (ra ? st.RaLowpassAggressiveness : st.DecLowpassAggressiveness) / 100; }
+            var lp = a as LowpassAlgorithm;
+            if (lp != null) { lp.MinMovePx = minMove; lp.SlopeWeight = ra ? st.RaLowpassSlopeWeight : st.DecLowpassSlopeWeight; }
             var z = a as ZFilterAlgorithm;
             if (z != null) { z.MinMovePx = minMove; z.ExposureFactor = ra ? st.RaZFactor : st.DecZFactor; }
             var pec = a as PredictivePecAlgorithm;

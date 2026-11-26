@@ -66,7 +66,8 @@ namespace Sidralune.Devices.Guiding
             double wAngle, wRate;
             bool wOk = GuideCalibration.FitLeg(west.T, west.X, west.Y, out wAngle, out wRate);
             await Return(GuideDirection.East, west.TotalMs, wOk ? wRate : predRa, Settings.MaxRaPulseMs, pulser, ct);
-            if (!wOk) return Missed(res, GuideCalibration.MissRaSpeed, 0, "RA did not move the star");
+            // three steps sized to go the calibration distance: under half of it is not the predicted speed (or no movement at all, and a fit through noise)
+            if (!wOk || Moved(west) < 0.5 * dist) return Missed(res, GuideCalibration.MissRaSpeed, 100 * Moved(west) / dist, "RA did not move the star as far as predicted");
             double off = Math.Abs(AstroMath.NormalizeDeg180(wAngle - predWest));
             if (off > PredictionAngleTolerance) return Missed(res, GuideCalibration.MissRaDirection, off, string.Format(CultureInfo.InvariantCulture, "RA moved the star {0:0}° from the predicted direction", off));
             if (raKnown && Math.Abs(wRate / predRa - 1) > PredictionSpeedTolerance)
@@ -81,7 +82,7 @@ namespace Sidralune.Devices.Guiding
             double nAngle, nRate;
             bool nOk = GuideCalibration.FitLeg(north.T, north.X, north.Y, out nAngle, out nRate);
             await Return(GuideDirection.South, north.TotalMs + clearingMs, nOk ? nRate : expDec, Settings.MaxDecPulseMs, pulser, ct);
-            if (!nOk) return Missed(res, GuideCalibration.MissDecSpeed, 0, "Dec did not move the star");
+            if (!nOk || Moved(north) < 0.5 * dist) return Missed(res, GuideCalibration.MissDecSpeed, 100 * Moved(north) / dist, "Dec did not move the star as far as predicted");
             double nOff = Math.Abs(AstroMath.NormalizeDeg180(nAngle - predNorth));
             bool reversed = nOff > 90;
             if (reversed) nOff = 180 - nOff;
@@ -96,6 +97,13 @@ namespace Sidralune.Devices.Guiding
                 RaSteps = west.Steps, DecSteps = north.Steps, WestSign = westSign, NorthSign = northSign, Predicted = true
             };
             return res;
+        }
+
+        /// <summary>How far a leg took the star from where it began (pixels).</summary>
+        private static double Moved(Leg leg)
+        {
+            int n = leg.X.Count - 1;
+            return n < 1 ? 0 : Math.Sqrt((leg.X[n] - leg.X[0]) * (leg.X[n] - leg.X[0]) + (leg.Y[n] - leg.Y[0]) * (leg.Y[n] - leg.Y[0]));
         }
 
         private static PredictionCheck Missed(PredictionCheck res, string miss, double by, string why)

@@ -2545,6 +2545,78 @@ msgstr "Nincs csatlakoztatott fókuszáló."
 msgid "No guider connected."
 msgstr "Nincs csatlakoztatott vezetőrendszer."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "A vezetőcsillag elveszett a Star-Cross teszt közben."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "A Star-Cross teszt leállt, mert a mechanika elfordult."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnosztika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Képek mentése hibánál"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Ha a vezetőcsillag elvész vagy egy kalibrálás nem sikerül, az utolsó öt vezetőkép (elveszett csillagnál a következő három is) FITS-ként mentődik a Logs Guide frames mappájába, legfeljebb ötpercenként egyszer, hogy utólag látni lehessen, mi történt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass meredekségi súly"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Az utolsó hibák mediánját javítja, a meredekségük és a súly szorzatával előre: lassan vándorló hibákhoz közepes seeingben. Soha nem többet, mint az épp mért hiba."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Vezetés közben a csillagot keresztben ki és vissza viszi mindkét tengely mentén: nyugat, kelet és nyugat, majd észak, dél és észak. Megmutatja, merőleges-e az RA és a Dec, a sebességet mindkét irányban, a holtjátékot a tengely irányváltásakor és a tapadást induláskor. A vezetés utána folytatódik."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Star-Cross teszt futtatása"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross teszt"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "Az RA és a Dec {0:0.0}°-kal tér el a merőlegestől."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Sebességek: nyugat {0:0.00}, kelet {1:0.00}, észak {2:0.00}, dél {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Holtjáték: RA {0} keletre fordulva, {1} vissza; Dec {2} délre fordulva, {3} vissza."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Az első impulzus nyugalomból a csillagot {0:0}%-kal (RA) és {1:0}%-kal (Dec) vitte annyira, mint egy későbbi: sokkal kevesebb tapadás, vagy a vezetésből maradt holtjáték."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "A kereszt képként: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "A Star-Cross teszt kész"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Nem a Sidralune vagy a PHD2 vezetési naplója."

@@ -34,6 +34,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Dark frames](#dark-frames)
   - [Guiding Assistant](#guiding-assistant)
   - [Calibration Assistant](#calibration-assistant)
+  - [Star-Cross test](#star-cross-test)
   - [Lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
   - [Guiding while imaging](#guiding-while-imaging)
@@ -317,6 +318,7 @@ Each axis has its own algorithm, chosen on the Settings page; only that algorith
 
 - **Hysteresis** (RA's default) blends each new error with the previous ones (the hysteresis share), corrects a share of the result (the aggressiveness), and leaves errors smaller than the minimum move alone, since those are mostly seeing.
 - **Resist Switch** (Dec's default) keeps correcting Dec in one direction, and changes direction only after three errors in a row the other way, each over the minimum move and not shrinking. Backlash makes every change of direction in Dec costly. With **Correct at once** on, an error more than three minimum moves the other way (a gust of wind, a cable) is corrected straight away.
+- **Lowpass** corrects the median of the last ten errors, so a frame thrown by the seeing counts for little, plus the slope of a line through them times the **Lowpass slope weight** (5), which meets a steady drift ahead. It never corrects more than the error just measured, nor the other way, and leaves errors under the minimum move alone. It suits errors that wander slowly under average seeing.
 - **Lowpass2** fits a straight line through the last ten errors and corrects a share of where the line is now, so the seeing averages out. It never corrects more than the error just measured. It suits mounts that drift smoothly, in good seeing.
 - **Z-filter** guides as if each exposure were several times longer (the exposure factor), by low-pass filtering the star's motion. It suits slow errors in poor seeing; with short exposures, try a factor of 2–4.
 - **Predictive PEC** (RA only) learns the mount's periodic error while it guides and corrects it before it shows. See [Predictive PEC](#predictive-pec).
@@ -359,6 +361,7 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Search box radius (px) | 15 | How far the star may move between frames |
 | Subframes | Off | See [Subframes and noise reduction](#subframes-and-noise-reduction) |
 | Noise reduction | None | Or 2×2 mean or 3×3 median |
+| Diagnosis: Save frames on trouble | Off | When the guide star is lost, the five guide frames before it and the three after are saved as FITS (with the lock position, the star's position and the guider's state in the header) in `Logs\Guide frames\<date time> Star lost`; when a calibration fails, the five before it, in `… Calibration failed`. At most once every five minutes, so a cloudy night does not fill the disk |
 | Multi-star: Guide on several stars | On, up to 9 stars | See [Guiding on several stars](#guiding-on-several-stars) |
 | Star brightness: Skip frames where it jumps | On, 50 % | A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction |
 | Dither pattern | Random | **Random** dithers anywhere within the amount. **Spiral** steps out by the amount along a square spiral round where it began (24 places, then it begins again), so no two frames share a place; a lock position moved by hand begins it again there |
@@ -367,10 +370,10 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Calibration distance (px) | 20 | How far each calibration leg moves the star |
 | After a meridian flip: Mount reverses Dec | Off | |
 | Rotator: The guide camera turns with it; Rotator direction: Reversed | Off, off | See [A guide camera on a rotator](#a-guide-camera-on-a-rotator) |
-| RA algorithm | Hysteresis | Or Lowpass2, Z-filter or Predictive PEC (predictive gain 50 %, reactive gain 60 %, worm period 480 s adjusted from the guiding, model kept through gaps of 40 % of a period) |
-| RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | Lowpass2: aggressiveness 80 %; Z-filter: exposure factor 4 |
+| RA algorithm | Hysteresis | Or Lowpass, Lowpass2, Z-filter or Predictive PEC (predictive gain 50 %, reactive gain 60 %, worm period 480 s adjusted from the guiding, model kept through gaps of 40 % of a period) |
+| RA aggressiveness, hysteresis, minimum move | 70 %, 10 %, 0.2 px | Lowpass: slope weight 5; Lowpass2: aggressiveness 80 %; Z-filter: exposure factor 4 |
 | RA maximum pulse | 2500 ms | |
-| Dec algorithm | Resist Switch | Or Lowpass2 or Z-filter |
+| Dec algorithm | Resist Switch | Or Lowpass, Lowpass2 or Z-filter |
 | Dec aggressiveness, minimum move | 100 %, 0.2 px | |
 | Dec maximum pulse | 2500 ms | |
 | Large Dec errors: Correct at once | On | Resist Switch only |
@@ -424,6 +427,16 @@ The suggestions can be ticked and applied with **Apply the ticked settings**: mi
 The Calibration Assistant (Assistants page) calibrates where calibration is most reliable: 5° from the meridian, on the side the mount already points to so it does not flip, on the celestial equator, or nearer the pole where the equator is lower than 30° (at high latitudes). The hour angle and declination can be changed; **Suggest again** brings back the proposal.
 
 It first says what to check: a mount that does not report its guide rate, a guide rate under 0.5× sidereal, or a fixed calibration step. **Slew and calibrate** slews there (the last degree from the south, so Dec's gears are taken up northwards), calibrates and stops guiding, then rates the calibration **Good**, **Acceptable** or **Poor** and says why. **Return** slews back to where the mount was.
+
+### Star-Cross test
+
+The Star-Cross test (Assistants page, while guiding) drives the star out and back along each axis in a cross, the way a long exposure during such pulses draws a cross of star trails: West until the star has moved the calibration distance, East until it is as far the other way, West back to the middle, then the same North, South and North. Backlash only makes a leg take more pulses. Corrections wait meanwhile, and guiding goes on afterwards. The result shows:
+
+- how far RA and Dec are **from square** (a mount whose axes are not at right angles, or a cone error);
+- the **speed** each way in pixels per second of pulse, which should match the calibration and each other;
+- the **backlash** when each axis turns round (East after West and back, South after North and back): the pulse time lost before the star moved back, from a line through the steps once it got going. RA seldom has any; Dec often does, which [backlash compensation](#guider-settings) can take up;
+- how far the **first pulse from rest** moved the star compared with one later on: much less is stiction, or Dec backlash left from guiding;
+- the track as a plot, and the guide frames laid over each other as an image of the cross, saved as `Star-Cross <date> <time>.fits` in the log folder.
 
 ### Lock position, comet tracking and manual guide
 

@@ -2557,6 +2557,78 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Vadības zvaigzne pazuda Star-Cross testa laikā."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross tests apstājās, jo montējums pagriezās."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Saglabāt kadrus problēmās"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Kad vadības zvaigzne pazūd vai kalibrēšana neizdodas, pēdējie pieci vadības kadri (un pazudušai zvaigznei nākamie trīs) tiek saglabāti kā FITS mapē Guide frames mapē Logs, ne biežāk kā reizi piecās minūtēs, lai vēlāk redzētu, kas notika."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass slīpuma svars"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Labo pēdējo kļūdu mediānu, iepriekš par to slīpumu reiz slīpuma svaru: lēni klīstošām kļūdām pie vidēja seeing. Nekad vairāk par tikko izmērīto kļūdu."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Vadības laikā ved zvaigzni turp un atpakaļ gar katru asi krustā: rietumi, austrumi un rietumi, tad ziemeļi, dienvidi un ziemeļi. Parāda, vai RA un Dec ir taisnā leņķī, ātrumu katrā virzienā, brīvkustību, kad ass apgriežas, un ieķeršanos, kad tā sāk kustēties. Vadība pēc tam turpinās."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Palaist Star-Cross testu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross tests"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA un Dec ir {0:0.0}° no taisnā leņķa."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Ātrumi: rietumi {0:0.00}, austrumi {1:0.00}, ziemeļi {2:0.00}, dienvidi {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Brīvkustība: RA {0}, apgriežoties uz austrumiem, {1} atpakaļ; Dec {2}, apgriežoties uz dienvidiem, {3} atpakaļ."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Pirmais impulss no miera pārvietoja zvaigzni {0:0}% (RA) un {1:0}% (Dec) tik tālu kā vēlāks: daudz mazāk ir ieķeršanās vai no vadības palikusi brīvkustība."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Krusts kā attēls: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross tests pabeigts"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Tas nav Sidralune vai PHD2 vadības žurnāls."

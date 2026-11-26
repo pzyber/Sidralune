@@ -432,6 +432,8 @@ namespace Sidralune.Views
             var radius = camGrid.Row(T("Search box radius (px)"), Ui.Num(15, 5, 50));
             var subframes = camGrid.Row(T("Subframes"), new CheckBox { Text = T("While guiding, download only a box round the stars") });
             var noise = camGrid.Row(T("Noise reduction"), Ui.Combo(T("None"), T("2×2 mean"), T("3×3 median")));
+            var diagnosis = camGrid.Row(T("Diagnosis"), new CheckBox { Text = T("Save frames on trouble") });
+            camGrid.Full(Ui.Hint(T("When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened.")));
 
             var starGrid = new FormGrid(170);
             var multi = starGrid.Row(T("Multi-star"), new CheckBox { Text = T("Guide on several stars") });
@@ -460,10 +462,11 @@ namespace Sidralune.Views
             calGrid.Full(clearCal);
 
             var raGrid = new FormGrid(170);
-            var raAlgo = raGrid.Row(T("RA algorithm"), Ui.Combo(T("Hysteresis"), T("Lowpass2"), T("Z-filter"), T("Predictive PEC")));
+            var raAlgo = raGrid.Row(T("RA algorithm"), Ui.Combo(T("Hysteresis"), T("Lowpass"), T("Lowpass2"), T("Z-filter"), T("Predictive PEC")));
             var raHint = Ui.Hint(""); raGrid.Full(raHint);
             var raAggr = raGrid.Row(T("RA aggressiveness (%)"), Ui.Num(70, 0, 200));
             var raHyst = raGrid.Row(T("RA hysteresis (%)"), Ui.Num(10, 0, 90));
+            var raSlope = raGrid.Row(T("Lowpass slope weight"), Ui.Num(5, 0, 20, 1, 0.5m));
             var raLp = raGrid.Row(T("Lowpass2 aggressiveness (%)"), Ui.Num(80, 0, 100));
             var raZ = raGrid.Row(T("Z-filter exposure factor"), Ui.Num(4, 1, 8, 1, 0.5m));
             var pecPred = raGrid.Row(T("Predictive gain (%)"), Ui.Num(50, 0, 100));
@@ -476,10 +479,11 @@ namespace Sidralune.Views
             var raMax = raGrid.Row(T("RA maximum pulse (ms)"), Ui.Num(2500, 50, 10000, 0, 100));
 
             var decGrid = new FormGrid(170);
-            var decAlgo = decGrid.Row(T("Dec algorithm"), Ui.Combo(T("Resist Switch"), T("Lowpass2"), T("Z-filter")));
+            var decAlgo = decGrid.Row(T("Dec algorithm"), Ui.Combo(T("Resist Switch"), T("Lowpass"), T("Lowpass2"), T("Z-filter")));
             var decHint = Ui.Hint(""); decGrid.Full(decHint);
             var decAggr = decGrid.Row(T("Dec aggressiveness (%)"), Ui.Num(100, 0, 100));
             var fast = decGrid.Row(T("Large Dec errors"), new CheckBox { Text = T("Correct at once") });
+            var decSlope = decGrid.Row(T("Lowpass slope weight"), Ui.Num(5, 0, 20, 1, 0.5m));
             var decLp = decGrid.Row(T("Lowpass2 aggressiveness (%)"), Ui.Num(80, 0, 100));
             var decZ = decGrid.Row(T("Z-filter exposure factor"), Ui.Num(4, 1, 8, 1, 0.5m));
             var decMin = decGrid.Row(T("Dec minimum move (px)"), Ui.Num(0.2m, 0, 5, 2, 0.05m));
@@ -524,12 +528,13 @@ namespace Sidralune.Views
             page.Controls.Add(new Collapsible(T("Guide stars"), starGrid));
             page.Controls.Add(new Collapsible(T("Guide camera"), camGrid));
 
-            var raKinds = new[] { GuideAlgorithmKind.Hysteresis, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter, GuideAlgorithmKind.PredictivePec };
-            var decKinds = new[] { GuideAlgorithmKind.ResistSwitch, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter };
+            var raKinds = new[] { GuideAlgorithmKind.Hysteresis, GuideAlgorithmKind.Lowpass, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter, GuideAlgorithmKind.PredictivePec };
+            var decKinds = new[] { GuideAlgorithmKind.ResistSwitch, GuideAlgorithmKind.Lowpass, GuideAlgorithmKind.Lowpass2, GuideAlgorithmKind.ZFilter };
             var modes = new[] { DecGuideMode.Auto, DecGuideMode.North, DecGuideMode.South, DecGuideMode.Off };
             Func<GuideAlgorithmKind, string> algoHint = k =>
                 k == GuideAlgorithmKind.Hysteresis ? T("Corrects a share of the error, smoothed with the one before.")
                 : k == GuideAlgorithmKind.ResistSwitch ? T("Changes direction only when the error clearly asks for it, which suits Dec's backlash.")
+                : k == GuideAlgorithmKind.Lowpass ? T("Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured.")
                 : k == GuideAlgorithmKind.Lowpass2 ? T("Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing.")
                 : k == GuideAlgorithmKind.PredictivePec ? T("Learns the mount's periodic error while guiding and corrects it before it shows: for mounts with a regular worm error. It trains for two worm periods.")
                 : T("Guides as if the exposures were longer: for slow errors in poor seeing.");
@@ -543,6 +548,7 @@ namespace Sidralune.Views
                 ShowRow(starGrid, massTol, st.StarMassCheck);
                 ShowRow(raGrid, raAggr, st.RaAlgorithm == GuideAlgorithmKind.Hysteresis);
                 ShowRow(raGrid, raHyst, st.RaAlgorithm == GuideAlgorithmKind.Hysteresis);
+                ShowRow(raGrid, raSlope, st.RaAlgorithm == GuideAlgorithmKind.Lowpass);
                 ShowRow(raGrid, raLp, st.RaAlgorithm == GuideAlgorithmKind.Lowpass2);
                 ShowRow(raGrid, raZ, st.RaAlgorithm == GuideAlgorithmKind.ZFilter);
                 bool pec = st.RaAlgorithm == GuideAlgorithmKind.PredictivePec;
@@ -551,6 +557,7 @@ namespace Sidralune.Views
                 ShowRow(srvGrid, srvOthers, st.ServerEnabled);
                 ShowRow(decGrid, decAggr, st.DecAlgorithm == GuideAlgorithmKind.ResistSwitch);
                 ShowRow(decGrid, fast, st.DecAlgorithm == GuideAlgorithmKind.ResistSwitch);
+                ShowRow(decGrid, decSlope, st.DecAlgorithm == GuideAlgorithmKind.Lowpass);
                 ShowRow(decGrid, decLp, st.DecAlgorithm == GuideAlgorithmKind.Lowpass2);
                 ShowRow(decGrid, decZ, st.DecAlgorithm == GuideAlgorithmKind.ZFilter);
                 foreach (var c in new Control[] { blAmount, blMin, blMax, blNow }) ShowRow(decGrid, c, st.BacklashCompensation);
@@ -558,8 +565,8 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, solveOn, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, predict, step, distance, reverses, onRotator, rotReversed, clearCal,
-                raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, solveOn, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, diagnosis, predict, step, distance, reverses, onRotator, rotReversed, clearCal,
+                raAlgo, raAggr, raHyst, raSlope, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decSlope, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
                 aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
             refresh = () =>
@@ -578,11 +585,12 @@ namespace Sidralune.Views
                     target.Value = clamp(target, st.TargetSnr); binning.SelectedIndex = Math.Max(0, Math.Min(3, st.Binning - 1));
                     output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Text = T("{0:0} mm, from the equipment profile (Observatory → Equipment)", st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
                     solveOn.Checked = st.SolveGuideFrames;
+                    diagnosis.Checked = st.SaveDiagnosticFrames;
                     multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); ditherMode.SelectedIndex = st.DitherMode == DitherPattern.Spiral ? 1 : 0; mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
                     predict.Checked = st.PredictCalibration;
                     step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
                     raAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(raKinds, st.RaAlgorithm));
-                    raAggr.Value = clamp(raAggr, st.RaAggressiveness); raHyst.Value = clamp(raHyst, st.RaHysteresis); raLp.Value = clamp(raLp, st.RaLowpassAggressiveness); raZ.Value = clamp(raZ, st.RaZFactor);
+                    raAggr.Value = clamp(raAggr, st.RaAggressiveness); raHyst.Value = clamp(raHyst, st.RaHysteresis); raLp.Value = clamp(raLp, st.RaLowpassAggressiveness); raSlope.Value = clamp(raSlope, st.RaLowpassSlopeWeight); decSlope.Value = clamp(decSlope, st.DecLowpassSlopeWeight); raZ.Value = clamp(raZ, st.RaZFactor);
                     raMin.Value = clamp(raMin, st.RaMinMovePx); raMax.Value = clamp(raMax, st.MaxRaPulseMs);
                     decAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(decKinds, st.DecAlgorithm));
                     decAggr.Value = clamp(decAggr, st.DecAggressiveness); fast.Checked = st.DecFastSwitch; decLp.Value = clamp(decLp, st.DecLowpassAggressiveness); decZ.Value = clamp(decZ, st.DecZFactor);
@@ -619,6 +627,7 @@ namespace Sidralune.Views
             output.SelectedIndexChanged += (s, e) => save(st => st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount);
             radius.ValueChanged += (s, e) => save(st => st.SearchRadius = (int)radius.Value);
             solveOn.CheckedChanged += (s, e) => save(st => st.SolveGuideFrames = solveOn.Checked);
+            diagnosis.CheckedChanged += (s, e) => save(st => st.SaveDiagnosticFrames = diagnosis.Checked);
             multi.CheckedChanged += (s, e) => save(st => st.MultiStar = multi.Checked);
             maxStars.ValueChanged += (s, e) => save(st => st.MaxStars = (int)maxStars.Value);
             ditherMode.SelectedIndexChanged += (s, e) => save(st => st.DitherMode = ditherMode.SelectedIndex == 1 ? DitherPattern.Spiral : DitherPattern.Random);
@@ -632,6 +641,8 @@ namespace Sidralune.Views
             raAggr.ValueChanged += (s, e) => save(st => st.RaAggressiveness = (double)raAggr.Value);
             raHyst.ValueChanged += (s, e) => save(st => st.RaHysteresis = (double)raHyst.Value);
             raLp.ValueChanged += (s, e) => save(st => st.RaLowpassAggressiveness = (double)raLp.Value);
+            raSlope.ValueChanged += (s, e) => save(st => st.RaLowpassSlopeWeight = (double)raSlope.Value);
+            decSlope.ValueChanged += (s, e) => save(st => st.DecLowpassSlopeWeight = (double)decSlope.Value);
             raZ.ValueChanged += (s, e) => save(st => st.RaZFactor = (double)raZ.Value);
             raMin.ValueChanged += (s, e) => save(st => st.RaMinMovePx = (double)raMin.Value);
             raMax.ValueChanged += (s, e) => save(st => st.MaxRaPulseMs = (int)raMax.Value);
@@ -742,6 +753,15 @@ namespace Sidralune.Views
             caGrid.Full(ButtonRow(caRun, caReturn, caSuggest));
             var caResult = Note();
             caGrid.Full(caResult);
+            var scGrid = new FormGrid(170);
+            scGrid.Full(Ui.Hint(T("While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards.")));
+            var scRun = MakeButton(T("Run the Star-Cross test"), Icons.Grid);
+            scGrid.Full(ButtonRow(scRun));
+            var scText = Note();
+            scGrid.Full(scText);
+            var scPlot = new PlotControl { Title = T("Star-Cross test"), XLabel = T("px"), YLabel = T("px"), Height = 260, Dock = DockStyle.Top, Visible = false };
+            scGrid.Full(scPlot);
+            page.Controls.Add(new Collapsible(T("Star-Cross test"), scGrid));
             page.Controls.Add(new Collapsible(T("Calibration Assistant"), caGrid));
             page.Controls.Add(new Collapsible(T("Guiding Assistant"), gaGrid));
 
@@ -806,6 +826,34 @@ namespace Sidralune.Views
                 MainForm.Instance.Toast(T("Settings applied."));
             };
 
+            Func<double, string> ms = v => double.IsNaN(v) ? "–" : T("{0:0} ms", v);
+            scRun.Click += (s, e) =>
+            {
+                if (!PolarFree()) return;
+                StarCrossResult r = null;
+                job.Run(T("Star-Cross test"), t => r = Dm.BuiltinGuider.RunStarCross(t.Cts.Token).GetAwaiter().GetResult(), () =>
+                {
+                    var lines = new List<string>
+                    {
+                        T("RA and Dec are {0:0.0}° from square.", r.OrthogonalityErrorDeg),
+                        T("Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s.", r.WestRate, r.EastRate, r.NorthRate, r.SouthRate),
+                        T("Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back.", ms(r.RaTurnMs), ms(r.RaReturnMs), ms(r.DecTurnMs), ms(r.DecReturnMs)),
+                        T("The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding.", 100 * r.RaFirstStep, 100 * r.DecFirstStep)
+                    };
+                    if (r.ImagePath != null) lines.Add(T("The cross as an image: {0}", r.ImagePath));
+                    scText.Text = string.Join(Environment.NewLine, lines);
+                    scPlot.Clear();
+                    foreach (var legName in new[] { "West", "East", "North", "South" })
+                    {
+                        var ser = scPlot.AddSeries(legName == "West" ? T("West") : legName == "East" ? T("East") : legName == "North" ? T("North") : T("South"), SeriesStyle.Scatter);
+                        foreach (var p in r.Track.Where(p => p.Leg == legName)) ser.Add(p.X, -p.Y);
+                    }
+                    scPlot.Visible = true;
+                    scPlot.Invalidate();
+                    MainForm.Instance.Toast(T("Star-Cross test finished"));
+                });
+            };
+
             CalibrationAssistant ca = null;
             bool edited = false, proposing = false;
             Func<CalibrationAssistant> assistant = () => ca ?? (ca = new CalibrationAssistant(Dm, Dm.BuiltinGuider));
@@ -837,6 +885,7 @@ namespace Sidralune.Views
                 bool measuring = ga != null && ga.Measuring;
                 gaStart.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null;
                 gaStop.Enabled = measuring && !job.Busy;
+                scRun.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null;
                 // settings are read when the work starts: they stay editable while it runs
                 backlashTest.Enabled = !phd2;
                 apply.Enabled = !phd2 && !job.Busy;

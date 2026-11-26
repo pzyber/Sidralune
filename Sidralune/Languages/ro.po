@@ -2557,6 +2557,78 @@ msgstr "Niciun focalizator conectat."
 msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Steaua de ghidare s-a pierdut în timpul testului Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Testul Star-Cross s-a oprit pentru că montarea s-a mișcat."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostic"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Salvează cadre la probleme"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Când steaua de ghidare se pierde sau o calibrare eșuează, ultimele cinci cadre de ghidare (și pentru o stea pierdută următoarele trei) sunt salvate ca FITS în dosarul Guide frames din Logs, cel mult o dată la cinci minute, pentru a vedea apoi ce s-a întâmplat."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Ponderea pantei Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Corectează mediana ultimelor erori, înainte cu panta lor înmulțită cu ponderea pantei: pentru erori care rătăcesc încet la un seeing mediu. Niciodată mai mult decât eroarea tocmai măsurată."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "În timpul ghidării, duce steaua dus-întors de-a lungul fiecărei axe în cruce: vest, est și vest, apoi nord, sud și nord. Arată dacă AR și Dec sunt în unghi drept, viteza în fiecare sens, jocul când o axă se întoarce și aderența la pornire. Ghidarea continuă apoi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Rulează testul Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Testul Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "AR și Dec sunt la {0:0.0}° de unghiul drept."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Viteze: vest {0:0.00}, est {1:0.00}, nord {2:0.00}, sud {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Joc: AR {0} la întoarcerea spre est, {1} înapoi; Dec {2} la întoarcerea spre sud, {3} înapoi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Primul impuls din repaus a mutat steaua cu {0:0}% (AR) și {1:0}% (Dec) cât unul ulterior: mult mai puțin înseamnă aderență sau joc rămas de la ghidare."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Crucea ca imagine: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Testul Star-Cross s-a terminat"
+
 #: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
 msgid "Not a guide log from Sidralune or PHD2."
 msgstr "Nu este un jurnal de ghidare din Sidralune sau PHD2."
