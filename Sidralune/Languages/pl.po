@@ -2557,6 +2557,22 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Prowadzenie {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · szczyt {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Prowadzenie zostało przerwane"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "przerwane"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "oznaczona"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Wzór ditheringu"
@@ -10522,6 +10538,26 @@ msgstr "Dithering piksele"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Czekanie na prowadzenie (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Maks. RMS prowadzenia"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Gdy prowadzenie jest złe"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Oznacz"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Powtórz"
 
 #: property grid
 msgctxt "option"

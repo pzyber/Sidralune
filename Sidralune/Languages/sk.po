@@ -2557,6 +2557,22 @@ msgstr "Nie je pripojený zaostrovač."
 msgid "No guider connected."
 msgstr "Nie je pripojený pointačný systém."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Pointácia {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · špička {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Pointácia bola prerušená"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "prerušené"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "označené"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Vzor ditheringu"
@@ -10522,6 +10538,26 @@ msgstr "Dither pixely"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Čakanie na pointáciu (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Max. RMS pointácie"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Pri zlej pointácii"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Označiť"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Nasnímať znova"
 
 #: property grid
 msgctxt "option"

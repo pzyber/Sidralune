@@ -2557,6 +2557,22 @@ msgstr "Nije povezan fokuser."
 msgid "No guider connected."
 msgstr "Nije povezan sistem za vođenje."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Vođenje {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · vrh {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Vođenje je prekinuto"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "prekinuto"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "označeno"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Obrazac ditheringa"
@@ -10522,6 +10538,26 @@ msgstr "Dither pikseli"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Čekanje vođenja (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Najveći RMS vođenja"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Kad je vođenje loše"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Označi"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Snimi ponovo"
 
 #: property grid
 msgctxt "option"

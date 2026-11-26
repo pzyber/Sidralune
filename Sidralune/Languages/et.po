@@ -2545,6 +2545,22 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Juhtimine {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · tipp {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Juhtimine katkes"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "katkes"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "märgitud"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Ditheri muster"
@@ -10491,6 +10507,26 @@ msgstr "Dither pikslid"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Juhtimise ootamine (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Juhtimise max RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Kui juhtimine on halb"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Märgi"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Tee uuesti"
 
 #: property grid
 msgctxt "option"

@@ -2557,6 +2557,22 @@ msgstr "Fokusuotuvas neprijungtas."
 msgid "No guider connected."
 msgstr "Gidavimo sistema neprijungta."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Gidavimas {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · pikas {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Gidavimas nutrūko"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "nutrūko"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "pažymėta"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Dither raštas"
@@ -10522,6 +10538,26 @@ msgstr "Dither pikseliai"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Laukti gidavimo (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Didžiausias gidavimo RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Kai gidavimas blogas"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Pažymėti"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Fotografuoti iš naujo"
 
 #: property grid
 msgctxt "option"

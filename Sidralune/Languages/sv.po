@@ -2545,6 +2545,22 @@ msgstr "Ingen fokuserare ansluten."
 msgid "No guider connected."
 msgstr "Ingen guidare ansluten."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Guidning {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · topp {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Guidningen avbröts"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "avbröts"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "flaggad"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Dithermönster"
@@ -10491,6 +10507,26 @@ msgstr "Dither pixlar"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Vänta på guidning (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Max guidnings-RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Vid dålig guidning"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Flagga"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Ta om"
 
 #: property grid
 msgctxt "option"

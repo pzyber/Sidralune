@@ -2545,6 +2545,22 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Ohjaus {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · huippu {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Ohjaus keskeytyi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "keskeytyi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "merkitty"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Dither-kuvio"
@@ -10491,6 +10507,26 @@ msgstr "Dither pikseliä"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Ohjauksen odotus (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Ohjauksen suurin RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Kun ohjaus on huonoa"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Merkitse"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Ota uudelleen"
 
 #: property grid
 msgctxt "option"

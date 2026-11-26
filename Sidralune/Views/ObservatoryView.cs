@@ -467,6 +467,17 @@ namespace Sidralune.Views
         /// What Stop does on both camera tabs: end whatever uses the camera, as the note under the camera controls says
         /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment or a sequence).
         /// </summary>
+        /// <summary>How the frame was guided, as a line of its own under the frame's numbers; empty for an unguided frame.</summary>
+        private static string GuidingLine(Sidralune.Devices.Guiding.GuidingStats g)
+        {
+            if (g == null) return "";
+            var parts = new List<string>();
+            if (!double.IsNaN(g.RmsTotal)) parts.Add(T("Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″", g.RmsTotal, g.RmsRa, g.RmsDec, g.Peak));
+            if (g.Interrupted) parts.Add(parts.Count == 0 ? T("Guiding was interrupted") : T("interrupted"));
+            if (g.Bad) parts.Add(T("flagged"));
+            return "\r\n" + string.Join(" · ", parts);
+        }
+
         private void StopCameraWork()
         {
             _captureCts?.Cancel();
@@ -737,7 +748,7 @@ namespace Sidralune.Views
                 {
                     _viewer.SetImage(res.Image, _viewer.Image == null);
                     camStatus.Text = (fromSequence ? T("Sequence") + " · " : "") + T("{0} stars · HFR {1:0.00} px · FWHM {2:0.00} px · median {3:0}", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535) +
-                        (res.Path != null ? "\r\n" + T("Saved {0}", System.IO.Path.GetFileName(res.Path)) : "");
+                        GuidingLine(res.Guiding) + (res.Path != null ? "\r\n" + T("Saved {0}", System.IO.Path.GetFileName(res.Path)) : "");
                 });
             };
             Tasks.Changed += SyncCameraButtons;

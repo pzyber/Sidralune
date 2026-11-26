@@ -2545,6 +2545,22 @@ msgstr "Geen focuser verbonden."
 msgid "No guider connected."
 msgstr "Geen guider verbonden."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Guiden {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · piek {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Het guiden werd onderbroken"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "onderbroken"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "gemarkeerd"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Ditherpatroon"
@@ -10491,6 +10507,26 @@ msgstr "Dither-pixels"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Wachten op guiden (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Max. guide-RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Bij slecht guiden"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Markeren"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Opnieuw opnemen"
 
 #: property grid
 msgctxt "option"

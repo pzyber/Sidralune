@@ -175,7 +175,7 @@ The **Camera** section has two tabs at the top, **Deep sky** and **Planetary**, 
 | **Loop** | Continuous preview; frames are not saved. Useful for framing and manual focusing |
 | **Stop** | Abort the current exposure or series, or end any other camera work. Available only while something uses the camera |
 
-After each frame the status line shows the number of stars, the half-flux radius (HFR) and FWHM in pixels, the median level and the saved file name. These numbers are the quickest way to judge focus and sky conditions.
+After each frame the status line shows the number of stars, the half-flux radius (HFR) and FWHM in pixels, the median level and the saved file name. A frame taken while guiding gets a line with its guiding during the exposure: the total RMS, RA and Dec RMS and the peak error in arcseconds, with **interrupted** when guiding was not on all the time and **flagged** when a sequence's limit flagged it. These numbers are the quickest way to judge focus and sky conditions.
 
 The viewer shows every frame the camera takes, not only the ones started here: frames from a running [sequence](Sequencer) and from autofocus appear too, and the status line starts with "Sequence ·" for sequence frames.
 
@@ -242,6 +242,7 @@ Saved frames are 16-bit FITS files with a full header, so stacking and plate-sol
 - `SITELAT`, `SITELONG`, `SITEELEV`,
 - `FOCALLEN` and `APTDIA`,
 - the mount's pointing converted to J2000: `RA`, `DEC`, `OBJCTRA`, `OBJCTDEC`, plus `CENTALT`, `CENTAZ` and `AIRMASS`,
+- for a frame taken while guiding, how guiding went during its exposure (arcseconds): `GUIDRMS` (total RMS), `GUIDRMSR` and `GUIDRMSD` (RA and Dec), `GUIDPEAK` (the largest error) and `GUIDSTPS` (the guide steps), plus `GUIDLOST = T` when guiding was interrupted (a lost star, a pause) and `GUIDBAD = T` when a sequence's limit flagged it (see [Guiding while imaging](#guiding-while-imaging)),
 - `SWCREATE = Sidralune`.
 
 ### Cooling
@@ -438,6 +439,7 @@ Sidralune's own work takes care of guiding by itself, with the Sidralune guider 
 - **Centring** (**Center** on the Imaging tab, the sequence's centring) stops guiding for its slews and starts it again afterwards. Centring the field it guided on, on the same pier side, it guides on the star nearest the old lock position and holds it there, so the frames line up with those before.
 - A **meridian flip** stops guiding, flips, re-centres and starts guiding again on a star chosen afresh, also when the star was lost at the time.
 - A sequence that guides waits for guiding before each light frame: a lost star (a cloud) is waited for, and guiding that stopped (a slew, the guide camera failing) is started again, once a minute. After **Guiding wait minutes** (30) the frames go on without it, and the log says so. See [Sequencer](Sequencer#running-a-sequence).
+- **Every guided frame** records how guiding went while its shutter was open: the RMS in RA, Dec and total and the peak error, in its [FITS header](#fits-headers) and the Imaging status line. A sequence's **Max guiding RMS** flags a light frame guided worse than that, or during which guiding was interrupted: `GUIDBAD = T` in its header and `_BADGUIDING` at the end of its file name, so stacking can leave it out. **When guiding is bad** keeps it (**Flag**) or keeps it and takes the frame again (**Retake**, up to three times in a row). A flagged frame is not used for the HFR autofocus trigger.
 
 Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
 

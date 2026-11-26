@@ -2545,6 +2545,22 @@ msgstr "Aucun focuseur connecté."
 msgid "No guider connected."
 msgstr "Aucun autoguideur connecté."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Guidage {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · pic {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Le guidage a été interrompu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "interrompu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "signalée"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Motif de dithering"
@@ -10491,6 +10507,26 @@ msgstr "Pixels de dithering"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Attente du guidage (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "RMS max. du guidage"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Si le guidage est mauvais"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Signaler"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Reprendre"
 
 #: property grid
 msgctxt "option"

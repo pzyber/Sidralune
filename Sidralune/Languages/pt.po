@@ -2545,6 +2545,22 @@ msgstr "Nenhum focador ligado."
 msgid "No guider connected."
 msgstr "Nenhum guiador ligado."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Guiagem {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · pico {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "A guiagem foi interrompida"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "interrompida"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "assinalada"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Padrão de dither"
@@ -10491,6 +10507,26 @@ msgstr "Píxeis de dither"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Espera pela guiagem (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "RMS máx. da guiagem"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Se a guiagem for má"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Assinalar"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Repetir"
 
 #: property grid
 msgctxt "option"

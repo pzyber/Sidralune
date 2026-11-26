@@ -1023,5 +1023,82 @@ namespace Sidralune.Tests
                 dm.DisconnectAll();
             }
         }
+
+        [TestMethod]
+        public void TestGuidingQualityInFrames()
+        {
+            // the numbers from the guide steps of one exposure
+            var st = GuidingStats.From(new List<GuideStep> { new GuideStep { RaArcsec = 0.3, DecArcsec = -0.4 }, new GuideStep { RaArcsec = -0.3, DecArcsec = 0 } }, false);
+            CheckTrue("RMS per axis, in total and the peak", Math.Abs(st.RmsRa - 0.3) < 1e-9 && Math.Abs(st.RmsDec - Math.Sqrt(0.08)) < 1e-9
+                && Math.Abs(st.RmsTotal - Math.Sqrt(0.17)) < 1e-9 && Math.Abs(st.Peak - 0.5) < 1e-9 && !st.Interrupted);
+            CheckTrue("No limit, or within it, is not bad; over it, or interrupted, is", !st.WorseThan(0) && !st.WorseThan(0.5) && st.WorseThan(0.4)
+                && GuidingStats.From(new List<GuideStep>(), false).WorseThan(5) && !GuidingStats.From(new List<GuideStep>(), false).WorseThan(0));
+
+            var dm = GuideObservatory("guide-quality");
+            string dir = Path.GetDirectoryName(dm.GuiderSettingsPath);
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera", Address = "sim" });
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            var capture = new CaptureService { Devices = dm, ImageFolder = Path.Combine(dir, "Images") };
+            try
+            {
+                // unguided: no guiding numbers
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                var res = capture.Expose(new ExposureRequest { Seconds = 1, Target = "Q" }, ct).Result;
+                CheckTrue("An unguided frame has no guiding numbers", res.Guiding == null && !res.Image.Header.Has("GUIDRMS"));
+
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("Guiding", g.IsGuiding);
+                res = capture.Expose(new ExposureRequest { Seconds = 2, Target = "Q" }, ct).Result;
+                var gs = res.Guiding;
+                CheckTrue("A guided frame has the guiding of its exposure", gs != null && gs.Steps >= 4 && gs.Steps <= 12 && gs.RmsTotal > 0 && gs.RmsTotal < 1 && gs.Peak >= gs.RmsTotal * 0.99 && !gs.Interrupted && !gs.Bad,
+                    gs == null ? "none" : gs.Steps + " steps, " + gs.RmsTotal.ToString("0.000"));
+                var saved = Sidralune.Imaging.IO.ImageFile.Load(res.Path);
+                CheckTrue("…in its FITS header", Math.Abs(saved.Header.GetDouble("GUIDRMS") - Math.Round(gs.RmsTotal, 3)) < 1e-9 && saved.Header.Has("GUIDRMSR") && saved.Header.Has("GUIDRMSD")
+                    && saved.Header.Has("GUIDPEAK") && saved.Header.GetInt("GUIDSTPS") == gs.Steps && !saved.Header.Has("GUIDBAD") && !saved.Header.Has("GUIDLOST"));
+                res = capture.Expose(new ExposureRequest { Seconds = 1, Light = false, FrameType = "DARK", Target = "Q" }, ct).Result;
+                CheckTrue("A dark frame has none", res.Guiding == null);
+
+                // over the limit: flagged in the header and the file name
+                res = capture.Expose(new ExposureRequest { Seconds = 1, Target = "Q", MaxGuidingRms = 0.001 }, ct).Result;
+                CheckTrue("A frame guided worse than the limit is flagged", res.Guiding.Bad && res.Path.EndsWith("_BADGUIDING.fits") && File.Exists(res.Path)
+                    && Sidralune.Imaging.IO.ImageFile.Load(res.Path).Header.Get("GUIDBAD") == "T", res.Path);
+                res = capture.Expose(new ExposureRequest { Seconds = 1, Target = "Q", MaxGuidingRms = 50 }, ct).Result;
+                CheckTrue("…within it, not", !res.Guiding.Bad && !res.Path.Contains("BADGUIDING"));
+
+                // a cloud during the exposure interrupts guiding
+                var gcam = (CameraSimulator)dm.GuideCamera;
+                var cloudy = capture.Expose(new ExposureRequest { Seconds = 4, Target = "Q", MaxGuidingRms = 50 }, ct);
+                Thread.Sleep(800);
+                gcam.Transparency = 0;
+                res = cloudy.Result;
+                gcam.Transparency = 1;
+                CheckTrue("Guiding interrupted by a cloud flags the frame", res.Guiding.Interrupted && res.Guiding.Bad && res.Image.Header.Get("GUIDLOST") == "T");
+                CheckTrue("The star comes back", SpinUntil(() => g.IsGuiding, 20000), g.State);
+
+                // a sequence: flagged frames are kept, or taken again up to three times in a row
+                var log = new List<string>();
+                var ctx = new SequenceContext { Devices = dm, Capture = capture, Log = m => { lock (log) log.Add(m); }, GuidingWanted = true };
+                int frames = 0;
+                capture.ImageCaptured += r => frames++;
+                var flag = new TakeExposures { Count = 1, Exposure = 1, DitherEvery = 0, FrameType = "LIGHT", MaxGuidingRms = 0.001 };
+                flag.Run(ctx, ct).Wait();
+                CheckTrue("Flagged and kept", flag.Completed == 1 && frames == 1 && log.Any(m => m.Contains("_BADGUIDING") && m.Contains("flagged: guiding RMS")), string.Join(" | ", log));
+                frames = 0; log.Clear();
+                var again = new TakeExposures { Count = 2, Exposure = 1, DitherEvery = 0, FrameType = "LIGHT", MaxGuidingRms = 0.001, WhenGuidingIsBad = BadGuidingAction.Retake };
+                again.Run(ctx, ct).Wait();
+                CheckTrue("Taken again three times, then kept", again.Completed == 2 && frames == 8 && log.Count(m => m.EndsWith("taking it again")) == 6, frames + ": " + string.Join(" | ", log));
+                frames = 0;
+                var good = new TakeExposures { Count = 2, Exposure = 1, DitherEvery = 0, FrameType = "LIGHT", MaxGuidingRms = 50, WhenGuidingIsBad = BadGuidingAction.Retake };
+                good.Run(ctx, ct).Wait();
+                CheckTrue("Good frames are not taken again", good.Completed == 2 && frames == 2);
+            }
+            finally
+            {
+                g.StopGuiding();
+                dm.DisconnectAll();
+            }
+        }
     }
 }

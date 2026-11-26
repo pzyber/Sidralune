@@ -12,6 +12,7 @@ using Sidralune.Core.Time;
 using Sidralune.Core.Util;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Devices.Guiding;
 using Sidralune.Imaging.IO;
 using Sidralune.Science.Astrometry;
 
@@ -33,6 +34,11 @@ namespace Sidralune.Devices.Automation
         /// (a dither) without spoiling it, while the rest goes on.
         /// </summary>
         public Action ReadOut;
+        /// <summary>
+        /// A guided frame whose guiding RMS is worse than this (arcseconds; 0 for no limit), or during which guiding was
+        /// interrupted, is marked bad: GUIDBAD in its header and _BADGUIDING at the end of its file name.
+        /// </summary>
+        public double MaxGuidingRms;
 
         /// <summary>Frame types of saved frames, in the Imaging tab and the sequencer (Imaging also offers SNAPSHOT).</summary>
         public static readonly string[] FrameTypes = { "LIGHT", "DARK", "FLAT", "BIAS" };
@@ -79,6 +85,8 @@ namespace Sidralune.Devices.Automation
         public double Hfr = double.NaN, Fwhm = double.NaN;
         public int Stars;
         public double Median;
+        /// <summary>How guiding went during the exposure; null for a frame taken without guiding.</summary>
+        public GuidingStats Guiding;
     }
 
     /// <summary>Camera exposure workflow: configure, expose, download, annotate FITS header, analyse, save.</summary>
@@ -108,26 +116,40 @@ namespace Sidralune.Devices.Automation
             if (r.Gain >= 0 && cam.HasGain) cam.Gain = r.Gain;
             if (r.Offset >= 0 && cam.HasOffset) cam.Offset = r.Offset;
             Status?.Invoke(Lang.T("Exposing {0:0.###}s {1} {2}", r.Seconds, r.FrameType, r.Filter));
+            // the guide steps taken while the shutter is open tell how well this frame was guided
+            GuidingStats guiding = null;
             var start = DateTime.UtcNow;
-            cam.StartExposure(r.Seconds, r.Light);
-            using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
+            using (var rec = r.Light ? GuidingRecorder.Start(Devices.Guider) : null)
             {
-                await Task.Delay(TimeSpan.FromSeconds(Math.Max(0, r.Seconds - 0.1)), ct);
-                var until = DateTime.UtcNow.AddSeconds(120 + r.Seconds * 0.2);
-                while (!cam.ImageReady)
+                cam.StartExposure(r.Seconds, r.Light);
+                using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
                 {
-                    ct.ThrowIfCancellationRequested();
-                    if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver an image");
-                    if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
-                    await Task.Delay(100, ct);
+                    var shutter = DateTime.UtcNow.AddSeconds(Math.Max(0, r.Seconds - 0.1));
+                    while (true)
+                    {
+                        var left = shutter - DateTime.UtcNow;
+                        if (left <= TimeSpan.Zero) break;
+                        await Task.Delay(left < TimeSpan.FromSeconds(1) ? left : TimeSpan.FromSeconds(1), ct);
+                        rec?.Check();
+                    }
+                    var until = DateTime.UtcNow.AddSeconds(120 + r.Seconds * 0.2);
+                    while (!cam.ImageReady)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver an image");
+                        if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
+                        await Task.Delay(100, ct);
+                    }
                 }
+                if (rec != null) guiding = rec.Stop();
             }
             r.ReadOut?.Invoke();
             Status?.Invoke(Lang.T("Downloading"));
             var img = await Task.Run(() => cam.GetImage(), ct);
             if (img == null) throw new InvalidOperationException("Camera returned no image");
             Annotate(img, r, start);
-            var res = new CaptureResult { Image = img };
+            if (guiding != null) { guiding.Bad = guiding.WorseThan(r.MaxGuidingRms); guiding.WriteTo(img); }
+            var res = new CaptureResult { Image = img, Guiding = guiding };
             await Task.Run(() =>
             {
                 var stars = StarDetector.Detect(img.Luminance(), img.Width, img.Height, new StarDetectionOptions { MaxStars = 500 });
@@ -141,6 +163,7 @@ namespace Sidralune.Devices.Automation
             {
                 FrameCounter++;
                 res.Path = BuildPath(img, r, res.Hfr);
+                if (guiding != null && guiding.Bad) res.Path = Path.Combine(Path.GetDirectoryName(res.Path), Path.GetFileNameWithoutExtension(res.Path) + "_BADGUIDING" + Path.GetExtension(res.Path));
                 Directory.CreateDirectory(Path.GetDirectoryName(res.Path));
                 ImageFile.Save(res.Path, img, SaveFormat);
                 img.SourcePath = res.Path;

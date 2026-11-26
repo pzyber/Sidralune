@@ -2545,6 +2545,22 @@ msgstr "Нема поврзан фокусер."
 msgid "No guider connected."
 msgstr "Нема поврзан систем за водење."
 
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Водење {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · врв {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Водењето беше прекинато"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "прекинато"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "означено"
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Dither pattern"
 msgstr "Шема на dither"
@@ -10491,6 +10507,26 @@ msgstr "Dither пиксели"
 msgctxt "option"
 msgid "Guiding Wait Minutes"
 msgstr "Чекање на водењето (мин)"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Макс. RMS на водењето"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Кога водењето е лошо"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Означи"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Сними повторно"
 
 #: property grid
 msgctxt "option"

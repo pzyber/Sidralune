@@ -206,6 +206,9 @@ namespace Sidralune.Devices.Automation
         }
     }
 
+    /// <summary>What a sequence does with a frame whose guiding was worse than its limit.</summary>
+    public enum BadGuidingAction { Flag, Retake }
+
     public enum LoopCondition { Count, UntilTime, UntilAltitudeBelow, UntilAstronomicalDawn, Forever }
 
     public class LoopContainer : SequenceContainer
@@ -327,6 +330,13 @@ namespace Sidralune.Devices.Automation
         public double DitherPixels { get; set; } = 5;
         /// <summary>How long a light frame waits for guiding to come back (a cloud, a stopped guider) before going on without it.</summary>
         public double GuidingWaitMinutes { get; set; } = 30;
+        /// <summary>
+        /// A light frame guided worse than this (total RMS, arcseconds; 0 for no limit), or during which guiding was
+        /// interrupted, is flagged: GUIDBAD in its header and _BADGUIDING at the end of its file name.
+        /// </summary>
+        public double MaxGuidingRms { get; set; }
+        /// <summary>What happens to a flagged frame: kept as it is, or kept and taken again (at most three times in a row).</summary>
+        public BadGuidingAction WhenGuidingIsBad { get; set; } = BadGuidingAction.Flag;
         public int Completed { get; private set; }
         public override string Title => FrameType == "DARK" ? Lang.T("Expose dark frames") : FrameType == "BIAS" ? Lang.T("Expose bias frames") : FrameType == "FLAT" ? Lang.T("Expose flat frames")
             : FrameType == "LIGHT" ? Lang.T("Expose light frames") : Lang.T("Expose {0} frames", FrameType.ToLowerInvariant());
@@ -336,6 +346,7 @@ namespace Sidralune.Devices.Automation
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             Completed = 0;
+            int retakes = 0;
             for (int i = 0; i < Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -343,7 +354,8 @@ namespace Sidralune.Devices.Automation
                 var r = new ExposureRequest
                 {
                     Seconds = Exposure, Bin = Bin, Gain = Gain, Offset = Offset, Filter = string.IsNullOrEmpty(Filter) ? null : Filter,
-                    FrameType = FrameType, Light = FrameType != "DARK" && FrameType != "BIAS", Target = ctx.Target != null ? ctx.Target.Name : ""
+                    FrameType = FrameType, Light = FrameType != "DARK" && FrameType != "BIAS", Target = ctx.Target != null ? ctx.Target.Name : "",
+                    MaxGuidingRms = FrameType == "LIGHT" ? MaxGuidingRms : 0
                 };
                 if (FrameType == "LIGHT") await ctx.WaitForGuiding(GuidingWaitMinutes, ct);
                 // dithered as soon as the frame is read out, while it downloads and is measured and saved; the next frame
@@ -361,11 +373,27 @@ namespace Sidralune.Devices.Automation
                     throw;
                 }
                 ctx.CurrentFilter = r.Filter;
-                if (!double.IsNaN(res.Hfr)) { ctx.RecentHfr.Add(res.Hfr); if (ctx.RecentHfr.Count > 20) ctx.RecentHfr.RemoveAt(0); }
+                var gs = res.Guiding;
+                bool bad = gs != null && gs.Bad;
+                string flag = !bad ? "" : gs.Interrupted ? "flagged: guiding was interrupted"
+                    : string.Format(System.Globalization.CultureInfo.InvariantCulture, "flagged: guiding RMS {0:0.00}\" over {1:0.00}\"", gs.RmsTotal, MaxGuidingRms);
                 ctx.ExposuresSinceAutofocus++;
+                if (bad && WhenGuidingIsBad == BadGuidingAction.Retake && retakes < 3)
+                {
+                    // kept, but it does not count: the same frame is taken again
+                    ctx.Log(string.Format("Saved {0} {1} - taking it again", Path.GetFileName(res.Path ?? ""), flag));
+                    if (dithering != null) await dithering;
+                    retakes++; i--;
+                    continue;
+                }
+                retakes = 0;
+                // a trailed or clouded frame says nothing about focus
+                if (!bad && !double.IsNaN(res.Hfr)) { ctx.RecentHfr.Add(res.Hfr); if (ctx.RecentHfr.Count > 20) ctx.RecentHfr.RemoveAt(0); }
                 ctx.TotalExposures++;
                 Completed++;
-                ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars)", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars));
+                ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars{3}){4}", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars,
+                    gs != null && !double.IsNaN(gs.RmsTotal) ? string.Format(System.Globalization.CultureInfo.InvariantCulture, ", guiding {0:0.00}\" RMS", gs.RmsTotal) : "",
+                    bad ? " " + flag : ""));
                 if (dithering != null) await dithering;
             }
         }
