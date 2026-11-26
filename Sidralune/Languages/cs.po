@@ -2557,6 +2557,30 @@ msgstr "Není připojen ostřič."
 msgid "No guider connected."
 msgstr "Není připojen pointační systém."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Předpověď"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Předpovědět z astrometrického řešení"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "S pointačním snímkem vyřešeným na této poloze se směry berou z řešení a rychlosti z pointačních rychlostí montáže a tři kroky každým směrem je jen potvrdí. Když nesouhlasí, kalibruje se celá a řekne se proč."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Předpovězeno z vyřešeného pointačního snímku a pointačních rychlostí a potvrzeno třemi kroky každým směrem."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Předpověď z řešení nebyla použita: {0} posunul hvězdu o {1:0}° od předpovězeného směru."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Předpověď z řešení nebyla použita: {0} posunul hvězdu rychlostí {1:0} % předpovězené. Zkontrolujte pointační rychlosti montáže."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Zatím žádný pointační snímek."

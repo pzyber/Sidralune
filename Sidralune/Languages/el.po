@@ -2545,6 +2545,30 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Πρόβλεψη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Πρόβλεψη από την αστρομετρική επίλυση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Με καρέ οδήγησης επιλυμένο σε αυτή τη θέση, οι κατευθύνσεις προκύπτουν από την επίλυση και οι ταχύτητες από τους ρυθμούς οδήγησης της βάσης, και τρία βήματα προς κάθε κατεύθυνση απλώς τις επιβεβαιώνουν. Όταν διαφωνούν, γίνεται πλήρης βαθμονόμηση και λέγεται γιατί."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Προβλέφθηκε από το επιλυμένο καρέ οδήγησης και τους ρυθμούς οδήγησης και επιβεβαιώθηκε με τρία βήματα προς κάθε κατεύθυνση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Η πρόβλεψη από την επίλυση δεν χρησιμοποιήθηκε: το {0} μετακίνησε το αστέρι {1:0}° από την προβλεπόμενη κατεύθυνση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Η πρόβλεψη από την επίλυση δεν χρησιμοποιήθηκε: το {0} μετακίνησε το αστέρι με {1:0} % της προβλεπόμενης ταχύτητας. Ελέγξτε τους ρυθμούς οδήγησης της βάσης."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Δεν υπάρχει ακόμη καρέ οδήγησης."

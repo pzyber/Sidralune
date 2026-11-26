@@ -2545,6 +2545,30 @@ msgstr "Ingen fokusør tilkoblet."
 msgid "No guider connected."
 msgstr "Ingen guider tilkoblet."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Forutsigelse"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Forutsi fra plateløsningen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Med et guidebilde løst ved denne posisjonen kommer retningene fra løsningen og hastighetene fra monteringens guidehastigheter, og tre trinn i hver retning bekrefter dem bare. Når de ikke stemmer, kalibreres det fullt ut, og det sies hvorfor."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Forutsagt fra det løste guidebildet og guidehastighetene og bekreftet med tre trinn i hver retning."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Forutsigelsen fra plateløsningen ble ikke brukt: {0} flyttet stjernen {1:0}° fra den forutsagte retningen."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Forutsigelsen fra plateløsningen ble ikke brukt: {0} flyttet stjernen med {1:0} % av den forutsagte hastigheten. Kontroller monteringens guidehastigheter."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Ingen guidebilde ennå."

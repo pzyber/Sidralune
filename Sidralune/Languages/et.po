@@ -2545,6 +2545,30 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Ennustus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Ennusta astromeetrilisest lahendusest"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Kui juhtkaader on selles asendis lahendatud, tulevad suunad lahendusest ja kiirused aluse juhtkiirustest ning kolm sammu kummaski suunas neid ainult kinnitavad. Kui need ei klapi, kalibreeritakse täielikult ja öeldakse, miks."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Ennustatud lahendatud juhtkaadrist ja juhtkiirustest ning kinnitatud kolme sammuga kummaski suunas."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Lahenduse ennustust ei kasutatud: {0} liigutas tähte ennustatud suunast {1:0}° kõrvale."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Lahenduse ennustust ei kasutatud: {0} liigutas tähte {1:0} % ennustatud kiirusest. Kontrollige aluse juhtkiirusi."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Juhtkaadrit veel pole."

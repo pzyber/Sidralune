@@ -330,15 +330,17 @@ Calibration measures how guide pulses move the star on the guide camera: in whic
 
 The calibration step is worked out from the mount's guide rate (0.5× sidereal if the mount does not report it), the guide camera's pixel scale and the declination, for about twelve steps. Calibrate between about 20° north and south of the celestial equator, away from the horizon. Near the pole RA moves the star little and the RA measurement is poor.
 
+**A predicted calibration:** with **Predict from the plate solve** on (the default) and a guide frame [solved](#solving-guide-frames) at this pointing, which starting guiding does first, the guider does not measure the calibration from scratch. The solve gives the directions in which West and North pulses move the star, and the mount's guide rates, the declination and the solved scale give the speeds. Three larger steps West and back, then (after taking up the Dec backlash) three North and back, only confirm it: each direction must be within 20° of the prediction and each speed within 30 % of it. North may come out reversed, as it does on one side of the pier for most mounts, which just turns it round. The calibration is then the prediction, with its exact right angle and the solve's directions, in about half the time. When the confirmation disagrees, the guider calibrates in full and the panel says why, for instance that RA moved the star at 200 % of the predicted speed (a mount that reports the wrong guide rate). A mount that does not report its guide rates has its speeds measured by the same three steps. Without a solve the calibration is the full one.
+
 Afterwards the panel shows the calibration and warns when something looks wrong:
 
 - RA and Dec are more than 15° from square: backlash or poor seeing may have upset the calibration;
 - the RA and Dec rates do not fit the declination (RA should move the star cos(Dec) as fast as Dec at equal guide rates);
-- a leg took fewer than four steps;
+- a leg took fewer than four steps (not for a predicted calibration, which only confirms with three);
 - the star moved more than 40 % faster or slower than the guide rate and focal length predict: check the guide scope's focal length and the mount's guide rate;
 - it was made near the pole.
 
-The calibration is saved and used again as long as the guide camera, binning, guide scope focal length and guide output stay the same. **Clear calibration** forgets it. After a meridian flip the camera has turned 180° on the sky, and the guider turns its calibration round to match. Most mounts keep their Dec pulse direction after a flip; if yours turns its Dec pulses round itself, Dec runs away after a flip. Then tick **Mount reverses Dec** and calibrate again.
+The calibration is saved and used again as long as the guide camera, binning, guide scope focal length and guide output stay the same. **Clear calibration** forgets it. After a meridian flip the camera has turned 180° on the sky, and the guider turns its calibration round to match. Most mounts keep their Dec pulse direction after a flip; if yours turns its Dec pulses round itself, Dec runs away after a flip. Then tick **Mount reverses Dec** and calibrate again. A change of declination needs no new calibration either: the RA rate is scaled by cos(Dec) from where it was calibrated.
 
 ### Guider settings
 
@@ -359,6 +361,7 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Multi-star: Guide on several stars | On, up to 9 stars | See [Guiding on several stars](#guiding-on-several-stars) |
 | Star brightness: Skip frames where it jumps | On, 50 % | A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction |
 | Dither pattern | Random | **Random** dithers anywhere within the amount. **Spiral** steps out by the amount along a square spiral round where it began (24 places, then it begins again), so no two frames share a place; a lock position moved by hand begins it again there |
+| Prediction: Predict from the plate solve | On | Predict the calibration from a solved guide frame and confirm it with three steps each way; see [Calibration](#calibration) |
 | Calibration step (ms) | 0 (automatic) | |
 | Calibration distance (px) | 20 | How far each calibration leg moves the star |
 | After a meridian flip: Mount reverses Dec | Off | |
@@ -451,6 +454,7 @@ With **Solve guide frames** on (the default), starting guiding first takes a gui
 - **Scale and angle:** the solve gives the guide camera's scale in ″/px and its angle on the sky, before any calibration. **Last solve** shows them with the focal length they give: one far from the profile's says the profile's focal length is off. The guider uses the solved scale for its arcseconds while the equipment (camera, binning, focal length) stays the same.
 - **Guide stars from the catalogue:** the guide star, and the other stars of multi-star guiding, are chosen first among the catalogue's single stars: a star the catalogue knows (not a hot pixel, a galaxy or a cosmic ray), with no other catalogue star a tenth as bright or brighter within its search box (an unresolved double pulls the measurement), and not known to the local catalogue as variable or double. The image still decides that a star is unsaturated, bright enough and away from the edges; with no catalogue star among those, the best one is used as before. A star you click is always the one used.
 - **Finding a lost star again:** the guider knows the guide star's place on the sky. When the star has been lost for 10 seconds, it solves the frame and works out where the star is now, also far beyond its search box (a knock, a gust, the mount drifting under clouds), and guide pulses bring it back to the lock position; a star still at the lock position (behind a cloud) is waited for, and the solve is tried again every 30 seconds. A knock can also put another star in the search box, which would then be guided on instead: when the guide star's brightness jumps or another star takes over in multi-star guiding, the frame is solved too, and the right star is brought back. Afterwards the star at the lock position is the guide star again, with its partners chosen afresh. More than two minutes of guide pulses away is too far: the guider says so and leaves it to you.
+- **A predicted calibration:** the solve's directions and the mount's guide rates predict the calibration, which three steps each way only confirm; see [Calibration](#calibration).
 
 A guide frame that cannot be solved (clouds, no telescope connected, too few stars) only means guiding goes on without the catalogue; **Last solve** and the guide log say why.
 

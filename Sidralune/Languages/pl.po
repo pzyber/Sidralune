@@ -2557,6 +2557,30 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Przewidywanie"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Przewiduj z rozwiązania astrometrycznego"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Gdy klatka prowadzenia jest rozwiązana w tym położeniu, kierunki pochodzą z rozwiązania, a prędkości z prędkości prowadzenia montażu, a trzy kroki w każdą stronę tylko je potwierdzają. Gdy się nie zgadzają, kalibruje się w pełni i mówi dlaczego."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Przewidziana z rozwiązanej klatki prowadzenia i prędkości prowadzenia oraz potwierdzona trzema krokami w każdą stronę."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Przewidywanie z rozwiązania nie zostało użyte: {0} przesunął gwiazdę o {1:0}° od przewidzianego kierunku."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Przewidywanie z rozwiązania nie zostało użyte: {0} przesunął gwiazdę z prędkością {1:0} % przewidzianej. Sprawdź prędkości prowadzenia montażu."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Jeszcze brak klatki prowadzenia."

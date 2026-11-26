@@ -2557,6 +2557,30 @@ msgstr "Nije povezan fokuser."
 msgid "No guider connected."
 msgstr "Nije povezan sistem za vođenje."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Predviđanje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Predvidi iz astrometrijskog rešenja"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Sa snimkom za vođenje rešenim na ovom položaju pravci dolaze iz rešenja, a brzine iz brzina vođenja montaže, a tri koraka u svakom pravcu ih samo potvrđuju. Kad se ne slažu, kalibriše se u potpunosti i kaže se zašto."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Predviđeno iz rešenog snimka za vođenje i brzina vođenja i potvrđeno sa tri koraka u svakom pravcu."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Predviđanje iz rešenja nije korišćeno: {0} je pomerio zvezdu {1:0}° od predviđenog pravca."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Predviđanje iz rešenja nije korišćeno: {0} je pomerio zvezdu brzinom od {1:0} % predviđene. Proverite brzine vođenja montaže."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Još nema snimka za vođenje."

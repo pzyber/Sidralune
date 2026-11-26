@@ -1178,5 +1178,72 @@ namespace Sidralune.Tests
                 dm.DisconnectAll();
             }
         }
+
+        [TestMethod]
+        public void TestPredictedCalibration()
+        {
+            var dm = GuideObservatory("guide-predict");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            var problems = new List<string>();
+            g.Failed += m => problems.Add(m);
+            Func<double, double, double> angleOff = (a, b) => Math.Abs(AstroMath.NormalizeDeg180(a - b));
+            try
+            {
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                // the full calibration, for comparison
+                g.Settings.PredictCalibration = false;
+                var sw = Stopwatch.StartNew();
+                g.StartGuiding(true, ct).Wait();
+                double fullSec = sw.Elapsed.TotalSeconds;
+                var full = g.Calibration;
+                CheckTrue("A full calibration", full != null && !full.Predicted && full.RaSteps >= 4 && full.DecSteps >= 4 && g.IsGuiding);
+                g.StopGuiding();
+
+                // predicted from the solve, confirmed with three steps each way
+                g.Settings.PredictCalibration = true;
+                sw.Restart();
+                g.StartGuiding(true, ct).Wait();
+                double predSec = sw.Elapsed.TotalSeconds;
+                var pred = g.Calibration;
+                Info(string.Format("Full: RA {0:0.0}° {1:0.00} px/s, Dec {2:0.0}° {3:0.00} px/s, {4:0} s; predicted: RA {5:0.0}° {6:0.00} px/s, Dec {7:0.0}° {8:0.00} px/s, {9:0} s",
+                    full.RaAngleDeg, full.RaRatePxPerSec, full.DecAngleDeg, full.DecRatePxPerSec, fullSec, pred.RaAngleDeg, pred.RaRatePxPerSec, pred.DecAngleDeg, pred.DecRatePxPerSec, predSec));
+                CheckTrue("Calibrating predicts from the solve and confirms with three steps each way", pred.Predicted && pred.RaSteps == 3 && pred.DecSteps == 3 && pred.PredictionMiss == null && pred.Issues.Count == 0,
+                    string.Join(", ", pred.Issues) + " " + pred.PredictionMiss);
+                CheckTrue("…the same directions as a full calibration", angleOff(pred.RaAngleDeg, full.RaAngleDeg) < 4 && angleOff(pred.DecAngleDeg, full.DecAngleDeg) < 4);
+                CheckTrue("…and speeds", Math.Abs(pred.RaRatePxPerSec / full.RaRatePxPerSec - 1) < 0.1 && Math.Abs(pred.DecRatePxPerSec / full.DecRatePxPerSec - 1) < 0.1);
+                CheckTrue("…and guides", g.IsGuiding && g.RmsTotalArcsec < 1.5, g.RmsTotalArcsec.ToString("0.00"));
+
+                // a meridian flip and another declination: no new calibration
+                var when = pred.When;
+                g.StopGuiding();
+                Centering.Slew(tel, tel.SiderealTime + 0.5, 30, ct).Wait();
+                CheckTrue("The mount is on the other side of the pier", pred.Flipped(tel.SideOfPier), tel.SideOfPier.ToString());
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("After a flip it guides without calibrating again", g.IsGuiding && g.Calibration.When == when);
+                g.StopGuiding();
+                Centering.Slew(tel, tel.SiderealTime + 0.5, 65, ct).Wait();
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("…and at another declination", g.IsGuiding && g.Calibration.When == when);
+                g.StopGuiding();
+
+                // a mount that reports half its real guide rate: the prediction misses, and it calibrates in full
+                tel.TrueGuideRateFactor = 2;
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                g.StartGuiding(true, ct).Wait();
+                var miss = g.Calibration;
+                CheckTrue("A wrong guide rate: the prediction is not used, and it calibrates in full", !miss.Predicted && miss.PredictionMiss == GuideCalibration.MissRaSpeed
+                    && Math.Abs(miss.PredictionMissBy - 200) < 30 && miss.RaSteps >= 4 && Math.Abs(miss.RaRatePxPerSec / full.RaRatePxPerSec - 2) < 0.25 && g.IsGuiding,
+                    miss.PredictionMiss + " " + miss.PredictionMissBy.ToString("0"));
+                CheckTrue("No guider failures", problems.Count == 0, string.Join("; ", problems));
+            }
+            finally
+            {
+                tel.TrueGuideRateFactor = 1;
+                g.StopGuiding();
+                dm.DisconnectAll();
+            }
+        }
     }
 }

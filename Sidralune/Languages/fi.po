@@ -2545,6 +2545,30 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Ennuste"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Ennusta astrometrisesta ratkaisusta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Kun ohjauskuva on ratkaistu tässä osoituksessa, suunnat saadaan ratkaisusta ja nopeudet jalustan ohjausnopeuksista, ja kolme askelta kumpaankin suuntaan vain vahvistaa ne. Jos ne eivät täsmää, kalibroidaan kokonaan ja kerrotaan miksi."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Ennustettu ratkaistusta ohjauskuvasta ja ohjausnopeuksista ja vahvistettu kolmella askeleella kumpaankin suuntaan."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Ratkaisun ennustetta ei käytetty: {0} siirsi tähteä {1:0}° sivuun ennustetusta suunnasta."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Ratkaisun ennustetta ei käytetty: {0} siirsi tähteä {1:0} %:n nopeudella ennustetusta. Tarkista jalustan ohjausnopeudet."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Ei vielä ohjauskuvaa."

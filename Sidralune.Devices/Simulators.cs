@@ -100,6 +100,8 @@ namespace Sidralune.Devices.Simulators
         /// <summary>Guide rates (deg/s), 0.5× sidereal unless set.</summary>
         public double GuideRateRa { get; set; } = 0.5 * SiderealDegPerSec;
         public double GuideRateDec { get; set; } = 0.5 * SiderealDegPerSec;
+        /// <summary>The mount moves this many times the guide rates it reports (a driver that reports them wrongly).</summary>
+        public double TrueGuideRateFactor = 1;
 
         // Tracking errors. They move the true pointing only: the mount's encoders do not see them.
         /// <summary>Periodic error: a sine of this amplitude (arcsec on the sky, in RA) over the worm period.</summary>
@@ -367,7 +369,7 @@ namespace Sidralune.Devices.Simulators
                 }
                 _pulseStart[axis] = now.AddMilliseconds(delayMs);
                 _pulseEnd[axis] = now.AddMilliseconds(ms);
-                _pulseRate[axis] = dec ? sign * GuideRateDec : sign * GuideRateRa / 15.0;
+                _pulseRate[axis] = (dec ? sign * GuideRateDec : sign * GuideRateRa / 15.0) * TrueGuideRateFactor;
             }
         }
 

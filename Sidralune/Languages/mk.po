@@ -2545,6 +2545,30 @@ msgstr "Нема поврзан фокусер."
 msgid "No guider connected."
 msgstr "Нема поврзан систем за водење."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Предвидување"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Предвиди од астрометриското решение"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Со снимка за водење решена на оваа положба, насоките доаѓаат од решението, а брзините од брзините на водење на монтажата, и три чекори во секоја насока само ги потврдуваат. Кога не се согласуваат, се калибрира целосно и се кажува зошто."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Предвидено од решената снимка за водење и брзините на водење и потврдено со три чекори во секоја насока."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Предвидувањето од решението не беше употребено: {0} ја помести ѕвездата {1:0}° од предвидената насока."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Предвидувањето од решението не беше употребено: {0} ја помести ѕвездата со {1:0} % од предвидената брзина. Проверете ги брзините на водење на монтажата."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Сè уште нема снимка за водење."

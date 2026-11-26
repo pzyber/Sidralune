@@ -934,6 +934,12 @@ namespace Sidralune.Views
             {
                 T("Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square.", c.When.ToLocalTime(), c.RaAngleDeg, c.RaRatePxPerSec, c.DecAngleDeg, c.DecRatePxPerSec, c.OrthogonalityErrorDeg)
             };
+            if (c.Predicted) lines.Add(T("Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."));
+            string axis = c.PredictionMiss == GuideCalibration.MissDecDirection || c.PredictionMiss == GuideCalibration.MissDecSpeed ? "Dec" : "RA";
+            if (c.PredictionMiss == GuideCalibration.MissRaDirection || c.PredictionMiss == GuideCalibration.MissDecDirection)
+                lines.Add(T("The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction.", axis, c.PredictionMissBy));
+            else if (c.PredictionMiss != null)
+                lines.Add(T("The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates.", axis, c.PredictionMissBy));
             foreach (var issue in c.Issues)
             {
                 if (issue == GuideCalibration.IssueOrthogonality) lines.Add("⚠ " + T("RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."));

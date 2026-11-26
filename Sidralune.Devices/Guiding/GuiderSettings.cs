@@ -52,6 +52,11 @@ namespace Sidralune.Devices.Guiding
         /// and to find a lost guide star again.
         /// </summary>
         public bool SolveGuideFrames = true;
+        /// <summary>
+        /// With a guide frame solved at this pointing, calibrating predicts both directions from the solve and both speeds
+        /// from the guide rates, and only confirms them with a few steps each way; a full calibration when they disagree.
+        /// </summary>
+        public bool PredictCalibration = true;
         /// <summary>The scale and angle of the last solved guide frame, used while it fits the equipment; null until there is one.</summary>
         public GuideFrameSolve LastSolve;
 

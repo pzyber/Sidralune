@@ -2557,6 +2557,30 @@ msgstr "Niciun focalizator conectat."
 msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Predicție"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Prezice din rezolvarea astrometrică"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Cu un cadru de ghidare rezolvat în această poziție, direcțiile vin din rezolvare și vitezele din vitezele de ghidare ale montării, iar trei pași în fiecare sens doar le confirmă. Când nu se potrivesc, se calibrează complet și se spune de ce."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Prezisă din cadrul de ghidare rezolvat și vitezele de ghidare și confirmată cu trei pași în fiecare sens."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Predicția din rezolvare nu a fost folosită: {0} a mutat steaua la {1:0}° de direcția prezisă."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Predicția din rezolvare nu a fost folosită: {0} a mutat steaua cu {1:0} % din viteza prezisă. Verificați vitezele de ghidare ale montării."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Încă nu există cadru de ghidare."

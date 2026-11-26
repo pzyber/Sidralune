@@ -2557,6 +2557,30 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Prognoze"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Prognozēt no astrometriskā risinājuma"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Ja vadības kadrs šajā pozīcijā ir atrisināts, virzieni nāk no risinājuma un ātrumi no montējuma vadības ātrumiem, un trīs soļi katrā virzienā tos tikai apstiprina. Ja tie nesaskan, kalibrē pilnībā un pasaka kāpēc."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Prognozēts no atrisinātā vadības kadra un vadības ātrumiem un apstiprināts ar trim soļiem katrā virzienā."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Risinājuma prognoze netika izmantota: {0} pārvietoja zvaigzni {1:0}° no prognozētā virziena."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Risinājuma prognoze netika izmantota: {0} pārvietoja zvaigzni ar {1:0} % no prognozētā ātruma. Pārbaudiet montējuma vadības ātrumus."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Vadības kadra vēl nav."

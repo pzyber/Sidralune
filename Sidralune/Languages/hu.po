@@ -2545,6 +2545,30 @@ msgstr "Nincs csatlakoztatott fókuszáló."
 msgid "No guider connected."
 msgstr "Nincs csatlakoztatott vezetőrendszer."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Előrejelzés"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Előrejelzés az asztrometriai megoldásból"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Ha ezen a pozíción van megoldott vezetőkép, az irányok a megoldásból, a sebességek a mechanika vezetési sebességeiből jönnek, és mindkét irányban három lépés csak megerősíti őket. Ha nem egyeznek, teljes kalibrálás történik, és kiderül, miért."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "A megoldott vezetőképből és a vezetési sebességekből előre jelezve, mindkét irányban három lépéssel megerősítve."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "A megoldásból származó előrejelzés nem lett használva: a(z) {0} {1:0}°-kal az előre jelzett iránytól mozdította a csillagot."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "A megoldásból származó előrejelzés nem lett használva: a(z) {0} az előre jelzett sebesség {1:0} %-ával mozdította a csillagot. Ellenőrizze a mechanika vezetési sebességeit."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Még nincs vezetőkép."

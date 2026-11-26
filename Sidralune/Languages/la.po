@@ -2545,6 +2545,30 @@ msgstr "Nullus focator coniunctus."
 msgid "No guider connected."
 msgstr "Nullus ductor coniunctus."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Praedictio"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Ex solutione astrometrica praedicere"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Imagine ductus hoc loco soluta, directiones ex solutione et celeritates ex celeritatibus ductus montis veniunt, et tres gradus utrimque eas tantum confirmant. Si non congruunt, plene calibratur et causa dicitur."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Ex imagine ductus soluta et celeritatibus ductus praedicta, tribus gradibus utrimque confirmata."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Praedictio ex solutione non adhibita est: {0} stellam {1:0}° a directione praedicta movit."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Praedictio ex solutione non adhibita est: {0} stellam {1:0} % celeritatis praedictae movit. Celeritates ductus montis inspice."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Nulla imago ductus adhuc."

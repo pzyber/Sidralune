@@ -1293,40 +1293,59 @@ namespace Sidralune.Devices.Guiding
             double dist = Math.Max(5, Settings.CalibrationDistancePx);
             int stepRa = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, predRa);
 
-            double ra0 = MountRa();
-            var west = await RunLeg(GuideDirection.West, stepRa, dist, startX, startY, pulser, ct);
-            int westSign = Sign(-AstroMath.NormalizeDeg180((MountRa() - ra0) * 15) * 3600 * cosd);
-            double raAngle, raRate;
-            if (!GuideCalibration.FitLeg(west.T, west.X, west.Y, out raAngle, out raRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."));
-            await Return(GuideDirection.East, west.TotalMs, raRate, Settings.MaxRaPulseMs, pulser, ct);
-
-            // what a Dec step should do, from the measured RA rate (the guide rates the mount reports can be wrong)
-            double expDec = raRate / cosd * (raKnown && decKnown ? gDec / gRa : 1);
-            int stepDec = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, expDec);
-            int clearingMs = await ClearBacklash(stepDec, expDec, pulser, ct);
-            double dec0 = MountDeclination();
-            var north = await RunLeg(GuideDirection.North, stepDec, dist, Star.X, Star.Y, pulser, ct);
-            int northSign = Sign((MountDeclination() - dec0) * 3600);
-            double decAngle, decRate;
-            if (!GuideCalibration.FitLeg(north.T, north.X, north.Y, out decAngle, out decRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."));
-            // back by the North leg and the steps that took up the backlash, so the star ends near where it started
-            await Return(GuideDirection.South, north.TotalMs + clearingMs, decRate, Settings.MaxDecPulseMs, pulser, ct);
-
-            var cal = new GuideCalibration
+            // with a solved guide frame here: the prediction, confirmed with a few steps each way, or else the full calibration
+            GuideCalibration cal = null;
+            PredictionCheck check = null;
+            double predWest, predNorth;
+            if (Settings.PredictCalibration && PredictDirections(startX, startY, out predWest, out predNorth))
             {
-                RaAngleDeg = raAngle, DecAngleDeg = decAngle, RaRatePxPerSec = raRate, DecRatePxPerSec = decRate,
-                ExpectedRaRatePxPerSec = raKnown ? predRa : double.NaN, ExpectedDecRatePxPerSec = decKnown ? predDec : double.NaN,
-                DecDeg = dec, PierSide = pier, Binning = _bin, PixelSizeUm = _pixelUm, FocalLengthMm = Settings.FocalLengthMm,
-                Output = Settings.Output, Camera = _cameraId, When = DateTime.UtcNow, RaSteps = west.Steps, DecSteps = north.Steps,
-                WestSign = westSign, NorthSign = northSign, RotatorDeg = RotatorAngle()
-            };
+                check = await ConfirmPrediction(predWest, predNorth, predRa, predDec, raKnown, decKnown, gRa, gDec, cosd, dist, pulser, ct);
+                cal = check.Calibration;
+                if (cal == null)
+                {
+                    Log.Info("Guider", "The predicted calibration was not used: " + check.Why + "; calibrating in full");
+                    _log.Event("Calibration", "prediction not used: " + check.Why);
+                }
+            }
+            if (cal == null)
+            {
+                double ra0 = MountRa();
+                var west = await RunLeg(GuideDirection.West, stepRa, dist, Star.X, Star.Y, pulser, ct);
+                int westSign = Sign(-AstroMath.NormalizeDeg180((MountRa() - ra0) * 15) * 3600 * cosd);
+                double raAngle, raRate;
+                if (!GuideCalibration.FitLeg(west.T, west.X, west.Y, out raAngle, out raRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."));
+                await Return(GuideDirection.East, west.TotalMs, raRate, Settings.MaxRaPulseMs, pulser, ct);
+
+                // what a Dec step should do, from the measured RA rate (the guide rates the mount reports can be wrong)
+                double expDec = raRate / cosd * (raKnown && decKnown ? gDec / gRa : 1);
+                int stepDec = Settings.CalibrationStepMs > 0 ? Settings.CalibrationStepMs : StepFor(dist, expDec);
+                int clearingMs = await ClearBacklash(stepDec, expDec, pulser, ct);
+                double dec0 = MountDeclination();
+                var north = await RunLeg(GuideDirection.North, stepDec, dist, Star.X, Star.Y, pulser, ct);
+                int northSign = Sign((MountDeclination() - dec0) * 3600);
+                double decAngle, decRate;
+                if (!GuideCalibration.FitLeg(north.T, north.X, north.Y, out decAngle, out decRate)) throw new InvalidOperationException(Lang.T("Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."));
+                // back by the North leg and the steps that took up the backlash, so the star ends near where it started
+                await Return(GuideDirection.South, north.TotalMs + clearingMs, decRate, Settings.MaxDecPulseMs, pulser, ct);
+                cal = new GuideCalibration
+                {
+                    RaAngleDeg = raAngle, DecAngleDeg = decAngle, RaRatePxPerSec = raRate, DecRatePxPerSec = decRate,
+                    RaSteps = west.Steps, DecSteps = north.Steps, WestSign = westSign, NorthSign = northSign,
+                    PredictionMiss = check != null ? check.Miss : null, PredictionMissBy = check != null ? check.MissBy : double.NaN
+                };
+            }
+            cal.ExpectedRaRatePxPerSec = raKnown ? predRa : double.NaN;
+            cal.ExpectedDecRatePxPerSec = decKnown ? predDec : double.NaN;
+            cal.DecDeg = dec; cal.PierSide = pier; cal.Binning = _bin; cal.PixelSizeUm = _pixelUm; cal.FocalLengthMm = Settings.FocalLengthMm;
+            cal.Output = Settings.Output; cal.Camera = _cameraId; cal.When = DateTime.UtcNow; cal.RotatorDeg = RotatorAngle();
             cal.Check();
             Settings.Calibration = cal;
             SaveSettings();
             // with an AO, it is calibrated after the mount
             if (UsingAo) await RunAoCalibration(ct);
-            string summary = string.Format(CultureInfo.InvariantCulture, "RA {0:0.0}° {1:0.00} px/s ({2} steps), Dec {3:0.0}° {4:0.00} px/s ({5} steps), {6:0.0}° from square{7}",
-                raAngle, raRate, west.Steps, decAngle, decRate, north.Steps, cal.OrthogonalityErrorDeg, cal.Issues.Count > 0 ? "; " + string.Join(", ", cal.Issues) : "");
+            string summary = string.Format(CultureInfo.InvariantCulture, "{8}RA {0:0.0}° {1:0.00} px/s ({2} steps), Dec {3:0.0}° {4:0.00} px/s ({5} steps), {6:0.0}° from square{7}",
+                cal.RaAngleDeg, cal.RaRatePxPerSec, cal.RaSteps, cal.DecAngleDeg, cal.DecRatePxPerSec, cal.DecSteps, cal.OrthogonalityErrorDeg,
+                cal.Issues.Count > 0 ? "; " + string.Join(", ", cal.Issues) : "", cal.Predicted ? "predicted and confirmed: " : "");
             _log.Event("Calibrated", summary);
             Log.Info("Guider", "Calibrated: " + summary);
             CalibrationChanged?.Invoke();
@@ -1352,7 +1371,7 @@ namespace Sidralune.Devices.Guiding
             if (Star == null || _lost) throw new InvalidOperationException(lost ?? Lang.T("The guide star was lost during calibration."));
         }
 
-        private async Task<Leg> RunLeg(GuideDirection dir, int stepMs, double dist, double x0, double y0, GuidePulser pulser, CancellationToken ct)
+        private async Task<Leg> RunLeg(GuideDirection dir, int stepMs, double dist, double x0, double y0, GuidePulser pulser, CancellationToken ct, int maxSteps = 0)
         {
             var leg = new Leg();
             leg.T.Add(0); leg.X.Add(x0); leg.Y.Add(y0);
@@ -1369,7 +1388,7 @@ namespace Sidralune.Devices.Guiding
                 leg.T.Add(leg.TotalMs / 1000.0); leg.X.Add(Star.X); leg.Y.Add(Star.Y);
                 double dx = Star.X - x0, dy = Star.Y - y0;
                 _log.Row("Calibration " + dir, Star, dx, dy, double.NaN, double.NaN, ra ? stepMs : 0, ra ? 0 : stepMs);
-                if (Math.Sqrt(dx * dx + dy * dy) >= dist) return leg;
+                if (Math.Sqrt(dx * dx + dy * dy) >= dist || (maxSteps > 0 && leg.Steps >= maxSteps)) return leg;
             }
         }
 

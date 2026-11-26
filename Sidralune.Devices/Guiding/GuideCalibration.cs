@@ -44,6 +44,17 @@ namespace Sidralune.Devices.Guiding
         public double Rotated() => _rotated;
         /// <summary>What looked wrong (see the Issue constants), kept to show with the calibration.</summary>
         public List<string> Issues = new List<string>();
+        /// <summary>Predicted from a plate-solved guide frame and the guide rates, and confirmed with a few steps each way.</summary>
+        public bool Predicted;
+        /// <summary>
+        /// Why a prediction was not used and the calibration was made in full (see the Miss constants; null when it was
+        /// used or there was none), and by how much it missed: degrees off for a direction, percent of the predicted speed
+        /// for a speed.
+        /// </summary>
+        public string PredictionMiss;
+        public double PredictionMissBy = double.NaN;
+
+        public const string MissRaDirection = "RaDirection", MissRaSpeed = "RaSpeed", MissDecDirection = "DecDirection", MissDecSpeed = "DecSpeed";
 
         public const string IssueOrthogonality = "Orthogonality", IssueRateRatio = "RateRatio", IssueFewSteps = "FewSteps", IssuePrediction = "Prediction", IssueNearPole = "NearPole";
 
@@ -166,7 +177,8 @@ namespace Sidralune.Devices.Guiding
                     ? ExpectedRaRatePxPerSec / ExpectedDecRatePxPerSec : Math.Cos(DecDeg * AstroMath.Deg2Rad);
                 if (Math.Abs(RaRatePxPerSec / DecRatePxPerSec / speedRatio - 1) > 0.25) Issues.Add(IssueRateRatio);
             }
-            if (RaSteps < 4 || DecSteps < 4) Issues.Add(IssueFewSteps);
+            // a prediction needs few steps: it is only confirmed
+            if (!Predicted && (RaSteps < 4 || DecSteps < 4)) Issues.Add(IssueFewSteps);
             if ((!double.IsNaN(ExpectedRaRatePxPerSec) && Math.Abs(RaRatePxPerSec / ExpectedRaRatePxPerSec - 1) > 0.4)
                 || (!double.IsNaN(ExpectedDecRatePxPerSec) && Math.Abs(DecRatePxPerSec / ExpectedDecRatePxPerSec - 1) > 0.4)) Issues.Add(IssuePrediction);
             if (!double.IsNaN(DecDeg) && Math.Abs(DecDeg) > 75) Issues.Add(IssueNearPole);

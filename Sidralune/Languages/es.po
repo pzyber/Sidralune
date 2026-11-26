@@ -2545,6 +2545,30 @@ msgstr "No hay enfocador conectado."
 msgid "No guider connected."
 msgstr "No hay guiador conectado."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Predicción"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Predecir a partir de la resolución astrométrica"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Con una imagen de guiado resuelta en esta posición, las direcciones salen de la resolución y las velocidades de las velocidades de guiado de la montura, y tres pasos en cada sentido solo las confirman. Si no coinciden, calibra por completo y dice por qué."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Predicha a partir de la imagen de guiado resuelta y las velocidades de guiado, y confirmada con tres pasos en cada sentido."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "No se usó la predicción de la resolución: {0} movió la estrella {1:0}° respecto a la dirección prevista."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "No se usó la predicción de la resolución: {0} movió la estrella al {1:0} % de la velocidad prevista. Revise las velocidades de guiado de la montura."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Aún no hay imagen de guiado."

@@ -443,6 +443,8 @@ namespace Sidralune.Views
             starGrid.Full(Ui.Hint(T("Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place.")));
 
             var calGrid = new FormGrid(170);
+            var predict = calGrid.Row(T("Prediction"), new CheckBox { Text = T("Predict from the plate solve") });
+            calGrid.Full(Ui.Hint(T("With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why.")));
             var step = calGrid.Row(T("Calibration step (ms)"), Ui.Num(0, 0, 5000, 0, 50));
             calGrid.Full(Ui.Hint(T("0 works the step out from the guide rate, the pixel scale and the declination.")));
             var distance = calGrid.Row(T("Calibration distance (px)"), Ui.Num(20, 5, 60));
@@ -556,7 +558,7 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, solveOn, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, step, distance, reverses, onRotator, rotReversed, clearCal,
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, solveOn, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, predict, step, distance, reverses, onRotator, rotReversed, clearCal,
                 raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
                 aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
@@ -577,6 +579,7 @@ namespace Sidralune.Views
                     output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Text = T("{0:0} mm, from the equipment profile (Observatory → Equipment)", st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
                     solveOn.Checked = st.SolveGuideFrames;
                     multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); ditherMode.SelectedIndex = st.DitherMode == DitherPattern.Spiral ? 1 : 0; mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
+                    predict.Checked = st.PredictCalibration;
                     step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
                     raAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(raKinds, st.RaAlgorithm));
                     raAggr.Value = clamp(raAggr, st.RaAggressiveness); raHyst.Value = clamp(raHyst, st.RaHysteresis); raLp.Value = clamp(raLp, st.RaLowpassAggressiveness); raZ.Value = clamp(raZ, st.RaZFactor);
@@ -622,6 +625,7 @@ namespace Sidralune.Views
             mass.CheckedChanged += (s, e) => save(st => st.StarMassCheck = mass.Checked);
             massTol.ValueChanged += (s, e) => save(st => st.StarMassTolerance = (double)massTol.Value);
             step.ValueChanged += (s, e) => save(st => st.CalibrationStepMs = (int)step.Value);
+            predict.CheckedChanged += (s, e) => save(st => st.PredictCalibration = predict.Checked);
             distance.ValueChanged += (s, e) => save(st => st.CalibrationDistancePx = (double)distance.Value);
             reverses.CheckedChanged += (s, e) => save(st => st.MountReversesDecAfterFlip = reverses.Checked);
             raAlgo.SelectedIndexChanged += (s, e) => save(st => st.RaAlgorithm = raKinds[Math.Max(0, raAlgo.SelectedIndex)]);

@@ -2545,6 +2545,30 @@ msgstr "Enginn fókusari tengdur."
 msgid "No guider connected."
 msgstr "Enginn stýribúnaður tengdur."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Spá"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Spá út frá stjarnmælingalausninni"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Þegar stýrimynd hefur verið leyst í þessari stöðu koma stefnurnar úr lausninni og hraðarnir úr stýrihraða festingarinnar, og þrjú skref í hvora átt staðfesta þá aðeins. Ef þeim ber ekki saman er kvarðað að fullu og sagt hvers vegna."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Spáð út frá leystu stýrimyndinni og stýrihraðanum og staðfest með þremur skrefum í hvora átt."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Spáin úr lausninni var ekki notuð: {0} færði stjörnuna {1:0}° frá spáðri stefnu."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Spáin úr lausninni var ekki notuð: {0} færði stjörnuna á {1:0} % af spáðum hraða. Athugið stýrihraða festingarinnar."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
 msgid "No guide frame yet."
 msgstr "Engin stýrimynd enn."
