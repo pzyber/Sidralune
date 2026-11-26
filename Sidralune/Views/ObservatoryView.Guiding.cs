@@ -429,6 +429,8 @@ namespace Sidralune.Views
             var mass = starGrid.Row(T("Star brightness"), new CheckBox { Text = T("Skip frames where it jumps") });
             var massTol = starGrid.Row(T("Brightness tolerance (%)"), Ui.Num(50, 10, 200));
             starGrid.Full(Ui.Hint(T("A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction; after three in a row, the new brightness counts.")));
+            var ditherMode = starGrid.Row(T("Dither pattern"), Ui.Combo(T("Random"), T("Spiral")));
+            starGrid.Full(Ui.Hint(T("Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place.")));
 
             var calGrid = new FormGrid(170);
             var step = calGrid.Row(T("Calibration step (ms)"), Ui.Num(0, 0, 5000, 0, 50));
@@ -544,7 +546,7 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, radius, subframes, noise, multi, maxStars, mass, massTol, step, distance, reverses, onRotator, rotReversed, clearCal,
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, step, distance, reverses, onRotator, rotReversed, clearCal,
                 raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
                 aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
@@ -563,7 +565,7 @@ namespace Sidralune.Views
                     exposure.Value = clamp(exposure, st.ExposureSeconds); auto.Checked = st.AutoExposure; autoMin.Value = clamp(autoMin, st.AutoExposureMin); autoMax.Value = clamp(autoMax, st.AutoExposureMax);
                     target.Value = clamp(target, st.TargetSnr); binning.SelectedIndex = Math.Max(0, Math.Min(3, st.Binning - 1));
                     output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Text = T("{0:0} mm, from the equipment profile (Observatory → Equipment)", st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
-                    multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
+                    multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); ditherMode.SelectedIndex = st.DitherMode == DitherPattern.Spiral ? 1 : 0; mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
                     step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
                     raAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(raKinds, st.RaAlgorithm));
                     raAggr.Value = clamp(raAggr, st.RaAggressiveness); raHyst.Value = clamp(raHyst, st.RaHysteresis); raLp.Value = clamp(raLp, st.RaLowpassAggressiveness); raZ.Value = clamp(raZ, st.RaZFactor);
@@ -604,6 +606,7 @@ namespace Sidralune.Views
             radius.ValueChanged += (s, e) => save(st => st.SearchRadius = (int)radius.Value);
             multi.CheckedChanged += (s, e) => save(st => st.MultiStar = multi.Checked);
             maxStars.ValueChanged += (s, e) => save(st => st.MaxStars = (int)maxStars.Value);
+            ditherMode.SelectedIndexChanged += (s, e) => save(st => st.DitherMode = ditherMode.SelectedIndex == 1 ? DitherPattern.Spiral : DitherPattern.Random);
             mass.CheckedChanged += (s, e) => save(st => st.StarMassCheck = mass.Checked);
             massTol.ValueChanged += (s, e) => save(st => st.StarMassTolerance = (double)massTol.Value);
             step.ValueChanged += (s, e) => save(st => st.CalibrationStepMs = (int)step.Value);

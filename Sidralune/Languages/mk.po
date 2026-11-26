@@ -2545,6 +2545,22 @@ msgstr "Нема поврзан фокусер."
 msgid "No guider connected."
 msgstr "Нема поврзан систем за водење."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Шема на dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Случајно"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Спирала"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Случајниот dither поместува каде било во рамките на износот. Спиралата оди по износот по квадратна спирала околу почетокот, 24 места пред да почне повторно, така што ниту две снимки не делат место."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Прво запрете го водењето."
@@ -10470,6 +10486,11 @@ msgstr "Dither на секои"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither пиксели"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Чекање на водењето (мин)"
 
 #: property grid
 msgctxt "option"

@@ -2545,6 +2545,22 @@ msgstr "Fokusserit pole ühendatud."
 msgid "No guider connected."
 msgstr "Juhtsüsteemi pole ühendatud."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Ditheri muster"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Juhuslik"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spiraal"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Juhuslik dither läheb ükskõik kuhu suuruse piires. Spiraal liigub suuruse võrra mööda ruudukujulist spiraali alguskoha ümber, 24 kohta, enne kui alustab uuesti, nii et ükski kaks kaadrit ei jaga kohta."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Peata kõigepealt juhtija."
@@ -10470,6 +10486,11 @@ msgstr "Dither iga"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pikslid"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Juhtimise ootamine (min)"
 
 #: property grid
 msgctxt "option"

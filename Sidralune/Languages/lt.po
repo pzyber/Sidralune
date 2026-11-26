@@ -2557,6 +2557,22 @@ msgstr "Fokusuotuvas neprijungtas."
 msgid "No guider connected."
 msgstr "Gidavimo sistema neprijungta."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither raštas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Atsitiktinis"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spiralė"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Atsitiktinis dither perkelia bet kur neviršijant dydžio. Spiralė žengia dydžiu kvadratine spirale aplink pradžios vietą, 24 vietas, kol pradeda iš naujo, todėl jokie du kadrai nesidalija vieta."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Pirmiausia sustabdykite gidavimą."
@@ -10501,6 +10517,11 @@ msgstr "Dither kas"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pikseliai"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Laukti gidavimo (min)"
 
 #: property grid
 msgctxt "option"

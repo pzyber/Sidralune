@@ -2557,6 +2557,22 @@ msgstr "Není připojen ostřič."
 msgid "No guider connected."
 msgstr "Není připojen pointační systém."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Vzor ditheringu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Náhodný"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirála"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Náhodný dithering kamkoli v rámci velikosti. Spirála postupuje o velikost po čtvercové spirále kolem místa, kde začala, 24 míst, než začne znovu, takže žádné dva snímky nesdílejí místo."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Nejprve zastavte pointaci."
@@ -10501,6 +10517,11 @@ msgstr "Dither každých"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pixely"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Čekání na pointaci (min)"
 
 #: property grid
 msgctxt "option"

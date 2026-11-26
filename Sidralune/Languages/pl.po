@@ -2557,6 +2557,22 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Wzór ditheringu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Losowy"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirala"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Losowy przesuwa w dowolne miejsce w granicach wielkości. Spirala idzie o wielkość wzdłuż kwadratowej spirali wokół miejsca początkowego, przez 24 miejsca, zanim zacznie od nowa, więc żadne dwie klatki nie dzielą miejsca."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Najpierw zatrzymaj prowadzenie."
@@ -10501,6 +10517,11 @@ msgstr "Dithering co"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dithering piksele"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Czekanie na prowadzenie (min)"
 
 #: property grid
 msgctxt "option"

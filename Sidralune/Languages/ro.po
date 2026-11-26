@@ -2557,6 +2557,22 @@ msgstr "Niciun focalizator conectat."
 msgid "No guider connected."
 msgstr "Niciun sistem de ghidare conectat."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Model de dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Aleator"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirală"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Aleator deplasează oriunde în limita mărimii. Spirala avansează cu mărimea de-a lungul unei spirale pătrate în jurul locului de început, 24 de locuri înainte de a reîncepe, astfel încât două cadre să nu împartă același loc."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Opriți întâi ghidarea."
@@ -10501,6 +10517,11 @@ msgstr "Dither la fiecare"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pixeli"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Așteptare ghidare (min)"
 
 #: property grid
 msgctxt "option"

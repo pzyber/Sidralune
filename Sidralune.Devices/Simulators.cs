@@ -643,8 +643,10 @@ namespace Sidralune.Devices.Simulators
         /// <summary>Hot pixels, always at the same places in a frame of a given size, and how bright they grow (fraction of full scale per minute).</summary>
         public int HotPixels = 40;
         public double HotPixelLevel = 0.3;
-        /// <summary>The share of starlight that gets through (1 clear, less under thin cloud).</summary>
+        /// <summary>The share of starlight that gets through (1 clear, less under thin cloud, 0 behind thick cloud).</summary>
         public double Transparency = 1;
+        /// <summary>The camera stops answering, as when its driver drops it: exposures fail until it is connected again (a new one).</summary>
+        public bool Unplugged;
         private int _w = 2048, _h = 1536;
         private double _pixelUm = 3.76;
         private CameraState _state = CameraState.Idle;
@@ -724,6 +726,7 @@ namespace Sidralune.Devices.Simulators
 
         public void StartExposure(double seconds, bool light)
         {
+            if (Unplugged) throw new InvalidOperationException("The camera does not answer");
             _cts = new CancellationTokenSource();
             var ct = _cts.Token;
             _duration = seconds;

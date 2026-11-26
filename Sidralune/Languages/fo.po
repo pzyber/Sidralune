@@ -2545,6 +2545,22 @@ msgstr "Eingin fokusari tengdur."
 msgid "No guider connected."
 msgstr "Einki stýritól tengt."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither-mynstur"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Tilvildarligt"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spiral"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Tilvildarligt dither fer hvar sum helst innan fyri nøgdina. Spiral fer út við nøgdini eftir einari ferkantaðari spiral kring har hon byrjaði, 24 staðir áðrenn hon byrjar umaftur, so eingi tvey myndir deila stað."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Steðga stýraranum fyrst."
@@ -10470,6 +10486,11 @@ msgstr "Dither eftir hvørjar"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pikslar"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Bíða eftir stýring (min)"
 
 #: property grid
 msgctxt "option"

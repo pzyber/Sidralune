@@ -2545,6 +2545,22 @@ msgstr "Kein Fokussierer verbunden."
 msgid "No guider connected."
 msgstr "Kein Guider verbunden."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither-Muster"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Zufällig"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirale"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Zufällig dithert irgendwo innerhalb des Betrags. Spirale geht um den Betrag entlang einer quadratischen Spirale um den Anfangspunkt nach außen, 24 Stellen, bevor sie von vorn beginnt, sodass keine zwei Bilder dieselbe Stelle haben."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Stoppen Sie zuerst den Guider."
@@ -10470,6 +10486,11 @@ msgstr "Dithern alle"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither-Pixel"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Auf Guiding warten (min)"
 
 #: property grid
 msgctxt "option"

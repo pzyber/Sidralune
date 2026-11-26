@@ -39,6 +39,47 @@ namespace Sidralune.Devices.Automation
         public List<double> RecentHfr = new List<double>();
         public Observer Site => Devices.Site;
         public int TotalExposures;
+        /// <summary>
+        /// The sequence guides: it was guiding when the sequence started, or a Start guiding instruction started it (Stop
+        /// guiding ends it). Light frames then wait for guiding, and start it again when it stopped.
+        /// </summary>
+        public bool GuidingWanted;
+
+        /// <summary>
+        /// Before a light frame, guiding as the sequence wants it: a lost star (a cloud) is waited for, and guiding that
+        /// stopped (a slew, the guide camera failing) is started again, once a minute. After waitMinutes the frames go on
+        /// without it, and the log says so.
+        /// </summary>
+        public async Task WaitForGuiding(double waitMinutes, CancellationToken ct)
+        {
+            var g = Devices.Guider;
+            if (!GuidingWanted || g == null || g.IsGuiding) return;
+            Log(g.State == Guiding.SidraluneGuider.LostLock ? "The guide star is lost: waiting for it before the next frame" : "Guiding has stopped: starting it again before the next frame");
+            var until = DateTime.UtcNow.AddMinutes(Math.Max(0, waitMinutes));
+            var nextStart = DateTime.MinValue;
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                g = Devices.Guider;
+                if (g != null && g.IsGuiding) { Log("Guiding again"); return; }
+                if (DateTime.UtcNow >= until)
+                {
+                    Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Guiding did not come back within {0:0} min: going on without it", waitMinutes));
+                    GuidingWanted = false;
+                    return;
+                }
+                // a lost star comes back by itself; calibrating or paused (by hand) is waited for too
+                string st = g != null ? g.State : null;
+                bool waiting = st == Guiding.SidraluneGuider.LostLock || st == Guiding.SidraluneGuider.Calibrating || st == Guiding.SidraluneGuider.Paused;
+                if (g != null && !waiting && DateTime.UtcNow >= nextStart)
+                {
+                    nextStart = DateTime.UtcNow.AddMinutes(1);
+                    try { await g.StartGuiding(false, ct); continue; }
+                    catch (Exception ex) when (!ct.IsCancellationRequested) { Log("Could not start guiding: " + ex.Message); }
+                }
+                await Task.Delay(1000, ct);
+            }
+        }
     }
 
     public abstract class SequenceItem
@@ -261,13 +302,14 @@ namespace Sidralune.Devices.Automation
         {
             if (ctx.Devices.Guider == null) { ctx.Log("No guider connected - skipping"); return; }
             await ctx.Devices.Guider.StartGuiding(ForceCalibration, ct);
+            ctx.GuidingWanted = true;
         }
     }
 
     public class StopGuiding : SequenceItem
     {
         public override string Title => Lang.T("Stop guiding");
-        protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.Devices.Guider?.StopGuiding(); return Task.FromResult(0); }
+        protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.GuidingWanted = false; ctx.Devices.Guider?.StopGuiding(); return Task.FromResult(0); }
     }
 
     public class TakeExposures : SequenceItem
@@ -283,6 +325,8 @@ namespace Sidralune.Devices.Automation
         public string FrameType { get; set; } = "LIGHT";
         public int DitherEvery { get; set; } = 1;
         public double DitherPixels { get; set; } = 5;
+        /// <summary>How long a light frame waits for guiding to come back (a cloud, a stopped guider) before going on without it.</summary>
+        public double GuidingWaitMinutes { get; set; } = 30;
         public int Completed { get; private set; }
         public override string Title => FrameType == "DARK" ? Lang.T("Expose dark frames") : FrameType == "BIAS" ? Lang.T("Expose bias frames") : FrameType == "FLAT" ? Lang.T("Expose flat frames")
             : FrameType == "LIGHT" ? Lang.T("Expose light frames") : Lang.T("Expose {0} frames", FrameType.ToLowerInvariant());
@@ -301,15 +345,28 @@ namespace Sidralune.Devices.Automation
                     Seconds = Exposure, Bin = Bin, Gain = Gain, Offset = Offset, Filter = string.IsNullOrEmpty(Filter) ? null : Filter,
                     FrameType = FrameType, Light = FrameType != "DARK" && FrameType != "BIAS", Target = ctx.Target != null ? ctx.Target.Name : ""
                 };
-                var res = await ctx.Capture.Expose(r, ct);
+                if (FrameType == "LIGHT") await ctx.WaitForGuiding(GuidingWaitMinutes, ct);
+                // dithered as soon as the frame is read out, while it downloads and is measured and saved; the next frame
+                // starts once guiding has settled
+                var g = ctx.Devices.Guider;
+                Task dithering = null;
+                if (FrameType == "LIGHT" && DitherEvery > 0 && (Completed + 1) % DitherEvery == 0 && i < Count - 1 && g != null && g.IsGuiding)
+                    r.ReadOut = () => dithering = g.Dither(DitherPixels, false, 1.5, 10, 120, ct);
+                CaptureResult res;
+                try { res = await ctx.Capture.Expose(r, ct); }
+                catch
+                {
+                    // the frame failed after the dither began: its result is not waited for, but it is looked at
+                    dithering?.ContinueWith(t => { var ignored = t.Exception; });
+                    throw;
+                }
                 ctx.CurrentFilter = r.Filter;
                 if (!double.IsNaN(res.Hfr)) { ctx.RecentHfr.Add(res.Hfr); if (ctx.RecentHfr.Count > 20) ctx.RecentHfr.RemoveAt(0); }
                 ctx.ExposuresSinceAutofocus++;
                 ctx.TotalExposures++;
                 Completed++;
                 ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars)", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars));
-                if (FrameType == "LIGHT" && DitherEvery > 0 && Completed % DitherEvery == 0 && i < Count - 1 && ctx.Devices.Guider != null && ctx.Devices.Guider.IsGuiding)
-                    await ctx.Devices.Guider.Dither(DitherPixels, false, 1.5, 10, 120, ct);
+                if (dithering != null) await dithering;
             }
         }
     }
@@ -729,6 +786,9 @@ namespace Sidralune.Devices.Automation
             _cts = new CancellationTokenSource();
             Root.Reset();
             var ctx = new SequenceContext { Capture = capture, Triggers = Triggers, Log = s => { Core.Util.Log.Info("Sequencer", s); Log?.Invoke(s); Changed?.Invoke(); } };
+            ctx.Devices = capture.Devices;
+            // guiding when the sequence starts: its light frames keep it
+            ctx.GuidingWanted = GuidingPause.Guiding(ctx.Devices.Guider);
             ctx.Log("Sequence started");
             try { await Root.Run(ctx, _cts.Token); ctx.Log("Sequence finished"); }
             catch (OperationCanceledException) { ctx.Log("Sequence stopped"); }

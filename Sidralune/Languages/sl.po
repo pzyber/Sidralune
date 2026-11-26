@@ -2569,6 +2569,22 @@ msgstr "Ni povezanega ostrilnika."
 msgid "No guider connected."
 msgstr "Ni povezanega vodilnega sistema."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Vzorec ditheringa"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Naključno"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirala"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Naključno premika kamorkoli znotraj količine. Spirala napreduje za količino po kvadratni spirali okoli mesta, kjer je začela, 24 mest, preden začne znova, zato si nobena dva posnetka ne delita mesta."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Najprej ustavite vodenje."
@@ -10532,6 +10548,11 @@ msgstr "Dither vsakih"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither piksli"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Čakanje na vodenje (min)"
 
 #: property grid
 msgctxt "option"

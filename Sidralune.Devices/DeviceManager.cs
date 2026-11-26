@@ -213,6 +213,19 @@ namespace Sidralune.Devices
             return dev;
         }
 
+        /// <summary>
+        /// Connects a device again with the same driver, after it stopped answering, without stopping what uses it (the
+        /// guider goes on with the guide camera connected again).
+        /// </summary>
+        public IDevice Reconnect(DeviceKind kind)
+        {
+            var old = Get(kind);
+            if (old == null) throw new InvalidOperationException(Lang.T("Not connected"));
+            var info = old.Info;
+            try { old.Disconnect(); } catch (Exception ex) { Log.Warn("Devices", ex.Message); }
+            return Connect(info);
+        }
+
         public void Disconnect(DeviceKind kind)
         {
             // the Sidralune guider stays; disconnecting the guider disconnects PHD2, or stops the Sidralune guider

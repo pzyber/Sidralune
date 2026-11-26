@@ -2545,6 +2545,22 @@ msgstr "Nessun focheggiatore collegato."
 msgid "No guider connected."
 msgstr "Nessuna guida collegata."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Schema di dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Casuale"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirale"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Casuale sposta ovunque entro l'ampiezza. Spirale avanza dell'ampiezza lungo una spirale quadrata attorno al punto di partenza, 24 posizioni prima di ricominciare, così due immagini non condividono mai la posizione."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Ferma prima la guida."
@@ -10470,6 +10486,11 @@ msgstr "Dither ogni"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Pixel di dither"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Attesa della guida (min)"
 
 #: property grid
 msgctxt "option"

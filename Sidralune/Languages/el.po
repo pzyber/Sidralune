@@ -2545,6 +2545,22 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Μοτίβο dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Τυχαίο"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Σπείρα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Το τυχαίο dither πηγαίνει οπουδήποτε μέσα στο ποσό. Η σπείρα βγαίνει κατά το ποσό σε τετράγωνη σπείρα γύρω από το σημείο έναρξης, 24 θέσεις πριν ξεκινήσει ξανά, ώστε κανένα ζεύγος καρέ να μη μοιράζεται θέση."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Σταματήστε πρώτα τον οδηγό."
@@ -10470,6 +10486,11 @@ msgstr "Dither κάθε"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pixel"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Αναμονή για οδήγηση (λεπτά)"
 
 #: property grid
 msgctxt "option"

@@ -2545,6 +2545,22 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither-kuvio"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Satunnainen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spiraali"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Satunnainen dither siirtää mihin tahansa määrän sisällä. Spiraali etenee määrän verran neliön muotoista spiraalia pitkin aloituskohdan ympäri, 24 paikkaa ennen kuin alkaa alusta, joten kaksi kuvaa ei jaa samaa paikkaa."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Pysäytä ohjain ensin."
@@ -10470,6 +10486,11 @@ msgstr "Dither joka"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pikseliä"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Ohjauksen odotus (min)"
 
 #: property grid
 msgctxt "option"

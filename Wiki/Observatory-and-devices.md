@@ -36,6 +36,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Calibration Assistant](#calibration-assistant)
   - [Lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
+  - [Guiding while imaging](#guiding-while-imaging)
   - [Predictive PEC](#predictive-pec)
   - [Adaptive optics](#adaptive-optics)
   - [A guide camera on a rotator](#a-guide-camera-on-a-rotator)
@@ -353,6 +354,7 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Noise reduction | None | Or 2×2 mean or 3×3 median |
 | Multi-star: Guide on several stars | On, up to 9 stars | See [Guiding on several stars](#guiding-on-several-stars) |
 | Star brightness: Skip frames where it jumps | On, 50 % | A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction |
+| Dither pattern | Random | **Random** dithers anywhere within the amount. **Spiral** steps out by the amount along a square spiral round where it began (24 places, then it begins again), so no two frames share a place; a lock position moved by hand begins it again there |
 | Calibration step (ms) | 0 (automatic) | |
 | Calibration distance (px) | 20 | How far each calibration leg moves the star |
 | After a meridian flip: Mount reverses Dec | Off | |
@@ -425,7 +427,17 @@ The **Tools** page:
 
 ### Lost stars, slews and the guide log
 
-When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. It never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten; start guiding again after the slew. If the guide camera fails three times in a row, the guider stops and says why.
+When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. It never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten. Sidralune's own slews start it again by themselves (see [Guiding while imaging](#guiding-while-imaging)); after a slew of your own, start guiding again. If the guide camera fails three times in a row, the guider connects it again with the same driver (up to three tries, 2, 5 and 10 seconds apart) and guides on where it was; only when that does not help does it stop and say why. A guide camera you disconnect yourself is not connected again.
+
+### Guiding while imaging
+
+Sidralune's own work takes care of guiding by itself, with the Sidralune guider or PHD2:
+
+- **Dithering** in a sequence starts as soon as a frame has been read out from the sensor, while it downloads and is measured and saved; the next frame starts once guiding has settled.
+- **Autofocus** (the instruction, its triggers and **Run autofocus**) pauses guiding while the focuser moves, since the guide star changes shape too, and lets it settle again before going on. Guiding paused by hand stays paused.
+- **Centring** (**Center** on the Imaging tab, the sequence's centring) stops guiding for its slews and starts it again afterwards. Centring the field it guided on, on the same pier side, it guides on the star nearest the old lock position and holds it there, so the frames line up with those before.
+- A **meridian flip** stops guiding, flips, re-centres and starts guiding again on a star chosen afresh, also when the star was lost at the time.
+- A sequence that guides waits for guiding before each light frame: a lost star (a cloud) is waited for, and guiding that stopped (a slew, the guide camera failing) is started again, once a minute. After **Guiding wait minutes** (30) the frames go on without it, and the log says so. See [Sequencer](Sequencer#running-a-sequence).
 
 Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
 

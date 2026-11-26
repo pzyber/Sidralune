@@ -2545,6 +2545,22 @@ msgstr "Asnjë fokusues i lidhur."
 msgid "No guider connected."
 msgstr "Asnjë sistem udhëheqës i lidhur."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Modeli i dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Rastësor"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirale"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Rastësori lëviz kudo brenda sasisë. Spiralja shkon me sasinë përgjatë një spiraleje katrore rreth vendit ku nisi, 24 vende para se të nisë sërish, që asnjë dy kuadro të mos ndajnë vend."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Ndalni udhëheqjen më parë."
@@ -10470,6 +10486,11 @@ msgstr "Dither çdo"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither piksele"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Pritja e udhëheqjes (min)"
 
 #: property grid
 msgctxt "option"

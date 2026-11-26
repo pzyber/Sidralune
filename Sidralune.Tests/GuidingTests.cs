@@ -919,5 +919,109 @@ namespace Sidralune.Tests
             }
             finally { dm.DisconnectAll(); }
         }
+
+        [TestMethod]
+        public void TestGuidingAroundImaging()
+        {
+            // the dither spiral: a square spiral out from the centre, or along RA alternating sides
+            var square = Enumerable.Range(1, 9).Select(k => { int i, j; SidraluneGuider.SpiralPoint(k, false, out i, out j); return i + "," + j; }).ToList();
+            CheckTrue("The spiral turns out from the centre", string.Join(" ", square) == "1,0 1,1 0,1 -1,1 -1,0 -1,-1 0,-1 1,-1 2,-1", string.Join(" ", square));
+            var line = Enumerable.Range(1, 4).Select(k => { int i, j; SidraluneGuider.SpiralPoint(k, true, out i, out j); return i + "," + j; }).ToList();
+            CheckTrue("…and along RA only, side to side", string.Join(" ", line) == "1,0 -1,0 2,0 -2,0", string.Join(" ", line));
+
+            var dm = GuideObservatory("guide-imaging");
+            string dir = Path.GetDirectoryName(dm.GuiderSettingsPath);
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.Camera, Protocol = DeviceProtocol.Simulator, Name = "Camera", Address = "sim" });
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            var problems = new List<string>();
+            g.Failed += m => problems.Add(m);
+            try
+            {
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("Guiding", g.IsGuiding);
+                var cal = g.Calibration;
+                var pier = tel.SideOfPier;
+                Func<double, double, double[]> axes = (x, y) => { double ra, dec; cal.ToAxes(x, y, pier, g.Settings.MountReversesDecAfterFlip, out ra, out dec); return new[] { ra, dec }; };
+
+                // spiral dithers: each a step of the amount along the spiral round where it began
+                g.Settings.DitherMode = DitherPattern.Spiral;
+                double x0 = g.LockX, y0 = g.LockY;
+                var places = new List<string>();
+                for (int k = 0; k < 3; k++)
+                {
+                    g.Dither(3, false, 0.6, 1, 30, ct).Wait();
+                    var a = axes(g.LockX - x0, g.LockY - y0);
+                    places.Add(Math.Round(a[0] / 3) + "," + Math.Round(a[1] / 3));
+                }
+                CheckTrue("Spiral dithers step out along the spiral", string.Join(" ", places) == "1,0 1,1 0,1", string.Join(" ", places));
+                g.Settings.DitherMode = DitherPattern.Random;
+
+                // autofocus pauses guiding, which settles again afterwards
+                string during = null;
+                GuidingPause.During(g, async () => { await Task.Delay(1500); during = g.State; return 0; }, ct).Wait();
+                CheckTrue("Guiding is paused while the work runs", during == SidraluneGuider.Paused, during);
+                CheckTrue("…and guides again afterwards", g.IsGuiding);
+
+                // centring the same field: guiding stops for the slews, and starts again on the star held at the old lock position
+                double lx = g.LockX, ly = g.LockY, ra0 = tel.RightAscension, dec0 = tel.Declination;
+                GuidingPause.AroundSlew(g, tel, async () =>
+                {
+                    await Centering.Slew(tel, ra0, dec0 + 0.05, ct);
+                    await Centering.Slew(tel, ra0, dec0, ct);
+                    return 0;
+                }, true, ct).Wait();
+                CheckTrue("After centring the same field, guiding goes on at the old lock position", g.IsGuiding && Math.Abs(g.LockX - lx) < 1e-6 && Math.Abs(g.LockY - ly) < 1e-6,
+                    string.Format("{0:0.00},{1:0.00} vs {2:0.00},{3:0.00}", g.LockX, g.LockY, lx, ly));
+
+                // a guide camera that stops answering is connected again, and guiding goes on
+                var old = dm.GuideCamera;
+                ((CameraSimulator)old).Unplugged = true;
+                CheckTrue("A guide camera that stops answering is connected again", SpinUntil(() => dm.GuideCamera != old && dm.GuideCamera.Connected, 30000));
+                CheckTrue("…and guiding goes on", SpinUntil(() => g.IsGuiding, 20000) && problems.Count == 0, g.State + " " + string.Join("; ", problems));
+                // the camera connected again is a new simulator: as steady as the test observatory's, so dithers settle quickly
+                ((CameraSimulator)dm.GuideCamera).JitterArcsec = 0.1;
+
+                // a sequence: dithered as soon as a frame is read out, before it is analysed and saved
+                var capture = new CaptureService { Devices = dm, ImageFolder = Path.Combine(dir, "Images") };
+                var log = new List<string>();
+                var ctx = new SequenceContext { Devices = dm, Capture = capture, Log = m => { lock (log) log.Add(m); }, GuidingWanted = true };
+                var locks = new List<double[]>();
+                capture.ImageCaptured += r => locks.Add(new[] { g.LockX, g.LockY });
+                double sx = g.LockX, sy = g.LockY;
+                var shots = new TakeExposures { Count = 3, Exposure = 1, DitherEvery = 1, DitherPixels = 2, FrameType = "LIGHT" };
+                var sw = Stopwatch.StartNew();
+                shots.Run(ctx, ct).Wait();
+                Info(string.Format("Three frames with two dithers in {0:0.0} s", sw.Elapsed.TotalSeconds));
+                Func<double[], double[], bool> moved = (p1, p2) => Math.Abs(p1[0] - p2[0]) + Math.Abs(p1[1] - p2[1]) > 0.01;
+                CheckTrue("The dither began before the frame was analysed and saved", shots.Status == ItemStatus.Done && locks.Count == 3 && moved(locks[0], new[] { sx, sy }) && moved(locks[1], locks[0]));
+                CheckTrue("…not after the last frame", !moved(locks[2], locks[1]));
+
+                // guiding stopped (a slew elsewhere): the next light frame starts it again
+                g.StopGuiding();
+                new TakeExposures { Count = 1, Exposure = 1, FrameType = "LIGHT" }.Run(ctx, ct).Wait();
+                CheckTrue("A stopped guider is started again before a light frame", g.IsGuiding && log.Any(m => m.StartsWith("Guiding has stopped")));
+
+                // clouds: the light frame waits for the star to come back
+                var cam = (CameraSimulator)dm.GuideCamera;
+                cam.Transparency = 0;
+                CheckTrue("Behind a cloud the star is lost", SpinUntil(() => g.State == SidraluneGuider.LostLock, 10000), g.State);
+                int before = locks.Count;
+                var waiting = new TakeExposures { Count = 1, Exposure = 1, FrameType = "LIGHT", DitherEvery = 0 }.Run(ctx, ct);
+                Thread.Sleep(3000);
+                CheckTrue("The frame waits while the star is lost", !waiting.IsCompleted && locks.Count == before && log.Any(m => m.StartsWith("The guide star is lost")));
+                cam.Transparency = 1;
+                CheckTrue("…and is taken once guiding is back", waiting.Wait(30000) && locks.Count == before + 1 && log.Contains("Guiding again"));
+                CheckTrue("No guider failures", problems.Count == 0, string.Join("; ", problems));
+            }
+            finally
+            {
+                g.Settings.DitherMode = DitherPattern.Random;
+                g.StopGuiding();
+                dm.DisconnectAll();
+            }
+        }
     }
 }

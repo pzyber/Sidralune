@@ -28,6 +28,11 @@ namespace Sidralune.Devices.Automation
         public string Target = "";
         public bool Save = true;
         public int[] SubFrame; // x, y, w, h
+        /// <summary>
+        /// Called once the frame has been read out, before it is downloaded, analysed and saved: the mount may move now
+        /// (a dither) without spoiling it, while the rest goes on.
+        /// </summary>
+        public Action ReadOut;
 
         /// <summary>Frame types of saved frames, in the Imaging tab and the sequencer (Imaging also offers SNAPSHOT).</summary>
         public static readonly string[] FrameTypes = { "LIGHT", "DARK", "FLAT", "BIAS" };
@@ -117,6 +122,7 @@ namespace Sidralune.Devices.Automation
                     await Task.Delay(100, ct);
                 }
             }
+            r.ReadOut?.Invoke();
             Status?.Invoke(Lang.T("Downloading"));
             var img = await Task.Run(() => cam.GetImage(), ct);
             if (img == null) throw new InvalidOperationException("Camera returned no image");
@@ -388,7 +394,10 @@ namespace Sidralune.Devices.Automation
         public event Action<AutofocusPoint> PointMeasured;
         public event Action<string> Status;
 
-        public async Task<AutofocusResult> Run(CancellationToken ct)
+        /// <summary>Runs autofocus; guiding pauses meanwhile (the star changes shape) and settles again afterwards.</summary>
+        public Task<AutofocusResult> Run(CancellationToken ct) => GuidingPause.During(Capture.Devices.Guider, () => Focus(ct), ct);
+
+        private async Task<AutofocusResult> Focus(CancellationToken ct)
         {
             var foc = Capture.Devices.Focuser;
             if (foc == null) throw new InvalidOperationException("No focuser connected");
@@ -470,7 +479,25 @@ namespace Sidralune.Devices.Automation
         public bool UseSync = true;
         public event Action<string> Status;
 
+        /// <summary>
+        /// Slews, plate-solves and corrects until the target is centred. Guiding stops for it and starts again afterwards;
+        /// centring the field it guided on (within half a degree), on the same star held at the same place.
+        /// </summary>
         public async Task<Wcs> Center(double raJ2000Deg, double decJ2000Deg, CancellationToken ct)
+        {
+            var tel = Capture.Devices.Telescope;
+            if (tel == null) throw new InvalidOperationException("No telescope connected");
+            bool sameField = false;
+            try
+            {
+                var app = new SkyContext(Capture.Devices.Site, AstroTime.Now).IcrsToApparent(raJ2000Deg * AstroMath.Deg2Rad, decJ2000Deg * AstroMath.Deg2Rad);
+                sameField = AstroMath.Separation(tel.RightAscension * AstroMath.Hour2Rad, tel.Declination * AstroMath.Deg2Rad, app.Ra, app.Dec) * AstroMath.Rad2Deg < 0.5;
+            }
+            catch { }
+            return await GuidingPause.AroundSlew(Capture.Devices.Guider, tel, () => CenterCore(raJ2000Deg, decJ2000Deg, ct), sameField, ct);
+        }
+
+        private async Task<Wcs> CenterCore(double raJ2000Deg, double decJ2000Deg, CancellationToken ct)
         {
             var tel = Capture.Devices.Telescope;
             if (tel == null) throw new InvalidOperationException("No telescope connected");
@@ -521,11 +548,18 @@ namespace Sidralune.Devices.Automation
             ct.ThrowIfCancellationRequested();
             if (tel.AtPark) tel.Unpark();
             tel.SlewToCoordinatesAsync(raH, decD);
-            using (ct.Register(() => { try { if (tel.Slewing) tel.AbortSlew(); } catch { } }))
+            // stopped while it slews, the mount stops too: done here, where the stop arrives, so it never depends on the
+            // order in which the token's callbacks run
+            try
             {
                 await Task.Delay(300, ct);
                 var until = DateTime.UtcNow.AddMinutes(5);
                 while (tel.Slewing) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Slew timeout"); await Task.Delay(200, ct); }
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (tel.Slewing) tel.AbortSlew(); } catch { }
+                throw;
             }
             await Task.Delay(1000, ct); // settle
         }
@@ -670,11 +704,13 @@ namespace Sidralune.Devices.Automation
         /// </summary>
         public static async Task Perform(ITelescope tel, double raHours, double decDeg, IGuider guider, CancellationToken ct, Func<Task> beforeGuiding = null)
         {
-            bool wasGuiding = guider != null && guider.IsGuiding;
-            if (wasGuiding) guider.StopGuiding();
-            await Centering.Slew(tel, raHours, decDeg, ct);
-            if (beforeGuiding != null) await beforeGuiding();
-            if (wasGuiding) await guider.StartGuiding(false, ct);
+            // the other pier side: guiding starts again on a star chosen afresh (the field has turned round)
+            await GuidingPause.AroundSlew(guider, tel, async () =>
+            {
+                await Centering.Slew(tel, raHours, decDeg, ct);
+                if (beforeGuiding != null) await beforeGuiding();
+                return 0;
+            }, false, ct);
         }
     }
 }

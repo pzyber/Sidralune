@@ -11,6 +11,9 @@ namespace Sidralune.Devices.Guiding
     /// <summary>Smoothing of guide frames before the stars are measured.</summary>
     public enum NoiseReduction { None, Mean2x2, Median3x3 }
 
+    /// <summary>Where dithers go: anywhere within the amount each time, or out along a square spiral, so no two frames share a place.</summary>
+    public enum DitherPattern { Random, Spiral }
+
     /// <summary>The Sidralune guider's options and its last calibration, kept in Settings\guider.json.</summary>
     public class GuiderSettings
     {
@@ -90,6 +93,8 @@ namespace Sidralune.Devices.Guiding
         /// slew), and is kept here with the camera it belongs to.
         /// </summary>
         public bool StickyLock = false;
+        /// <summary>Where dithers go (random, or a spiral of steps of the dither amount, 24 places before it begins again).</summary>
+        public DitherPattern DitherMode = DitherPattern.Random;
         public double StickyLockX = double.NaN, StickyLockY = double.NaN;
         public string StickyLockCamera = "";
         /// <summary>How far the lock position buttons move it on the sky (arcsec; pixels without a calibration).</summary>

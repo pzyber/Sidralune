@@ -2545,6 +2545,22 @@ msgstr "Enginn fókusari tengdur."
 msgid "No guider connected."
 msgstr "Enginn stýribúnaður tengdur."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Hnikmynstur"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Handahófskennt"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Gormur"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Handahófskennt hnik fer hvert sem er innan stærðarinnar. Gormur fer út um stærðina eftir ferningslaga gormi kringum upphafsstaðinn, 24 staði áður en hann byrjar upp á nýtt, svo engar tvær myndir deila stað."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Stöðvaðu stýringuna fyrst."
@@ -10470,6 +10486,11 @@ msgstr "Hnika eftir hverjar"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Hnik dílar"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Bið eftir stýringu (mín)"
 
 #: property grid
 msgctxt "option"

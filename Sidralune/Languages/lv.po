@@ -2557,6 +2557,22 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither raksts"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Nejaušs"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirāle"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Nejaušs dither pārvieto jebkur vērtības robežās. Spirāle virzās par vērtību pa kvadrātveida spirāli ap sākuma vietu, 24 vietas, pirms sāk no jauna, lai nekādi divi kadri nedalītu vietu."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Vispirms apturiet vadību."
@@ -10501,6 +10517,11 @@ msgstr "Dither ik pēc"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pikseļi"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Gaidīt vadību (min)"
 
 #: property grid
 msgctxt "option"

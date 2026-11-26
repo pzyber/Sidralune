@@ -53,6 +53,11 @@ namespace Sidralune.Devices.Guiding
         private TaskCompletionSource<bool> _calibrationDone;
         private long _frames;   // frames measured so far
         private int _guideRun;  // counts the starts of guiding, so a wait notices guiding stopping and starting again
+        // the next start chooses the star nearest this place and holds it here (after Sidralune's own centring)
+        private double _resumeX = double.NaN, _resumeY = double.NaN;
+        // the spiral of dithers: the lock position it turns round, its step, and where the last dither put the lock
+        private double _spiralX = double.NaN, _spiralY = double.NaN, _spiralLastX = double.NaN, _spiralLastY = double.NaN;
+        private int _spiralStep;
         private string _stopReason;
         private double _errX, _errY; // the stars' offset from the lock position in the last frame (image pixels)
         // the guide camera as prepared for this session
@@ -412,6 +417,15 @@ namespace Sidralune.Devices.Guiding
             if (h != null) throw new InvalidOperationException(Lang.T("{0}. Stop it first.", Lang.T("{0} is running and needs the mount only tracking", h)));
         }
 
+        /// <summary>
+        /// The next start of guiding chooses the star nearest a place (within 40 pixels) and holds it there: after
+        /// Sidralune's own centring brought the mount back to the field it guided on, so frames line up with those before.
+        /// </summary>
+        public void ResumeAt(double x, double y)
+        {
+            lock (_lock) { _resumeX = x; _resumeY = y; }
+        }
+
         public async Task StartGuiding(bool recalibrate, CancellationToken ct)
         {
             CheckNotHeld();
@@ -452,17 +466,40 @@ namespace Sidralune.Devices.Guiding
             var cal = Settings.Calibration;
             if (_phase != Phase.Guiding || cal == null) throw new InvalidOperationException(Lang.T("Not guiding."));
             SyncRotation();
-            double a = (_rng.NextDouble() * 2 - 1) * pixels, b = raOnly ? 0 : (_rng.NextDouble() * 2 - 1) * pixels;
             double ox, oy;
-            cal.FromAxes(a, b, MountPierSide(), Settings.MountReversesDecAfterFlip, out ox, out oy);
             var f = LastFrame;
             int margin = Settings.SearchRadius + 8;
-            lock (_lock)
+            Func<double, double, bool> inside = (x, y) => f == null || (x >= margin && x <= f.Width - margin && y >= margin && y <= f.Height - margin);
+            if (Settings.DitherMode == DitherPattern.Spiral)
             {
-                // keep the lock position well inside the frame
-                if (f != null && (LockX + ox < margin || LockX + ox > f.Width - margin)) ox = -ox;
-                if (f != null && (LockY + oy < margin || LockY + oy > f.Height - margin)) oy = -oy;
-                LockX += ox; LockY += oy;
+                lock (_lock)
+                {
+                    // the spiral turns round where the lock was when it began; a lock moved since (by hand, another star)
+                    // begins it again there
+                    if (double.IsNaN(_spiralX) || Math.Abs(LockX - _spiralLastX) > 0.5 || Math.Abs(LockY - _spiralLastY) > 0.5) { _spiralX = LockX; _spiralY = LockY; _spiralStep = 0; }
+                    _spiralStep = _spiralStep % (raOnly ? 8 : 24) + 1;
+                    int i, j;
+                    SpiralPoint(_spiralStep, raOnly, out i, out j);
+                    double tx, ty;
+                    cal.FromAxes(i * pixels, j * pixels, MountPierSide(), Settings.MountReversesDecAfterFlip, out tx, out ty);
+                    ox = _spiralX + tx - LockX; oy = _spiralY + ty - LockY;
+                    // a place off the frame: back to the spiral's centre, to begin again
+                    if (!inside(LockX + ox, LockY + oy)) { ox = _spiralX - LockX; oy = _spiralY - LockY; _spiralStep = 0; }
+                    LockX += ox; LockY += oy;
+                    _spiralLastX = LockX; _spiralLastY = LockY;
+                }
+            }
+            else
+            {
+                double a = (_rng.NextDouble() * 2 - 1) * pixels, b = raOnly ? 0 : (_rng.NextDouble() * 2 - 1) * pixels;
+                cal.FromAxes(a, b, MountPierSide(), Settings.MountReversesDecAfterFlip, out ox, out oy);
+                lock (_lock)
+                {
+                    // keep the lock position well inside the frame
+                    if (f != null && (LockX + ox < margin || LockX + ox > f.Width - margin)) ox = -ox;
+                    if (f != null && (LockY + oy < margin || LockY + oy > f.Height - margin)) oy = -oy;
+                    LockX += ox; LockY += oy;
+                }
             }
             RememberLock();
             _resetAlgorithms = true;
@@ -484,6 +521,27 @@ namespace Sidralune.Devices.Guiding
                     _log.Event("Bump", "after dither");
                     try { ok = await WaitSettled(settlePixels, settleTimeSec, timeoutSec, linked.Token); }
                     catch (OperationCanceledException) when (!ct.IsCancellationRequested) { throw new InvalidOperationException(LastError ?? _stopReason ?? Lang.T("Guiding was stopped.")); }
+                }
+            }
+        }
+
+        /// <summary>
+        /// The k-th place (from 1) of the dither spiral, in steps along RA and Dec: a square spiral out from the centre, or
+        /// along RA only, alternating sides (1, −1, 2, −2…).
+        /// </summary>
+        public static void SpiralPoint(int k, bool raOnly, out int i, out int j)
+        {
+            i = 0; j = 0;
+            if (raOnly) { i = k % 2 == 1 ? (k + 1) / 2 : -(k / 2); return; }
+            int di = 1, dj = 0, run = 1, done = 0, turns = 0;
+            for (int s = 0; s < k; s++)
+            {
+                i += di; j += dj;
+                if (++done == run)
+                {
+                    done = 0;
+                    int t = di; di = -dj; dj = t;
+                    if (++turns % 2 == 0) run++;
                 }
             }
         }
@@ -769,6 +827,7 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         private async Task<AstroImage> Frame(CancellationToken ct, bool mayUseSubframe = false)
         {
+            int reconnects = 0;
             for (int attempt = 1; ; attempt++)
             {
                 var cam = _dm.GuideCamera;
@@ -782,10 +841,36 @@ namespace Sidralune.Devices.Guiding
                 catch (Exception ex) when (!(ex is OperationCanceledException))
                 {
                     Log.Warn("Guider", "Guide frame failed: " + ex.Message);
-                    if (attempt >= 3) throw new InvalidOperationException(Lang.T("The guide camera failed three times in a row: {0}", ex.Message));
+                    if (attempt >= 3)
+                    {
+                        // the driver may have dropped the camera: connected again, guiding goes on where it was
+                        if (reconnects < 2 && await ReconnectCamera(ct)) { reconnects++; attempt = 0; continue; }
+                        throw new InvalidOperationException(Lang.T("The guide camera failed three times in a row: {0}", ex.Message));
+                    }
                     await Task.Delay(500, ct);
                 }
             }
+        }
+
+        /// <summary>Connects the guide camera again with the same driver, a few times with pauses between; true when it answers again.</summary>
+        private async Task<bool> ReconnectCamera(CancellationToken ct)
+        {
+            foreach (var seconds in new[] { 2, 5, 10 })
+            {
+                await Task.Delay(TimeSpan.FromSeconds(seconds), ct);
+                try
+                {
+                    Log.Warn("Guider", "The guide camera stopped answering: connecting it again");
+                    _log.Event("Guide camera", "connecting again");
+                    _dm.Reconnect(DeviceKind.GuideCamera);
+                    PrepareCamera();
+                    _log.Event("Guide camera", "connected again");
+                    Log.Info("Guider", "The guide camera is connected again");
+                    return true;
+                }
+                catch (Exception ex) when (!(ex is OperationCanceledException)) { Log.Warn("Guider", "Connecting the guide camera again failed: " + ex.Message); }
+            }
+            return false;
         }
 
         // ------------------------------------------------------------------ subframes
@@ -926,15 +1011,24 @@ namespace Sidralune.Devices.Guiding
             {
                 if (_selectRequested)
                 {
+                    // after Sidralune's own centring: the star guided before (the one nearest its old lock position), held there
+                    bool resume = false;
+                    if (!double.IsNaN(_resumeX))
+                    {
+                        var near = GuideStars.Select(lum, w, h, Settings.SearchRadius, _resumeX, _resumeY, EdgeMargin);
+                        if (near != null && Math.Abs(near.X - _resumeX) <= 40 && Math.Abs(near.Y - _resumeY) <= 40) { chosen = near; resume = true; }
+                    }
                     // with a sticky lock position, the star that was guided there (the one nearest it)
-                    if (StickyLockApplies) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, Settings.StickyLockX, Settings.StickyLockY, EdgeMargin);
+                    if (chosen == null && StickyLockApplies) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, Settings.StickyLockX, Settings.StickyLockY, EdgeMargin);
                     if (chosen == null) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, double.NaN, double.NaN, EdgeMargin);
                     if (chosen != null)
                     {
                         Star = chosen; _lost = false; _rejected = false; _usable = !guiding;
                         _stars.SetPrimary(chosen, lum, w, h, EdgeMargin);
                         if ((!guiding && !_keepLock) || _relock) { LockX = chosen.X; LockY = chosen.Y; _relock = false; _resetAlgorithms = true; }
+                        if (resume) { LockX = _resumeX; LockY = _resumeY; _keepLock = true; }
                     }
+                    _resumeX = _resumeY = double.NaN;
                     _selectRequested = false;
                 }
                 else if (Star != null)

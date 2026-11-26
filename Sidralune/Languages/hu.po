@@ -2545,6 +2545,22 @@ msgstr "Nincs csatlakoztatott fókuszáló."
 msgid "No guider connected."
 msgstr "Nincs csatlakoztatott vezetőrendszer."
 
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Dither minta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Véletlen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spirál"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "A véletlen dither bárhová mozdít a mértéken belül. A spirál a mértékkel lép kifelé egy négyzetes spirál mentén a kezdőpont körül, 24 helyen át, mielőtt újrakezdi, így két kép sem kerül ugyanoda."
+
 #: Sidralune.Devices/Guiding/SidraluneGuider.cs
 msgid "Stop the guider first."
 msgstr "Előbb állítsa le a vezetést."
@@ -10470,6 +10486,11 @@ msgstr "Dither minden"
 msgctxt "option"
 msgid "Dither Pixels"
 msgstr "Dither pixel"
+
+#: property grid
+msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Várakozás a vezetésre (perc)"
 
 #: property grid
 msgctxt "option"
