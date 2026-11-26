@@ -10821,6 +10821,11 @@ msgstr "Čakanie na pointáciu (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Korekcia driftu"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Max. RMS pointácie"
 

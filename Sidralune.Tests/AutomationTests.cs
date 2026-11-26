@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Sidralune.Core;
@@ -195,6 +198,73 @@ namespace Sidralune.Tests
                 CheckTrue("A real camera is solved against Gaia, near the hint", real.Catalog is FallbackCatalogProvider && real.Catalog.IsOnline && real.SearchRadius == 2);
             }
             finally { dm.DisconnectAll(); }
+        }
+
+        [TestMethod]
+        public void TestUnguidedDriftCorrection()
+        {
+            var dm = new DeviceManager();
+            dm.Site.LatitudeDeg = 52; dm.Site.LongitudeDeg = 5;
+            foreach (var k in new[] { DeviceKind.Telescope, DeviceKind.Camera })
+                dm.Connect(new DeviceInfo { Kind = k, Protocol = DeviceProtocol.Simulator, Name = k + " sim" });
+            CatalogManager.Instance.LoadBuiltIn();
+            var tel = (TelescopeSimulator)dm.Telescope;
+            tel.SlewRateDegPerSec = 90;
+            var ct = CancellationToken.None;
+            string dir = Path.Combine(Path.GetTempPath(), "SidraluneTests", "drift");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            try
+            {
+                // east of the pier, where this mount's North pulses move it south
+                Centering.Slew(tel, tel.SiderealTime + 0.5, 40, ct).Wait();
+                CheckTrue("East of the pier", tel.SideOfPier == PierSide.East);
+                tel.DriftRaArcsecPerMin = 30; tel.DriftDecArcsecPerMin = -20;
+                double ra0 = tel.TrueRa, dec0 = tel.TrueDec;
+                Func<double> off = () => Math.Sqrt(Math.Pow(AstroMath.NormalizeDeg180((tel.TrueRa - ra0) * 15) * Math.Cos(dec0 * AstroMath.Deg2Rad), 2) + Math.Pow(tel.TrueDec - dec0, 2)) * 3600;
+                var capture = new CaptureService { Devices = dm, ImageFolder = dir };
+                var log = new List<string>();
+                var ctx = new SequenceContext { Devices = dm, Capture = capture, Log = m => { lock (log) log.Add(m); } };
+                ctx.Drift = new DriftCorrector { Devices = dm, Log = ctx.Log, Random = new Random(5) };
+                var sw = Stopwatch.StartNew();
+                var shots = new TakeExposures { Count = 6, Exposure = 3, DitherEvery = 0, FrameType = "LIGHT" };
+                shots.Run(ctx, ct).Wait();
+                double minutes = sw.Elapsed.TotalMinutes, uncorrected = Math.Sqrt(30 * 30 + 20 * 20) * minutes;
+                Info(string.Format("{0:0.0} min: off by {1:0.0}\" where uncorrected drift would be {2:0}\"", minutes, off(), uncorrected));
+                Info(string.Join(" | ", log.Where(m => m.StartsWith("Drift"))));
+                CheckTrue("The first frame is the reference, plate-solved", log.Any(m => m.StartsWith("Drift correction: reference frame")) && ctx.Drift.HasReference);
+                CheckTrue("Each later frame is registered and the drift corrected by pulses", log.Count(m => m.Contains("(registration,") && m.Contains("by pulses")) >= 4, string.Join(" | ", log));
+                CheckTrue("…Dec pulses turned round where they move the other way", log.Any(m => m.Contains("Dec pulses move the other way here")));
+                CheckTrue("…so the mount stays where it began", off() < 12 && off() < uncorrected / 3, off().ToString("0.0"));
+
+                // with dithers: the drift corrected and the dither made in one move, within the dither's reach
+                log.Clear();
+                var dithered = new TakeExposures { Count = 4, Exposure = 3, DitherEvery = 1, DitherPixels = 8, FrameType = "LIGHT" };
+                dithered.Run(ctx, ct).Wait();
+                CheckTrue("With dithers, each move adds a dither", log.Count(m => m.Contains("with a dither")) == 3, string.Join(" | ", log));
+                CheckTrue("…and the mount stays within the dither's reach", off() < 8 * 1.6 * 1.5 + 12, off().ToString("0.0"));
+
+                // a large offset, or a mount without pulse guiding: a small slew
+                ctx.Drift.MaxPulseMs = 0;
+                log.Clear();
+                new TakeExposures { Count = 2, Exposure = 3, DitherEvery = 0, FrameType = "LIGHT" }.Run(ctx, ct).Wait();
+                CheckTrue("Beyond the longest pulse, a small slew", log.Any(m => m.Contains("by slew")), string.Join(" | ", log));
+
+                // guiding: no drift correction
+                CheckTrue("Unguided frames only", !GuidingPause.Guiding(null));
+                // a slew to another field: a new reference
+                tel.DriftRaArcsecPerMin = tel.DriftDecArcsecPerMin = 0;
+                Centering.Slew(tel, tel.SiderealTime + 1.5, 20, ct).Wait();
+                log.Clear();
+                new TakeExposures { Count = 1, Exposure = 3, DitherEvery = 0, FrameType = "LIGHT" }.Run(ctx, ct).Wait();
+                CheckTrue("After a slew to another field, its first frame is the new reference", log.Any(m => m.StartsWith("Drift correction: reference frame")), string.Join(" | ", log));
+                new TakeExposures { Count = 1, Exposure = 3, DitherEvery = 0, FrameType = "DARK" }.Run(ctx, ct).Wait();
+                CheckTrue("Dark frames are left alone", ctx.Drift.Last.Method == "reference");
+            }
+            finally
+            {
+                tel.DriftRaArcsecPerMin = tel.DriftDecArcsecPerMin = 0;
+                dm.DisconnectAll();
+            }
         }
     }
 }

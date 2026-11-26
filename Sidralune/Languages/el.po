@@ -10790,6 +10790,11 @@ msgstr "Αναμονή για οδήγηση (λεπτά)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Διόρθωση ολίσθησης"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Μέγ. RMS οδήγησης"
 

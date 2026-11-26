@@ -10790,6 +10790,11 @@ msgstr "Attesa della guida (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Correzione della deriva"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "RMS max della guida"
 

@@ -10790,6 +10790,11 @@ msgstr "Wachten op guiden (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Driftcorrectie"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Max. guide-RMS"
 

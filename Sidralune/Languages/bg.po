@@ -10790,6 +10790,11 @@ msgstr "Чакане за гидиране (мин)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Корекция на дрейфа"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Макс. RMS на гидирането"
 

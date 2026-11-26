@@ -10790,6 +10790,11 @@ msgstr "Juhtimise ootamine (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Triivi parandus"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Juhtimise max RMS"
 

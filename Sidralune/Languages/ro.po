@@ -10821,6 +10821,11 @@ msgstr "Așteptare ghidare (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Corecția derivei"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "RMS max. al ghidării"
 

@@ -10821,6 +10821,11 @@ msgstr "Laukti gidavimo (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Dreifo korekcija"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Didžiausias gidavimo RMS"
 

@@ -10790,6 +10790,11 @@ msgstr "Bið eftir stýringu (mín)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Leiðrétting reks"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Hámarks-RMS stýringar"
 

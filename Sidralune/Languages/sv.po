@@ -10790,6 +10790,11 @@ msgstr "Vänta på guidning (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Driftkorrigering"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Max guidnings-RMS"
 

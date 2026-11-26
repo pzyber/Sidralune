@@ -10790,6 +10790,11 @@ msgstr "Várakozás a vezetésre (perc)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Sodródás-korrekció"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Vezetés max. RMS"
 

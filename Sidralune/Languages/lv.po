@@ -10821,6 +10821,11 @@ msgstr "Gaidīt vadību (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Dreifa korekcija"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Maks. vadības RMS"
 

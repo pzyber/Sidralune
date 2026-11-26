@@ -10790,6 +10790,11 @@ msgstr "Vent på guiding (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Driftkorreksjon"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Maks. guiding-RMS"
 

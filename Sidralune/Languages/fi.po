@@ -10790,6 +10790,11 @@ msgstr "Ohjauksen odotus (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Ryöminnän korjaus"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Ohjauksen suurin RMS"
 

@@ -44,6 +44,8 @@ namespace Sidralune.Devices.Automation
         /// guiding ends it). Light frames then wait for guiding, and start it again when it stopped.
         /// </summary>
         public bool GuidingWanted;
+        /// <summary>Drift correction for unguided light frames, kept through the sequence (its reference is the field's first frame).</summary>
+        public DriftCorrector Drift;
 
         /// <summary>
         /// Before a light frame, guiding as the sequence wants it: a lost star (a cloud) is waited for, and guiding that
@@ -337,6 +339,11 @@ namespace Sidralune.Devices.Automation
         public double MaxGuidingRms { get; set; }
         /// <summary>What happens to a flagged frame: kept as it is, or kept and taken again (at most three times in a row).</summary>
         public BadGuidingAction WhenGuidingIsBad { get; set; } = BadGuidingAction.Flag;
+        /// <summary>
+        /// Light frames taken without guiding: each is registered against the field's first frame and the mount moved back
+        /// by the drift, dithers included (Dither pixels then counts imaging-camera pixels).
+        /// </summary>
+        public bool DriftCorrection { get; set; } = true;
         public int Completed { get; private set; }
         public override string Title => FrameType == "DARK" ? Lang.T("Expose dark frames") : FrameType == "BIAS" ? Lang.T("Expose bias frames") : FrameType == "FLAT" ? Lang.T("Expose flat frames")
             : FrameType == "LIGHT" ? Lang.T("Expose light frames") : Lang.T("Expose {0} frames", FrameType.ToLowerInvariant());
@@ -394,6 +401,15 @@ namespace Sidralune.Devices.Automation
                 ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars{3}){4}", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars,
                     gs != null && !double.IsNaN(gs.RmsTotal) ? string.Format(System.Globalization.CultureInfo.InvariantCulture, ", guiding {0:0.00}\" RMS", gs.RmsTotal) : "",
                     bad ? " " + flag : ""));
+                // unguided: the drift since the field's first frame is corrected, and the dither made, before the next frame
+                if (FrameType == "LIGHT" && DriftCorrection && !GuidingPause.Guiding(ctx.Devices.Guider) && res.Image != null && ctx.Devices.Telescope != null)
+                {
+                    bool ditherNow = DitherEvery > 0 && Completed % DitherEvery == 0 && i < Count - 1;
+                    if (ctx.Drift == null) ctx.Drift = new DriftCorrector { Devices = ctx.Devices, Log = ctx.Log };
+                    try { await ctx.Drift.AfterFrame(res.Image, ditherNow ? DitherPixels : 0, ct); }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex) { ctx.Log("Drift correction: " + ex.Message); }
+                }
                 if (dithering != null) await dithering;
             }
         }

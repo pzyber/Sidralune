@@ -10790,6 +10790,11 @@ msgstr "Pritja e udhëheqjes (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Korrigjimi i zhvendosjes"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "RMS maks. i udhëheqjes"
 

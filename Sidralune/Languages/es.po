@@ -10790,6 +10790,11 @@ msgstr "Espera al guiado (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Corrección de deriva"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "RMS máx. del guiado"
 

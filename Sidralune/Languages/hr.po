@@ -10821,6 +10821,11 @@ msgstr "Čekanje vođenja (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Ispravak pomaka"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Najveći RMS vođenja"
 

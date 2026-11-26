@@ -10821,6 +10821,11 @@ msgstr "Czekanie na prowadzenie (min)"
 
 #: property grid
 msgctxt "option"
+msgid "Drift Correction"
+msgstr "Korekcja dryfu"
+
+#: property grid
+msgctxt "option"
 msgid "Max Guiding Rms"
 msgstr "Maks. RMS prowadzenia"
 
