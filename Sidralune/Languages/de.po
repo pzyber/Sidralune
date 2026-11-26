@@ -2545,6 +2545,158 @@ msgstr "Kein Fokussierer verbunden."
 msgid "No guider connected."
 msgstr "Kein Guider verbunden."
 
+#: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
+msgid "Not a guide log from Sidralune or PHD2."
+msgstr "Kein Guiding-Protokoll von Sidralune oder PHD2."
+
+#: Sidralune/Views/GuideLogWindow.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log"
+msgstr "Guiding-Protokoll"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "This session"
+msgstr "Diese Sitzung"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own error"
+msgstr "Fehler der Montierung selbst"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Length"
+msgstr "Dauer"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Steps"
+msgstr "Schritte"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Total"
+msgstr "Gesamt"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Peak"
+msgstr "Spitze"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "px"
+msgstr "px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "time"
+msgstr "Zeit"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Spectrum of the RA error"
+msgstr "Spektrum des RA-Fehlers"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "period (min)"
+msgstr "Periode (min)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guide logs"
+msgstr "Guiding-Protokolle"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guiding from {0:yyyy-MM-dd HH:mm}"
+msgstr "Guiding ab {0:yyyy-MM-dd HH:mm}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "No guiding in this log."
+msgstr "Kein Guiding in diesem Protokoll."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Open a guide log of Sidralune's or PHD2's, or show this session's."
+msgstr "Öffnen Sie ein Guiding-Protokoll von Sidralune oder PHD2, oder zeigen Sie das dieser Sitzung."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00} px"
+msgstr "{0:0.00} px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00}″"
+msgstr "{0:0.00}″"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log does not give the pixel scale: the numbers are in pixels."
+msgstr "Das Protokoll nennt den Abbildungsmaßstab nicht: die Zahlen sind in Pixeln."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Pixel scale {0:0.000}″/px"
+msgstr "Abbildungsmaßstab {0:0.000}″/px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Session"
+msgstr "Sitzung"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Found by plate solve"
+msgstr "Durch astrometrische Lösung gefunden"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Calibration: {0}"
+msgstr "Kalibrierung: {0}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log holds no calibration: it guided with one made earlier."
+msgstr "Das Protokoll enthält keine Kalibrierung: es wurde mit einer früheren geguidet."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (″)"
+msgstr "Amplitude (″)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (px)"
+msgstr "Amplitude (px)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short a log for a spectrum: it needs at least a few minutes of guiding."
+msgstr "Zu kurzes Protokoll für ein Spektrum: es braucht mindestens einige Minuten Guiding."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "worm"
+msgstr "Schnecke"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own RA error (the corrections added back at {0:0.00} px/s)"
+msgstr "Der RA-Fehler der Montierung selbst (die Korrekturen mit {0:0.00} px/s wieder hinzugerechnet)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)"
+msgstr "Der nach dem Guiding verbliebene RA-Fehler (das Protokoll nennt die RA-Rate nicht, also lassen sich die Korrekturen nicht hinzurechnen)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding"
+msgstr "Der nach dem Guiding verbliebene RA-Fehler"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "FFT"
+msgstr "FFT"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Lomb–Scargle (the frames are unevenly spaced)"
+msgstr "Lomb–Scargle (die Bilder liegen ungleichmäßig)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Largest: ±{0:0.00}{1} at {2:0.0} min."
+msgstr "Größte: ±{0:0.00}{1} bei {2:0.0} min."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Periodic error: ±{0:0.00}{1} ({2:0.00}{1} peak to peak) at {3:0.0} min."
+msgstr "Periodischer Fehler: ±{0:0.00}{1} ({2:0.00}{1} Spitze zu Spitze) bei {3:0.0} min."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short for the worm period: guide at least one and a half worm periods."
+msgstr "Zu kurz für die Schneckenperiode: guiden Sie mindestens anderthalb Schneckenperioden."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log viewer"
+msgstr "Guiding-Protokoll-Betrachter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The graph, calibration and statistics of a guide log, for the session and for each frame between dithers, and the spectrum of the RA error, which shows the mount's periodic error and its period. It opens with this session's log; Open… reads any guide log of Sidralune's or PHD2's."
+msgstr "Graph, Kalibrierung und Statistik eines Guiding-Protokolls, für die Sitzung und für jedes Bild zwischen den Dithers, und das Spektrum des RA-Fehlers, das den periodischen Fehler der Montierung und seine Periode zeigt. Er öffnet sich mit dem Protokoll dieser Sitzung; Öffnen… liest jedes Guiding-Protokoll von Sidralune oder PHD2."
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Prediction"
 msgstr "Vorhersage"

@@ -645,6 +645,11 @@ namespace Sidralune.Devices.Guiding
             _pecLockX = _pecLockY = double.NaN; // a new start: Predictive PEC continues from its model
             Interlocked.Increment(ref _guideRun);
             _log.Open(LogFolder);
+            // what a guide log viewer needs to show arcseconds and look for the worm's period
+            var calNow = Settings.Calibration;
+            double raRateNow = calNow != null ? calNow.RaRateAt(MountDeclination()) : double.NaN;
+            _log.Event("Settings", string.Format(CultureInfo.InvariantCulture, "scale {0:0.000}\"/px, exposure {1:0.###} s, worm period {2:0} s{3}", PixelScale, CurrentExposure, Settings.PecPeriodSec,
+                double.IsNaN(raRateNow) ? "" : string.Format(CultureInfo.InvariantCulture, ", RA rate {0:0.000} px/s", raRateNow)));
             _log.Event("Guiding", string.Format(CultureInfo.InvariantCulture, "lock {0:0.00} {1:0.00}{2}", LockX, LockY, sticky ? " (sticky)" : ""));
             _phase = Phase.Guiding;
             RememberLock();

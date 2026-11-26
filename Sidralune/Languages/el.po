@@ -2545,6 +2545,158 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 msgid "No guider connected."
 msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
 
+#: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
+msgid "Not a guide log from Sidralune or PHD2."
+msgstr "Δεν είναι αρχείο καταγραφής οδήγησης του Sidralune ή του PHD2."
+
+#: Sidralune/Views/GuideLogWindow.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log"
+msgstr "Αρχείο οδήγησης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "This session"
+msgstr "Αυτή η συνεδρία"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own error"
+msgstr "Το σφάλμα της ίδιας της βάσης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Length"
+msgstr "Διάρκεια"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Steps"
+msgstr "Βήματα"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Total"
+msgstr "Σύνολο"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Peak"
+msgstr "Κορυφή"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "px"
+msgstr "px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "time"
+msgstr "ώρα"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Spectrum of the RA error"
+msgstr "Φάσμα του σφάλματος RA"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "period (min)"
+msgstr "περίοδος (λεπτά)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guide logs"
+msgstr "Αρχεία οδήγησης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guiding from {0:yyyy-MM-dd HH:mm}"
+msgstr "Οδήγηση από {0:yyyy-MM-dd HH:mm}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "No guiding in this log."
+msgstr "Δεν υπάρχει οδήγηση σε αυτό το αρχείο."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Open a guide log of Sidralune's or PHD2's, or show this session's."
+msgstr "Ανοίξτε ένα αρχείο οδήγησης του Sidralune ή του PHD2, ή δείξτε αυτό της τρέχουσας συνεδρίας."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00} px"
+msgstr "{0:0.00} px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00}″"
+msgstr "{0:0.00}″"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log does not give the pixel scale: the numbers are in pixels."
+msgstr "Το αρχείο δεν δίνει την κλίμακα: οι αριθμοί είναι σε pixel."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Pixel scale {0:0.000}″/px"
+msgstr "Κλίμακα {0:0.000}″/px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Session"
+msgstr "Συνεδρία"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Found by plate solve"
+msgstr "Βρέθηκε με αστρομετρική επίλυση"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Calibration: {0}"
+msgstr "Βαθμονόμηση: {0}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log holds no calibration: it guided with one made earlier."
+msgstr "Το αρχείο δεν έχει βαθμονόμηση: η οδήγηση έγινε με προηγούμενη."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (″)"
+msgstr "πλάτος (″)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (px)"
+msgstr "πλάτος (px)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short a log for a spectrum: it needs at least a few minutes of guiding."
+msgstr "Πολύ σύντομο αρχείο για φάσμα: χρειάζονται τουλάχιστον λίγα λεπτά οδήγησης."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "worm"
+msgstr "ατέρμονας"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own RA error (the corrections added back at {0:0.00} px/s)"
+msgstr "Το σφάλμα RA της ίδιας της βάσης (οι διορθώσεις προστέθηκαν ξανά στα {0:0.00} px/s)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)"
+msgstr "Το σφάλμα RA που έμεινε μετά την οδήγηση (το αρχείο δεν δίνει τον ρυθμό RA, οπότε οι διορθώσεις δεν μπορούν να προστεθούν)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding"
+msgstr "Το σφάλμα RA που έμεινε μετά την οδήγηση"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "FFT"
+msgstr "FFT"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Lomb–Scargle (the frames are unevenly spaced)"
+msgstr "Lomb–Scargle (τα καρέ έχουν άνισα διαστήματα)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Largest: ±{0:0.00}{1} at {2:0.0} min."
+msgstr "Μέγιστο: ±{0:0.00}{1} στα {2:0.0} λεπτά."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Periodic error: ±{0:0.00}{1} ({2:0.00}{1} peak to peak) at {3:0.0} min."
+msgstr "Περιοδικό σφάλμα: ±{0:0.00}{1} ({2:0.00}{1} από κορυφή σε κορυφή) στα {3:0.0} λεπτά."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short for the worm period: guide at least one and a half worm periods."
+msgstr "Πολύ σύντομο για την περίοδο του ατέρμονα: οδηγήστε τουλάχιστον μιάμιση περίοδο."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log viewer"
+msgstr "Προβολή αρχείων οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The graph, calibration and statistics of a guide log, for the session and for each frame between dithers, and the spectrum of the RA error, which shows the mount's periodic error and its period. It opens with this session's log; Open… reads any guide log of Sidralune's or PHD2's."
+msgstr "Το γράφημα, η βαθμονόμηση και τα στατιστικά ενός αρχείου οδήγησης, για τη συνεδρία και για κάθε καρέ μεταξύ των dither, και το φάσμα του σφάλματος RA, που δείχνει το περιοδικό σφάλμα της βάσης και την περίοδό του. Ανοίγει με το αρχείο αυτής της συνεδρίας· το Άνοιγμα… διαβάζει οποιοδήποτε αρχείο οδήγησης του Sidralune ή του PHD2."
+
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "Prediction"
 msgstr "Πρόβλεψη"

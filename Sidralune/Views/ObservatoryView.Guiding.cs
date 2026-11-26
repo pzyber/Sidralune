@@ -1049,6 +1049,19 @@ namespace Sidralune.Views
             var aoHint = Ui.Hint(T("The AO moved by hand the same way, along its own axes, to check it."));
             manualGrid.Full(aoHint);
 
+            // the guide log viewer: this session's log, or any guide log of Sidralune's or PHD2's
+            var logGrid = new FormGrid(170);
+            var viewer = MakeButton(T("Guide log viewer"), Icons.Chart);
+            viewer.Click += (s, e) =>
+            {
+                var w = new GuideLogWindow(Dm);
+                var path = Dm.BuiltinGuider.GuideLogPath;
+                if (!string.IsNullOrEmpty(path) && System.IO.File.Exists(path)) w.Load(path);
+                w.Show(FindForm());
+            };
+            logGrid.Full(ButtonRow(viewer));
+            logGrid.Full(Ui.Hint(T("The graph, calibration and statistics of a guide log, for the session and for each frame between dithers, and the spectrum of the RA error, which shows the mount's periodic error and its period. It opens with this session's log; Open… reads any guide log of Sidralune's or PHD2's.")));
+            page.Controls.Add(new Collapsible(T("Guide log"), logGrid));
             page.Controls.Add(new Collapsible(T("Manual guide"), manualGrid));
             page.Controls.Add(new Collapsible(T("Comet tracking"), cometGrid));
             page.Controls.Add(new Collapsible(T("Lock position"), lockGrid));

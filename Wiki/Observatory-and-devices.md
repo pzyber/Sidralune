@@ -38,6 +38,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
   - [Guiding while imaging](#guiding-while-imaging)
   - [Solving guide frames](#solving-guide-frames)
+  - [Guide log viewer](#guide-log-viewer)
   - [Predictive PEC](#predictive-pec)
   - [Adaptive optics](#adaptive-optics)
   - [A guide camera on a rotator](#a-guide-camera-on-a-rotator)
@@ -458,7 +459,16 @@ With **Solve guide frames** on (the default), starting guiding first takes a gui
 
 A guide frame that cannot be solved (clouds, no telescope connected, too few stars) only means guiding goes on without the catalogue; **Last solve** and the guide log say why.
 
-Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, plate solves, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
+Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, plate solves, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests. When guiding starts it notes the pixel scale, the exposure, the worm period (from the Predictive PEC settings) and the RA rate of the calibration in use, which the [guide log viewer](#guide-log-viewer) needs.
+
+### Guide log viewer
+
+**Guide log viewer** on the Guiding tab's **Tools** page opens a window with this session's guide log; **Open…** reads any other, Sidralune's own (`Guide <date> <time>.csv`) or PHD2's (`PHD2_GuideLog_<date>.txt`). **This session** shows the current one again, read afresh, and is greyed out while the Sidralune guider has no log yet. A log holding several guiding sessions has them in a list.
+
+- **The statistics:** a table with the whole session and each frame, meaning each stretch between two dithers (with a dither between frames, one row per frame taken): its start, length, steps, RMS in RA, Dec and total, and the largest error, in arcseconds when the log gives the pixel scale and in pixels otherwise. Settling after dithers is left out. Clicking a row shows its stretch in the graph.
+- **The graph:** the RA and Dec error over time, settling shaded and lost stars marked. It opens scaled to the guiding itself, so the jumps of dithers run off it; **Reset zoom** (right-click) shows everything.
+- **The calibration** the session guided with, and its steps as a small plot. A log that reused an earlier calibration says so.
+- **The spectrum of the RA error:** how much of it repeats at each period, which shows the mount's periodic error, its amplitude (± half the peak-to-peak swing) and its period. With **The mount's own error** on (the default), the corrections that were sent are added back at the calibration's RA rate and the jumps of dithers taken out, which gives the error the mount made, not what guiding left of it; that needs the RA rate, which Sidralune's logs give from now on and PHD2's give in their calibration. Frames at an even pace are analysed with an FFT; frames at an uneven pace (lost stars, exposure changes) with a Lomb–Scargle periodogram. The **Worm period (s)**, from the log or the Predictive PEC settings, and half of it are marked, and the text gives the largest peak and the periodic error near the worm period. The log needs at least one and a half worm periods of guiding for that.
 
 ### Predictive PEC
 
