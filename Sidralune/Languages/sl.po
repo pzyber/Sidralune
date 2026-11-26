@@ -2569,6 +2569,38 @@ msgstr "Ni povezanega ostrilnika."
 msgid "No guider connected."
 msgstr "Ni povezanega vodilnega sistema."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Še ni posnetka za vodenje."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Reševanje posnetka za vodenje potrebuje položaj montaže: ni povezanega teleskopa."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Posnetka za vodenje ni bilo mogoče astrometrično rešiti."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Rešuj posnetke za vodenje"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Zadnja rešitev"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Ko se vodenje začne, se posnetek za vodenje reši blizu položaja montaže: iz njega prideta merilo in kot kamere, zvezde vodnice pa se izberejo med posamičnimi, nespremenljivimi zvezdami kataloga. Izgubljena zvezda vodnica se z reševanjem znova najde, tudi daleč zunaj svojega iskalnega okvira, in vrne nazaj."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, kot {1:0.0}°, goriščna razdalja {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Še ni rešeno"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Vodenje {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · vrh {3:0.00}″"

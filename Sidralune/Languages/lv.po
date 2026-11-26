@@ -2557,6 +2557,38 @@ msgstr "Nav pievienots fokusētājs."
 msgid "No guider connected."
 msgstr "Nav pievienota vadības sistēma."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Vadības kadra vēl nav."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Vadības kadra atrisināšanai vajag montējuma pozīciju: nav pievienots teleskops."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Vadības kadru neizdevās astrometriski atrisināt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Risināt vadības kadrus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Pēdējais risinājums"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Kad vadība sākas, vadības kadrs tiek atrisināts pie montējuma pozīcijas: no tā nāk kameras mērogs un leņķis, un vadības zvaigznes izvēlas no kataloga atsevišķajām, nemainīgajām zvaigznēm. Pazaudēta vadības zvaigzne tiek atrasta no jauna, risinot kadru, pat tālu ārpus tās meklēšanas lodziņa, un atgriezta."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, leņķis {1:0.0}°, fokusa attālums {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Vēl nav atrisināts"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Vadība {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · maksimums {3:0.00}″"

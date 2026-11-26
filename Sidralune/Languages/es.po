@@ -2545,6 +2545,38 @@ msgstr "No hay enfocador conectado."
 msgid "No guider connected."
 msgstr "No hay guiador conectado."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Aún no hay imagen de guiado."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Resolver una imagen de guiado requiere la posición de la montura: no hay telescopio conectado."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "No se pudo resolver astrométricamente la imagen de guiado."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Resolver imágenes de guiado"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Última resolución"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Al empezar el guiado, se resuelve una imagen de guiado cerca de la posición de la montura: de ella salen la escala y el ángulo de la cámara, y las estrellas guía se eligen entre las estrellas simples y no variables del catálogo. Una estrella guía perdida se vuelve a encontrar resolviendo, incluso lejos de su caja de búsqueda, y se trae de vuelta."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, ángulo {1:0.0}°, focal {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Aún sin resolver"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Guiado {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · pico {3:0.00}″"

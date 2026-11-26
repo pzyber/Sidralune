@@ -27,6 +27,8 @@ namespace Sidralune.Devices.Guiding
         /// <summary>Another star became the guide star; the lock position moves to its reference.</summary>
         public bool Promoted;
         public double NewLockX = double.NaN, NewLockY = double.NaN;
+        /// <summary>Where the new guide star was from the old one (image pixels), when one was promoted.</summary>
+        public double PromotedOffX, PromotedOffY;
         public readonly List<string> Notes = new List<string>();
     }
 
@@ -61,6 +63,9 @@ namespace Sidralune.Devices.Guiding
         private DateTime _lastSearch = DateTime.MinValue;
 
         /// <summary>A new guide star, and (with multi-star) the other stars chosen around it in the same frame.</summary>
+        /// <summary>Stars this passes (the catalogue's single, steady stars) are chosen as partners first; null for no preference.</summary>
+        public Func<double, double, bool> Prefer;
+
         public void SetPrimary(GuideStarInfo star, float[] d, int w, int h, int edgeMargin)
         {
             Primary = star;
@@ -80,7 +85,7 @@ namespace Sidralune.Devices.Guiding
             if (want <= 0 || Primary == null) return;
             var taken = new List<double[]> { new[] { Primary.X, Primary.Y } };
             taken.AddRange(Secondaries.Select(s => new[] { s.Info.X, s.Info.Y }));
-            foreach (var m in GuideStars.SelectMore(d, w, h, SearchRadius, edgeMargin, taken, want))
+            foreach (var m in GuideStars.SelectMore(d, w, h, SearchRadius, edgeMargin, taken, want, 6, Prefer))
                 Secondaries.Add(new SecondaryStar { Info = m, OffX = m.X - Primary.X, OffY = m.Y - Primary.Y, FoundNow = true });
         }
 
@@ -149,6 +154,7 @@ namespace Sidralune.Devices.Guiding
                 {
                     r.Promoted = true;
                     r.NewLockX = lockX + best.OffX; r.NewLockY = lockY + best.OffY;
+                    r.PromotedOffX = best.OffX; r.PromotedOffY = best.OffY;
                     foreach (var s in Secondaries) { s.OffX -= best.OffX; s.OffY -= best.OffY; }
                     Secondaries.Remove(best);
                     Primary = best.Info;

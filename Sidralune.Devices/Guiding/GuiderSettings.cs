@@ -47,6 +47,13 @@ namespace Sidralune.Devices.Guiding
         public bool GuideCameraOnRotator = false, RotatorReversed = false;
         /// <summary>The last calibration, reused while it fits the equipment; null until there is one.</summary>
         public GuideCalibration Calibration;
+        /// <summary>
+        /// Plate-solve guide frames: when guiding starts (the camera's scale and angle, the catalogue's stars to guide on)
+        /// and to find a lost guide star again.
+        /// </summary>
+        public bool SolveGuideFrames = true;
+        /// <summary>The scale and angle of the last solved guide frame, used while it fits the equipment; null until there is one.</summary>
+        public GuideFrameSolve LastSolve;
 
         /// <summary>
         /// An AO unit: its travel (steps each way), calibration (steps per move, steps per leg), when the mount is bumped

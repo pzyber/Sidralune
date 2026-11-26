@@ -23,12 +23,14 @@ namespace Sidralune.Devices.Guiding
         /// The best guide star in a frame, or null: a single, unsaturated, well-measured star (SNR, HFD within limits) at
         /// least edgeMargin pixels from the edges (room to calibrate and dither; the search radius and 8 pixels if not
         /// given), preferring the strongest signal that is not near saturation. With near, the usable star closest to that
-        /// point (within 40 pixels), or failing that the closest star of any kind, for a star the user clicked.
+        /// point (within 40 pixels), or failing that the closest star of any kind, for a star the user clicked. Without
+        /// near, the stars prefer passes (the catalogue's single, steady stars) come first.
         /// </summary>
-        public static GuideStarInfo Select(float[] d, int w, int h, int searchRadius, double nearX = double.NaN, double nearY = double.NaN, int edgeMargin = 0)
+        public static GuideStarInfo Select(float[] d, int w, int h, int searchRadius, double nearX = double.NaN, double nearY = double.NaN, int edgeMargin = 0,
+            Func<double, double, bool> prefer = null)
         {
             List<DetectedStar> stars;
-            var good = Usable(d, w, h, searchRadius, edgeMargin, MinSnr, out stars);
+            var good = Preferred(Usable(d, w, h, searchRadius, edgeMargin, MinSnr, out stars), prefer);
             DetectedStar pick;
             if (!double.IsNaN(nearX))
             {
@@ -40,6 +42,17 @@ namespace Sidralune.Devices.Guiding
             // measured the way it will be measured while guiding, so the lock position and later frames agree
             return Measure(d, w, h, pick.X, pick.Y, searchRadius)
                 ?? new GuideStarInfo { X = pick.X, Y = pick.Y, Flux = pick.Flux, Peak = pick.Peak, Snr = pick.Snr, Hfd = 2 * pick.Hfr, Saturated = pick.Saturated };
+        }
+
+        /// <summary>The stars prefer passes first, each group in its order; all of them as they are without prefer.</summary>
+        private static List<DetectedStar> Preferred(List<DetectedStar> stars, Func<double, double, bool> prefer)
+        {
+            if (prefer == null) return stars;
+            var pass = new List<DetectedStar>();
+            var rest = new List<DetectedStar>();
+            foreach (var s in stars) (prefer(s.X, s.Y) ? pass : rest).Add(s);
+            pass.AddRange(rest);
+            return pass;
         }
 
         /// <summary>
@@ -61,14 +74,16 @@ namespace Sidralune.Devices.Guiding
 
         /// <summary>
         /// More stars to guide on besides the ones given (positions to keep clear of): fit stars at least a search box
-        /// apart from those and from each other, strongest first, measured the way guiding measures them.
+        /// apart from those and from each other, strongest first (those prefer passes before the rest), measured the way
+        /// guiding measures them.
         /// </summary>
-        public static List<GuideStarInfo> SelectMore(float[] d, int w, int h, int searchRadius, int edgeMargin, IList<double[]> taken, int count, double minSnr = 6)
+        public static List<GuideStarInfo> SelectMore(float[] d, int w, int h, int searchRadius, int edgeMargin, IList<double[]> taken, int count, double minSnr = 6,
+            Func<double, double, bool> prefer = null)
         {
             var found = new List<GuideStarInfo>();
             if (count <= 0) return found;
             List<DetectedStar> all;
-            var good = Usable(d, w, h, searchRadius, edgeMargin, minSnr, out all);
+            var good = Preferred(Usable(d, w, h, searchRadius, edgeMargin, minSnr, out all), prefer);
             var clear = new List<double[]>(taken);
             int box = 2 * searchRadius + 1;
             foreach (var s in good)

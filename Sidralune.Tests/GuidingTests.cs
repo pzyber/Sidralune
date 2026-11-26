@@ -1100,5 +1100,83 @@ namespace Sidralune.Tests
                 dm.DisconnectAll();
             }
         }
+
+        [TestMethod]
+        public void TestGuideFrameSolving()
+        {
+            // the catalogue's judgement of a star in a solved frame
+            var wcs = Sidralune.Science.Astrometry.Wcs.Create(100, 30, 3, 0, 640, 480);
+            Func<double, double, Sidralune.Science.Astrometry.RefStar> at = (x, y) => { double ra, dec; wcs.PixelToWorld(x, y, out ra, out dec); return new Sidralune.Science.Astrometry.RefStar { Ra = ra, Dec = dec }; };
+            var cat = new List<Sidralune.Science.Astrometry.RefStar>();
+            Action<double, double, double> add = (x, y, mag) => { var r = at(x, y); r.Mag = mag; cat.Add(r); };
+            add(100, 100, 9);                       // alone
+            add(300, 200, 10); add(303, 200, 11);  // a close double, the partner a magnitude fainter
+            add(500, 300, 10); add(504, 300, 14);  // a partner far fainter does not matter
+            add(200, 400, 9);                      // known to vary
+            Func<double, double, double, bool> varies = (ra, dec, r) => Math.Abs(ra - at(200, 400).Ra) * 3600 < r && Math.Abs(dec - at(200, 400).Dec) * 3600 < r;
+            CheckTrue("A single catalogue star suits", GuideStarCatalog.Suits(wcs, cat, 100.5, 99.6, 15, varies));
+            CheckTrue("…a spot the catalogue does not know does not", !GuideStarCatalog.Suits(wcs, cat, 150, 150, 15, varies));
+            CheckTrue("…nor a double", !GuideStarCatalog.Suits(wcs, cat, 300, 200, 15, varies));
+            CheckTrue("…a much fainter neighbour does not matter", GuideStarCatalog.Suits(wcs, cat, 500, 300, 15, varies));
+            CheckTrue("…a variable does not", !GuideStarCatalog.Suits(wcs, cat, 200, 400, 15, varies));
+            var solve = new GuideFrameSolve { ScaleArcsec = 1.55, PixelSizeUm = 3.75, Binning = 1, FocalLengthMm = 500, Camera = "c" };
+            CheckTrue("The solve gives the guide scope's focal length", Math.Abs(solve.SolvedFocalMm - 206.265 * 3.75 / 1.55) < 1e-9 && solve.Fits(1, 3.75, 500, "c") && !solve.Fits(2, 3.75, 500, "c") && !solve.Fits(1, 3.75, 400, "c"));
+
+            var dm = GuideObservatory("guide-solve");
+            var tel = (TelescopeSimulator)dm.Telescope;
+            var g = dm.BuiltinGuider;
+            var ct = CancellationToken.None;
+            var problems = new List<string>();
+            g.Failed += m => problems.Add(m);
+            try
+            {
+                Centering.Slew(tel, tel.SiderealTime - 0.5, 30, ct).Wait();
+                double focalScale = g.PixelScale;
+                CheckTrue("No solve yet", g.CurrentSolve == null && g.Settings.SolveGuideFrames);
+                g.StartGuiding(false, ct).Wait();
+                var sv = g.CurrentSolve;
+                CheckTrue("Starting guiding solves a guide frame first", sv != null && g.IsGuiding, g.SolveMessage ?? g.State);
+                Info(string.Format("Solved {0:0.000}\"/px (focal length gives {1:0.000}), angle {2:0.0}°, {3:0} mm", sv.ScaleArcsec, focalScale, sv.AngleDeg, sv.SolvedFocalMm));
+                CheckTrue("…giving the camera's scale", Math.Abs(sv.ScaleArcsec / focalScale - 1) < 0.03 && Math.Abs(g.PixelScale - sv.ScaleArcsec) < 1e-12);
+                CheckTrue("…kept in the settings", GuiderSettings.Load(dm.GuiderSettingsPath).LastSolve != null);
+                CheckTrue("…and the guide star's place on the sky", g.StarOnSkyKnown);
+
+                // a knock moves the stars far beyond their search boxes: other stars may land in them, but solving finds the
+                // guide star, and pulses bring the mount back to where it pointed
+                g.FindLostAfterSeconds = 2;
+                double sc = g.PixelScale, ra0 = tel.TrueRa, dec0 = tel.TrueDec;
+                Func<double> off = () => Math.Sqrt(Math.Pow(AstroMath.NormalizeDeg180((tel.TrueRa - ra0) * 15) * Math.Cos(dec0 * AstroMath.Deg2Rad), 2) + Math.Pow(tel.TrueDec - dec0, 2)) * 3600;
+                tel.Bump(80 * sc, -60 * sc);
+                Info(string.Format("Knocked {0:0}\" away", off()));
+                CheckTrue("After a knock, solving brings the mount back to where it pointed", SpinUntil(() => g.IsGuiding && !g.Lost && off() < 4 * sc, 90000),
+                    string.Format("{0}, {1:0.0}\" away", g.State, off()));
+                Thread.Sleep(3000);
+                CheckTrue("…with the guide star at the lock position", g.IsGuiding && Math.Abs(g.Star.X - g.LockX) < 3 && Math.Abs(g.Star.Y - g.LockY) < 3 && off() < 4 * sc,
+                    string.Format("{0:0.0},{1:0.0} vs {2:0.0},{3:0.0}, {4:0.0}\" away", g.Star.X, g.Star.Y, g.LockX, g.LockY, off()));
+                string log;
+                using (var rd = new StreamReader(new FileStream(g.GuideLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) log = rd.ReadToEnd();
+                CheckTrue("The guide log says how it was found", log.Contains("Star found by plate solve"));
+                Info(string.Join(" | ", log.Split('\n').Where(l => l.Contains("Plate") || l.Contains("plate") || l.Contains("Star") || l.Contains("Stars")).Take(12)));
+
+                // a slew: the place on the sky is forgotten, the scale kept
+                g.StopGuiding();
+                Centering.Slew(tel, tel.SiderealTime - 1, 40, ct).Wait();
+                SpinUntil(() => false, 1500);
+                CheckTrue("After a slew the star's place is forgotten, the scale kept", !g.StarOnSkyKnown && g.CurrentSolve != null);
+
+                // off: no solving
+                g.Settings.SolveGuideFrames = false;
+                g.Settings.LastSolve = null;
+                g.StartGuiding(false, ct).Wait();
+                CheckTrue("With solving off, guiding starts without it", g.IsGuiding && g.CurrentSolve == null && !g.StarOnSkyKnown);
+                CheckTrue("No guider failures", problems.Count == 0, string.Join("; ", problems));
+            }
+            finally
+            {
+                g.Settings.SolveGuideFrames = true;
+                g.StopGuiding();
+                dm.DisconnectAll();
+            }
+        }
     }
 }

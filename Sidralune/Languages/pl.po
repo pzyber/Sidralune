@@ -2557,6 +2557,38 @@ msgstr "Nie podłączono fokusera."
 msgid "No guider connected."
 msgstr "Nie podłączono guidera."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Jeszcze brak klatki prowadzenia."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Rozwiązanie klatki prowadzenia wymaga pozycji montażu: brak podłączonego teleskopu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Nie udało się astrometrycznie rozwiązać klatki prowadzenia."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Rozwiązuj klatki prowadzenia"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Ostatnie rozwiązanie"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Gdy prowadzenie się zaczyna, klatka prowadzenia jest rozwiązywana w pobliżu pozycji montażu: daje skalę i kąt kamery, a gwiazdy prowadzące są wybierane spośród pojedynczych, niezmiennych gwiazd katalogu. Zgubiona gwiazda prowadząca jest odnajdywana przez rozwiązanie, nawet daleko poza swoim polem wyszukiwania, i sprowadzana z powrotem."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, kąt {1:0.0}°, ogniskowa {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Jeszcze nierozwiązana"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Prowadzenie {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · szczyt {3:0.00}″"

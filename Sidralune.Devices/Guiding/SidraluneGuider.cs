@@ -148,13 +148,17 @@ namespace Sidralune.Devices.Guiding
         /// <summary>The Dec backlash compensation in use now (ms), as it has adapted.</summary>
         public double BacklashCompensationMs => _backlash.AmountMs;
 
-        /// <summary>The guide camera's arcseconds per pixel from its pixel size, the binning and the guide scope's focal length.</summary>
+        /// <summary>
+        /// The guide camera's arcseconds per pixel: from a solved guide frame while it fits the equipment, else from its
+        /// pixel size, the binning and the guide scope's focal length.
+        /// </summary>
         public double PixelScale
         {
             get
             {
-                double px = _pixelUm > 0 ? _pixelUm : Settings.Calibration != null ? Settings.Calibration.PixelSizeUm : 0;
-                if (px <= 0 && _dm.GuideCamera != null) try { px = _dm.GuideCamera.PixelSizeX; } catch { }
+                var solved = CurrentSolve;
+                if (solved != null) return solved.ScaleArcsec;
+                double px = CameraPixelUm();
                 return px > 0 && Settings.FocalLengthMm > 0 ? 206.265 * px * Math.Max(1, Settings.Binning) / Settings.FocalLengthMm : 1;
             }
         }
@@ -365,6 +369,7 @@ namespace Sidralune.Devices.Guiding
             _stars.MaxStars = Math.Max(1, Settings.MaxStars);
             _stars.MassCheck = Settings.StarMassCheck;
             _stars.MassTolerance = Math.Max(0.05, Settings.StarMassTolerance / 100);
+            _stars.Prefer = CataloguePreference();
         }
 
         /// <summary>
@@ -377,9 +382,10 @@ namespace Sidralune.Devices.Guiding
             var f = LastFrame;
             if (f == null) { _selectRequested = true; return; }
             var lum = f.Luminance();
-            var s = GuideStars.Select(lum, f.Width, f.Height, Settings.SearchRadius, x, y, EdgeMargin);
-            if (s == null) throw new InvalidOperationException(double.IsNaN(x) ? Lang.T("No suitable guide star in the frame.") : Lang.T("No star there to guide on."));
             ConfigureStars();
+            var s = GuideStars.Select(lum, f.Width, f.Height, Settings.SearchRadius, x, y, EdgeMargin, CataloguePreference());
+            if (s == null) throw new InvalidOperationException(double.IsNaN(x) ? Lang.T("No suitable guide star in the frame.") : Lang.T("No star there to guide on."));
+            RememberStarOnSky(s);
             lock (_lock)
             {
                 Star = s; _lost = false; LockX = s.X; LockY = s.Y; _keepLock = _userLock = false;
@@ -437,6 +443,8 @@ namespace Sidralune.Devices.Guiding
                 var lt = linked.Token;
                 try
                 {
+                    // the frame solved first: the camera's scale and angle, and the catalogue's stars to choose from
+                    await SolveBeforeGuiding(lt);
                     await EnsureStar(lt);
                     if (recalibrate || !CalibrationFits())
                     {
@@ -724,6 +732,7 @@ namespace Sidralune.Devices.Guiding
                         }
                         _phase = Phase.Watching;
                         lock (_lock) { Star = null; _lost = false; LockX = LockY = double.NaN; _keepLock = _userLock = false; _stars.Clear(); }
+                        ForgetSky();
                         // the sky has moved: a sticky lock position and comet tracking mean nothing any more
                         if (!double.IsNaN(Settings.StickyLockX)) { Settings.StickyLockX = Settings.StickyLockY = double.NaN; SaveSettings(); }
                         if (CometFollowing) { CometFollowing = false; Log.Info("Guider", "Comet tracking off: the mount slewed"); }
@@ -736,6 +745,7 @@ namespace Sidralune.Devices.Guiding
                     }
                     if (_bin != Math.Max(1, Settings.Binning) || _focal != Settings.FocalLengthMm) PrepareCamera();
                     Track(await Frame(ct, _phase == Phase.Guiding));
+                    if (FindLostStarDue()) await FindLostStar(ct);
                     if (_phase == Phase.Guiding)
                     {
                         Report();
@@ -748,6 +758,7 @@ namespace Sidralune.Devices.Guiding
                             // the field has turned with the camera: a guide star is chosen again, on the turned calibration
                             _rotatorTurned = false;
                             _relock = true; _selectRequested = true;
+                            ForgetSky();
                             _pecLockX = _pecLockY = double.NaN;
                             _log.Event("Rotator", "turned: choosing the guide star again");
                             Log.Info("Guider", "The rotator turned: guiding goes on with a guide star chosen again");
@@ -1005,7 +1016,7 @@ namespace Sidralune.Devices.Guiding
             bool guiding = _phase == Phase.Guiding;
             ConfigureStars();
             StarSetFrame r = null;
-            GuideStarInfo chosen = null;
+            GuideStarInfo chosen = null, reacquired = null;
             bool found = false, lostNow = false;
             lock (_lock)
             {
@@ -1020,7 +1031,7 @@ namespace Sidralune.Devices.Guiding
                     }
                     // with a sticky lock position, the star that was guided there (the one nearest it)
                     if (chosen == null && StickyLockApplies) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, Settings.StickyLockX, Settings.StickyLockY, EdgeMargin);
-                    if (chosen == null) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, double.NaN, double.NaN, EdgeMargin);
+                    if (chosen == null) chosen = GuideStars.Select(lum, w, h, Settings.SearchRadius, double.NaN, double.NaN, EdgeMargin, _stars.Prefer);
                     if (chosen != null)
                     {
                         Star = chosen; _lost = false; _rejected = false; _usable = !guiding;
@@ -1030,6 +1041,12 @@ namespace Sidralune.Devices.Guiding
                     }
                     _resumeX = _resumeY = double.NaN;
                     _selectRequested = false;
+                }
+                else if (_reacquire && guiding && (reacquired = Reacquire(lum, w, h)) != null)
+                {
+                    // brought back after solving: the star at the lock position is the guide star again, with new partners
+                    if (_lost) { _lost = false; found = true; }
+                    _usable = false; _rejected = false;
                 }
                 else if (Star != null)
                 {
@@ -1045,6 +1062,21 @@ namespace Sidralune.Devices.Guiding
                     else if (missing && !_lost) { _lost = true; lostNow = true; }
                     if (!guiding && r.PrimaryFound && !_keepLock) { LockX = Star.X; LockY = Star.Y; }
                 }
+            }
+            if (lostNow) _lostSince = DateTime.UtcNow;
+            // another star took over, or the star's brightness jumped: a knock may have put a different star in the box
+            if (r != null && guiding)
+            {
+                if (r.Promoted) ShiftStarOnSky(r.PromotedOffX, r.PromotedOffY);
+                if ((r.Promoted || r.PrimaryRejected) && StarOnSkyKnown) _checkStar = true;
+            }
+            if (found || chosen != null) _lostSince = DateTime.MaxValue;
+            if (chosen != null) RememberStarOnSky(chosen);
+            if (reacquired != null)
+            {
+                _lostSince = DateTime.MaxValue;
+                _log.Event("Stars", "guide star taken again at the lock position " + reacquired);
+                Log.Info("Guider", "Guide star taken again at the lock position " + reacquired);
             }
             if (chosen != null) Log.Info("Guider", "Guide star " + chosen + (Settings.MultiStar ? string.Format(", {0} more", _stars.Secondaries.Count) : ""));
             if (found) { _log.Event("Star found", Star.ToString()); Log.Info("Guider", "Guide star found again"); }

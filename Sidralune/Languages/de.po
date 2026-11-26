@@ -2545,6 +2545,38 @@ msgstr "Kein Fokussierer verbunden."
 msgid "No guider connected."
 msgstr "Kein Guider verbunden."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Noch kein Guiding-Bild."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Zum Lösen eines Guiding-Bilds braucht es die Position der Montierung: kein Teleskop verbunden."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Das Guiding-Bild konnte nicht astrometrisch gelöst werden."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Guiding-Bilder lösen"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Letzte Lösung"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Wenn das Guiding beginnt, wird ein Guiding-Bild nahe der Position der Montierung gelöst: daraus kommen Maßstab und Winkel der Kamera, und Leitsterne werden unter den einzelnen, nicht veränderlichen Sternen des Katalogs gewählt. Ein verlorener Leitstern wird durch Lösen wiedergefunden, auch weit außerhalb seines Suchfelds, und zurückgeholt."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, Winkel {1:0.0}°, Brennweite {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Noch nicht gelöst"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · Spitze {3:0.00}″"

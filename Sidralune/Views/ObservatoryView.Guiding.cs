@@ -419,6 +419,16 @@ namespace Sidralune.Views
             var output = camGrid.Row(T("Guide through"), Ui.Combo(T("The mount"), T("The guide camera (ST-4)")));
             // from the equipment profile: the guide scope's, or the imaging telescope's through an off-axis guider
             var focal = camGrid.Row(T("Focal length"), new Label { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, UseMnemonic = false });
+            var solveOn = camGrid.Row(T("Plate solving"), new CheckBox { Text = T("Solve guide frames") });
+            var solveText = camGrid.Row(T("Last solve"), new Label { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, UseMnemonic = false });
+            // as tall as its text wrapped to the column: the solve's numbers, or why it failed
+            Action fitSolve = () =>
+            {
+                int h = TextRenderer.MeasureText(solveText.Text, solveText.Font, new Size(Math.Max(60, solveText.Width), 0), TextFormatFlags.WordBreak).Height + 6;
+                if (solveText.Height != Math.Max(22, h)) solveText.Height = Math.Max(22, h);
+            };
+            solveText.Resize += (s, e) => fitSolve();
+            camGrid.Full(Ui.Hint(T("When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back.")));
             var radius = camGrid.Row(T("Search box radius (px)"), Ui.Num(15, 5, 50));
             var subframes = camGrid.Row(T("Subframes"), new CheckBox { Text = T("While guiding, download only a box round the stars") });
             var noise = camGrid.Row(T("Noise reduction"), Ui.Combo(T("None"), T("2×2 mean"), T("3×3 median")));
@@ -546,7 +556,7 @@ namespace Sidralune.Views
                 decHint.Text = algoHint(st.DecAlgorithm);
             };
 
-            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, step, distance, reverses, onRotator, rotReversed, clearCal,
+            var controls = new Control[] { exposure, auto, autoMin, autoMax, target, binning, output, solveOn, radius, subframes, noise, multi, maxStars, mass, massTol, ditherMode, step, distance, reverses, onRotator, rotReversed, clearCal,
                 raAlgo, raAggr, raHyst, raLp, raZ, pecPred, pecReact, pecPeriod, pecAuto, pecRetain, raMin, raMax, decAlgo, decAggr, fast, decLp, decZ, decMin, decMax, decMode, backlash, blAmount, blMin, blMax,
                 aoTravel, aoCalStep, aoCalSteps, aoBump, aoBumpStep, aoBumpDither, aoAggr, aoMin, aoClear };
             bool loading = false;
@@ -565,6 +575,7 @@ namespace Sidralune.Views
                     exposure.Value = clamp(exposure, st.ExposureSeconds); auto.Checked = st.AutoExposure; autoMin.Value = clamp(autoMin, st.AutoExposureMin); autoMax.Value = clamp(autoMax, st.AutoExposureMax);
                     target.Value = clamp(target, st.TargetSnr); binning.SelectedIndex = Math.Max(0, Math.Min(3, st.Binning - 1));
                     output.SelectedIndex = st.Output == GuideOutputKind.Camera ? 1 : 0; focal.Text = T("{0:0} mm, from the equipment profile (Observatory → Equipment)", st.FocalLengthMm); radius.Value = clamp(radius, st.SearchRadius);
+                    solveOn.Checked = st.SolveGuideFrames;
                     multi.Checked = st.MultiStar; maxStars.Value = clamp(maxStars, st.MaxStars); ditherMode.SelectedIndex = st.DitherMode == DitherPattern.Spiral ? 1 : 0; mass.Checked = st.StarMassCheck; massTol.Value = clamp(massTol, st.StarMassTolerance);
                     step.Value = clamp(step, st.CalibrationStepMs); distance.Value = clamp(distance, st.CalibrationDistancePx); reverses.Checked = st.MountReversesDecAfterFlip;
                     raAlgo.SelectedIndex = Math.Max(0, Array.IndexOf(raKinds, st.RaAlgorithm));
@@ -604,6 +615,7 @@ namespace Sidralune.Views
             binning.SelectedIndexChanged += (s, e) => save(st => st.Binning = binning.SelectedIndex + 1);
             output.SelectedIndexChanged += (s, e) => save(st => st.Output = output.SelectedIndex == 1 ? GuideOutputKind.Camera : GuideOutputKind.Mount);
             radius.ValueChanged += (s, e) => save(st => st.SearchRadius = (int)radius.Value);
+            solveOn.CheckedChanged += (s, e) => save(st => st.SolveGuideFrames = solveOn.Checked);
             multi.CheckedChanged += (s, e) => save(st => st.MultiStar = multi.Checked);
             maxStars.ValueChanged += (s, e) => save(st => st.MaxStars = (int)maxStars.Value);
             ditherMode.SelectedIndexChanged += (s, e) => save(st => st.DitherMode = ditherMode.SelectedIndex == 1 ? DitherPattern.Spiral : DitherPattern.Random);
@@ -670,6 +682,10 @@ namespace Sidralune.Views
             Poll += () =>
             {
                 var g = Dm.BuiltinGuider;
+                var solved = g.CurrentSolve;
+                string solveNow = solved != null ? T("{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm", solved.ScaleArcsec, solved.AngleDeg, solved.SolvedFocalMm)
+                    : g.SolveMessage ?? T("Not solved yet");
+                if (solveText.Text != solveNow) { solveText.Text = solveNow; fitSolve(); }
                 blNow.Text = g.Settings.BacklashCompensation && g.InGuidingPhase ? T("Now {0:0} ms, as it has adapted.", g.BacklashCompensationMs) : "";
                 var pec = g.PredictivePec;
                 pecStatus.Text = g.Settings.RaAlgorithm != GuideAlgorithmKind.PredictivePec ? ""

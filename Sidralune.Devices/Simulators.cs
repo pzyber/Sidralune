@@ -276,6 +276,9 @@ namespace Sidralune.Devices.Simulators
         }
         public bool IsPulseGuiding { get { lock (_lock) { var now = DateTime.UtcNow; return _pulseEnd[0] > now || _pulseEnd[1] > now; } } }
 
+        /// <summary>A knock: the true pointing jumps (arcsec on the sky, RA and Dec) without the encoders seeing it.</summary>
+        public void Bump(double raArcsec, double decArcsec) { lock (_lock) { Advance(DateTime.UtcNow); _driftRa += raArcsec; _driftDec += decArcsec; } }
+
         public double Altitude => AltAz().AltDeg;
         public double Azimuth => AltAz().AzDeg;
         private Horizontal AltAz()

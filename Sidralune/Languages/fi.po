@@ -2545,6 +2545,38 @@ msgstr "Tarkenninta ei ole yhdistetty."
 msgid "No guider connected."
 msgstr "Ohjausjärjestelmää ei ole yhdistetty."
 
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Ei vielä ohjauskuvaa."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Ohjauskuvan ratkaiseminen tarvitsee jalustan sijainnin: kaukoputkea ei ole yhdistetty."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Ohjauskuvaa ei voitu ratkaista astrometrisesti."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Ratkaise ohjauskuvat"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Viimeisin ratkaisu"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Kun ohjaus alkaa, ohjauskuva ratkaistaan jalustan sijainnin läheltä: siitä saadaan kameran mittakaava ja kulma, ja ohjaustähdet valitaan luettelon yksittäisistä, muuttumattomista tähdistä. Kadonnut ohjaustähti löydetään uudelleen ratkaisemalla, vaikka kaukana hakulaatikostaan, ja tuodaan takaisin."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, kulma {1:0.0}°, polttoväli {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Ei vielä ratkaistu"
+
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
 msgstr "Ohjaus {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · huippu {3:0.00}″"

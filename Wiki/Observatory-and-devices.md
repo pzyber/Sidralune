@@ -37,6 +37,7 @@ The sequencer has its own page: [Sequencer](Sequencer).
   - [Lock position, comet tracking and manual guide](#lock-position-comet-tracking-and-manual-guide)
   - [Lost stars, slews and the guide log](#lost-stars-slews-and-the-guide-log)
   - [Guiding while imaging](#guiding-while-imaging)
+  - [Solving guide frames](#solving-guide-frames)
   - [Predictive PEC](#predictive-pec)
   - [Adaptive optics](#adaptive-optics)
   - [A guide camera on a rotator](#a-guide-camera-on-a-rotator)
@@ -350,6 +351,8 @@ The Settings page holds the Sidralune guider's settings, saved as you change the
 | Binning | 1 | |
 | Guide through | The mount | Or the guide camera's ST-4 port |
 | Focal length | From the profile | The guide scope's, or the imaging telescope's through an off-axis guider, set in the [equipment profile](#equipment-profiles); for the pixel scale and the calibration step |
+| Plate solving: Solve guide frames | On | Solve a guide frame when guiding starts and to find a lost star; see [Solving guide frames](#solving-guide-frames) |
+| Last solve | | The scale (″/px), angle and focal length the last solved guide frame gave, why it could not be solved, or **Not solved yet** |
 | Search box radius (px) | 15 | How far the star may move between frames |
 | Subframes | Off | See [Subframes and noise reduction](#subframes-and-noise-reduction) |
 | Noise reduction | None | Or 2×2 mean or 3×3 median |
@@ -428,7 +431,7 @@ The **Tools** page:
 
 ### Lost stars, slews and the guide log
 
-When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. It never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten. Sidralune's own slews start it again by themselves (see [Guiding while imaging](#guiding-while-imaging)); after a slew of your own, start guiding again. If the guide camera fails three times in a row, the guider connects it again with the same driver (up to three tries, 2, 5 and 10 seconds apart) and guides on where it was; only when that does not help does it stop and say why. A guide camera you disconnect yourself is not connected again.
+When the star is not found in its search area (a cloud, a tree), the state becomes **Star lost**. The guider keeps taking frames and searching the same area, and guides on when the star is back. With **Solve guide frames** on it also solves the frame to find the star when it has moved away, and brings it back (see [Solving guide frames](#solving-guide-frames)); otherwise it never moves the mount to look for it. When the mount slews, guiding stops and the star is forgotten. Sidralune's own slews start it again by themselves (see [Guiding while imaging](#guiding-while-imaging)); after a slew of your own, start guiding again. If the guide camera fails three times in a row, the guider connects it again with the same driver (up to three tries, 2, 5 and 10 seconds apart) and guides on where it was; only when that does not help does it stop and say why. A guide camera you disconnect yourself is not connected again.
 
 ### Guiding while imaging
 
@@ -441,7 +444,17 @@ Sidralune's own work takes care of guiding by itself, with the Sidralune guider 
 - A sequence that guides waits for guiding before each light frame: a lost star (a cloud) is waited for, and guiding that stopped (a slew, the guide camera failing) is started again, once a minute. After **Guiding wait minutes** (30) the frames go on without it, and the log says so. See [Sequencer](Sequencer#running-a-sequence).
 - **Every guided frame** records how guiding went while its shutter was open: the RMS in RA, Dec and total and the peak error, in its [FITS header](#fits-headers) and the Imaging status line. A sequence's **Max guiding RMS** flags a light frame guided worse than that, or during which guiding was interrupted: `GUIDBAD = T` in its header and `_BADGUIDING` at the end of its file name, so stacking can leave it out. **When guiding is bad** keeps it (**Flag**) or keeps it and takes the frame again (**Retake**, up to three times in a row). A flagged frame is not used for the HFR autofocus trigger.
 
-Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
+### Solving guide frames
+
+With **Solve guide frames** on (the default), starting guiding first takes a guide frame and plate-solves it near the mount's position, with the same solver and catalogues as [static polar alignment](#static-polar-alignment). A frame is solved once at each pointing; after a slew, the next start solves again.
+
+- **Scale and angle:** the solve gives the guide camera's scale in ″/px and its angle on the sky, before any calibration. **Last solve** shows them with the focal length they give: one far from the profile's says the profile's focal length is off. The guider uses the solved scale for its arcseconds while the equipment (camera, binning, focal length) stays the same.
+- **Guide stars from the catalogue:** the guide star, and the other stars of multi-star guiding, are chosen first among the catalogue's single stars: a star the catalogue knows (not a hot pixel, a galaxy or a cosmic ray), with no other catalogue star a tenth as bright or brighter within its search box (an unresolved double pulls the measurement), and not known to the local catalogue as variable or double. The image still decides that a star is unsaturated, bright enough and away from the edges; with no catalogue star among those, the best one is used as before. A star you click is always the one used.
+- **Finding a lost star again:** the guider knows the guide star's place on the sky. When the star has been lost for 10 seconds, it solves the frame and works out where the star is now, also far beyond its search box (a knock, a gust, the mount drifting under clouds), and guide pulses bring it back to the lock position; a star still at the lock position (behind a cloud) is waited for, and the solve is tried again every 30 seconds. A knock can also put another star in the search box, which would then be guided on instead: when the guide star's brightness jumps or another star takes over in multi-star guiding, the frame is solved too, and the right star is brought back. Afterwards the star at the lock position is the guide star again, with its partners chosen afresh. More than two minutes of guide pulses away is too far: the guider says so and leaves it to you.
+
+A guide frame that cannot be solved (clouds, no telescope connected, too few stars) only means guiding goes on without the catalogue; **Last solve** and the guide log say why.
+
+Every guiding session writes a guide log, a CSV file named `Guide <date> <time>.csv` in `%LOCALAPPDATA%\Sidralune\Logs`: one row per frame with the star's position, its offset in RA and Dec, the pulses, SNR, flux, HFD and the number of stars, plus the calibration steps, dithers, lost and found stars, plate solves, settling, stars added or dropped, exposure changes, lock position moves, comet tracking, manual pulses and backlash tests.
 
 ### Predictive PEC
 
