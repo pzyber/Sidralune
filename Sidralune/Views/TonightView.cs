@@ -456,7 +456,10 @@ namespace Sidralune.Views
             double r = v.RadiusArcsec, a = SaturnView.RingOuter * r, b = Math.Max(a * Math.Abs(Math.Sin(v.TiltDeg * AstroMath.Deg2Rad)), r);
             double th = v.PoleAngleDeg * AstroMath.Deg2Rad;
             double ex = Math.Sqrt(a * a * Math.Cos(th) * Math.Cos(th) + b * b * Math.Sin(th) * Math.Sin(th)), ey = Math.Sqrt(a * a * Math.Sin(th) * Math.Sin(th) + b * b * Math.Cos(th) * Math.Cos(th));
-            foreach (var m in v.Moons.Where(m => !m.Occulted && m.SeparationArcsec <= 22 * r))
+            // chosen by their orbits, not by how far out they look: Iapetus, three times as far out as Titan, can look as
+            // close as Titan when it passes in front or behind, and its distance north or south then shrank the drawing
+            double titanKm = 22 * PlanetPhysics.EquatorialRadiusKm(Body.Saturn);
+            foreach (var m in v.Moons.Where(m => !m.Occulted && m.Moon.SemiMajorAxisKm <= titanKm))
             {
                 ex = Math.Max(ex, Math.Abs(m.EastArcsec)); ey = Math.Max(ey, Math.Abs(m.NorthArcsec));
             }
@@ -490,8 +493,9 @@ namespace Sidralune.Views
         public static Point[] Names(SaturnView v, int w, int h, PointF c, float scale, PointF[] pts, bool[] beyond, Func<string, Size> measure,
             out int[] shown, out string[] names, out Rectangle[] avoid)
         {
-            shown = Enumerable.Range(0, pts.Length).Where(i => !v.Moons[i].Occulted).ToArray();
             var bey = beyond;
+            // a moon marked at the edge first: there the drawing's border leaves its name the fewest places
+            shown = Enumerable.Range(0, pts.Length).Where(i => !v.Moons[i].Occulted).OrderBy(i => bey[i] ? 0 : 1).ThenBy(i => i).ToArray();
             names = shown.Select(i => v.Moons[i].Moon.Name + (bey[i] ? " " + (v.Moons[i].SeparationArcsec / 60).ToString("0.0") + "′" : "")).ToArray();
             float r, ao, ai, polar, sinB;
             Shape(v, scale, out r, out ao, out ai, out polar, out sinB);

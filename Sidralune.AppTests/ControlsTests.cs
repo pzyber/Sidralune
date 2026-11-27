@@ -64,15 +64,17 @@ namespace Sidralune.AppTests
                 CheckTrue("Their names do not overlap at " + scale + " px per Jupiter radius", clear(at, names));
             }
 
-            // Saturn on the Tonight tab: almost edge-on now and wide open in October 2017, on a narrow and a wide tile
-            foreach (var when in new[] { new DateTime(2026, 11, 18, 22, 0, 0, DateTimeKind.Utc), new DateTime(2017, 10, 16, 18, 0, 0, DateTimeKind.Utc) })
+            // Saturn on the Tonight tab: almost edge-on now and wide open in October 2017, on a narrow and a wide tile; on
+            // 26 November 2026 Iapetus looks as close as Titan (passing behind), far north of Saturn
+            double titanKm = 22 * Sidralune.Core.Ephemeris.PlanetPhysics.EquatorialRadiusKm(Sidralune.Core.Ephemeris.Body.Saturn);
+            foreach (var when in new[] { new DateTime(2026, 11, 18, 22, 0, 0, DateTimeKind.Utc), new DateTime(2017, 10, 16, 18, 0, 0, DateTimeKind.Utc), new DateTime(2026, 11, 26, 21, 49, 0, DateTimeKind.Utc) })
             {
                 var sv = Sidralune.Science.SolarSystem.SaturnView.Compute(new Sidralune.Core.SkyContext(AppState.Site, Sidralune.Core.Time.AstroTime.FromDateTime(when)));
                 foreach (var w in new[] { 300, 600 })
                 {
                     PointF c; float sc; PointF[] pts; bool[] beyond;
                     Sidralune.Views.SaturnGlyph.Arrange(sv, w, 150, out c, out sc, out pts, out beyond);
-                    string tag = when.Year + ", " + w + " px: ";
+                    string tag = when.ToString("yyyy-MM-dd") + ", " + w + " px: ";
                     var area = new RectangleF(0, 0, w, 130);
                     float ring = (float)(Sidralune.Science.SolarSystem.SaturnView.RingOuter * sv.RadiusArcsec * sc);
                     CheckTrue(tag + "the rings fit", c.X - ring >= 16 && c.X + ring <= w - 16, ring.ToString("0") + " px");
@@ -80,7 +82,14 @@ namespace Sidralune.AppTests
                     CheckTrue(tag + "every moon is inside the drawing", pts.All(area.Contains));
                     // the moons out to Titan are at their places; only one farther out may be moved to the edge
                     CheckTrue(tag + "only moons beyond Titan are moved to the edge",
-                        Enumerable.Range(0, pts.Length).All(i => !beyond[i] || sv.Moons[i].SeparationArcsec > 22 * sv.RadiusArcsec));
+                        Enumerable.Range(0, pts.Length).All(i => !beyond[i] || sv.Moons[i].Moon.SemiMajorAxisKm > titanKm));
+                    // and only the moons out to Titan and the rings set the size: at least as large as fitting those (the
+                    // rings at their full width each way) allows, however close a moon farther out looks
+                    var inner = sv.Moons.Where(m => !m.Occulted && m.Moon.SemiMajorAxisKm <= titanKm).ToList();
+                    double ringA = Sidralune.Science.SolarSystem.SaturnView.RingOuter * sv.RadiusArcsec;
+                    double ex = Math.Max(ringA, inner.Select(m => Math.Abs(m.EastArcsec)).DefaultIfEmpty(0).Max()), ey = Math.Max(ringA, inner.Select(m => Math.Abs(m.NorthArcsec)).DefaultIfEmpty(0).Max());
+                    double least = Math.Min((w / 2.0 - 22) / ex, ((150 - 20) / 2.0 - 4) / ey);
+                    CheckTrue(tag + "Saturn as large as the moons out to Titan allow", sc >= least * 0.999, sc.ToString("0.00") + " vs " + least.ToString("0.00") + " px/\"");
                     for (int i = 0; i < pts.Length; i++)
                         if (!beyond[i]) Check(tag + sv.Moons[i].Moon.Name + " east of Saturn (px)", c.X - pts[i].X, sv.Moons[i].EastArcsec * sc, 0.01);
                     // the names: clear of each other, of Saturn and its rings, of the line of text, and inside the drawing
@@ -92,7 +101,7 @@ namespace Sidralune.AppTests
                         string.Join(", ", boxes.Select((x, k) => namesS[k] + " " + x)));
                 }
                 string text = Sidralune.Views.SaturnGlyph.RingText(sv);
-                CheckTrue(when.Year + ": " + text, when.Year == 2026 ? text.Contains("south side visible, opening") : text.Contains("north side visible, closing"));
+                CheckTrue(when.ToString("yyyy-MM-dd") + ": " + text, when.Year == 2026 ? text.Contains("south side visible, opening") : text.Contains("north side visible, closing"));
             }
         }
 

@@ -84,7 +84,7 @@ A live diagram of Io, Europa, Ganymede and Callisto on either side of Jupiter, a
 
 ## Saturn's rings and moons
 
-Saturn with its rings at their present tilt and its brighter moons (Mimas, Enceladus, Tethys, Dione, Rhea, Titan and Iapetus), as seen in a small telescope (north up, east left). The drawing is scaled so the moons out to Titan fit. Iapetus, which can be more than 9′ from Saturn, is often farther out: it is then marked at the edge with an arrowhead pointing towards it and its distance in arcminutes.
+Saturn with its rings at their present tilt and its brighter moons (Mimas, Enceladus, Tethys, Dione, Rhea, Titan and Iapetus), as seen in a small telescope (north up, east left). The drawing is scaled so the moons out to Titan fit. Iapetus, which can be more than 9′ from Saturn, is often farther out: it is then marked at the edge with an arrowhead pointing towards it and its distance in arcminutes. Iapetus never sets the scale, even when it passes in front of or behind Saturn and looks as close as Titan.
 
 The line under the drawing gives the rings' tilt towards us, which side of them shows, and whether they are opening or closing. The tilt goes from 0° (edge-on, last in March 2025) to about 27° and back again every 15 years or so. Opening or closing compares the tilt with a year from now, so the small yearly wobble from the Earth's own orbit doesn't count. The line also names any moon in transit across the disc or hidden behind the planet.
 
