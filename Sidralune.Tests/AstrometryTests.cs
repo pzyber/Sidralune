@@ -112,6 +112,21 @@ namespace Sidralune.Tests
             var w2 = Wcs.FromHeader(h, 1000, 800);
             w2.PixelToWorld(120, 700, out x, out y);
             Check("WCS header roundtrip", AstroMath.Separation(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, x * AstroMath.Deg2Rad, y * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec, 0, 1e-3);
+
+            // the content moved by (dx, dy): what was at (x, y) is at (x + dx, y + dy), with SIP terms too
+            w.SipOrder = 2;
+            w.A = new double[3, 3]; w.B = new double[3, 3];
+            w.A[2, 0] = 2e-6; w.B[0, 2] = -1.5e-6; w.A[1, 1] = 1e-6;
+            w.FitInverseSip();
+            var moved = w.Offset(37.5, -21.25);
+            double mra, mdec, mx, my;
+            w.PixelToWorld(120, 700, out ra, out dec);
+            moved.PixelToWorld(120 + 37.5, 700 - 21.25, out mra, out mdec);
+            Check("WCS offset: the same place on the sky", AstroMath.Separation(ra * AstroMath.Deg2Rad, dec * AstroMath.Deg2Rad, mra * AstroMath.Deg2Rad, mdec * AstroMath.Deg2Rad) * AstroMath.Rad2ArcSec, 0, 1e-6);
+            moved.WorldToPixel(ra, dec, out mx, out my);
+            Check("…and back to the moved pixel x", mx, 120 + 37.5, 1e-3);
+            Check("…and y", my, 700 - 21.25, 1e-3);
+            CheckTrue("…leaving the solution it came from alone", w.CrPix1 != moved.CrPix1 && w.PixelScale == moved.PixelScale && w.SipOrder == moved.SipOrder);
         }
 
         [TestMethod]

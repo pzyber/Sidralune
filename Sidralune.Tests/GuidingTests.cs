@@ -393,7 +393,9 @@ namespace Sidralune.Tests
             Centering.Slew(tel, tel.SiderealTime - 0.5, 20, ct).Wait();
             tel.GuideRateRa = tel.GuideRateDec = 0;
             g.Settings.CalibrationStepMs = 50;
-            g.Settings.ExposureSeconds = 0.1;
+            // long enough for the chosen star to be found in each of the 40 frames: one frame without it ends calibration
+            // as a lost star instead
+            g.Settings.ExposureSeconds = 0.3;
             string msg = error(() => g.StartGuiding(true, ct).Wait());
             CheckTrue("A mount that does not move fails calibration in RA", msg != null && msg.Contains("did not move far enough in RA"), msg);
             CheckTrue("…and the loop goes on", g.IsRunning && !g.IsGuiding);
@@ -1188,6 +1190,18 @@ namespace Sidralune.Tests
                     tel.Bump(5 * sc, -4 * sc);
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…a drift while stopped is taken into the kept solve, without solving again", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
+                    // …a cloud hiding the stars at the start can neither check it nor solve: the kept solve is used
+                    g.StopGuiding();
+                    var gcam = (CameraSimulator)dm.GuideCamera;
+                    gcam.Transparency = 0;
+                    try
+                    {
+                        using (var cloudy = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
+                            try { g.StartGuiding(false, cloudy.Token).Wait(); } catch (AggregateException) { }
+                    }
+                    finally { gcam.Transparency = 1; }
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…a cloud at the start keeps the solve", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
                     // …and a move the mount's coordinates do not show (another program centring with a sync) solves again
                     g.StopGuiding();
                     tel.Bump(120 * sc, 0);
