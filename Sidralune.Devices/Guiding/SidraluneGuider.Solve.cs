@@ -100,11 +100,25 @@ namespace Sidralune.Devices.Guiding
             public string Camera;
             /// <summary>The mount's side of the pier: on the other side the field is turned round (a meridian flip).</summary>
             public PierSide Pier = PierSide.Unknown;
+
+            /// <summary>A copy with another solution and mount position: a field in use is never changed, only replaced.</summary>
+            public SkyField With(Wcs wcs, double mountRa, double mountDec)
+            {
+                var c = (SkyField)MemberwiseClone();
+                c.Wcs = wcs; c.MountRa = mountRa; c.MountDec = mountDec;
+                return c;
+            }
         }
 
         // the last guide frame solved at this pointing (null after a slew or a rotator turn), and the guide star's place on
         // the sky (degrees; NaN when it is not known)
         private volatile SkyField _sky;
+        // the solve and the positions kept with it are changed together under this (a sync comes from another thread)
+        private readonly object _skyLock = new object();
+        // the solve was kept through a stop: the first start after it checks it against a fresh frame
+        private bool _skyKept;
+        /// <summary>How many of the catalogue's brightest stars in the frame a kept solve is checked with.</summary>
+        public const int KeptSkyStars = 12;
         // where the mount pointed when a solve before guiding was last tried: a failure is not tried again at every start there
         private double _triedRa = double.NaN, _triedDec = double.NaN;
         // where the mount pointed and the rotator stood when frames last stopped: the solve is kept for the next start if
@@ -199,9 +213,13 @@ namespace Sidralune.Devices.Guiding
         /// <summary>The sky has moved (a slew) or turned (a rotator): the solve and the star's place on the sky are forgotten.</summary>
         private void ForgetSky()
         {
-            _sky = null;
-            _triedRa = _triedDec = double.NaN;
-            _stopNoted = false;
+            lock (_skyLock)
+            {
+                _sky = null;
+                _triedRa = _triedDec = double.NaN;
+                _stopNoted = false;
+                _skyKept = false;
+            }
             _checkStar = false;
             _reacquire = false;
             _starRa = _starDec = double.NaN;
@@ -217,31 +235,38 @@ namespace Sidralune.Devices.Guiding
             _checkStar = false;
             _reacquire = false;
             _starRa = _starDec = double.NaN;
-            _stopRa = MountRa(); _stopDec = MountDeclination(); _stopRotator = RotatorAngle();
-            _stopNoted = true;
+            double ra = MountRa(), dec = MountDeclination(), rot = RotatorAngle();
+            lock (_skyLock) { _stopRa = ra; _stopDec = dec; _stopRotator = rot; _stopNoted = true; }
         }
 
         /// <summary>
         /// Frames start again: the solve kept at the stop is forgotten if the mount has moved since by more than a few
-        /// guide pixels (centring stops guiding for its slews), the rotator has turned, or either cannot be told.
+        /// guide pixels (centring stops guiding for its slews), the rotator has turned, or either cannot be told. A solve
+        /// kept is checked against a fresh frame before guiding (SolveBeforeGuiding).
         /// </summary>
         private void CheckSkyAfterStop()
         {
-            if (!_stopNoted) return;
-            _stopNoted = false;
-            var sky = _sky;
-            if (sky == null && double.IsNaN(_triedRa)) return;
+            SkyField sky;
+            double stopRa, stopDec, stopRot, tried;
+            lock (_skyLock)
+            {
+                if (!_stopNoted) return;
+                _stopNoted = false;
+                sky = _sky; stopRa = _stopRa; stopDec = _stopDec; stopRot = _stopRotator; tried = _triedRa;
+            }
+            if (sky == null && double.IsNaN(tried)) return;
             double ra = MountRa(), dec = MountDeclination(), rot = RotatorAngle();
-            bool moved = double.IsNaN(ra) || double.IsNaN(dec) || double.IsNaN(_stopRa) || double.IsNaN(_stopDec);
+            bool moved = double.IsNaN(ra) || double.IsNaN(dec) || double.IsNaN(stopRa) || double.IsNaN(stopDec);
             if (!moved)
             {
-                double arcsec = 3600 * Math.Sqrt(Math.Pow(AstroMath.NormalizeDeg180((ra - _stopRa) * 15) * Math.Cos(dec * AstroMath.Deg2Rad), 2) + Math.Pow(dec - _stopDec, 2));
+                double arcsec = 3600 * Math.Sqrt(Math.Pow(AstroMath.NormalizeDeg180((ra - stopRa) * 15) * Math.Cos(dec * AstroMath.Deg2Rad), 2) + Math.Pow(dec - stopDec, 2));
                 double scale = sky != null ? sky.Wcs.PixelScale : PixelScale;
                 moved = arcsec > Math.Max(5, 3 * (scale > 0 ? scale : 1));
             }
-            if (!double.IsNaN(_stopRotator) || !double.IsNaN(rot))
-                moved |= double.IsNaN(_stopRotator) || double.IsNaN(rot) || Math.Abs(AstroMath.NormalizeDeg180(rot - _stopRotator)) > 0.2;
+            if (!double.IsNaN(stopRot) || !double.IsNaN(rot))
+                moved |= double.IsNaN(stopRot) || double.IsNaN(rot) || Math.Abs(AstroMath.NormalizeDeg180(rot - stopRot)) > 0.2;
             if (moved) ForgetSky();
+            else lock (_skyLock) _skyKept = _sky != null && _sky == sky;
         }
 
         /// <summary>
@@ -251,16 +276,83 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         /// <param name="raBeforeHours">Where the mount said it pointed just before the sync (hours).</param>
         /// <param name="decBeforeDeg">…and its declination (degrees).</param>
-        public void MountSynced(double raBeforeHours, double decBeforeDeg)
+        /// <param name="raSyncedHours">The coordinates it was synced to: what it says afterwards, read from the sync
+        /// itself, as a mount may report them only a moment later (INDI).</param>
+        /// <param name="decSyncedDeg">…and the declination.</param>
+        public void MountSynced(double raBeforeHours, double decBeforeDeg, double raSyncedHours, double decSyncedDeg)
         {
-            double ra = MountRa(), dec = MountDeclination();
-            if (double.IsNaN(ra) || double.IsNaN(dec) || double.IsNaN(raBeforeHours) || double.IsNaN(decBeforeDeg)) { ForgetSky(); return; }
-            double dRa = AstroMath.NormalizeDeg180((ra - raBeforeHours) * 15) / 15, dDec = dec - decBeforeDeg;
+            if (double.IsNaN(raSyncedHours) || double.IsNaN(decSyncedDeg) || double.IsNaN(raBeforeHours) || double.IsNaN(decBeforeDeg)) { ForgetSky(); return; }
+            double dRa = AstroMath.NormalizeDeg180((raSyncedHours - raBeforeHours) * 15) / 15, dDec = decSyncedDeg - decBeforeDeg;
             Func<double, double> shift = v => double.IsNaN(v) ? v : AstroMath.NormalizeHours(v + dRa);
+            lock (_skyLock)
+            {
+                var sky = _sky;
+                if (sky != null) _sky = sky.With(sky.Wcs, shift(sky.MountRa), sky.MountDec + dDec);
+                _stopRa = shift(_stopRa); _stopDec += dDec;
+                _triedRa = shift(_triedRa); _triedDec += dDec;
+            }
+        }
+
+        /// <summary>
+        /// A solve kept through a stop, checked against a fresh frame: the mount may have been moved without its
+        /// coordinates showing it (another program centring with a sync), or drifted while guiding was stopped. The
+        /// catalogue's brightest stars in the frame are looked for around where the solve puts them; most must be found,
+        /// all shifted alike, and the shift (drift) is taken into the solve. Null when it fits, else why not.
+        /// </summary>
+        private async Task<string> CheckKeptSky(CancellationToken ct)
+        {
             var sky = _sky;
-            if (sky != null) { sky.MountRa = shift(sky.MountRa); sky.MountDec += dDec; }
-            _stopRa = shift(_stopRa); _stopDec += dDec;
-            _triedRa = shift(_triedRa); _triedDec += dDec;
+            if (sky == null) return "no solve";
+            var f = await StaticPolarAlignment.NextFrame(this, DateTime.UtcNow, ct);
+            int w = f.Width, h = f.Height;
+            if (w != sky.Wcs.ImageWidth || h != sky.Wcs.ImageHeight) return "another frame size";
+            var lum = f.Luminance();
+            double scale = sky.Wcs.PixelScale;
+            // drift of up to 30″ (or 10 pixels) is looked through
+            int reach = (int)Math.Ceiling(Math.Max(10, 30 / Math.Max(0.01, scale)));
+            var dx = new List<double>();
+            var dy = new List<double>();
+            int looked = 0;
+            foreach (var s in sky.Stars.OrderBy(s => s.Mag))
+            {
+                double x, y;
+                if (!sky.Wcs.WorldToPixel(s.Ra, s.Dec, out x, out y) || x < reach || y < reach || x >= w - reach || y >= h - reach) continue;
+                looked++;
+                var m = GuideStars.Measure(lum, w, h, x, y, reach);
+                if (m != null) { dx.Add(m.X - x); dy.Add(m.Y - y); }
+                if (looked >= KeptSkyStars) break;
+            }
+            if (looked < 3) return "too few catalogue stars in the frame";
+            int agree = 0;
+            double mx = 0, my = 0;
+            if (dx.Count >= 3)
+            {
+                mx = MedianOf(dx); my = MedianOf(dy);
+                double tol = Math.Max(1.5, GuideStarCatalog.MatchArcsec(scale) / scale);
+                for (int i = 0; i < dx.Count; i++) if (Math.Abs(dx[i] - mx) <= tol && Math.Abs(dy[i] - my) <= tol) agree++;
+            }
+            if (agree < 3 || agree < 0.6 * looked)
+                return string.Format(CultureInfo.InvariantCulture, "{0} of {1} catalogue stars where it puts them", agree, looked);
+            // the stars drifted: the solve moves with them
+            if (Math.Abs(mx) > 0.3 || Math.Abs(my) > 0.3)
+                lock (_skyLock) if (_sky == sky) _sky = sky.With(Shifted(sky.Wcs, mx, my), sky.MountRa, sky.MountDec);
+            return null;
+        }
+
+        /// <summary>The same solution for an image whose content has moved by (dx, dy) pixels.</summary>
+        private static Wcs Shifted(Wcs w, double dx, double dy) => new Wcs
+        {
+            CrVal1 = w.CrVal1, CrVal2 = w.CrVal2, CrPix1 = w.CrPix1 + dx, CrPix2 = w.CrPix2 - dy, // FITS y runs up
+            Cd11 = w.Cd11, Cd12 = w.Cd12, Cd21 = w.Cd21, Cd22 = w.Cd22, ImageWidth = w.ImageWidth, ImageHeight = w.ImageHeight,
+            SipOrder = w.SipOrder, A = w.A, B = w.B, SipInvOrder = w.SipInvOrder, AP = w.AP, BP = w.BP,
+            Equinox = w.Equinox, MatchedStars = w.MatchedStars, RmsArcsec = w.RmsArcsec
+        };
+
+        private static double MedianOf(List<double> v)
+        {
+            var s = v.OrderBy(a => a).ToList();
+            int n = s.Count;
+            return n == 0 ? double.NaN : n % 2 == 1 ? s[n / 2] : 0.5 * (s[n / 2 - 1] + s[n / 2]);
         }
 
         /// <summary>
@@ -298,9 +390,9 @@ namespace Sidralune.Devices.Guiding
             List<RefStar> stars;
             try { stars = catalog.Cone(ra, dec, radius, 15, 5000); }
             catch (Exception ex) { stars = new List<RefStar>(); Log.Warn("Guider", "No catalogue stars for the guide frame: " + ex.Message); }
-            _sky = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination(), Binning = Math.Max(1, Settings.Binning), Camera = CameraId(), Pier = MountPierSide() };
+            var field = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination(), Binning = Math.Max(1, Settings.Binning), Camera = CameraId(), Pier = MountPierSide() };
             // of where the mount points now: nothing from a stop before to check
-            _stopNoted = false;
+            lock (_skyLock) { _sky = field; _stopNoted = false; _skyKept = false; }
             var s = new GuideFrameSolve
             {
                 ScaleArcsec = wcs.PixelScale, AngleDeg = wcs.RotationDeg, Mirrored = wcs.Determinant > 0,
@@ -351,7 +443,24 @@ namespace Sidralune.Devices.Guiding
         private async Task SolveBeforeGuiding(CancellationToken ct)
         {
             SkyStillHere();
-            if (!Settings.SolveGuideFrames || _sky != null) return;
+            if (!Settings.SolveGuideFrames) return;
+            bool kept;
+            lock (_skyLock) { kept = _skyKept && _sky != null; _skyKept = false; }
+            if (kept)
+            {
+                string why;
+                try { why = await CheckKeptSky(ct); }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex) { why = ex.Message; }
+                if (why != null)
+                {
+                    Log.Info("Guider", "The solve kept from the last stop does not fit the frame (" + why + "): solving again");
+                    _log.Event("Plate solve", "the kept solve does not fit the frame (" + why + "): solving again");
+                    ForgetSky();
+                }
+                else if (Star != null && !_lost) RememberStarOnSky(Star);
+            }
+            if (_sky != null) return;
             var tel = _dm.Telescope;
             if (tel == null || !tel.Connected)
             {
@@ -360,8 +469,11 @@ namespace Sidralune.Devices.Guiding
                 if (SolveMessage != why) NoteSolveFailed(why);
                 return;
             }
-            if (!double.IsNaN(_triedRa) && MountNear(_triedRa, _triedDec)) return;
-            _triedRa = MountRa(); _triedDec = MountDeclination();
+            double triedRa, triedDec;
+            lock (_skyLock) { triedRa = _triedRa; triedDec = _triedDec; }
+            if (!double.IsNaN(triedRa) && MountNear(triedRa, triedDec)) return;
+            double nowRa = MountRa(), nowDec = MountDeclination();
+            lock (_skyLock) { _triedRa = nowRa; _triedDec = nowDec; }
             try
             {
                 var f = await StaticPolarAlignment.NextFrame(this, DateTime.UtcNow, ct);
@@ -442,6 +554,10 @@ namespace Sidralune.Devices.Guiding
             // the star moved the way a West pulse moves it: East brings it back (and South for North), as in a correction
             await PulseFor(pulser, raPx > 0 ? GuideDirection.East : GuideDirection.West, raMs, ct);
             await PulseFor(pulser, decPx > 0 ? GuideDirection.South : GuideDirection.North, decMs, ct);
+            // the field came back with the star, which guiding then holds at the lock position: the solve of the displaced
+            // frame is moved with it, so it stays of the frames guided on
+            double ra = MountRa(), dec = MountDeclination();
+            lock (_skyLock) { var sky = _sky; if (sky != null && sky.Wcs == wcs) _sky = sky.With(Shifted(wcs, -dx, -dy), ra, dec); }
             _resetAlgorithms = true;
             // the stars measured since the knock may be others: the guide star is taken again at the lock position, if it
             // is about as bright as it was

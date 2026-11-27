@@ -295,6 +295,12 @@ namespace Sidralune.Devices.Simulators
         public bool AtPark => _atPark;
         /// <summary>The side chosen at the last slew: a German mount keeps it while tracking through the meridian, until it flips.</summary>
         public PierSide SideOfPier { get { lock (_lock) return _pier; } }
+
+        /// <summary>
+        /// For tests: the mount on a side of the pier where it points, as a meridian flip back to the same coordinates
+        /// leaves it (the simulated cameras' view turns with it).
+        /// </summary>
+        public void SetSideOfPier(PierSide side) { lock (_lock) _pier = side; RaiseStateChanged(); }
         public bool CanPark => true;
         public bool CanSync => true;
         public bool CanPulseGuide => true;

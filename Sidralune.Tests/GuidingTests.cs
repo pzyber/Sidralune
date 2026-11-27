@@ -1167,8 +1167,7 @@ namespace Sidralune.Tests
                 {
                     g.StopGuiding();
                     g.StartGuiding(false, ct).Wait();
-                    CheckTrue("Started again where it stopped, it guides without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves.ToString());
-                    g.StopGuiding();
+                    CheckTrue("Started again where it stopped, it guides without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves.ToString());                    g.StopGuiding();
                     Centering.Slew(tel, tel.RightAscension, tel.Declination + 4.0 / 60, ct).Wait();
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…after a centring move of 4′ it solves again", g.IsGuiding && solves == 1 && g.StarOnSkyKnown, solves.ToString());
@@ -1181,10 +1180,19 @@ namespace Sidralune.Tests
                     CheckTrue("…and after a centring that synced the mount first", g.IsGuiding && solves == 2 && g.StarOnSkyKnown, solves.ToString());
                     // a meridian flip: the same coordinates on the other side of the pier, with the field turned round
                     g.StopGuiding();
-                    var pier = typeof(TelescopeSimulator).GetField("_pier", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    pier.SetValue(tel, tel.SideOfPier == PierSide.East ? PierSide.West : PierSide.East);
+                    tel.SetSideOfPier(tel.SideOfPier == PierSide.East ? PierSide.West : PierSide.East);
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…and after a meridian flip back to the same coordinates", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
+                    // the kept solve is checked against a fresh frame: a drift while stopped is taken into it…
+                    g.StopGuiding();
+                    tel.Bump(5 * sc, -4 * sc);
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…a drift while stopped is taken into the kept solve, without solving again", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
+                    // …and a move the mount's coordinates do not show (another program centring with a sync) solves again
+                    g.StopGuiding();
+                    tel.Bump(120 * sc, 0);
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…a move the mount's coordinates do not show makes it solve again", g.IsGuiding && solves == 4 && g.StarOnSkyKnown, solves.ToString());
                 }
                 finally { g.Solved -= counted; }
 

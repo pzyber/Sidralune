@@ -66,7 +66,7 @@ namespace Sidralune.Devices
             tel.SyncToCoordinates(raHours, decDeg);
             SidraluneGuider g;
             lock (_builtinLock) g = _builtin;
-            g?.MountSynced(ra0, dec0);
+            g?.MountSynced(ra0, dec0, raHours, decDeg);
         }
 
         /// <summary>PHD2 is connected and guides instead of the Sidralune guider.</summary>
