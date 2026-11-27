@@ -69,7 +69,8 @@ namespace Sidralune.Devices.Alpaca
             switch (info.Kind)
             {
                 case DeviceKind.Telescope: return new AlpacaTelescope(info);
-                case DeviceKind.Camera: return new AlpacaCamera(info);
+                case DeviceKind.Camera:
+                case DeviceKind.GuideCamera: return new AlpacaCamera(info);
                 case DeviceKind.Focuser: return new AlpacaFocuser(info);
                 case DeviceKind.FilterWheel: return new AlpacaFilterWheel(info);
                 case DeviceKind.Dome: return new AlpacaDome(info);
@@ -90,7 +91,8 @@ namespace Sidralune.Devices.Alpaca
         {
             Info = info;
             var parts = info.Address.Split('/');
-            Base = "http://" + parts[0] + "/api/v1/" + info.Kind.ToString().ToLowerInvariant() + "/" + (parts.Length > 1 ? parts[1] : "0") + "/";
+            string type = info.Kind == DeviceKind.GuideCamera ? "camera" : info.Kind.ToString().ToLowerInvariant(); // a guide camera is an Alpaca camera
+            Base = "http://" + parts[0] + "/api/v1/" + type + "/" + (parts.Length > 1 ? parts[1] : "0") + "/";
         }
 
         protected object Get(string member)
@@ -155,6 +157,9 @@ namespace Sidralune.Devices.Alpaca
         public bool CanPark => TryB("canpark", false);
         public bool CanSync => TryB("cansync", false);
         public bool CanPulseGuide => TryB("canpulseguide", false);
+        public bool IsPulseGuiding => TryB("ispulseguiding", false);
+        public double GuideRateRa => TryD("guideraterightascension", double.NaN);
+        public double GuideRateDec => TryD("guideratedeclination", double.NaN);
         public bool CanSlewAltAz => TryB("canslewaltazasync", false);
         public double SiteLatitude => TryD("sitelatitude", double.NaN);
         public double SiteLongitude => TryD("sitelongitude", double.NaN);
@@ -207,6 +212,9 @@ namespace Sidralune.Devices.Alpaca
         public double PercentCompleted => TryD("percentcompleted", 0);
         public void StartExposure(double s, bool light) => Put("startexposure", "Duration", S(s), "Light", light ? "true" : "false");
         public void AbortExposure() => Put("abortexposure");
+        public bool CanPulseGuide => TryB("canpulseguide", false);
+        public bool IsPulseGuiding => TryB("ispulseguiding", false);
+        public void PulseGuide(GuideDirection dir, int ms) => Put("pulseguide", "Direction", ((int)dir).ToString(), "Duration", ms.ToString());
 
         /// <summary>Download via the binary ImageBytes protocol when available, otherwise JSON.</summary>
         public AstroImage GetImage()

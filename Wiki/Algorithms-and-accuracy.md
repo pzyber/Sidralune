@@ -15,6 +15,7 @@ Every calculation in Sidralune is based on published methods. This page lists th
 - [Calibration and stacking](#calibration-and-stacking)
 - [Image processing](#image-processing)
 - [Planetary imaging](#planetary-imaging)
+- [Guiding](#guiding)
 - [Photometry and time series](#photometry-and-time-series)
 - [Spectroscopy](#spectroscopy)
 - [Radio astronomy](#radio-astronomy)
@@ -181,6 +182,43 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Limb fitting | Radial gradient edges, RANSAC and Kåsa algebraic circle fit |
 | Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation |
 
+## Guiding
+
+The Sidralune guider (Observatory → Guiding) is written for Sidralune. Its ideas follow the long-established practice of autoguiders, in particular PHD2 (Open PHD Guiding). Predictive PEC is built from the published paper while the matrix routines are Sidralune's own.
+
+| Item | Method |
+|---|---|
+| Choosing the star | Sidralune's star detector over the whole frame; single, unsaturated stars with SNR 8 or more, HFD 1–12 px, no neighbour with a fifth of the flux inside the search area, and room from the edges for calibration |
+| Measuring the star | In a square around the last position: background and noise from the square's outer ring (median and MAD), the brightest spot on a 3×3 median (so single hot pixels do not count), then a Gaussian-weighted centroid (σ 1.5 px) iterated until it settles. Typically better than 0.1 px on synthetic stars with noise |
+| Calibration | West and North legs in fixed steps until the star has moved the calibration distance (20 px), with the step chosen for about twelve steps from the guide rate, pixel scale and declination. North starts after three steady steps have taken up the Dec backlash. Each leg's direction and rate come from a least-squares line through all its positions, not only its end points |
+| Calibration checks | Axes more than 15° from square; RA/Dec rate ratio more than 25 % from cos(Dec) (at equal guide rates); fewer than four steps; rates more than 40 % from those predicted by the focal length and guide rate; a declination beyond ±75° |
+| Offsets | The star's offset from the lock position split into RA and Dec with a 2×2 solve, so axes not exactly at right angles still separate. The RA rate scales with cos(Dec) / cos(Dec at calibration) (limited at ±80°). After a meridian flip the RA direction turns 180°, and the Dec direction too when the mount reverses Dec itself |
+| RA: Hysteresis | Blend = (1 − h) × error + h × previous blend; correction = aggressiveness × blend when the blend reaches the minimum move |
+| Dec: Resist Switch | Corrections continue in the current direction; a reversal needs three errors in a row the other way, each over the minimum move and not shrinking, or (fast switch) one error over three minimum moves |
+| Pulses | Pixels ÷ calibrated rate, limited to the maximum pulse; RA, then Dec; waited for by time and by the driver's IsPulseGuiding |
+| Settling | Done when the star has stayed within 1.5 px of the lock position for 10 s, given up after 120 s (Start guiding); a dither moves the lock by a random amount up to the dither size along RA and Dec and uses the sequence's settle values |
+| Multi-star | Up to 8 more stars (SNR 6 or more, a search area apart) with fixed offsets from the guide star while guiding. Each frame: every star measured in its own search area; displacements from the lock position plus each star's offset; stars more than max(2 px, 3 × 1.4826 × the median distance from the median displacement) left out; SNR-weighted mean. A guide star jump over 2.5 px is followed on the guide star alone. Without the guide star, two others suffice; after 10 frames the one with the best SNR becomes the guide star and the lock position moves to its reference |
+| Star mass | The guide star's flux against the median of its last 10 accepted frames; a frame more than the tolerance (50 %) away is not used, and the third in a row resets the reference |
+| Auto exposure | Steps 0.5–10 s within the set range; one shorter after 3 frames with SNR over 1.5 × target, one longer after 2 frames under the target |
+| Dark library and bad-pixel map | Master darks as the per-pixel median of N dark frames, subtracted with the master's median added back; bad pixels are those more than k σ (MAD-based) above or below the master's median, each replaced by the median of its good neighbours |
+| Lowpass2 | Least-squares line through the last 10 errors since a reset; correction = aggressiveness × the line's value now, zero under the minimum move or of the other sign, never more than the current error; a turn the other way over five minimum moves starts the line again |
+| Z-filter | The uncorrected track (error + corrections sent so far) through a second-order Butterworth low-pass (bilinear transform) with its cutoff at 1/(2 × factor) cycles a frame; correction = filtered track − corrections so far |
+| Backlash compensation | On a Dec reversal the amount is added to the pulse; in the next frame an overshoot past the minimum move takes 10 % off, an error still 80 % or more of the one before on the same side adds 10 %, within the least and most |
+| Guiding Assistant | Seeing = √(Σ Δ² / 2(n − 1)) of frame-to-frame differences per axis; drift from a least-squares line; RA peak-to-peak of the residuals and the fastest change of a five-frame running mean; polar alignment error ≥ the size of the Dec drift (″/min) × 1436 / (120 π) arcmin (the sky turns once a sidereal day). Backlash: the x-intercept of a line through the South steps that moved the star more than 15 % of the way back, valid when the South rate is ≥ 90 % of the North rate; uncertainty = residual σ ÷ South rate. Suggested minimum move = 0.65 × seeing RMS |
+| Calibration Assistant | Hour angle ±5° on the current side of the meridian; declination 0°, or the nearest declination towards the pole with altitude ≥ 30° there; the final slew approaches from 1° south. Rated poor for axes far from square or rates unlike cos(Dec), acceptable for the lesser warnings |
+| Sky directions | Calibration notes which way the mount's own RA and Dec moved under West and North pulses. A North nudge or comet motion is turned into image pixels through the calibrated directions, with North turned round after a flip when the mount does not reverse Dec |
+| Comet rates | From the comet's apparent topocentric places half an hour either side of now: ΔRA × cos(Dec) and ΔDec per hour, recomputed every 10 minutes. Training: lock position moves turned back into sky arcseconds, summed, divided by the time |
+| Predictive PEC | After Klenske, Zeilinger, Schölkopf and Hennig (2016), Gaussian process-based predictive control for periodic error correction, IEEE Transactions on Control Systems Technology 24(1). The gear error g = measured RA error + all RA corrections sent, binned on a 5 s grid over the last 2.2 periods; a least-squares line removed; a Gaussian process with kernel 0.3 × squared-exponential (length one period) + 0.7 × periodic (exp(−2 sin²(π Δt / P) / 0.6²)), scaled to the variance left after the line, noise variance from the frame-to-frame differences ÷ 2. Solved by Sidralune's own Cholesky factorisation (with jitter when nearly singular) and triangular solves. Control = reactive gain × error (zero under the minimum move) + predictive gain × (f(t + Δt) − f(t)). For the first two periods the output blends from Hysteresis by the share of two periods recorded |
+| Worm period | Every 5 minutes once two periods are recorded: a Lomb–Scargle periodogram of the detrended gear error (6 periods or 30 minutes kept) between 0.5 P and 2 P; a peak with normalised power ≥ 0.2 moves P a quarter of the way to it |
+| Adaptive optics | AO calibration: X and Y legs of N-step moves, each direction and px/step from a least-squares line. Each frame: the offset split into AO axes, Hysteresis per axis, steps opposite the error within the travel. Bump: when the position on an axis passes the bump % of the travel either way, the AO offset turned into mount axes through both calibrations; a mount pulse of the bump step (× 1.5 each frame while it stays out, at most × 10), sent without waiting, axes alternating |
+| Rotator | The calibration notes the rotator's angle; both calibrated directions turn by the rotator's change since (sign reversed for a mirrored train). Corrections wait while the rotator moves; afterwards the star is chosen again and the lock set to it |
+| Subframes | The read box covers the guide star, the lock position and the other stars, padded by the search radius × 2 + 4 px; whole frames when it would cover more than half the frame or the star is lost. The box is pasted into a copy of the last whole frame |
+| Noise reduction | 2×2 mean: each pixel the mean of itself and its right, lower and lower-right neighbours (a half-pixel shift, the same in every frame); 3×3 median: the median of the 3 × 3 neighbourhood |
+| PHD2-compatible server | PHD2's event-server protocol: JSON lines over TCP (CRLF), JSON-RPC 2.0 requests, events to every client; Version (PHDSubver "Sidralune"), the state events and AppState on connecting; unknown methods answer error −32601 |
+| Drift alignment | A polar axis offset by m towards the meridian above the pole and e towards the east makes the telescope drift north against the stars at ω (m sin H + e cos H), with ω the sky's turn (2π a sidereal day) and H the hour angle, whatever the declination. A least-squares line through the north part of the star's offset (turned to the sky through the calibration) gives the rate; near the meridian it gives e, low in the east or west m, each with the other's last value taken out. Errors against the geometric pole |
+| Static polar alignment | Three plate-solved frames (imaging or guide camera): five points fixed to the camera (centre and corners) turned into the Earth-fixed frame (longitude = −hour angle) at each frame's time; the normal of the plane through each point's three places is the axis, from the point with the widest circle. The axis and the refracted pole placed in the last frame through its plate solution; the reference star's target = star + (axis − pole) |
+| Polar drift alignment | In the camera's frame the sky turns about the pole and the camera about the mount's axis, so every star drifts at ω × the error, at right angles to it: error (px) = the drift velocity (px/s, least-squares lines through x and y) turned 90° and divided by ω. The star is followed by its centroid within the search radius of its last place. The turn is one way for a plain image, the other for a mirrored one (from the guider calibration's handedness for the guide camera, else as ticked), and the correction moves stars by +error near the north pole, −error near the south |
+
 ## Photometry and time series
 
 | Item | Method |
@@ -246,6 +284,7 @@ The test suite (`Sidralune.Tests`, about a thousand checks across every library,
 - radio tools (IQ files in every format, dedispersion, drift scans) and an rtl_tcp server,
 - constellation identification of known stars, and catalogue searches against a brute-force search,
 - device protocols against stand-in servers (LX200/OnStep, PHD2, INDI, ASCOM Alpaca) and stand-in ASCOM drivers,
+- the Sidralune guider on the simulators: calibration recovers the guide camera's simulated angle within 3° and its rates within 10 %, guiding holds a mount with periodic error, drift and backlash to well under an arcsecond, and dithers, lost stars and meridian flips are handled,
 - every sequencer instruction, loops, triggers, autofocus and device behaviour with the simulators.
 
 See [CONTRIBUTING.md](https://github.com/pzyber/Sidralune/blob/main/CONTRIBUTING.md#scientific-correctness) for the rules new algorithms must follow.

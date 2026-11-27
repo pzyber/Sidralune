@@ -12,6 +12,7 @@ using Sidralune.Core.Time;
 using Sidralune.Core.Util;
 using Sidralune.Imaging;
 using Sidralune.Imaging.Analysis;
+using Sidralune.Devices.Guiding;
 using Sidralune.Imaging.IO;
 using Sidralune.Science.Astrometry;
 
@@ -28,6 +29,16 @@ namespace Sidralune.Devices.Automation
         public string Target = "";
         public bool Save = true;
         public int[] SubFrame; // x, y, w, h
+        /// <summary>
+        /// Called once the frame has been read out, before it is downloaded, analysed and saved: the mount may move now
+        /// (a dither) without spoiling it, while the rest goes on.
+        /// </summary>
+        public Action ReadOut;
+        /// <summary>
+        /// A guided frame whose guiding RMS is worse than this (arcseconds; 0 for no limit), or during which guiding was
+        /// interrupted, is marked bad: GUIDBAD in its header and _BADGUIDING at the end of its file name.
+        /// </summary>
+        public double MaxGuidingRms;
 
         /// <summary>Frame types of saved frames, in the Imaging tab and the sequencer (Imaging also offers SNAPSHOT).</summary>
         public static readonly string[] FrameTypes = { "LIGHT", "DARK", "FLAT", "BIAS" };
@@ -74,6 +85,8 @@ namespace Sidralune.Devices.Automation
         public double Hfr = double.NaN, Fwhm = double.NaN;
         public int Stars;
         public double Median;
+        /// <summary>How guiding went during the exposure; null for a frame taken without guiding.</summary>
+        public GuidingStats Guiding;
     }
 
     /// <summary>Camera exposure workflow: configure, expose, download, annotate FITS header, analyse, save.</summary>
@@ -103,25 +116,40 @@ namespace Sidralune.Devices.Automation
             if (r.Gain >= 0 && cam.HasGain) cam.Gain = r.Gain;
             if (r.Offset >= 0 && cam.HasOffset) cam.Offset = r.Offset;
             Status?.Invoke(Lang.T("Exposing {0:0.###}s {1} {2}", r.Seconds, r.FrameType, r.Filter));
+            // the guide steps taken while the shutter is open tell how well this frame was guided
+            GuidingStats guiding = null;
             var start = DateTime.UtcNow;
-            cam.StartExposure(r.Seconds, r.Light);
-            using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
+            using (var rec = r.Light ? GuidingRecorder.Start(Devices.Guider) : null)
             {
-                await Task.Delay(TimeSpan.FromSeconds(Math.Max(0, r.Seconds - 0.1)), ct);
-                var until = DateTime.UtcNow.AddSeconds(120 + r.Seconds * 0.2);
-                while (!cam.ImageReady)
+                cam.StartExposure(r.Seconds, r.Light);
+                using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
                 {
-                    ct.ThrowIfCancellationRequested();
-                    if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver an image");
-                    if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
-                    await Task.Delay(100, ct);
+                    var shutter = DateTime.UtcNow.AddSeconds(Math.Max(0, r.Seconds - 0.1));
+                    while (true)
+                    {
+                        var left = shutter - DateTime.UtcNow;
+                        if (left <= TimeSpan.Zero) break;
+                        await Task.Delay(left < TimeSpan.FromSeconds(1) ? left : TimeSpan.FromSeconds(1), ct);
+                        rec?.Check();
+                    }
+                    var until = DateTime.UtcNow.AddSeconds(120 + r.Seconds * 0.2);
+                    while (!cam.ImageReady)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        if (DateTime.UtcNow > until) throw new TimeoutException("Camera did not deliver an image");
+                        if (cam.State == CameraState.Error) throw new InvalidOperationException("Camera error");
+                        await Task.Delay(100, ct);
+                    }
                 }
+                if (rec != null) guiding = rec.Stop();
             }
+            r.ReadOut?.Invoke();
             Status?.Invoke(Lang.T("Downloading"));
             var img = await Task.Run(() => cam.GetImage(), ct);
             if (img == null) throw new InvalidOperationException("Camera returned no image");
             Annotate(img, r, start);
-            var res = new CaptureResult { Image = img };
+            if (guiding != null) { guiding.Bad = guiding.WorseThan(r.MaxGuidingRms); guiding.WriteTo(img); }
+            var res = new CaptureResult { Image = img, Guiding = guiding };
             await Task.Run(() =>
             {
                 var stars = StarDetector.Detect(img.Luminance(), img.Width, img.Height, new StarDetectionOptions { MaxStars = 500 });
@@ -135,6 +163,7 @@ namespace Sidralune.Devices.Automation
             {
                 FrameCounter++;
                 res.Path = BuildPath(img, r, res.Hfr);
+                if (guiding != null && guiding.Bad) res.Path = Path.Combine(Path.GetDirectoryName(res.Path), Path.GetFileNameWithoutExtension(res.Path) + "_BADGUIDING" + Path.GetExtension(res.Path));
                 Directory.CreateDirectory(Path.GetDirectoryName(res.Path));
                 ImageFile.Save(res.Path, img, SaveFormat);
                 img.SourcePath = res.Path;
@@ -222,10 +251,10 @@ namespace Sidralune.Devices.Automation
             return cam;
         }
 
-        /// <summary>One video frame: a short exposure, waited for and read.</summary>
-        private static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct)
+        /// <summary>One video or guide frame: a short exposure, waited for and read, with no analysis. light false takes a dark frame.</summary>
+        public static async Task<AstroImage> GrabFrame(ICamera cam, double seconds, CancellationToken ct, bool light = true)
         {
-            cam.StartExposure(seconds, true);
+            cam.StartExposure(seconds, light);
             using (ct.Register(() => { try { cam.AbortExposure(); } catch { } }))
             {
                 if (seconds > 0.03) await Task.Delay(TimeSpan.FromSeconds(seconds - 0.02), ct);
@@ -388,7 +417,10 @@ namespace Sidralune.Devices.Automation
         public event Action<AutofocusPoint> PointMeasured;
         public event Action<string> Status;
 
-        public async Task<AutofocusResult> Run(CancellationToken ct)
+        /// <summary>Runs autofocus; guiding pauses meanwhile (the star changes shape) and settles again afterwards.</summary>
+        public Task<AutofocusResult> Run(CancellationToken ct) => GuidingPause.During(Capture.Devices.Guider, () => Focus(ct), ct);
+
+        private async Task<AutofocusResult> Focus(CancellationToken ct)
         {
             var foc = Capture.Devices.Focuser;
             if (foc == null) throw new InvalidOperationException("No focuser connected");
@@ -470,7 +502,25 @@ namespace Sidralune.Devices.Automation
         public bool UseSync = true;
         public event Action<string> Status;
 
+        /// <summary>
+        /// Slews, plate-solves and corrects until the target is centred. Guiding stops for it and starts again afterwards;
+        /// centring the field it guided on (within half a degree), on the same star held at the same place.
+        /// </summary>
         public async Task<Wcs> Center(double raJ2000Deg, double decJ2000Deg, CancellationToken ct)
+        {
+            var tel = Capture.Devices.Telescope;
+            if (tel == null) throw new InvalidOperationException("No telescope connected");
+            bool sameField = false;
+            try
+            {
+                var app = new SkyContext(Capture.Devices.Site, AstroTime.Now).IcrsToApparent(raJ2000Deg * AstroMath.Deg2Rad, decJ2000Deg * AstroMath.Deg2Rad);
+                sameField = AstroMath.Separation(tel.RightAscension * AstroMath.Hour2Rad, tel.Declination * AstroMath.Deg2Rad, app.Ra, app.Dec) * AstroMath.Rad2Deg < 0.5;
+            }
+            catch { }
+            return await GuidingPause.AroundSlew(Capture.Devices.Guider, tel, () => CenterCore(raJ2000Deg, decJ2000Deg, ct), sameField, ct);
+        }
+
+        private async Task<Wcs> CenterCore(double raJ2000Deg, double decJ2000Deg, CancellationToken ct)
         {
             var tel = Capture.Devices.Telescope;
             if (tel == null) throw new InvalidOperationException("No telescope connected");
@@ -493,6 +543,7 @@ namespace Sidralune.Devices.Automation
                 opt.HintRa = raJ2000Deg; opt.HintDec = decJ2000Deg;
                 var cam = Capture.Devices.Camera;
                 opt.ScaleHint = 206.265 * cam.PixelSizeX * Bin / Capture.Devices.FocalLengthMm;
+                Capture.Devices.PrepareSolve(opt, cam);
                 var sr = await Task.Run(() => PlateSolver.Solve(cap.Image, opt, null, ct), ct);
                 if (!sr.Success) { Status?.Invoke(Lang.T("Plate solve failed: {0}", sr.Message)); continue; }
                 last = sr.Wcs;
@@ -502,7 +553,7 @@ namespace Sidralune.Devices.Automation
                 Status?.Invoke(Lang.T("Pointing error {0:0.00}'", err));
                 if (err <= ToleranceArcmin) return last;
                 var solvedNow = toJNow(cra, cdec);
-                if (UseSync && tel.CanSync) { tel.SyncToCoordinates(solvedNow[0], solvedNow[1]); await Slew(tel, target[0], target[1], ct); }
+                if (UseSync && tel.CanSync) { Capture.Devices.SyncTelescope(tel, solvedNow[0], solvedNow[1]); await Slew(tel, target[0], target[1], ct); }
                 else
                 {
                     // offset the slew by the measured error
@@ -514,13 +565,25 @@ namespace Sidralune.Devices.Automation
             return last;
         }
 
+        /// <summary>Slews and waits for the mount to arrive and settle. Stopped (ct), the mount stops too, wherever it is.</summary>
         public static async Task Slew(ITelescope tel, double raH, double decD, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             if (tel.AtPark) tel.Unpark();
             tel.SlewToCoordinatesAsync(raH, decD);
-            await Task.Delay(300, ct);
-            var until = DateTime.UtcNow.AddMinutes(5);
-            while (tel.Slewing) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Slew timeout"); await Task.Delay(200, ct); }
+            // stopped while it slews, the mount stops too: done here, where the stop arrives, so it never depends on the
+            // order in which the token's callbacks run
+            try
+            {
+                await Task.Delay(300, ct);
+                var until = DateTime.UtcNow.AddMinutes(5);
+                while (tel.Slewing) { ct.ThrowIfCancellationRequested(); if (DateTime.UtcNow > until) throw new TimeoutException("Slew timeout"); await Task.Delay(200, ct); }
+            }
+            catch (OperationCanceledException)
+            {
+                try { if (tel.Slewing) tel.AbortSlew(); } catch { }
+                throw;
+            }
             await Task.Delay(1000, ct); // settle
         }
     }
@@ -566,8 +629,9 @@ namespace Sidralune.Devices.Automation
                 var guess = ctx.ApparentToIcrs(tel.RightAscension * AstroMath.Hour2Rad, tel.Declination * AstroMath.Deg2Rad);
                 opt.HintRa = guess.RaHours * 15; opt.HintDec = guess.DecDeg; opt.SearchRadius = 10;
                 opt.ScaleHint = 206.265 * cam.PixelSizeX * Bin / Capture.Devices.FocalLengthMm;
+                Capture.Devices.PrepareSolve(opt, cam);
                 var sr = await Task.Run(() => PlateSolver.Solve(cap.Image, opt, null, ct), ct);
-                if (!sr.Success) throw new InvalidOperationException("Plate solve failed at point " + (k + 1));
+                if (!sr.Success) throw new InvalidOperationException(Lang.T("Plate solving failed at point {0}: {1}", k + 1, sr.Message));
                 double cra, cdec;
                 sr.Wcs.Centre(out cra, out cdec);
                 // to apparent topocentric frame of date, but expressed in a frame fixed to the Earth (HA, Dec) so sky rotation between frames is removed
@@ -578,15 +642,56 @@ namespace Sidralune.Devices.Automation
                 Status?.Invoke(Lang.T("Point {0}: {1}", k + 1, sr.Wcs));
             }
             // normal of the plane through the three points = mount rotation axis
-            var n = Vec3.Cross(pts[1] - pts[0], pts[2] - pts[0]).Normalized();
+            return PolarAxis.Error(Vec3.Cross(pts[1] - pts[0], pts[2] - pts[0]), site, true);
+        }
+    }
+
+    /// <summary>
+    /// How far a mount's RA axis is from the celestial pole, and which way to move it. Directions are in the Earth-fixed
+    /// equatorial frame: longitude = −hour angle, latitude = declination.
+    /// </summary>
+    public static class PolarAxis
+    {
+        /// <summary>The sky's turn (radians per second): once a sidereal day.</summary>
+        public const double SiderealRadPerSec = 2 * Math.PI / 86164.0905;
+
+        /// <summary>The Earth-fixed direction of apparent RA and Dec (radians) at a local sidereal time (radians).</summary>
+        public static Vec3 FromApparent(double ra, double dec, double last) => Vec3.FromSpherical(ra - last, dec);
+
+        public static void ToApparent(Vec3 v, double last, out double ra, out double dec)
+        {
+            double lon;
+            v.ToSpherical(out lon, out dec);
+            ra = AstroMath.NormalizeRad(last + lon);
+        }
+
+        /// <summary>The celestial pole above the horizon, raised by refraction when asked.</summary>
+        public static Vec3 Pole(Observer site, bool refracted)
+        {
+            double alt = Math.Abs(site.LatRad);
+            if (refracted) alt += Transforms.RefractionFromTrue(alt, site.PressureHpa, site.TemperatureC);
+            double ha, dec;
+            Transforms.AltAzToHaDec(site.LatitudeDeg >= 0 ? 0 : Math.PI, alt, site.LatRad, out ha, out dec);
+            return Vec3.FromSpherical(-ha, dec);
+        }
+
+        /// <summary>An axis a small way (radians) from the north celestial pole, towards the meridian above it and towards the east.</summary>
+        public static Vec3 FromOffsets(double towardMeridian, double towardEast) => new Vec3(towardMeridian, towardEast, 1).Normalized();
+
+        /// <summary>
+        /// The altitude and azimuth errors (arcmin on the sky) of an axis (either end of it), against the pole refracted or
+        /// not, and the advice.
+        /// </summary>
+        public static PolarAlignmentResult Error(Vec3 axis, Observer site, bool refracted)
+        {
+            var n = axis.Normalized();
             if (n.Z * Math.Sign(site.LatitudeDeg == 0 ? 1 : site.LatitudeDeg) < 0) n = -n;
             double axLon, axLat;
             n.ToSpherical(out axLon, out axLat);
             double axHa = -axLon;
             var hz = Transforms.HaDecToAltAz(axHa, axLat, site.LatRad);
-            // refracted celestial pole position
             double poleAlt = Math.Abs(site.LatRad);
-            poleAlt += Transforms.RefractionFromTrue(poleAlt, site.PressureHpa, site.TemperatureC);
+            if (refracted) poleAlt += Transforms.RefractionFromTrue(poleAlt, site.PressureHpa, site.TemperatureC);
             double poleAz = site.LatitudeDeg >= 0 ? 0 : Math.PI;
             var res = new PolarAlignmentResult
             {
@@ -595,11 +700,16 @@ namespace Sidralune.Devices.Automation
                 AxisRa = AstroMath.NormalizeDeg(-axHa * AstroMath.Rad2Deg), AxisDec = axLat * AstroMath.Rad2Deg
             };
             res.TotalErrorArcmin = Math.Sqrt(res.AltErrorArcmin * res.AltErrorArcmin + res.AzErrorArcmin * res.AzErrorArcmin);
-            bool west = res.AzErrorArcmin > 0 == site.LatitudeDeg >= 0;
             res.Advice = Lang.T("Move the polar axis {0} by {1:0.0}' and {2} by {3:0.0}'",
-                res.AltErrorArcmin > 0 ? Lang.T("down") : Lang.T("up"), Math.Abs(res.AltErrorArcmin), west ? Lang.T("west") : Lang.T("east"), Math.Abs(res.AzErrorArcmin));
+                AltWord(res.AltErrorArcmin), Math.Abs(res.AltErrorArcmin), AzWord(res.AzErrorArcmin, site), Math.Abs(res.AzErrorArcmin));
             return res;
         }
+
+        /// <summary>Which way the axis moves to take out an altitude error: down when it is too high.</summary>
+        public static string AltWord(double altErrorArcmin) => altErrorArcmin > 0 ? Lang.T("down") : Lang.T("up");
+
+        /// <summary>Which way the axis moves to take out an azimuth error (positive: east of the pole, in the north).</summary>
+        public static string AzWord(double azErrorArcmin, Observer site) => azErrorArcmin > 0 == site.LatitudeDeg >= 0 ? Lang.T("west") : Lang.T("east");
     }
 
     /// <summary>Meridian flip helper for German equatorial mounts.</summary>
@@ -610,13 +720,20 @@ namespace Sidralune.Devices.Automation
 
         public static bool IsDue(ITelescope tel, double minutesAfter = 5) => tel.SideOfPier == PierSide.East && MinutesPastMeridian(tel, tel.RightAscension) >= minutesAfter;
 
-        /// <summary>Flip by re-slewing to the current target; the mount chooses the other pier side when past the meridian.</summary>
-        public static async Task Perform(ITelescope tel, double raHours, double decDeg, IGuider guider, CancellationToken ct)
+        /// <summary>
+        /// Flip by re-slewing to the current target; the mount chooses the other pier side when past the meridian.
+        /// beforeGuiding (re-centring, for instance) runs after the slew and before guiding resumes, so the guider does not
+        /// fight the small slews it makes.
+        /// </summary>
+        public static async Task Perform(ITelescope tel, double raHours, double decDeg, IGuider guider, CancellationToken ct, Func<Task> beforeGuiding = null)
         {
-            bool wasGuiding = guider != null && guider.IsGuiding;
-            if (wasGuiding) guider.StopGuiding();
-            await Centering.Slew(tel, raHours, decDeg, ct);
-            if (wasGuiding) await guider.StartGuiding(false, ct);
+            // the other pier side: guiding starts again on a star chosen afresh (the field has turned round)
+            await GuidingPause.AroundSlew(guider, tel, async () =>
+            {
+                await Centering.Slew(tel, raHours, decDeg, ct);
+                if (beforeGuiding != null) await beforeGuiding();
+                return 0;
+            }, false, ct);
         }
     }
 }

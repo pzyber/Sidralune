@@ -1265,7 +1265,7 @@ msgstr "Filtriratas"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Juhtkaamera"
+msgstr "Juhtsüsteem"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Andmebaasid: kodanikuteaduse projektid"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Käivita PHD2, luba selle server (Tools → Enable Server) ja klõpsa Ühenda PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Teleskoopi pole ühendatud."
 
@@ -2547,7 +2543,1975 @@ msgstr "Fokusserit pole ühendatud."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Juhtsüsteemi pole ühendatud."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Juhttäht kadus Star-Cross-testi ajal."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Star-Cross-test peatus, sest alus pööras."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Diagnostika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Salvesta kaadrid tõrke korral"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Kui juhttäht kaob või kalibreerimine ebaõnnestub, salvestatakse viimased viis juhtkaadrit (ja kadunud tähe puhul järgmised kolm) FITS-ina Logs kausta alamkausta Guide frames, kõige rohkem kord viie minuti jooksul, et hiljem näha, mis juhtus."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Lowpass kalde kaal"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Parandab viimaste vigade mediaani, ette nende kalde ja kalde kaalu korrutise võrra: aeglaselt rändavate vigade jaoks keskmise seeingu korral. Mitte kunagi rohkem kui just mõõdetud viga."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Juhtimise ajal viib tähe ristina mööda kumbagi telge välja ja tagasi: läände, itta ja läände, siis põhja, lõunasse ja põhja. See näitab, kas RA ja Dec on täisnurga all, kiirust kummaski suunas, lõtku telje pöördumisel ja kleepumist käivitamisel. Juhtimine jätkub pärast."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Käivita Star-Cross-test"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Star-Cross-test"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "RA ja Dec on täisnurgast {0:0.0}° kõrval."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Kiirused: lääs {0:0.00}, ida {1:0.00}, põhi {2:0.00}, lõuna {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Lõtk: RA {0} itta pöördudes, {1} tagasi; Dec {2} lõunasse pöördudes, {3} tagasi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Esimene impulss paigalt viis tähte {0:0}% (RA) ja {1:0}% (Dec) nii kaugele kui hilisem: palju vähem on kleepumine või juhtimisest jäänud lõtk."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Rist pildina: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Star-Cross-test lõpetatud"
+
+#: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
+msgid "Not a guide log from Sidralune or PHD2."
+msgstr "Pole Sidralune ega PHD2 juhtlogi."
+
+#: Sidralune/Views/GuideLogWindow.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log"
+msgstr "Juhtlogi"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "This session"
+msgstr "See seanss"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own error"
+msgstr "Aluse enda viga"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Length"
+msgstr "Kestus"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Steps"
+msgstr "Sammud"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Total"
+msgstr "Kokku"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Peak"
+msgstr "Tipp"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "px"
+msgstr "px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "time"
+msgstr "aeg"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Spectrum of the RA error"
+msgstr "RA vea spekter"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "period (min)"
+msgstr "periood (min)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guide logs"
+msgstr "Juhtlogid"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guiding from {0:yyyy-MM-dd HH:mm}"
+msgstr "Juhtimine alates {0:yyyy-MM-dd HH:mm}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "No guiding in this log."
+msgstr "Selles logis pole juhtimist."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Open a guide log of Sidralune's or PHD2's, or show this session's."
+msgstr "Avage Sidralune või PHD2 juhtlogi või näidake selle seansi oma."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00} px"
+msgstr "{0:0.00} px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00}″"
+msgstr "{0:0.00}″"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log does not give the pixel scale: the numbers are in pixels."
+msgstr "Logi ei anna piksliskaalat: arvud on pikslites."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Pixel scale {0:0.000}″/px"
+msgstr "Piksliskaala {0:0.000}″/px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Session"
+msgstr "Seanss"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Found by plate solve"
+msgstr "Leitud astromeetrilise lahendusega"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Calibration: {0}"
+msgstr "Kalibreerimine: {0}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log holds no calibration: it guided with one made earlier."
+msgstr "Logis pole kalibreerimist: juhiti varem tehtuga."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (″)"
+msgstr "amplituud (″)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (px)"
+msgstr "amplituud (px)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short a log for a spectrum: it needs at least a few minutes of guiding."
+msgstr "Liiga lühike logi spektri jaoks: vaja on vähemalt mõne minuti juhtimist."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "worm"
+msgstr "tigu"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own RA error (the corrections added back at {0:0.00} px/s)"
+msgstr "Aluse enda RA viga (korrektsioonid tagasi liidetud kiirusega {0:0.00} px/s)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)"
+msgstr "Pärast juhtimist jäänud RA viga (logi ei anna RA kiirust, seega korrektsioone ei saa tagasi liita)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding"
+msgstr "Pärast juhtimist jäänud RA viga"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "FFT"
+msgstr "FFT"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Lomb–Scargle (the frames are unevenly spaced)"
+msgstr "Lomb–Scargle (kaadrid on ebaühtlaste vahedega)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Largest: ±{0:0.00}{1} at {2:0.0} min."
+msgstr "Suurim: ±{0:0.00}{1} perioodil {2:0.0} min."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Periodic error: ±{0:0.00}{1} ({2:0.00}{1} peak to peak) at {3:0.0} min."
+msgstr "Perioodiline viga: ±{0:0.00}{1} ({2:0.00}{1} tipust tippu) perioodil {3:0.0} min."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short for the worm period: guide at least one and a half worm periods."
+msgstr "Liiga lühike teo perioodi jaoks: juhtige vähemalt poolteist teo perioodi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log viewer"
+msgstr "Juhtlogi vaatur"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The graph, calibration and statistics of a guide log, for the session and for each frame between dithers, and the spectrum of the RA error, which shows the mount's periodic error and its period. It opens with this session's log; Open… reads any guide log of Sidralune's or PHD2's."
+msgstr "Juhtlogi graafik, kalibreerimine ja statistika seansi ja iga ditheri vahelise kaadri kohta ning RA vea spekter, mis näitab aluse perioodilist viga ja selle perioodi. See avaneb selle seansi logiga; Ava… loeb mis tahes Sidralune või PHD2 juhtlogi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Ennustus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Ennusta astromeetrilisest lahendusest"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Kui juhtkaader on selles asendis lahendatud, tulevad suunad lahendusest ja kiirused aluse juhtkiirustest ning kolm sammu kummaski suunas neid ainult kinnitavad. Kui need ei klapi, kalibreeritakse täielikult ja öeldakse, miks."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Ennustatud lahendatud juhtkaadrist ja juhtkiirustest ning kinnitatud kolme sammuga kummaski suunas."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Lahenduse ennustust ei kasutatud: {0} liigutas tähte ennustatud suunast {1:0}° kõrvale."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Lahenduse ennustust ei kasutatud: {0} liigutas tähte {1:0} % ennustatud kiirusest. Kontrollige aluse juhtkiirusi."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Juhtkaadrit veel pole."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Juhtkaadri lahendamiseks on vaja aluse asukohta: teleskoopi pole ühendatud."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Juhtkaadrit ei õnnestunud astromeetriliselt lahendada."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Lahenda juhtkaadrid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Viimane lahendus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Kui juhtimine algab, lahendatakse juhtkaader aluse asukoha lähedal: sellest tulevad kaamera mastaap ja nurk ning juhttähed valitakse kataloogi üksikute, mittemuutlike tähtede seast. Kaotatud juhttäht leitakse lahendades uuesti, isegi kaugel oma otsingukastist, ja tuuakse tagasi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, nurk {1:0.0}°, fookuskaugus {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Veel lahendamata"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Juhtimine {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · tipp {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Juhtimine katkes"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "katkes"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "märgitud"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Ditheri muster"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Juhuslik"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Spiraal"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Juhuslik dither läheb ükskõik kuhu suuruse piires. Spiraal liigub suuruse võrra mööda ruudukujulist spiraali alguskoha ümber, 24 kohta, enne kui alustab uuesti, nii et ükski kaks kaadrit ei jaga kohta."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop the guider first."
+msgstr "Peata kõigepealt juhtija."
+
+#: Sidralune/AppState.cs
+msgid "My equipment"
+msgstr "Minu varustus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Focal length"
+msgstr "Fookuskaugus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} mm, from the equipment profile (Observatory → Equipment)"
+msgstr "{0:0} mm, varustuse profiilist (Vaatlus → Varustus)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect all"
+msgstr "Ühenda kõik"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connecting the equipment"
+msgstr "Varustuse ühendamine"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Some devices could not connect: {0}"
+msgstr "Mõnda seadet ei saanud ühendada: {0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The equipment is connected."
+msgstr "Varustus on ühendatud."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the device remembered in each row for this profile"
+msgstr "Ühenda iga rea jaoks selle profiiliga meelde jäetud seade"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New…"
+msgstr "Uus…"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename…"
+msgstr "Nimeta ümber…"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Equipment profile"
+msgstr "Varustuse profiil"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Reducer or Barlow (×)"
+msgstr "Reduktor või Barlow (×)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guides through"
+msgstr "Juhtimine läbi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "An off-axis guider"
+msgstr "Teljeväline juhtija"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A guide scope"
+msgstr "Juhtteleskoop"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A profile is a rig: the device connected in each row above, which Connect all connects again, the imaging telescope and camera from the lists in Settings → Equipment, and the guider's own settings and calibration. The site is chosen in Settings → Location."
+msgstr "Profiil on komplekt: igas ülalolevas reas ühendatud seade, mille Ühenda kõik uuesti ühendab, pildistamisteleskoop ja kaamera loenditest jaotises Seaded → Varustus ning juhtija enda seaded ja kalibreering. Asukoht valitakse jaotises Seaded → Asukoht."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Focal length {0:0} mm, aperture {1:0} mm, f/{2:0.0}"
+msgstr "Fookuskaugus {0:0} mm, ava {1:0} mm, f/{2:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New profile"
+msgstr "Uus profiil"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename profile"
+msgstr "Nimeta profiil ümber"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} töötab"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} töötab ja monteering peab ainult taevast jälgima"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Kaadrid lakkasid tulemast, seega joondamine peatati."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No frame came from the camera."
+msgstr "Kaamerast ei tulnud kaadrit."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The camera is not taking frames."
+msgstr "Kaamera ei tee kaadreid."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Imaging camera"
+msgstr "Põhikaamera"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Frames show here. Connect a camera in Observatory → Equipment."
+msgstr "Kaadrid ilmuvad siia. Ühenda kaamera vaates Vaatlus → Varustus."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Say whether the camera sees a mirror image."
+msgstr "Ütle, kas kaamera näeb peegelpilti."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "Set switch"
+msgstr "Sea lüliti"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "{0} to {1}"
+msgstr "{0} väärtusele {1}"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "No switch named {0}."
+msgstr "Lülitit nimega {0} pole."
+
+#: Sidralune.Devices/Automation/Sequencer.cs Sidralune/Views/ObservatoryView.cs
+msgid "Flat panel"
+msgstr "Flat-paneel"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "The flat panel's cover did not finish moving."
+msgstr "Flat-paneeli kaas ei lõpetanud liikumist."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a switch box"
+msgstr "lülitikarp"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a flat panel"
+msgstr "flat-paneel"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Switches"
+msgstr "Lülitid"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No switch box connected."
+msgstr "Lülitikarpi pole ühendatud."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Brightness"
+msgstr "Heledus"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Open cover"
+msgstr "Ava kaas"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Close cover"
+msgstr "Sulge kaas"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light on"
+msgstr "Tuli põlema"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light off"
+msgstr "Tuli kustu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "For flat frames: close the cover over the telescope, light the panel, and take FLAT exposures. The sequencer has a Flat panel instruction for the same."
+msgstr "Flat-kaadrite jaoks: sulge teleskoobi ees kaas, lülita paneel sisse ja tee FLAT-säritusi. Järjestajas on selleks juhis Flat-paneel."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No flat panel connected."
+msgstr "Flat-paneeli pole ühendatud."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "open"
+msgstr "lahti"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "closed"
+msgstr "kinni"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Cover {0} · light {1} of {2}"
+msgstr "Kaas {0} · valgus {1}/{2}"
+
+#: Sidralune.Devices/Automation/Capture.cs
+msgid "Plate solving failed at point {0}: {1}"
+msgstr "Astromeetriline lahendus ebaõnnestus punktis {0}: {1}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount within 20° of the celestial pole first."
+msgstr "Suuna monteering esmalt taevapoolusest kuni 20° kaugusele."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount nearer the celestial equator first (Dec within ±60°)."
+msgstr "Suuna monteering esmalt taevaekvaatorile lähemale (Dec ±60° piires)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Let other programs guide with Sidralune"
+msgstr "Lase teistel programmidel Sidralunega juhtida"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Programs that can guide with PHD2 connect here instead, as if Sidralune's guider were PHD2. PHD2 itself must not use the same port."
+msgstr "Programmid, mis oskavad PHD2-ga juhtida, ühenduvad selle asemel siia, nagu oleks Sidralune juhik PHD2. PHD2 ise ei tohi sama porti kasutada."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Drift alignment needs the mount connected, to know where it points."
+msgstr "Triivijoondus vajab ühendatud monteeringut, et teada, kuhu see osutab."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Point near the celestial equator (Dec within ±30°): near the meridian for the azimuth error, or 25–35° up in the east or west for the altitude error."
+msgstr "Osuta taevaekvaatori lähedale (Dec ±30° piires): meridiaani lähedale asimuudi vea jaoks või 25–35° kõrgusele idas või läänes kõrguse vea jaoks."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Near the meridian: this measures the azimuth error."
+msgstr "Meridiaani lähedal: siin mõõdetakse asimuudi viga."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the east: this measures the altitude error."
+msgstr "Idas: siin mõõdetakse kõrguse viga."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the west: this measures the altitude error."
+msgstr "Läänes: siin mõõdetakse kõrguse viga."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the altitude error, though lower in the east or west would tell it better."
+msgstr "Siin mõõdetakse kõrguse viga, kuid madalamal idas või läänes näitaks see paremini."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the azimuth error, though nearer the meridian would tell it better."
+msgstr "Siin mõõdetakse asimuudi viga, kuid meridiaanile lähemal näitaks see paremini."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Start guiding first: drift alignment measures while guiding with the Dec corrections held back."
+msgstr "Alusta kõigepealt juhtimist: triivijoondus mõõdab juhtimise ajal, Dec-parandused tagasi hoitud."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Move the polar axis {0} by {1:0.0}′"
+msgstr "Liiguta polaartelge {0} {1:0.0}′ võrra"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: the mount turns between the frames."
+msgstr "Peata kõigepealt juhtimine: monteering pöördub kaadrite vahel."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No guide frame came."
+msgstr "Juhtkaadrit ei tulnud."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} of 3…"
+msgstr "Kaader {0}/3…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} could not be plate-solved."
+msgstr "Kaadrit {0} ei õnnestunud astromeetriliselt lahendada."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° east…"
+msgstr "RA pööramine {0:0}° itta…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° west…"
+msgstr "RA pööramine {0:0}° läände…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Three frames are needed."
+msgstr "Vaja on kolme kaadrit."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The frames did not turn: was RA moved between them?"
+msgstr "Kaadrid ei pöördunud: kas RA liikus nende vahel?"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: polar drift alignment follows a star while the mount only tracks."
+msgstr "Peata kõigepealt juhtimine: polaartriivijoondus järgib tähte, kui monteering ainult jälgib taevast."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Port {0} is in use (is PHD2 running?)"
+msgstr "Port {0} on kasutusel (kas PHD2 töötab?)"
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Connect the guide camera in Sidralune's Observatory → Equipment."
+msgstr "Ühenda juhtkaamera Sidralune vaates Vaatlus → Varustus."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Not looping."
+msgstr "Ühtegi tsüklit ei käi."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling is still going on."
+msgstr "Stabiliseerumine on veel käimas."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling timed out."
+msgstr "Stabiliseerumine võttis liiga kaua."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "No AO connected."
+msgstr "Stabiliseerumine ebaõnnestus."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Stop looping first."
+msgstr "AO-d pole ühendatud."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "No guide star."
+msgstr "Peata kõigepealt tsükkel."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling failed."
+msgstr "Juhttähte pole."
+
+#: Sidralune.Devices/Guiding/Phd2Client.cs
+msgid "That is Sidralune's own PHD2-compatible server, not PHD2."
+msgstr "See on Sidralune enda PHD2-ühilduv server, mitte PHD2."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's X steps."
+msgstr "AO kalibreerimine ebaõnnestus: täht ei liikunud AO X-sammudega kaasa."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's Y steps."
+msgstr "AO kalibreerimine ebaõnnestus: täht ei liikunud AO Y-sammudega kaasa."
+
+#: Sidralune.Devices/Serial/SxAo.cs
+msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
+msgstr "SX AO teatab püsivarast 000: püsivara tuleb uuesti kirjutada."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
+msgstr "AO pole veel kalibreeritud: see kalibreeritakse pärast monteeringut, kui juhtimine algab."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO calibrated {0:yyyy-MM-dd HH:mm}: X {1:0.00} px a step towards {2:0}°, Y {3:0.00} px a step towards {4:0}°."
+msgstr "AO kalibreeritud {0:yyyy-MM-dd HH:mm}: X {1:0.00} px sammu kohta suunas {2:0}°, Y {3:0.00} px sammu kohta suunas {4:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile"
+msgstr "Tähe profiil"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "ADU"
+msgstr "ADU"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "pixels from the star"
+msgstr "pikslit tähest"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "X"
+msgstr "X"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Y"
+msgstr "Y"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Graph"
+msgstr "Graafik"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframe"
+msgstr "Osakaader"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO {0:+0;-0;0}, {1:+0;-0;0}"
+msgstr "AO {0:+0;-0;0}, {1:+0;-0;0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "bumping the mount"
+msgstr "monteeringut nihutatakse"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs Sidralune/Views/ObservatoryView.cs
+msgid "AO"
+msgstr "AO"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile · peak {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+msgstr "Tähe profiil · tipp {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RMS {0:0.00}″"
+msgstr "RMS {0:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframes"
+msgstr "Osakaadrid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, download only a box round the stars"
+msgstr "Juhtimise ajal loe ainult ala tähtede ümber"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "2×2 mean"
+msgstr "2×2 keskmine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "3×3 median"
+msgstr "3×3 mediaan"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The guide camera turns with it"
+msgstr "Juhtkaamera pöördub sellega kaasa"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rotator direction"
+msgstr "Rotaatori suund"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reversed (a mirrored image)"
+msgstr "Vastupidine (peegelpilt)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "For an off-axis guider on a rotator: the calibration turns with the rotator, so turning it needs no new calibration."
+msgstr "Rotaatoril oleva teljevälise juhiku jaoks: kalibreering pöördub rotaatoriga kaasa, nii et selle pööramine ei vaja uut kalibreerimist."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive PEC"
+msgstr "Predictive PEC"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive gain (%)"
+msgstr "Ennustav osa (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reactive gain (%)"
+msgstr "Reageeriv osa (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Worm period (s)"
+msgstr "Tiguülekande periood (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Period"
+msgstr "Periood"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adjust it from the guiding"
+msgstr "Kohanda seda juhtimise põhjal"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Retain model (%)"
+msgstr "Säilita mudel (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Travel (steps each way)"
+msgstr "Liikumisulatus (samme kummaski suunas)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration step (steps)"
+msgstr "Kalibreerimissamm (samme)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration leg (steps)"
+msgstr "Kalibreerimislõik (samme)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump the mount at (%)"
+msgstr "Nihuta monteeringut (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump step (″)"
+msgstr "Nihutussamm (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "After a dither"
+msgstr "Pärast ditherit"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Recentre the AO with the mount"
+msgstr "Tsentreeri AO monteeringuga"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO aggressiveness (%)"
+msgstr "AO agressiivsus (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO minimum move (px)"
+msgstr "AO väikseim nihe (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO corrects every frame; when it passes the bump point of its travel, the mount takes over in small moves. The AO is calibrated after the mount."
+msgstr "AO parandab iga kaadrit; kui see ületab oma liikumisulatuse nihutuspunkti, võtab monteering väikeste nihetega üle. AO kalibreeritakse pärast monteeringut."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Clear AO calibration"
+msgstr "Tühjenda AO kalibreering"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adaptive optics"
+msgstr "Adaptiivoptika"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Port"
+msgstr "Port"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Other computers"
+msgstr "Teised arvutid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Allow them to connect"
+msgstr "Luba neil ühenduda"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2-compatible server"
+msgstr "PHD2-ühilduv server"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Learns the mount's periodic error while guiding and corrects it before it shows: for mounts with a regular worm error. It trains for two worm periods."
+msgstr "Õpib juhtimise ajal monteeringu perioodilise vea ja parandab selle enne, kui see paistab: korrapärase tiguülekande veaga monteeringutele. Treenib kaks tiguülekande perioodi."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Starts learning when guiding starts."
+msgstr "Hakkab õppima, kui juhtimine algab."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predicting, period {0:0} s"
+msgstr "Ennustab, periood {0:0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: {0:0.0} of 2 periods"
+msgstr "Treening: {0:0.0} perioodi 2-st"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Listening on port {0} · {1} connected"
+msgstr "Kuulab porti {0} · {1} ühendatud"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO steps"
+msgstr "AO sammud"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO moved by hand the same way, along its own axes, to check it."
+msgstr "Liigutab AO-d käsitsi samamoodi, selle enda telgede suunas, et seda kontrollida."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO moved. Choose a guide star to see how far it moves."
+msgstr "AO liigutatud. Vali juhttäht, et näha, kui palju see liigub."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The AO calibration expected {0:0.0} px towards {1:0}°. Calibrate the AO again."
+msgstr "⚠ AO kalibreering eeldas {0:0.0} px suunas {1:0}°. Kalibreeri AO uuesti."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Three-point (plate solving)"
+msgstr "Kolm punkti (astromeetriline lahendus)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Drift alignment"
+msgstr "Triivijoondus"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Static polar alignment"
+msgstr "Staatiline polaarjoondus"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar drift alignment"
+msgstr "Polaartriivijoondus"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "PHD2 is connected: these methods use Sidralune's own guider."
+msgstr "PHD2 on ühendatud: need meetodid kasutavad Sidralune enda juhikut."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Stop guiding first: the mount only tracks for this method."
+msgstr "Peata kõigepealt juhtimine: selle meetodi puhul monteering ainult jälgib taevast."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guide frames show here. Connect a guide camera in Observatory → Equipment."
+msgstr "Juhtkaadrid ilmuvad siia. Ühenda juhtkaamera vaates Vaatlus → Varustus."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Sidralune guides with the Dec corrections held back, and the Dec drift tells the polar axis's error: near the meridian and the celestial equator the azimuth error, 25–35° up in the east or west the altitude error. Adjust, measure again, until both are small."
+msgstr "Sidralune juhib Dec-parandused tagasi hoitud ja Dec-triiv näitab polaartelje viga: meridiaani ja taevaekvaatori lähedal asimuudi viga, 25–35° kõrgusel idas või läänes kõrguse viga. Reguleeri ja mõõda uuesti, kuni mõlemad on väikesed."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start over"
+msgstr "Alusta otsast"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error: not measured yet"
+msgstr "Kõrguse viga: veel mõõtmata"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error {0:+0.0;-0.0}′"
+msgstr "Kõrguse viga {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error: not measured yet"
+msgstr "Asimuudi viga: veel mõõtmata"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error {0:+0.0;-0.0}′"
+msgstr "Asimuudi viga {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: measure for a minute or two."
+msgstr "Liiga lühike, et öelda: mõõda minut või kaks."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guiding stopped, so the measurement was dropped."
+msgstr "Juhtimine peatus, seega mõõtmine jäeti kõrvale."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Connect the mount: drift alignment needs to know where it points."
+msgstr "Ühenda monteering: triivijoondus peab teadma, kuhu see osutab."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "altitude error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "kõrguse viga {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "azimuth error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "asimuudi viga {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: Dec drift {1:+0.00;-0.00}″/min ± {2:0.00}"
+msgstr "{0:0} s: Dec-triiv {1:+0.00;-0.00}″/min ± {2:0.00}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turning RA"
+msgstr "RA pööramine"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The mount turns itself"
+msgstr "Monteering pöörab ise"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. Sidralune takes a frame, turns RA about 15° west twice and plate-solves each frame: the mount's axis is the point the frames turn about, and the plate solution places the refracted pole. Then turn the altitude and azimuth knobs until the star reaches its circle."
+msgstr "Osuta taevapooluse lähedale. Sidralune teeb kaadri, pöörab RA kaks korda umbes 15° läände ja lahendab iga kaadri astromeetriliselt: monteeringu telg on punkt, mille ümber kaadrid pöörduvad, ja lahendus paigutab murdunud pooluse. Seejärel keera kõrguse ja asimuudi kruvisid, kuni täht jõuab oma ringi."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start alignment"
+msgstr "Alusta joondust"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Next frame"
+msgstr "Järgmine kaader"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mount axis"
+msgstr "Monteeringu telg"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Pole"
+msgstr "Poolus"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn RA about {0:0}° west, then click Next frame."
+msgstr "Pööra RA umbes {0:0}° läände ja klõpsa siis Järgmine kaader."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The star is not found: turn the knobs more slowly, or click Start alignment again."
+msgstr "Tähte ei leita: keera kruvisid aeglasemalt või klõpsa uuesti Alusta joondust."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn the altitude and azimuth knobs until the star is in its circle: {0:0.0}′ to go."
+msgstr "Keera kõrguse ja asimuudi kruvisid, kuni täht on oma ringis: jäänud {0:0.0}′."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mirrored (an off-axis guider's prism, a diagonal)"
+msgstr "Peegelpilt (teljevälise juhiku prisma, diagonaalpeegel)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. With the mount only tracking, a star is followed: its drift gives the polar axis's error, with no calibration and no plate solving. Stop when the error has settled, then move the star into its circle with the altitude and azimuth knobs."
+msgstr "Osuta taevapooluse lähedale. Kui monteering ainult jälgib taevast, järgitakse tähte: selle triiv annab polaartelje vea ilma kalibreerimise ja astromeetrilise lahenduseta. Peata, kui viga on settinud, ja vii täht kõrguse ja asimuudi kruvidega oma ringi."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Follow a star"
+msgstr "Järgi tähte"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: follow the star for a minute or two."
+msgstr "Liiga lühike, et öelda: järgi tähte minut või kaks."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar alignment error {0:0.0}′ ± {1:0.0}′"
+msgstr "Polaarjoonduse viga {0:0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Move the star into its circle with the altitude and azimuth knobs."
+msgstr "Vii täht kõrguse ja asimuudi kruvidega oma ringi."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "From the guider's calibration."
+msgstr "Juhiku kalibreeringust."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Without a calibration, say whether the guide camera sees a mirror image."
+msgstr "Ilma kalibreeringuta ütle, kas juhtkaamera näeb peegelpilti."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Following the star… {0} frames so far."
+msgstr "Järgin tähte… seni {0} kaadrit."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: error {1:0.0}′ ± {2:0.0}′. Stop when it has settled."
+msgstr "{0:0} s: viga {1:0.0}′ ± {2:0.0}′. Peata, kui see on settinud."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Ühenda juhtkaamera vaates Vaatlus → Varustus või klõpsa nuppu Ühenda PHD2."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
+msgstr "Teleskoopi pole ühendatud: assistent peab teadma, kuhu monteering osutab, ja seda pöörama."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The mount does not report its guide rate. 0.5× sidereal or faster is best."
+msgstr "Monteering ei teata oma juhtimiskiirust. Parim on 0,5× sideeriline või kiirem."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The guide rate is {0:0.0#}× sidereal. 0.5× or faster calibrates and guides better."
+msgstr "Juhtimiskiirus on {0:0.0#}× sideeriline. 0,5× või kiiremaga kalibreerib ja juhib paremini."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The calibration step is fixed at {0} ms. 0 works it out for the place and the guide rate."
+msgstr "Kalibreerimise samm on fikseeritud {0} ms peale. 0 arvutab selle asukoha ja juhtimiskiiruse järgi."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The assistant has not moved the mount."
+msgstr "Assistent pole monteeringut liigutanud."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Start guiding first: the Guiding Assistant measures while guiding is paused."
+msgstr "Alusta kõigepealt juhtimist: juhtimisassistent mõõdab, kui juhtimine on peatatud."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec came back more slowly than it went, so the backlash could not be told apart."
+msgstr "Dec tuli tagasi aeglasemalt, kui läks, nii et lõtku ei saanud eristada."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "The backlash test was stopped."
+msgstr "Lõtkutest peatati."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Minimum move RA {0:0.00} px and Dec {1:0.00} px, a little under the seeing's wander."
+msgstr "Väikseim nihe RA {0:0.00} px ja Dec {1:0.00} px, veidi alla seeingu värina."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is small ({0:0} ms): no compensation needed."
+msgstr "Dec lõtk on väike ({0:0} ms): kompenseerimist pole vaja."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Turn on Dec backlash compensation at {0:0} ms (adapting between {1:0} and {2:0} ms)."
+msgstr "Lülita Dec lõtkukompensatsioon sisse {0:0} ms peale (kohandub {1:0} ja {2:0} ms vahel)."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec North only, against the drift."
+msgstr "Dec lõtk on suur ({0:0.0} s): juhi Dec-i ainult põhja suunas, triivi vastu."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec South only, against the drift."
+msgstr "Dec lõtk on suur ({0:0.0} s): juhi Dec-i ainult lõuna suunas, triivi vastu."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Polar alignment is off by at least {0:0}′. Observatory → Polar alignment can measure and correct it."
+msgstr "Polaarjoondus on vähemalt {0:0}′ paigast ära. Vaatlus → Polaarjoondus saab seda mõõta ja parandada."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "RA changes quickly ({0:0.00}″/s): a {1:0.0#} s exposure follows it better."
+msgstr "RA muutub kiiresti ({0:0.00}″/s): {1:0.0#} s säri jälgib seda paremini."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is not running."
+msgstr "Juhtija ei tööta."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is busy."
+msgstr "Juhtija on hõivatud."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Choose a guide star first."
+msgstr "Vali kõigepealt juhttäht."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The lock position must be inside the frame."
+msgstr "Lukustusasend peab olema kaadris."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Wait until calibration has finished."
+msgstr "Oota, kuni kalibreerimine lõpeb."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Calibrate first: comet tracking moves the lock position through the calibration."
+msgstr "Kalibreeri kõigepealt: komeedi jälgimine nihutab lukustusasendit kalibreeringu kaudu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The comet {0} is not in the comet list. Download the comet data in Settings, or enter the rates."
+msgstr "Komeeti {0} pole komeetide loendis. Laadi komeetide andmed alla seadetes või sisesta kiirused."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Start guiding first, then keep the comet centred by moving the lock position."
+msgstr "Alusta kõigepealt juhtimist ja hoia siis komeet keskel, nihutades lukustusasendit."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Train for longer: at least a minute gives usable rates."
+msgstr "Treeni kauem: vähemalt minut annab kasutatavad kiirused."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Click Loop first, so the pulse's effect can be seen."
+msgstr "Klõpsa kõigepealt Tsükkel, et impulsi mõju oleks näha."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Manual pulses are for looping, not while calibrating or guiding."
+msgstr "Käsitsi impulsid on tsükli jaoks, mitte kalibreerimise ega juhtimise ajal."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop the guider before taking dark frames."
+msgstr "Peata juhtija enne tumekaadrite tegemist."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Dark frames are being taken with the guide camera."
+msgstr "Juhtkaameraga tehakse tumekaadreid."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guide star was lost during the backlash test."
+msgstr "Juhttäht kadus lõtkutesti ajal."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The backlash test stopped because the mount slewed."
+msgstr "Lõtkutest peatus, sest monteering pööras."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Select star here"
+msgstr "Vali täht siin"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Set lock position here"
+msgstr "Pane lukustusasend siia"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Assistants"
+msgstr "Assistendid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Darks"
+msgstr "Tumekaadrid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Tools"
+msgstr "Tööriistad"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "brightness jumped: frame not used"
+msgstr "heledus hüppas: kaadrit ei kasutatud"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} stars"
+msgstr "{0} tähte"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.0#} s"
+msgstr "{0:0.0#} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Auto exposure"
+msgstr "Automaatne säri"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the star's SNR"
+msgstr "Järgi tähe SNR-i"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Shortest exposure (s)"
+msgstr "Lühim säri (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Longest exposure (s)"
+msgstr "Pikim säri (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Multi-star"
+msgstr "Mitu tähte"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide on several stars"
+msgstr "Juhi mitme tähe järgi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Most stars"
+msgstr "Kõige rohkem tähti"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star brightness"
+msgstr "Tähe heledus"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Skip frames where it jumps"
+msgstr "Jäta vahele kaadrid, kus see hüppab"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Brightness tolerance (%)"
+msgstr "Heleduse lubatud muutus (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction; after three in a row, the new brightness counts."
+msgstr "Kaadrit, kus juhttähe heledus muutub rohkem kui lubatud, parandamiseks ei kasutata; pärast kolme järjest kehtib uus heledus."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA algorithm"
+msgstr "RA algoritm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hysteresis"
+msgstr "Hüsterees"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2"
+msgstr "Lowpass2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter"
+msgstr "Z-filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2 aggressiveness (%)"
+msgstr "Lowpass2 agressiivsus (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter exposure factor"
+msgstr "Z-filtri särikordaja"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec algorithm"
+msgstr "Dec algoritm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Resist Switch"
+msgstr "Resist Switch"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide Dec"
+msgstr "Juhi Dec-i"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Both ways"
+msgstr "Mõlemas suunas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North only"
+msgstr "Ainult põhi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South only"
+msgstr "Ainult lõuna"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Off"
+msgstr "Väljas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash compensation"
+msgstr "Lõtkukompensatsioon"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When Dec turns"
+msgstr "Kui Dec pöördub"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash (ms)"
+msgstr "Lõtk (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at least (ms)"
+msgstr "Lõtk vähemalt (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at most (ms)"
+msgstr "Lõtk kõige rohkem (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide stars"
+msgstr "Juhttähed"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects a share of the error, smoothed with the one before."
+msgstr "Parandab osa veast, silutud eelmisega."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Changes direction only when the error clearly asks for it, which suits Dec's backlash."
+msgstr "Muudab suunda ainult siis, kui viga seda selgelt nõuab, mis sobib Dec lõtkuga."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing."
+msgstr "Tõmbab viimaste vigade kaudu sirge, nii et seeing keskmistub: sujuvatele monteeringutele hea seeingu korral."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guides as if the exposures were longer: for slow errors in poor seeing."
+msgstr "Juhib, nagu oleksid säritused pikemad: aeglastele vigadele halva seeingu korral."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Now {0:0} ms, as it has adapted."
+msgstr "Nüüd {0:0} ms, nagu see on kohandunud."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, measures how the stars move with corrections paused: the seeing, the drift, RA's swing and the polar alignment error. Give it two minutes, longer for polar alignment."
+msgstr "Mõõdab juhtimise ajal, kuidas tähed peatatud parandustega liiguvad: seeingu, triivi, RA kõikumise ja polaarjoonduse vea. Anna talle kaks minutit, polaarjoonduse jaoks kauem."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Afterwards"
+msgstr "Seejärel"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measure Dec backlash"
+msgstr "Mõõda Dec lõtku"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start measuring"
+msgstr "Alusta mõõtmist"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop and analyse"
+msgstr "Peata ja analüüsi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Apply the ticked settings"
+msgstr "Rakenda märgitud seaded"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibrates near the meridian and the celestial equator, where calibration is most reliable, on the side the mount points to now, then rates the calibration."
+msgstr "Kalibreerib meridiaani ja taevaekvaatori lähedal, kus kalibreerimine on kõige usaldusväärsem, sel poolel, kuhu monteering praegu osutab, ja hindab siis kalibreeringut."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hour angle (h)"
+msgstr "Tunninurk (h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Declination (°)"
+msgstr "Käänak (°)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Slew and calibrate"
+msgstr "Pööra ja kalibreeri"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Return"
+msgstr "Tagasi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Suggest again"
+msgstr "Paku uuesti"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration Assistant"
+msgstr "Kalibreerimisassistent"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant"
+msgstr "Juhtimisassistent"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measuring… {0} frames so far."
+msgstr "Mõõdetakse… seni {0} kaadrit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} frames over {1:0} s."
+msgstr "{0} kaadrit {1:0} s jooksul."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+msgstr "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Drift: RA {0:0.00}″, Dec {1:0.00}″ a minute."
+msgstr "Triiv: RA {0:0.00}″, Dec {1:0.00}″ minutis."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA swing {0:0.0}″ peak to peak, changing up to {1:0.00}″ a second."
+msgstr "RA kõikumine {0:0.0}″ tipust tipuni, muutus kuni {1:0.00}″ sekundis."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Polar alignment off by at least {0:0.0}′."
+msgstr "Polaarjoondus vähemalt {0:0.0}′ paigast ära."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash: {0}"
+msgstr "Dec lõtk: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash {0:0} ± {1:0} ms."
+msgstr "Dec lõtk {0:0} ± {1:0} ms."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2 is connected: it has its own Guiding Assistant."
+msgstr "PHD2 on ühendatud: tal on oma juhtimisassistent."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant finished"
+msgstr "Juhtimisassistent lõpetas"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Settings applied."
+msgstr "Seaded rakendatud."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Good"
+msgstr "Hea"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Acceptable"
+msgstr "Vastuvõetav"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Poor"
+msgstr "Halb"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration: {0}."
+msgstr "Kalibreering: {0}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding stopped, so the Guiding Assistant did too."
+msgstr "Juhtimine peatus, nii et peatus ka juhtimisassistent."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a telescope: the assistant slews it."
+msgstr "Ühenda teleskoop: assistent pöörab seda."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West of the meridian, {0:0}° up."
+msgstr "Meridiaanist läänes, {0:0}° kõrgusel."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East of the meridian, {0:0}° up."
+msgstr "Meridiaanist idas, {0:0}° kõrgusel."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Nothing"
+msgstr "Mitte midagi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The dark library"
+msgstr "Tumekaadrite teek"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The bad-pixel map"
+msgstr "Vigaste pikslite kaart"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A dark library subtracts a master dark from each guide frame; a bad-pixel map mends the hot and cold pixels. Either removes hot pixels that could be taken for stars."
+msgstr "Tumekaadrite teek lahutab igast juhtkaadrist põhitumekaadri; vigaste pikslite kaart parandab kuumad ja külmad pikslid. Mõlemad eemaldavad kuumad pikslid, mida võiks tähtedeks pidada."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames each"
+msgstr "Tumekaadreid igaühe kohta"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build dark library"
+msgstr "Loo tumekaadrite teek"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames"
+msgstr "Tumekaadrid"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Threshold (σ)"
+msgstr "Lävi (σ)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build bad-pixel map"
+msgstr "Loo vigaste pikslite kaart"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Cover the guide scope (or close the camera's shutter), then click Continue."
+msgstr "Kata juhtteleskoop (või sulge kaamera katik) ja klõpsa siis Jätka."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Continue"
+msgstr "Jätka"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Taking dark frames"
+msgstr "Tumekaadrite tegemine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map"
+msgstr "Vigaste pikslite kaart"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library"
+msgstr "Tumekaadrite teek"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library built. Uncover the guide scope."
+msgstr "Tumekaadrite teek on loodud. Ava juhtteleskoop."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map built: {0} hot and {1} cold pixels. Uncover the guide scope."
+msgstr "Vigaste pikslite kaart on loodud: {0} kuuma ja {1} külma pikslit. Ava juhtteleskoop."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Exposures: {0} s"
+msgstr "Säritused: {0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0}: {1:0} %"
+msgstr "{0}: {1:0} %"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a guide camera to build or use dark frames."
+msgstr "Ühenda juhtkaamera, et tumekaadreid luua või kasutada."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: none yet."
+msgstr "Tumekaadrite teek: veel puudub."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: {0} s, {1} frames each, {2:yyyy-MM-dd}."
+msgstr "Tumekaadrite teek: {0} s, igaüks {1} kaadrit, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It fits the guide camera."
+msgstr "See sobib juhtkaameraga."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It doesn't fit the guide camera as set up now; build it again."
+msgstr "See ei sobi juhtkaameraga, nagu see praegu on seadistatud; loo see uuesti."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: none yet."
+msgstr "Vigaste pikslite kaart: veel puudub."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: {0} hot and {1} cold pixels, {2:yyyy-MM-dd}."
+msgstr "Vigaste pikslite kaart: {0} kuuma ja {1} külma pikslit, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position X (px)"
+msgstr "Lukustusasend X (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position Y (px)"
+msgstr "Lukustusasend Y (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Or right-click the frame: Set lock position here."
+msgstr "Või paremklõpsa kaadril: Pane lukustusasend siia."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Sticky lock position"
+msgstr "Püsiv lukustusasend"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Keep it through stops"
+msgstr "Hoia see peatamiste üle"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Move by (″)"
+msgstr "Nihuta (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North"
+msgstr "Põhi"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South"
+msgstr "Lõuna"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East"
+msgstr "Ida"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West"
+msgstr "Lääs"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Moves the telescope that far on the sky, through the calibration; without one, that many pixels in the frame."
+msgstr "Liigutab teleskoopi taevas nii palju, kalibreeringu kaudu; ilma selleta nii mitu pikslit kaadris."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rates from"
+msgstr "Kiirused"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Entered rates"
+msgstr "Sisestatud kiirused"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A comet's orbit"
+msgstr "Komeedi orbiidist"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training"
+msgstr "Treenimine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA (″/h, on the sky)"
+msgstr "RA (″/h, taevas)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec (″/h)"
+msgstr "Dec (″/h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Comet tracking"
+msgstr "Komeedi jälgimine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the comet"
+msgstr "Järgi komeeti"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start training"
+msgstr "Alusta treenimist"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop training"
+msgstr "Peata treenimine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse (ms)"
+msgstr "Impulss (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While looping: one pulse, and how far the star moved, to check the guide cable and the guide rate."
+msgstr "Tsüklis: üks impulss ja kui palju täht liikus, et kontrollida juhtkaablit ja juhtimiskiirust."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Manual guide"
+msgstr "Käsitsi juhtimine"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position"
+msgstr "Lukustusasend"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse sent. Choose a guide star to see how far it moves."
+msgstr "Impulss saadetud. Vali juhttäht, et näha, kui palju see liigub."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The star moved {0:0.0} px towards {1:0}°."
+msgstr "Täht liikus {0:0.0} px suunas {1:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "As calibrated ({0:0.0} px towards {1:0}°)."
+msgstr "Nagu kalibreeritud ({0:0.0} px suunas {1:0}°)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The calibration expected {0:0.0} px towards {1:0}°. Check the guide cable, the guide rate and Dec backlash."
+msgstr "⚠ Kalibreering ootas {0:0.0} px suunas {1:0}°. Kontrolli juhtkaablit, juhtimiskiirust ja Dec lõtku."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: keep the comet centred in the imaging camera by moving the lock position."
+msgstr "Treenimine: hoia komeet põhikaamera keskel, nihutades lukustusasendit."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Following at RA {0:0.0}″/h and Dec {1:0.0}″/h."
+msgstr "Järgitakse kiirusega RA {0:0.0}″/h ja Dec {1:0.0}″/h."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "No comets yet: download the comet data in Settings."
+msgstr "Komeete veel pole: laadi komeetide andmed alla seadetes."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, the lock position follows the comet, so the comet stays put in the imaging camera."
+msgstr "Juhtimise ajal järgib lukustusasend komeeti, nii et komeet püsib põhikaameras paigal."
+
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "PHD2 kasutamiseks katkesta juhtkaamera ühendus."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "PHD2 on ühendatud ja kasutab juhtkaamerat ise. Sidralune'iga juhtimiseks katkesta PHD2 ühendus."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Kasutusel PHD2-s"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Katkesta PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "PHD2 on ühendatud: sellel on oma seaded ja kalibreering."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Ühenda juhtkaamera vaates Vaatlus → Varustus ja klõpsa siis Tsükkel"
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "See kaamera on juba ühendatud juhtkaamerana."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "See kaamera on juba ühendatud pildistamiskaamerana."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Juhtkaamerat pole ühendatud."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Juhtkaameral pole juhtimisporti. Juhi selle asemel monteeringu kaudu."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Monteering ei võta juhtimisimpulsse vastu. Juhi selle asemel juhtkaamera pordi kaudu."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Juhtimine peatati."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Peata juhtimine enne teise tähe valimist."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Kaadris pole sobivat juhttähte."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Seal pole tähte, mille järgi juhtida."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Juhtimine ei stabiliseerunud {0} s jooksul."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Juhtimine pole käimas."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Juhttähte ei leitud. Kontrolli juhtkaamera fookust ja säri."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Juhtimine peatus, sest monteering pöördus."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Juhtkaamera ühendus katkes."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Juhtkaamera ebaõnnestus kolm korda järjest: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibreerimine ebaõnnestus: täht ei liikunud RA-s piisavalt kaugele. Kontrolli juhtkaablit või monteeringu ühendust ja juhtimiskiirust."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Kalibreerimine ebaõnnestus: täht ei liikunud Dec-s piisavalt kaugele. Kontrolli juhtkaablit või monteeringu ühendust ja juhtimiskiirust."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Kalibreerimine peatus, sest monteering pöördus."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Juhttäht kadus kalibreerimise ajal."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Kalibreerimine ebaõnnestus: Dec ei hakanud liikuma. Võib-olla pole Dec ühendatud või on monteeringul suur lõtk."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Käivita PHD2 ja lülita sisse selle server (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Juhtkaamera"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Peatatud"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Tsükkel"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Täht valitud"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Kalibreerimine"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Ajutiselt peatatud"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Täht kadunud"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Kalibreerimata. „Kalibreeri ja juhi“ kalibreerib kõigepealt; „Alusta juhtimist“ kalibreerib, kui selle varustuse jaoks kalibreeringut pole."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Kalibreeritud {0:yyyy-MM-dd HH:mm}: RA {1:0}° kiirusega {2:0.00} px/s, Dec {3:0}° kiirusega {4:0.00} px/s, {5:0.0}° täisnurgast."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "RA ja Dec on täisnurgast kaugel: lõtk või halb seeing võis kalibreeringu rikkuda. Kalibreeri uuesti."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "RA ja Dec liikusid kiirustega, mis ei sobi deklinatsiooniga. Kontrolli juhtimiskiirusi ja kalibreeri uuesti."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Vähe kalibreerimissamme. Lühem kalibreerimissamm teeb kalibreeringu täpsemaks."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Täht liikus teise kiirusega, kui juhtimiskiirus ja fookuskaugus ennustavad. Kontrolli juhtteleskoobi fookuskaugust ja monteeringu juhtimiskiirust."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Kalibreeritud pooluse lähedal, kus RA liigutab tähte vähe. Kalibreeri võimaluse korral taevaekvaatorile lähemal."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Sidralune'i juhtsüsteem"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "PHD2 teeb juhtkaadrid ise."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Tee juhtkaadreid ja jälgi tähte ilma juhtimata"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Vali täht"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Vali parim juhttäht või klõpsa kaadris tähel"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Juhtimine läbi"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Monteeringu"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Juhtkaamera (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Juhtteleskoobi fookuskaugus (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Otsinguala raadius (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Kalibreerimissamm (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "0 arvutab sammu juhtimiskiirusest, piksliskaalast ja deklinatsioonist."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Kalibreerimiskaugus (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Pärast meridiaanipööret"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Monteering pöörab Dec ümber"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Enamik monteeringuid ei pööra pärast pööret oma Dec-impulsse ümber. Kui Dec pärast pööret ära jookseb, muuda seda."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Tühjenda kalibreering"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "RA agressiivsus (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "RA hüsterees (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "RA väikseim nihe (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "RA pikim impulss (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Dec agressiivsus (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Dec väikseim nihe (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Dec pikim impulss (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Suured Dec-vead"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Paranda kohe"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Kalibreerimine"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Juhttäht puudub: klõpsa tähel või Vali täht"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Täht kadus kohas {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Täht kohas {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "küllastunud"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "PHD2 näitab juhtkaadreid ise"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -2576,10 +4540,6 @@ msgstr "Ohutusmonitor"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Switch"
 msgstr "Lüliti"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Cover calibrator"
-msgstr "Kate-kalibraator"
 
 #: Sidralune/Views/ObservatoryView.cs Sidralune/Views/SettingsView.cs
 msgid "Equipment"
@@ -2700,14 +4660,6 @@ msgstr "Katkesta kõik"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Disconnecting all devices"
 msgstr "Katkestatakse kõik seadmed"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Imaging focal length (mm)"
-msgstr "Pildistamise fookuskaugus (mm)"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Aperture (mm)"
-msgstr "Ava (mm)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi."
@@ -3126,10 +5078,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Tühjenda graafik"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Juhtkaamerat pole ühendatud — käivita PHD2 ja luba selle server (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""
@@ -8837,6 +10785,36 @@ msgstr "Dither pikslid"
 
 #: property grid
 msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Juhtimise ootamine (min)"
+
+#: property grid
+msgctxt "option"
+msgid "Drift Correction"
+msgstr "Triivi parandus"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Juhtimise max RMS"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Kui juhtimine on halb"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Märgi"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Tee uuesti"
+
+#: property grid
+msgctxt "option"
 msgid "Exposure Ms"
 msgstr "Säri ms"
 
@@ -9014,6 +10992,56 @@ msgstr "Pargi teleskoop"
 msgctxt "option"
 msgid "Dome Shutter"
 msgstr "Kupli luuk"
+
+#: property grid
+msgctxt "option"
+msgid "Switch"
+msgstr "Lüliti"
+
+#: property grid
+msgctxt "option"
+msgid "Value"
+msgstr "Väärtus"
+
+#: property grid
+msgctxt "option"
+msgid "Action"
+msgstr "Toiming"
+
+#: property grid
+msgctxt "option"
+msgid "Open Cover"
+msgstr "Ava kaas"
+
+#: property grid
+msgctxt "option"
+msgid "Close Cover"
+msgstr "Sulge kaas"
+
+#: property grid
+msgctxt "option"
+msgid "Light On"
+msgstr "Tuli põlema"
+
+#: property grid
+msgctxt "option"
+msgid "Light Off"
+msgstr "Tuli kustu"
+
+#: property grid
+msgctxt "option"
+msgid "Brightness"
+msgstr "Heledus"
+
+#: property grid
+msgctxt "option"
+msgid "Set Switch"
+msgstr "Sea lüliti"
+
+#: property grid
+msgctxt "option"
+msgid "Flat Panel"
+msgstr "Flat-paneel"
 
 #: property grid
 msgctxt "option"

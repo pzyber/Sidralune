@@ -87,11 +87,12 @@ namespace Sidralune.Science.Astrometry
                         int n = (int)Math.Ceiling(2 * Math.PI * rad / step);
                         for (int k = 0; k < n; k++)
                         {
-                            double a = 2 * Math.PI * k / n;
-                            double dec = opt.HintDec + rad * Math.Cos(a);
-                            if (dec > 90 || dec < -90) continue;
-                            double ra = opt.HintRa + rad * Math.Sin(a) / Math.Max(0.05, Math.Cos(dec * AstroMath.Deg2Rad));
-                            centres.Add(new[] { AstroMath.NormalizeDeg(ra), dec });
+                            // rad degrees from the hint along bearing a, on the sphere, so near a pole the search goes over
+                            // it to the far side instead of stopping there
+                            double a = 2 * Math.PI * k / n, r = rad * AstroMath.Deg2Rad, d1 = opt.HintDec * AstroMath.Deg2Rad;
+                            double sd2 = AstroMath.Clamp(Math.Sin(d1) * Math.Cos(r) + Math.Cos(d1) * Math.Sin(r) * Math.Cos(a), -1, 1), d2 = Math.Asin(sd2);
+                            double ra = opt.HintRa + Math.Atan2(Math.Sin(a) * Math.Sin(r) * Math.Cos(d1), Math.Cos(r) - Math.Sin(d1) * sd2) * AstroMath.Rad2Deg;
+                            centres.Add(new[] { AstroMath.NormalizeDeg(ra), d2 * AstroMath.Rad2Deg });
                         }
                         if (centres.Count > 400) break;
                     }

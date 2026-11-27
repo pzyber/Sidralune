@@ -39,6 +39,49 @@ namespace Sidralune.Devices.Automation
         public List<double> RecentHfr = new List<double>();
         public Observer Site => Devices.Site;
         public int TotalExposures;
+        /// <summary>
+        /// The sequence guides: it was guiding when the sequence started, or a Start guiding instruction started it (Stop
+        /// guiding ends it). Light frames then wait for guiding, and start it again when it stopped.
+        /// </summary>
+        public bool GuidingWanted;
+        /// <summary>Drift correction for unguided light frames, kept through the sequence (its reference is the field's first frame).</summary>
+        public DriftCorrector Drift;
+
+        /// <summary>
+        /// Before a light frame, guiding as the sequence wants it: a lost star (a cloud) is waited for, and guiding that
+        /// stopped (a slew, the guide camera failing) is started again, once a minute. After waitMinutes the frames go on
+        /// without it, and the log says so.
+        /// </summary>
+        public async Task WaitForGuiding(double waitMinutes, CancellationToken ct)
+        {
+            var g = Devices.Guider;
+            if (!GuidingWanted || g == null || g.IsGuiding) return;
+            Log(g.State == Guiding.SidraluneGuider.LostLock ? "The guide star is lost: waiting for it before the next frame" : "Guiding has stopped: starting it again before the next frame");
+            var until = DateTime.UtcNow.AddMinutes(Math.Max(0, waitMinutes));
+            var nextStart = DateTime.MinValue;
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                g = Devices.Guider;
+                if (g != null && g.IsGuiding) { Log("Guiding again"); return; }
+                if (DateTime.UtcNow >= until)
+                {
+                    Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Guiding did not come back within {0:0} min: going on without it", waitMinutes));
+                    GuidingWanted = false;
+                    return;
+                }
+                // a lost star comes back by itself; calibrating or paused (by hand) is waited for too
+                string st = g != null ? g.State : null;
+                bool waiting = st == Guiding.SidraluneGuider.LostLock || st == Guiding.SidraluneGuider.Calibrating || st == Guiding.SidraluneGuider.Paused;
+                if (g != null && !waiting && DateTime.UtcNow >= nextStart)
+                {
+                    nextStart = DateTime.UtcNow.AddMinutes(1);
+                    try { await g.StartGuiding(false, ct); continue; }
+                    catch (Exception ex) when (!ct.IsCancellationRequested) { Log("Could not start guiding: " + ex.Message); }
+                }
+                await Task.Delay(1000, ct);
+            }
+        }
     }
 
     public abstract class SequenceItem
@@ -72,7 +115,7 @@ namespace Sidralune.Devices.Automation
         public bool StopOnError { get; set; } = false;
         protected abstract Task Execute(SequenceContext ctx, CancellationToken ct);
 
-        /// <summary>Devices this instruction cannot run without ("camera", "telescope", "focuser", "filter wheel").</summary>
+        /// <summary>Devices this instruction cannot run without ("camera", "telescope", "focuser", "filter wheel", "switch", "flat panel").</summary>
         public virtual string[] RequiredDevices => new string[0];
 
         public virtual void Reset()
@@ -164,6 +207,9 @@ namespace Sidralune.Devices.Automation
             finally { ctx.Target = prev; }
         }
     }
+
+    /// <summary>What a sequence does with a frame whose guiding was worse than its limit.</summary>
+    public enum BadGuidingAction { Flag, Retake }
 
     public enum LoopCondition { Count, UntilTime, UntilAltitudeBelow, UntilAstronomicalDawn, Forever }
 
@@ -261,13 +307,14 @@ namespace Sidralune.Devices.Automation
         {
             if (ctx.Devices.Guider == null) { ctx.Log("No guider connected - skipping"); return; }
             await ctx.Devices.Guider.StartGuiding(ForceCalibration, ct);
+            ctx.GuidingWanted = true;
         }
     }
 
     public class StopGuiding : SequenceItem
     {
         public override string Title => Lang.T("Stop guiding");
-        protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.Devices.Guider?.StopGuiding(); return Task.FromResult(0); }
+        protected override Task Execute(SequenceContext ctx, CancellationToken ct) { ctx.GuidingWanted = false; ctx.Devices.Guider?.StopGuiding(); return Task.FromResult(0); }
     }
 
     public class TakeExposures : SequenceItem
@@ -283,6 +330,20 @@ namespace Sidralune.Devices.Automation
         public string FrameType { get; set; } = "LIGHT";
         public int DitherEvery { get; set; } = 1;
         public double DitherPixels { get; set; } = 5;
+        /// <summary>How long a light frame waits for guiding to come back (a cloud, a stopped guider) before going on without it.</summary>
+        public double GuidingWaitMinutes { get; set; } = 30;
+        /// <summary>
+        /// A light frame guided worse than this (total RMS, arcseconds; 0 for no limit), or during which guiding was
+        /// interrupted, is flagged: GUIDBAD in its header and _BADGUIDING at the end of its file name.
+        /// </summary>
+        public double MaxGuidingRms { get; set; }
+        /// <summary>What happens to a flagged frame: kept as it is, or kept and taken again (at most three times in a row).</summary>
+        public BadGuidingAction WhenGuidingIsBad { get; set; } = BadGuidingAction.Flag;
+        /// <summary>
+        /// Light frames taken without guiding: each is registered against the field's first frame and the mount moved back
+        /// by the drift, dithers included (Dither pixels then counts imaging-camera pixels).
+        /// </summary>
+        public bool DriftCorrection { get; set; } = true;
         public int Completed { get; private set; }
         public override string Title => FrameType == "DARK" ? Lang.T("Expose dark frames") : FrameType == "BIAS" ? Lang.T("Expose bias frames") : FrameType == "FLAT" ? Lang.T("Expose flat frames")
             : FrameType == "LIGHT" ? Lang.T("Expose light frames") : Lang.T("Expose {0} frames", FrameType.ToLowerInvariant());
@@ -292,6 +353,7 @@ namespace Sidralune.Devices.Automation
         protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
         {
             Completed = 0;
+            int retakes = 0;
             for (int i = 0; i < Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -299,17 +361,56 @@ namespace Sidralune.Devices.Automation
                 var r = new ExposureRequest
                 {
                     Seconds = Exposure, Bin = Bin, Gain = Gain, Offset = Offset, Filter = string.IsNullOrEmpty(Filter) ? null : Filter,
-                    FrameType = FrameType, Light = FrameType != "DARK" && FrameType != "BIAS", Target = ctx.Target != null ? ctx.Target.Name : ""
+                    FrameType = FrameType, Light = FrameType != "DARK" && FrameType != "BIAS", Target = ctx.Target != null ? ctx.Target.Name : "",
+                    MaxGuidingRms = FrameType == "LIGHT" ? MaxGuidingRms : 0
                 };
-                var res = await ctx.Capture.Expose(r, ct);
+                if (FrameType == "LIGHT") await ctx.WaitForGuiding(GuidingWaitMinutes, ct);
+                // dithered as soon as the frame is read out, while it downloads and is measured and saved; the next frame
+                // starts once guiding has settled
+                var g = ctx.Devices.Guider;
+                Task dithering = null;
+                if (FrameType == "LIGHT" && DitherEvery > 0 && (Completed + 1) % DitherEvery == 0 && i < Count - 1 && g != null && g.IsGuiding)
+                    r.ReadOut = () => dithering = g.Dither(DitherPixels, false, 1.5, 10, 120, ct);
+                CaptureResult res;
+                try { res = await ctx.Capture.Expose(r, ct); }
+                catch
+                {
+                    // the frame failed after the dither began: its result is not waited for, but it is looked at
+                    dithering?.ContinueWith(t => { var ignored = t.Exception; });
+                    throw;
+                }
                 ctx.CurrentFilter = r.Filter;
-                if (!double.IsNaN(res.Hfr)) { ctx.RecentHfr.Add(res.Hfr); if (ctx.RecentHfr.Count > 20) ctx.RecentHfr.RemoveAt(0); }
+                var gs = res.Guiding;
+                bool bad = gs != null && gs.Bad;
+                string flag = !bad ? "" : gs.Interrupted ? "flagged: guiding was interrupted"
+                    : string.Format(System.Globalization.CultureInfo.InvariantCulture, "flagged: guiding RMS {0:0.00}\" over {1:0.00}\"", gs.RmsTotal, MaxGuidingRms);
                 ctx.ExposuresSinceAutofocus++;
+                if (bad && WhenGuidingIsBad == BadGuidingAction.Retake && retakes < 3)
+                {
+                    // kept, but it does not count: the same frame is taken again
+                    ctx.Log(string.Format("Saved {0} {1} - taking it again", Path.GetFileName(res.Path ?? ""), flag));
+                    if (dithering != null) await dithering;
+                    retakes++; i--;
+                    continue;
+                }
+                retakes = 0;
+                // a trailed or clouded frame says nothing about focus
+                if (!bad && !double.IsNaN(res.Hfr)) { ctx.RecentHfr.Add(res.Hfr); if (ctx.RecentHfr.Count > 20) ctx.RecentHfr.RemoveAt(0); }
                 ctx.TotalExposures++;
                 Completed++;
-                ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars)", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars));
-                if (FrameType == "LIGHT" && DitherEvery > 0 && Completed % DitherEvery == 0 && i < Count - 1 && ctx.Devices.Guider != null && ctx.Devices.Guider.IsGuiding)
-                    await ctx.Devices.Guider.Dither(DitherPixels, false, 1.5, 10, 120, ct);
+                ctx.Log(string.Format("Saved {0} (HFR {1:0.00}, {2} stars{3}){4}", Path.GetFileName(res.Path ?? ""), res.Hfr, res.Stars,
+                    gs != null && !double.IsNaN(gs.RmsTotal) ? string.Format(System.Globalization.CultureInfo.InvariantCulture, ", guiding {0:0.00}\" RMS", gs.RmsTotal) : "",
+                    bad ? " " + flag : ""));
+                // unguided: the drift since the field's first frame is corrected, and the dither made, before the next frame
+                if (FrameType == "LIGHT" && DriftCorrection && !GuidingPause.Guiding(ctx.Devices.Guider) && res.Image != null && ctx.Devices.Telescope != null)
+                {
+                    bool ditherNow = DitherEvery > 0 && Completed % DitherEvery == 0 && i < Count - 1;
+                    if (ctx.Drift == null) ctx.Drift = new DriftCorrector { Devices = ctx.Devices, Log = ctx.Log };
+                    try { await ctx.Drift.AfterFrame(res.Image, ditherNow ? DitherPixels : 0, ct); }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex) { ctx.Log("Drift correction: " + ex.Message); }
+                }
+                if (dithering != null) await dithering;
             }
         }
     }
@@ -499,6 +600,80 @@ namespace Sidralune.Devices.Automation
         }
     }
 
+    /// <summary>The switch box's switch names as a drop-down list (the simulator's when none is connected); others can be typed.</summary>
+    public class SwitchNameConverter : System.ComponentModel.StringConverter
+    {
+        public static string[] Names()
+        {
+            try
+            {
+                var sw = DeviceManager.Instance.Switch;
+                if (sw != null && sw.Count > 0) return Enumerable.Range(0, sw.Count).Select(sw.GetName).ToArray();
+            }
+            catch { }
+            return new[] { "Dew heater 1", "Dew heater 2", "Fan", "Mount power" };
+        }
+
+        public override bool GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext context) => true;
+        public override bool GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext context) => false;
+        public override StandardValuesCollection GetStandardValues(System.ComponentModel.ITypeDescriptorContext context) => new StandardValuesCollection(Names());
+    }
+
+    /// <summary>Sets one of the switch box's switches: on (any value above 0) or off, or a level for one that has levels.</summary>
+    public class SetSwitch : SequenceItem
+    {
+        [System.ComponentModel.TypeConverter(typeof(SwitchNameConverter))]
+        public string Switch { get; set; } = "Dew heater 1";
+        /// <summary>0 is off; an on/off switch is on at any value above 0; one with levels takes the value (up to its highest).</summary>
+        public double Value { get; set; } = 1;
+        public override string Title => Lang.T("Set switch");
+        public override string Summary => Lang.T("{0} to {1}", Switch, Value);
+        public override string[] RequiredDevices => new[] { "switch" };
+
+        protected override Task Execute(SequenceContext ctx, CancellationToken ct) => Task.Run(() =>
+        {
+            var sw = ctx.Devices.Switch;
+            int i = Enumerable.Range(0, sw.Count).Where(k => string.Equals(sw.GetName(k), Switch, StringComparison.OrdinalIgnoreCase)).DefaultIfEmpty(-1).First();
+            if (i < 0) throw new InvalidOperationException(Lang.T("No switch named {0}.", Switch));
+            double max = sw.GetMaxValue(i);
+            if (max <= 1) sw.SetSwitch(i, Value > 0);
+            else sw.SetValue(i, Math.Max(0, Math.Min(max, Value)));
+            ctx.Log(string.Format("{0} set to {1}", Switch, Value));
+        }, ct);
+    }
+
+    public enum FlatPanelAction { OpenCover, CloseCover, LightOn, LightOff }
+
+    /// <summary>The flat panel: its cover opened or closed (waiting until it has), or its light on at a brightness or off.</summary>
+    public class FlatPanel : SequenceItem
+    {
+        public FlatPanelAction Action { get; set; } = FlatPanelAction.CloseCover;
+        /// <summary>For LightOn: from 0 to the panel's highest brightness.</summary>
+        public int Brightness { get; set; } = 128;
+        public override string Title => Lang.T("Flat panel");
+        public override string Summary => Lang.Option(Action.ToString()) + (Action == FlatPanelAction.LightOn ? " " + Brightness : "");
+        public override string[] RequiredDevices => new[] { "flat panel" };
+
+        protected override async Task Execute(SequenceContext ctx, CancellationToken ct)
+        {
+            var c = ctx.Devices.Cover;
+            switch (Action)
+            {
+                case FlatPanelAction.LightOn: c.CalibratorOn(Math.Max(0, Math.Min(c.MaxBrightness, Brightness))); return;
+                case FlatPanelAction.LightOff: c.CalibratorOff(); return;
+            }
+            bool open = Action == FlatPanelAction.OpenCover;
+            if (open) c.OpenCover(); else c.CloseCover();
+            string want = open ? "Open" : "Closed";
+            var until = DateTime.UtcNow.AddMinutes(2);
+            while (c.CoverState != want)
+            {
+                if (DateTime.UtcNow > until) throw new TimeoutException(Lang.T("The flat panel's cover did not finish moving."));
+                await Task.Delay(250, ct);
+            }
+        }
+    }
+
     public class RunScript : SequenceItem
     {
         // a "…" button that opens a file dialog (named by type so this library needs no Windows Forms reference)
@@ -578,8 +753,8 @@ namespace Sidralune.Devices.Automation
             if (tel == null || ctx.Target == null || !MeridianFlip.IsDue(tel, MinutesAfterMeridian)) return;
             ctx.Log("Performing meridian flip");
             var app = new SkyContext(ctx.Site, AstroTime.Now).IcrsToApparent(ctx.Target.RaDeg * AstroMath.Deg2Rad, ctx.Target.DecDeg * AstroMath.Deg2Rad);
-            await MeridianFlip.Perform(tel, app.RaHours, app.DecDeg, ctx.Devices.Guider, ct);
-            await new CenterTarget().Run(ctx, ct);
+            // re-centre before guiding resumes, as after unsafe conditions
+            await MeridianFlip.Perform(tel, app.RaHours, app.DecDeg, ctx.Devices.Guider, ct, () => new CenterTarget().Run(ctx, ct));
         }
     }
 
@@ -627,7 +802,8 @@ namespace Sidralune.Devices.Automation
                 if (!it.Enabled) return;
                 foreach (var d in it.RequiredDevices)
                 {
-                    bool have = d == "camera" ? dm.Camera != null : d == "telescope" ? dm.Telescope != null : d == "focuser" ? dm.Focuser != null : d == "filter wheel" ? dm.FilterWheel != null : true;
+                    bool have = d == "camera" ? dm.Camera != null : d == "telescope" ? dm.Telescope != null : d == "focuser" ? dm.Focuser != null : d == "filter wheel" ? dm.FilterWheel != null
+                        : d == "switch" ? dm.Switch != null : d == "flat panel" ? dm.Cover != null : true;
                     if (!have && !missing.Contains(d)) missing.Add(d);
                 }
                 if (it.Children != null) foreach (var c in it.Children) walk(c);
@@ -640,7 +816,7 @@ namespace Sidralune.Devices.Automation
         public static string DescribeMissing(List<string> missing)
         {
             var named = missing.Select(d => d == "camera" ? Lang.T("a camera") : d == "telescope" ? Lang.T("a telescope") : d == "focuser" ? Lang.T("a focuser")
-                : d == "filter wheel" ? Lang.T("a filter wheel") : d).ToList();
+                : d == "filter wheel" ? Lang.T("a filter wheel") : d == "switch" ? Lang.T("a switch box") : d == "flat panel" ? Lang.T("a flat panel") : d).ToList();
             string list = named.Count == 1 ? named[0] : Lang.T("{0} and {1}", string.Join(", ", named.Take(named.Count - 1)), named[named.Count - 1]);
             return Lang.Tn("This sequence needs {0}. Connect it in Observatory → Equipment", "This sequence needs {0}. Connect them in Observatory → Equipment", named.Count, list);
         }
@@ -654,6 +830,9 @@ namespace Sidralune.Devices.Automation
             _cts = new CancellationTokenSource();
             Root.Reset();
             var ctx = new SequenceContext { Capture = capture, Triggers = Triggers, Log = s => { Core.Util.Log.Info("Sequencer", s); Log?.Invoke(s); Changed?.Invoke(); } };
+            ctx.Devices = capture.Devices;
+            // guiding when the sequence starts: its light frames keep it
+            ctx.GuidingWanted = GuidingPause.Guiding(ctx.Devices.Guider);
             ctx.Log("Sequence started");
             try { await Root.Run(ctx, _cts.Token); ctx.Log("Sequence finished"); }
             catch (OperationCanceledException) { ctx.Log("Sequence stopped"); }
@@ -665,7 +844,7 @@ namespace Sidralune.Devices.Automation
         public static readonly Type[] ItemTypes =
         {
             typeof(TargetContainer), typeof(LoopContainer), typeof(SequenceContainer), typeof(SlewToTarget), typeof(CenterTarget), typeof(StartGuiding), typeof(StopGuiding),
-            typeof(TakeExposures), typeof(RecordVideo), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(RunScript), typeof(Annotation)
+            typeof(TakeExposures), typeof(RecordVideo), typeof(RunAutofocus), typeof(SwitchFilter), typeof(CoolCamera), typeof(Wait), typeof(ParkTelescope), typeof(DomeShutter), typeof(SetSwitch), typeof(FlatPanel), typeof(RunScript), typeof(Annotation)
         };
 
         public static Dictionary<string, object> ToDict(SequenceItem item)

@@ -755,12 +755,19 @@ namespace Sidralune.UI
                 var p = Current;
                 int bw = Math.Max(SystemInformation.HorizontalScrollBarArrowWidth, (int)(17 * cb.DeviceDpi / 96.0)) + 2;
                 var btn = new Rectangle(sz.Width - bw - 1, 1, bw, sz.Height - 2);
+                if (!cb.Enabled)
+                {
+                    // disabled, Windows draws the box in its own light system colours: draw all of it in the palette
+                    using (var b = new SolidBrush(p.Surface)) g.FillRectangle(b, 0, 0, sz.Width, sz.Height);
+                    TextRenderer.DrawText(g, cb.Text, cb.Font, new Rectangle(4, 0, btn.Left - 6, sz.Height), p.TextFaint, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+                }
                 using (var b = new SolidBrush(cb.Enabled ? p.SurfaceRaised : p.Surface)) g.FillRectangle(b, btn);
                 DrawChevron(g, btn, false, cb.Enabled ? p.TextDim : p.TextFaint);
                 using (var pen = new Pen(cb.Enabled ? p.SurfaceRaised : p.Surface)) g.DrawRectangle(pen, 1, 1, sz.Width - 3, sz.Height - 3);
                 using (var pen = new Pen(BorderFor(cb))) g.DrawRectangle(pen, 0, 0, sz.Width - 1, sz.Height - 1);
             }, sz =>
             {
+                if (!cb.Enabled) return Whole(sz);
                 int bw = Math.Max(SystemInformation.HorizontalScrollBarArrowWidth, (int)(17 * cb.DeviceDpi / 96.0)) + 2;
                 var f = Frame(sz, 2); return new[] { f[0], f[1], f[2], f[3], new Rectangle(sz.Width - bw - 1, 1, bw, sz.Height - 2) };
             });
@@ -771,12 +778,26 @@ namespace Sidralune.UI
             HookBorder(n);
             foreach (Control child in n.Controls)
             {
-                if (child is TextBox) continue; // the edit part
+                if (child is TextBox)
+                {
+                    // the edit part: disabled, Windows draws its number in the system's grey text colour (grey on red at
+                    // night), so it is drawn in the palette's faint text colour instead
+                    var edit = child;
+                    new OverPainter(edit, (g, sz) =>
+                    {
+                        if (n.Enabled) return;
+                        var p = Current;
+                        using (var b = new SolidBrush(p.Surface)) g.FillRectangle(b, 0, 0, sz.Width, sz.Height);
+                        TextRenderer.DrawText(g, n.Text, n.Font, new Rectangle(1, 0, sz.Width - 1, sz.Height), p.TextFaint, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.NoPadding);
+                    }, sz => n.Enabled ? new Rectangle[0] : Whole(sz));
+                    n.EnabledChanged += (s, e) => edit.Invalidate();
+                    continue;
+                }
                 var buttons = child;
                 new OverPainter(buttons, (g, sz) =>
                 {
                     var p = Current;
-                    using (var b = new SolidBrush(p.SurfaceRaised)) g.FillRectangle(b, 0, 0, sz.Width, sz.Height);
+                    using (var b = new SolidBrush(n.Enabled ? p.SurfaceRaised : p.Surface)) g.FillRectangle(b, 0, 0, sz.Width, sz.Height);
                     using (var pen = new Pen(p.Border))
                     {
                         g.DrawLine(pen, 0, 0, 0, sz.Height);

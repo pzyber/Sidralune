@@ -31,7 +31,7 @@ The full manual is in the [wiki](https://github.com/pzyber/Sidralune/wiki/Home).
 | Area | Highlights |
 |---|---|
 | Planning | Tonight dashboard, planetarium and atlas charts, printable finder charts, comets and asteroids on every chart, 65 moons of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto, observing lists that rank targets by predicted visibility, logbook |
-| Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep and PHD2; a full simulated observatory; imaging, planetary video (SER) recording, autofocus, plate-solve centring, three-point polar alignment, dome and weather safety, sequencer with triggers and planetary video |
+| Observatory | ASCOM, ASCOM Alpaca, INDI, LX200/OnStep; equipment profiles (one per rig: its devices, optics and guider settings, connected with one click); a built-in autoguider (guide camera, calibration, multi-star guiding, Hysteresis, Resist Switch, Lowpass, Lowpass2, Z-filter and Predictive PEC, Dec backlash compensation, adaptive optics, rotator-aware calibration, subframes, dark library and bad-pixel map, auto exposure, Guiding and Calibration Assistants, the Star-Cross test, guide frames saved around a lost star, comet tracking, dithering, plate-solved guide frames (catalogue guide stars, lost stars found again, a calibration predicted and only confirmed), a guide log viewer with the spectrum of the periodic error (for PHD2's logs too), guiding RMS in every frame's header, guide logs, and a PHD2-compatible server so programs written for PHD2 can guide with it) or PHD2; a full simulated observatory; imaging, planetary video (SER) recording, autofocus, plate-solve centring, three-point, drift, static and polar drift alignment, dome and weather safety, sequencer with triggers, planetary video and drift correction for unguided imaging |
 | Deep-sky imaging | Calibration with masters, star registration, 12 pixel-combine methods, drizzle, comet stacking, mosaics |
 | Processing | Background extraction, stretches (auto, GHS, arcsinh, levels), deconvolution, wavelets, noise reduction, star removal and reduction, colour calibration, narrowband palettes, PixelMath, undo history; full colour management with ICC profiles (working profile, monitor profile, assign and convert, embedded profiles in FITS, XISF, TIFF, PNG and JPEG, soft-proofing and gamut warning) |
 | Planetary, lunar and solar | Video pre-processing (centring, cropping, frame rejection), stacking with alignment points, wavelet sharpening, deconvolution, field derotation for alt-az mounts, planetary rotation correction across several videos, solar and lunar tools, mosaic stitching |
@@ -53,7 +53,7 @@ You need:
 - .NET Framework 4.8.1. It is included with recent Windows 11 builds; otherwise install the runtime from Microsoft.
 - To build: the .NET Framework 4.8.1 Developer Pack and either Visual Studio (2015 or later) or MSBuild 14 or later. The unit tests need Visual Studio's MSTest framework, which comes with Visual Studio 2015 or later; without Visual Studio, build only the program (`msbuild Sidralune\Sidralune.csproj`).
 
-No other software is required. ASCOM, ASTAP, PHD2 and SDR software are optional and only needed for the features that use them.
+No other software is required; Sidralune guides by itself. ASCOM, ASTAP, PHD2 and SDR software are optional and only needed for the features that use them.
 
 To build in Visual Studio, open `Sidralune.sln` and build the solution. From a command prompt:
 
@@ -127,7 +127,7 @@ Without these files, Sidralune uses a built-in catalogue of 114 bright stars, 16
 | ASCOM Alpaca | Same as ASCOM, over the network | Found automatically by UDP discovery. |
 | INDI | Devices on a Raspberry Pi or any other INDI server | Connect to `host:7624`. |
 | LX200 / OnStep | Mounts over a serial port or Wi-Fi | For example `COM3:9600` or `192.168.0.1:9999`. |
-| PHD2 | Guiding | Through PHD2's event server on port 4400. |
+| PHD2 | Guiding, instead of the Sidralune guider | Through PHD2's event server on port 4400. |
 | Simulators | Every device type | For learning, testing sequences and demonstrations. |
 
 See [Observatory and devices](https://github.com/pzyber/Sidralune/wiki/Observatory-and-devices).
@@ -240,7 +240,7 @@ The tests need no network or equipment: devices are tested against the simulator
 | `Sidralune.Core` | Mathematics, time scales, coordinates, ephemerides, catalogues, minor bodies, satellites, visibility, utilities |
 | `Sidralune.Imaging` | Image model, file formats, debayering, analysis, processing, registration, stacking, planetary tools |
 | `Sidralune.Science` | Astrometry, photometry, spectroscopy, solar-system science, radio astronomy, online databases |
-| `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, PHD2, capture and automation |
+| `Sidralune.Devices` | Device interfaces, simulators, ASCOM, Alpaca, INDI, LX200, the Sidralune guider and PHD2, capture and automation |
 | `Sidralune.Tests` | Library tests (MSTest) |
 | `Sidralune.AppTests` | Application tests (MSTest) |
 | `Wiki` | The user manual |

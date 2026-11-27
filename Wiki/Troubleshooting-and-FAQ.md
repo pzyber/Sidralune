@@ -78,7 +78,7 @@ Use **Mirror** for a star diagonal and **Invert** for a Newtonian. See [Sky char
 ## Equipment
 
 **A button says "No telescope connected" (or camera, focuser, guider, dome).**
-That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (or click **Connect PHD2** for the guider), or click **Connect simulated observatory** to try the feature without hardware.
+That action needs the named device and none of that kind is connected. Connect it in **Observatory → Equipment** (for the guider: connect a guide camera, or click **Connect PHD2** on the Guiding tab), or click **Connect simulated observatory** to try the feature without hardware.
 
 **My ASCOM device is not in the list.**
 Install the ASCOM Platform and the driver, then click **ASCOM…** in the device's row to pick it in the ASCOM Chooser. If Sidralune says the platform is not installed, reinstall it from ascom-standards.org.
@@ -93,7 +93,52 @@ Make sure the Alpaca server is running, the computer is on the same network, and
 ASCOM, Alpaca and INDI transfer every frame whole. Choose a smaller **Region** (640 × 480 or 320 × 240 for planets), use 8-bit mode in the driver's **Setup…** if it offers one, and check the driver's USB speed setting. For the highest frame rates, record with the camera maker's software or SharpCap or FireCapture and open the SER file in Planetary.
 
 **PHD2 does not connect.**
-In PHD2, choose **Tools → Enable Server**. If you run several PHD2 instances, the first uses port 4400.
+In PHD2, choose **Tools → Enable Server**; the menu item has a tick when the server is on. If you run several PHD2 instances, the first uses port 4400. PHD2 needs no camera connected to answer.
+
+**Connect PHD2 is greyed out.**
+A guide camera is connected in Sidralune, and PHD2 needs the camera for itself. Disconnect the guide camera in **Observatory → Equipment**, then click **Connect PHD2**.
+
+**The guide camera cannot be connected: "PHD2 is connected".**
+While PHD2 is connected it uses the guide camera itself. Click **Disconnect PHD2** on the Guiding tab to guide with Sidralune.
+
+**Calibration fails: "the star did not move far enough".**
+The guide pulses do not reach the mount, or move it very slowly. Check the guide cable (when guiding through the guide camera's ST-4 port) or that the mount's driver accepts pulse guiding, and the mount's guide rate (0.5× sidereal is usual). A longer **Calibration step** helps with slow guide rates. If only Dec fails, Dec may not be connected or may have a lot of backlash.
+
+**The calibration shows a warning.**
+Read the warning in the Calibration panel. "Far from square" and "rates that do not fit the declination" usually mean backlash, wind or poor seeing during calibration: calibrate again, near the celestial equator. "Another speed than the guide rate and focal length predict" means the guide scope's focal length in the settings or the mount's guide rate is not what it should be.
+
+**Dec runs away after a meridian flip.**
+Your mount turns its Dec guide pulses round itself after a flip. Tick **Mount reverses Dec** under Calibration in the Guiding tab and calibrate again.
+
+**The guide star is lost.**
+Clouds, a tree or a big jump (a cable snag) can take the star out of its search area. The guider keeps looking in the same place and guides on when the star is back. With **Multi-star** on, guiding goes on with the other stars meanwhile. If it happens often, choose a brighter star, lengthen the exposure, or enlarge the **Search box radius**.
+
+**Frames are left out: "brightness jumped".**
+The guide star's brightness changed by more than the tolerance (passing cloud, a satellite, another star in the search area). Those frames are not used for corrections; after three in a row the new brightness counts. If it happens all the time in patchy cloud, raise the **Brightness tolerance** or turn the check off.
+
+**The dark library or bad-pixel map "doesn't fit the guide camera".**
+It was made with another camera, binning, gain or offset, or another frame size, and is not used. Build it again on the Darks page with the guide camera as you use it now.
+
+**Dec oscillates after turning on backlash compensation.**
+The compensation is too large for your mount: lower **Backlash** and **Backlash at most**, or run the Guiding Assistant's backlash test again. If it keeps oscillating, turn compensation off and guide Dec one way only (**Guide Dec**: North only or South only, against the drift).
+
+**The Guiding Assistant's Start measuring is greyed out.**
+It measures while guiding, so start guiding first, and wait until Start guiding has settled.
+
+**Predictive PEC does not improve guiding.**
+It needs two worm periods of training (the RA card says how far it has got) with a steady star. Check the **Worm period** against your mount's (its manual, or the period the RA card settles on). If guiding pauses or stops for longer than **Retain model**, or the mount slews, it starts training again. A mount with little or irregular periodic error gains little; Hysteresis may then do as well.
+
+**The AO keeps bumping the mount.**
+The mount's own drift is larger than the AO can hold: improve the polar alignment, check the mount's calibration (Calibrate & guide), or raise **Bump the mount at**. If bumps never bring the AO back to its middle, calibrate the AO again (Clear AO calibration, then Start guiding) and check the **Bump step**.
+
+**The PHD2-compatible server says the port is in use.**
+Another program listens on that port, usually PHD2 with its server enabled. Close PHD2 (or turn off its server), or choose another **Port** in Sidralune and in the program that connects.
+
+**An imaging program does not see Sidralune's guider.**
+Turn on the server in Observatory → Guiding → Settings → PHD2-compatible server and check that the card says **Listening on port 4400**. In the other program choose PHD2 as the guider, host localhost (or this computer's name with **Allow them to connect** on, and the Windows firewall allowing Sidralune), port 4400. A guide camera must be connected in Sidralune.
+
+**The comet drifts in the imaging camera while it is followed.**
+Check the rates: a comet's orbit in the comet list may be old (download the comet data again in Settings), and entered rates for RA must be motion on the sky, that is already multiplied by cos(Dec). Training for a few minutes gives rates that match what you see. Comet tracking needs a calibration, and stops when the mount slews.
 
 **Autofocus fails or gives a poor V-curve.**
 Use an exposure that shows at least 20 stars, start reasonably near focus, choose a step size that changes the HFR noticeably, and avoid nights with fast-changing seeing or thin cloud. Check the backlash setting of your focuser driver.

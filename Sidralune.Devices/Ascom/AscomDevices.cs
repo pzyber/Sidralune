@@ -20,7 +20,8 @@ namespace Sidralune.Devices.Ascom
             switch (k)
             {
                 case DeviceKind.Telescope: return "Telescope";
-                case DeviceKind.Camera: return "Camera";
+                case DeviceKind.Camera:
+                case DeviceKind.GuideCamera: return "Camera";
                 case DeviceKind.Focuser: return "Focuser";
                 case DeviceKind.FilterWheel: return "FilterWheel";
                 case DeviceKind.Dome: return "Dome";
@@ -83,7 +84,8 @@ namespace Sidralune.Devices.Ascom
             switch (info.Kind)
             {
                 case DeviceKind.Telescope: return new AscomTelescope(info);
-                case DeviceKind.Camera: return new AscomCamera(info);
+                case DeviceKind.Camera:
+                case DeviceKind.GuideCamera: return new AscomCamera(info);
                 case DeviceKind.Focuser: return new AscomFocuser(info);
                 case DeviceKind.FilterWheel: return new AscomFilterWheel(info);
                 case DeviceKind.Dome: return new AscomDome(info);
@@ -153,6 +155,9 @@ namespace Sidralune.Devices.Ascom
         public bool CanPark => Try(() => (bool)D.CanPark, false);
         public bool CanSync => Try(() => (bool)D.CanSync, false);
         public bool CanPulseGuide => Try(() => (bool)D.CanPulseGuide, false);
+        public bool IsPulseGuiding => Try(() => (bool)D.IsPulseGuiding, false);
+        public double GuideRateRa => Try(() => (double)D.GuideRateRightAscension, double.NaN);
+        public double GuideRateDec => Try(() => (double)D.GuideRateDeclination, double.NaN);
         public bool CanSlewAltAz => Try(() => (bool)D.CanSlewAltAzAsync, false);
         public double SiteLatitude => Try(() => (double)D.SiteLatitude, double.NaN);
         public double SiteLongitude => Try(() => (double)D.SiteLongitude, double.NaN);
@@ -223,13 +228,30 @@ namespace Sidralune.Devices.Ascom
         public double PercentCompleted => Try(() => (double)D.PercentCompleted, 0);
         public void StartExposure(double s, bool light) => D.StartExposure(s, light);
         public void AbortExposure() { try { D.AbortExposure(); } catch { D.StopExposure(); } }
+        public bool CanPulseGuide => Try(() => (bool)D.CanPulseGuide, false);
+        public bool IsPulseGuiding => Try(() => (bool)D.IsPulseGuiding, false);
+        public void PulseGuide(GuideDirection dir, int ms) => D.PulseGuide((int)dir, ms);
+
+        public override void Connect() { _fixed = null; base.Connect(); }
+
+        /// <summary>
+        /// Properties that do not change while connected, read once: each COM call costs time, and an unimplemented one
+        /// throws, which is slow. Reading them on every frame held up short guide-camera exposures.
+        /// </summary>
+        private class FixedProperties { public int MaxAdu; public BayerPattern Bayer; public double PixelX, PixelY; public bool HasGain, HasOffset; }
+        private FixedProperties _fixed;
+        private FixedProperties Fixed => _fixed ?? (_fixed = new FixedProperties
+        {
+            MaxAdu = Try(() => (int)D.MaxADU, 65535), Bayer = Bayer, PixelX = Try(() => (double)D.PixelSizeX, 0), PixelY = Try(() => (double)D.PixelSizeY, 0),
+            HasGain = HasGain, HasOffset = HasOffset
+        });
 
         public AstroImage GetImage()
         {
             object arr = D.ImageArray;
-            int maxAdu = Try(() => (int)D.MaxADU, 65535);
-            var img = ConvertArray(arr, maxAdu);
-            img.Bayer = Bayer;
+            var f = Fixed;
+            var img = ConvertArray(arr, f.MaxAdu);
+            img.Bayer = f.Bayer;
             img.ExposureSeconds = Try(() => (double)D.LastExposureDuration, 0);
             try
             {
@@ -239,11 +261,13 @@ namespace Sidralune.Devices.Ascom
             }
             catch { }
             img.Header.Set("INSTRUME", Info.Name);
-            img.Header.Set("XPIXSZ", PixelSizeX * BinX); img.Header.Set("YPIXSZ", PixelSizeY * BinY);
-            img.Header.Set("XBINNING", BinX); img.Header.Set("YBINNING", BinY);
-            if (!double.IsNaN(CcdTemperature)) img.Header.Set("CCD-TEMP", CcdTemperature);
-            if (HasGain) img.Header.Set("GAIN", Gain);
-            if (HasOffset) img.Header.Set("OFFSET", Offset);
+            int bx = Try(() => (int)D.BinX, 1), by = Try(() => (int)D.BinY, 1);
+            img.Header.Set("XPIXSZ", f.PixelX * bx); img.Header.Set("YPIXSZ", f.PixelY * by);
+            img.Header.Set("XBINNING", bx); img.Header.Set("YBINNING", by);
+            double t = CcdTemperature;
+            if (!double.IsNaN(t)) img.Header.Set("CCD-TEMP", t);
+            if (f.HasGain) img.Header.Set("GAIN", Gain);
+            if (f.HasOffset) img.Header.Set("OFFSET", Offset);
             return img;
         }
 
@@ -327,6 +351,7 @@ namespace Sidralune.Devices.Ascom
         public void SetSwitch(int i, bool on) => D.SetSwitch((short)i, on);
         public double GetValue(int i) => D.GetSwitchValue((short)i);
         public void SetValue(int i, double v) => D.SetSwitchValue((short)i, v);
+        public double GetMaxValue(int i) => Try(() => (double)D.MaxSwitchValue((short)i), 1);
     }
 
     public class AscomSafety : AscomBase, ISafetyMonitor
@@ -352,7 +377,9 @@ namespace Sidralune.Devices.Ascom
     public class AscomCover : AscomBase, ICoverCalibrator
     {
         public AscomCover(DeviceInfo i) : base(i) { }
-        public string CoverState => Try(() => ((int)D.CoverState).ToString(), "?");
+        private static readonly string[] CoverStates = { "NotPresent", "Closed", "Moving", "Open", "Unknown", "Error" };
+        /// <summary>ASCOM's CoverStatus as its name (Closed, Moving, Open…).</summary>
+        public string CoverState => Try(() => { int s = (int)D.CoverState; return s >= 0 && s < CoverStates.Length ? CoverStates[s] : s.ToString(); }, "?");
         public int Brightness => Try(() => (int)D.Brightness, 0);
         public int MaxBrightness => Try(() => (int)D.MaxBrightness, 0);
         public void OpenCover() => D.OpenCover();

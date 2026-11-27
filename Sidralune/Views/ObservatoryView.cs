@@ -20,14 +20,15 @@ using static Sidralune.Core.Util.Lang;
 
 namespace Sidralune.Views
 {
-    public class ObservatoryView : UserControl, ICommandSource
+    public partial class ObservatoryView : UserControl, ICommandSource
     {
         private readonly TabbedPanel _tabs = new TabbedPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
         private readonly CaptureService _capture = new CaptureService();
         private readonly Sequencer _sequencer = new Sequencer();
         private DeviceManager Dm => DeviceManager.Instance;
 
-        private static string Phd2Hint => T("Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2.");
+        private static string Phd2Hint => T("Start PHD2 and enable its server (Tools → Enable Server).");
+        private static string GuiderHint => T("Connect a guide camera in Observatory → Equipment, or click Connect PHD2.");
 
         // what is missing, as whole sentences (the words for the devices differ in form from language to language)
         private static string NoTelescope => T("No telescope connected.");
@@ -58,6 +59,7 @@ namespace Sidralune.Views
             {
                 case DeviceKind.Telescope: return T("Telescope");
                 case DeviceKind.Camera: return T("Camera");
+                case DeviceKind.GuideCamera: return T("Guide camera");
                 case DeviceKind.Focuser: return T("Focuser");
                 case DeviceKind.FilterWheel: return T("Filter wheel");
                 case DeviceKind.Rotator: return T("Rotator");
@@ -65,8 +67,9 @@ namespace Sidralune.Views
                 case DeviceKind.ObservingConditions: return T("Observing conditions");
                 case DeviceKind.SafetyMonitor: return T("Safety monitor");
                 case DeviceKind.Switch: return T("Switch");
-                case DeviceKind.CoverCalibrator: return T("Cover calibrator");
+                case DeviceKind.CoverCalibrator: return T("Flat panel"); // ASCOM calls it a cover calibrator
                 case DeviceKind.Guider: return T("Guider");
+                case DeviceKind.AdaptiveOptics: return T("AO");
                 default: return SplitWords(k.ToString());
             }
         }
@@ -84,6 +87,8 @@ namespace Sidralune.Views
             _tabs.AddPage(T("Polar alignment"), BuildPolar());
             _tabs.AddPage(T("Dome & weather"), BuildDome());
             _poll.Tick += (s, e) => { if (Visible) Poll?.Invoke(); };
+            // what is busy elsewhere can change without a job starting or ending (guiding started by another program)
+            Poll += Availability.Sync;
             _poll.Start();
         }
 
@@ -98,7 +103,8 @@ namespace Sidralune.Views
             for (int i = 0; i < 3; i++) table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
             var rowRefreshers = new List<Action>();
-            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator, DeviceKind.Guider };
+            var combos = new Dictionary<DeviceKind, ComboBox>();
+            var kinds = new[] { DeviceKind.Telescope, DeviceKind.Camera, DeviceKind.GuideCamera, DeviceKind.AdaptiveOptics, DeviceKind.Focuser, DeviceKind.FilterWheel, DeviceKind.Rotator, DeviceKind.Dome, DeviceKind.ObservingConditions, DeviceKind.SafetyMonitor, DeviceKind.Switch, DeviceKind.CoverCalibrator };
             foreach (var k in kinds)
             {
                 var kind = k;
@@ -107,6 +113,7 @@ namespace Sidralune.Views
                 var combo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill, Margin = new Padding(4, 6, 4, 4) };
                 foreach (var d in Dm.Discover(kind, false)) combo.Items.Add(d);
                 if (combo.Items.Count > 0) combo.SelectedIndex = 0;
+                combos[kind] = combo;
                 // sized for the longer label so switching between Connect and Disconnect never re-lays out the table
                 var connect = new FlatButton(T("Disconnect"), Icons.Connect) { Margin = new Padding(4, 4, 4, 4) }; connect.AutoSizeToText();
                 int connectWidth = connect.Width;
@@ -114,6 +121,8 @@ namespace Sidralune.Views
                 connectWidth = Math.Max(connectWidth, connect.Width);
                 var setup = new FlatButton(T("Setup…"), Icons.Settings) { Margin = new Padding(4, 4, 4, 4) }; setup.AutoSizeToText();
                 var choose = new FlatButton("ASCOM…", Icons.More) { Margin = new Padding(4, 4, 4, 4), ToolTipText = T("Open the ASCOM Chooser") }; choose.AutoSizeToText();
+                // ASCOM has no standard for AO units: SX AO over a serial port, INDI or the simulator
+                if (kind == DeviceKind.AdaptiveOptics) choose.Visible = false;
                 var status = new Label { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Tag = "dim" };
                 table.Controls.Add(new Label { Text = KindTitle(kind), AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(0, 0, 8, 0), Font = Theme.UiFontBold }, 0, r);
                 table.Controls.Add(combo, 1, r);
@@ -128,6 +137,9 @@ namespace Sidralune.Views
                     connect.Kind = dev != null && dev.Connected ? ButtonKind.Danger : ButtonKind.Normal;
                     connect.Width = connectWidth;
                     status.Text = dev != null ? (dev.Connected ? "● " + T("Connected: {0}", dev.Info.Name) : "○ " + T("Lost connection")) : T("Not connected");
+                    // PHD2 opens the guide camera itself while it is connected
+                    if (kind == DeviceKind.GuideCamera && Dm.Phd2Connected) status.Text = T("In use by PHD2");
+                    if (kind == DeviceKind.GuideCamera) connect.Enabled = combo.Enabled = !Dm.Phd2Connected;
                     status.ForeColor = dev != null && dev.Connected ? Theme.Current.Success : Theme.Current.TextDim;
                 };
                 // one connect or disconnect at a time per device: a second click while a driver is connecting would connect twice
@@ -139,7 +151,14 @@ namespace Sidralune.Views
                     if (dev != null && dev.Connected) { job.Run(T("Disconnecting {0}", dev.Info.Name), t => Dm.Disconnect(kind)); return; }
                     var info = combo.SelectedItem as DeviceInfo;
                     if (info == null) return;
-                    job.Run(T("Connecting {0}", info.Name), t => Dm.Connect(info), () => { refresh(); MainForm.Instance.Toast(T("Connected {0}", info.Name)); });
+                    job.Run(T("Connecting {0}", info.Name), t => Dm.Connect(info), () =>
+                    {
+                        refresh();
+                        MainForm.Instance.Toast(T("Connected {0}", info.Name));
+                        // the rig's device for this kind, connected again with Connect all
+                        var p = AppState.Profile;
+                        if (p != null) { p.Remember(info); AppState.Save(); Availability.Sync(); }
+                    });
                 };
                 setup.Click += (s, e) =>
                 {
@@ -163,7 +182,6 @@ namespace Sidralune.Views
                     }
                     catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); }
                 };
-                choose.Visible = kind != DeviceKind.Guider;
                 rowRefreshers.Add(refresh);
                 refresh();
             }
@@ -181,7 +199,22 @@ namespace Sidralune.Views
             Dm.DevicesChanged += (s, e) => { if (System.Threading.Interlocked.Exchange(ref refreshPending, 1) == 0) MainForm.Instance.Post(refreshAll); };
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46 };
             var equipment = new JobSlot(); // connecting the simulators, discovery and disconnecting all: one at a time
-            var sim = new FlatButton(T("Connect simulated observatory"), Icons.Observatory, (s, e) => equipment.Run(T("Connecting simulators"), t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast(T("Simulated observatory ready")))) { Kind = ButtonKind.Primary }; sim.AutoSizeToText();
+            var connectAll = new FlatButton(T("Connect all"), Icons.Connect, (s, e) =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                var devices = p.Devices.ToList();
+                List<string> failed = null;
+                equipment.Run(T("Connecting the equipment"), t => failed = Dm.ConnectAll(devices), () =>
+                {
+                    if (failed != null && failed.Count > 0) MainForm.Instance.Toast(T("Some devices could not connect: {0}", string.Join("; ", failed)), Icons.Warning, Theme.Current.Danger);
+                    else MainForm.Instance.Toast(T("The equipment is connected."));
+                });
+            }) { Kind = ButtonKind.Primary, ToolTipText = T("Connect the device remembered in each row for this profile") };
+            connectAll.AutoSizeToText();
+            // available while the profile remembers a device that is not connected
+            Availability.When(connectAll, () => { var p = AppState.Profile; return p != null && p.Devices.Any(d => d.Kind != DeviceKind.Guider && (Dm.Get(d.Kind) == null || !Dm.Get(d.Kind).Connected)); });
+            var sim = new FlatButton(T("Connect simulated observatory"), Icons.Observatory, (s, e) => equipment.Run(T("Connecting simulators"), t => Dm.ConnectSimulators(), () => MainForm.Instance.Toast(T("Simulated observatory ready")))); sim.AutoSizeToText();
             var alpaca = new FlatButton(T("Discover Alpaca devices"), Icons.Search, (s, e) => equipment.Run(T("Alpaca discovery"), t =>
             {
                 var servers = Devices.Alpaca.AlpacaDiscovery.FindServers(2000);
@@ -192,31 +225,173 @@ namespace Sidralune.Views
                     {
                         int row = table.GetRow(combo);
                         var kind = kinds[row];
-                        foreach (var d in found.Where(f => f.Kind == kind)) combo.Items.Add(d);
+                        // a guide camera is one of the servers' cameras, listed in both rows
+                        foreach (var d in found.Where(f => f.Kind == kind || (kind == DeviceKind.GuideCamera && f.Kind == DeviceKind.Camera)))
+                            combo.Items.Add(new DeviceInfo { Kind = kind, Protocol = d.Protocol, Name = d.Name, Address = d.Address, Description = d.Description });
                     }
                     MainForm.Instance.Toast(Tn("{0} Alpaca device found", "{0} Alpaca devices found", found.Count) + " " + Tn("on {0} server", "on {0} servers", servers.Count));
                 });
             })); alpaca.AutoSizeToText();
             var indi = new FlatButton(T("Add INDI server…"), Icons.Add, (s, e) => AddIndi(table, kinds)); indi.AutoSizeToText();
             var disc = new FlatButton(T("Disconnect all"), Icons.Stop, (s, e) => equipment.Run(T("Disconnecting all devices"), t => Dm.DisconnectAll())) { Kind = ButtonKind.Danger }; disc.AutoSizeToText();
-            bar.Controls.AddRange(new Control[] { sim, alpaca, indi, disc });
-            equipment.Guard(sim, alpaca);
+            bar.Controls.AddRange(new Control[] { connectAll, sim, alpaca, indi, disc });
+            equipment.Guard(connectAll, sim, alpaca);
             // Disconnect all needs something to disconnect, and waits for connecting, discovery or a disconnect running
             syncDisconnect = () => disc.Enabled = !equipment.Busy && Dm.All.Any();
             equipment.Changed += syncDisconnect;
             syncDisconnect();
-            var optics = new FormGrid(220);
-            var fl = optics.Row(T("Imaging focal length (mm)"), Ui.Num((decimal)Dm.FocalLengthMm, 10, 20000));
-            var ap = optics.Row(T("Aperture (mm)"), Ui.Num((decimal)Dm.ApertureMm, 10, 2000));
-            fl.ValueChanged += (s, e) => Dm.FocalLengthMm = (double)fl.Value;
-            ap.ValueChanged += (s, e) => Dm.ApertureMm = (double)ap.Value;
-            optics.Full(Ui.Hint(T("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi.")));
-            var card = new Card(T("Optics")) { Dock = DockStyle.Top, Height = 170 };
-            card.Controls.Add(optics);
-            panel.Controls.Add(card);
+            // each row shows the device the profile remembers for it
+            Action selectRemembered = () =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                foreach (var kv in combos)
+                {
+                    var r = p.DeviceFor(kv.Key);
+                    if (r == null) continue;
+                    var item = kv.Value.Items.OfType<DeviceInfo>().FirstOrDefault(d => d.Protocol == r.Protocol && d.Address == r.Address);
+                    if (item == null) { item = new DeviceInfo { Kind = kv.Key, Protocol = r.Protocol, Name = r.Name, Address = r.Address, Description = r.Description }; kv.Value.Items.Add(item); }
+                    kv.Value.SelectedItem = item;
+                }
+            };
+            selectRemembered();
+            AppState.ProfileChanged += (s, e) => MainForm.Instance.Post(selectRemembered);
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(Availability.Sync);
+            Control profileRow;
+            var opticsCard = BuildProfileCard(out profileRow);
+            panel.Controls.Add(opticsCard);
             panel.Controls.Add(table);
             panel.Controls.Add(bar);
+            panel.Controls.Add(profileRow);
             return panel;
+        }
+
+        /// <summary>
+        /// The equipment profile: the rig in use, its imaging telescope (from the planner's list) with any reducer or Barlow,
+        /// the camera the planner uses for it, and how the guide camera sees the sky. Another rig is chosen while nothing is
+        /// connected, since what is connected belongs to the rig in use; the rig's own details can change at any time.
+        /// </summary>
+        private Card BuildProfileCard(out Control profileRow)
+        {
+            // at the top of the tab: the rig in use decides what the rows below connect
+            var pick = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 260, Margin = new Padding(0, 8, 8, 0) };
+            var add = MakeButton(T("New…"), Icons.Add);
+            var rename = MakeButton(T("Rename…"), Icons.More);
+            var remove = MakeButton(T("Delete"), Icons.Remove); remove.Kind = ButtonKind.Danger;
+            var row = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 46, WrapContents = false };
+            row.Controls.Add(new Label { Text = T("Equipment profile"), AutoSize = true, Margin = new Padding(0, 11, 10, 0), Font = Theme.UiFontBold });
+            foreach (var b in new Control[] { add, rename, remove }) b.Margin = new Padding(0, 4, 6, 0);
+            row.Controls.AddRange(new Control[] { pick, add, rename, remove });
+            profileRow = row;
+            // at the bottom, where the optics were: the rig's telescope, camera and guiding, at a width that reads well
+            var grid = new FormGrid(220);
+            var scope = grid.Row(T("Telescope"), new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList });
+            var factor = grid.Row(T("Reducer or Barlow (×)"), Ui.Num(1, 0.2m, 5, 2, 0.05m));
+            var optics = Note(true); optics.MaximumSize = new Size(0, 0); grid.Full(optics);
+            var camera = grid.Row(T("Camera"), new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList });
+            var through = grid.Row(T("Guides through"), Ui.Combo(T("An off-axis guider"), T("A guide scope")));
+            var guideFocal = grid.Row(T("Guide scope focal length (mm)"), Ui.Num(240, 20, 5000));
+            grid.Full(Ui.Hint(T("A profile is a rig: the device connected in each row above, which Connect all connects again, the imaging telescope and camera from the lists in Settings → Equipment, and the guider's own settings and calibration. The site is chosen in Settings → Location.")));
+            grid.Full(Ui.Hint(T("ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi.")));
+
+            bool loading = false;
+            Action load = () =>
+            {
+                var s = AppState.Settings;
+                var p = AppState.Profile;
+                if (p == null) return;
+                loading = true;
+                try
+                {
+                    pick.Items.Clear();
+                    foreach (var q in s.Profiles) pick.Items.Add(AppState.NameOf(q));
+                    pick.SelectedIndex = Math.Max(0, Math.Min(s.ActiveProfile, pick.Items.Count - 1));
+                    var t = AppState.ProfileTelescope;
+                    scope.Items.Clear();
+                    foreach (var x in s.Telescopes) scope.Items.Add(x.Name);
+                    scope.SelectedIndex = s.Telescopes.IndexOf(t);
+                    camera.Items.Clear();
+                    foreach (var x in s.Cameras) camera.Items.Add(x.Name);
+                    camera.SelectedIndex = s.Cameras.IndexOf(AppState.ProfileCamera);
+                    factor.Value = Math.Max(factor.Minimum, Math.Min(factor.Maximum, (decimal)(p.FocalFactor > 0 ? p.FocalFactor : 1)));
+                    through.SelectedIndex = p.Guiding == GuideOptics.OffAxisGuider ? 0 : 1;
+                    guideFocal.Value = Math.Max(guideFocal.Minimum, Math.Min(guideFocal.Maximum, (decimal)p.GuideFocalLengthMm));
+                    ShowRow(grid, guideFocal, p.Guiding == GuideOptics.GuideScope);
+                    double fl = p.ImagingFocalLength(t.FocalMm);
+                    optics.Text = T("Focal length {0:0} mm, aperture {1:0} mm, f/{2:0.0}", fl, t.ApertureMm, t.ApertureMm > 0 ? fl / t.ApertureMm : 0);
+                }
+                finally { loading = false; }
+            };
+            // the rig's details are read where they are used: each change reaches the observatory and the guider at once
+            Action<Action<EquipmentProfile>> change = set =>
+            {
+                var p = AppState.Profile;
+                if (loading || p == null) return;
+                set(p);
+                AppState.Save();
+                AppState.ApplyProfile();
+            };
+            scope.SelectedIndexChanged += (s, e) => { if (scope.SelectedIndex >= 0) change(p => p.Telescope = AppState.Settings.Telescopes[scope.SelectedIndex].Name); };
+            camera.SelectedIndexChanged += (s, e) => { if (camera.SelectedIndex >= 0) change(p => p.Camera = AppState.Settings.Cameras[camera.SelectedIndex].Name); };
+            factor.ValueChanged += (s, e) => change(p => p.FocalFactor = (double)factor.Value);
+            through.SelectedIndexChanged += (s, e) => change(p => p.Guiding = through.SelectedIndex == 0 ? GuideOptics.OffAxisGuider : GuideOptics.GuideScope);
+            guideFocal.ValueChanged += (s, e) => change(p => p.GuideFocalLengthMm = (double)guideFocal.Value);
+            pick.SelectedIndexChanged += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                if (loading || pick.SelectedIndex < 0 || pick.SelectedIndex == s0.ActiveProfile) return;
+                s0.ActiveProfile = pick.SelectedIndex;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            add.Click += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                var p = AppState.Profile;
+                var name = PlannerView.Prompt(T("New profile"), T("Name"), AppState.NameOf(p) + " 2");
+                if (string.IsNullOrWhiteSpace(name) || p == null) return;
+                // the new rig starts with a copy of this one's guider settings, in a file of its own
+                var file = EquipmentProfile.NewGuiderFile(s0.Profiles);
+                try
+                {
+                    var from = System.IO.Path.Combine(Core.Util.AppPaths.Settings, p.GuiderFile);
+                    if (System.IO.File.Exists(from)) System.IO.File.Copy(from, System.IO.Path.Combine(Core.Util.AppPaths.Settings, file), true);
+                }
+                catch (Exception ex) { Core.Util.Log.Warn("Settings", ex.Message); }
+                s0.Profiles.Add(p.Copy(name.Trim(), file));
+                s0.ActiveProfile = s0.Profiles.Count - 1;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            rename.Click += (s, e) =>
+            {
+                var p = AppState.Profile;
+                if (p == null) return;
+                var name = PlannerView.Prompt(T("Rename profile"), T("Name"), AppState.NameOf(p));
+                if (string.IsNullOrWhiteSpace(name)) return;
+                p.Name = name.Trim();
+                AppState.Save();
+                load();
+            };
+            remove.Click += (s, e) =>
+            {
+                var s0 = AppState.Settings;
+                if (s0.Profiles.Count < 2) return;
+                s0.Profiles.RemoveAt(Math.Max(0, Math.Min(s0.ActiveProfile, s0.Profiles.Count - 1)));
+                s0.ActiveProfile = 0;
+                AppState.Save();
+                AppState.ApplyProfile(true);
+            };
+            // another rig only while nothing is connected (what is connected is this rig's), and the last one stays
+            foreach (var c in new Control[] { pick, add }) Availability.When(c, () => !Dm.All.Any());
+            Availability.When(remove, () => !Dm.All.Any() && AppState.Settings.Profiles.Count > 1);
+            AppState.ProfileChanged += (s, e) => MainForm.Instance.Post(load);
+            load();
+            var card = new Card(T("Optics")) { Dock = DockStyle.Top, Height = 360 };
+            var holder = new Panel { Dock = DockStyle.Left, Width = 760 };
+            holder.Controls.Add(grid);
+            card.Controls.Add(holder);
+            return card;
         }
 
         private void AddIndi(TableLayoutPanel table, DeviceKind[] kinds)
@@ -239,10 +414,12 @@ namespace Sidralune.Views
                         bool isScope = props.Any(p => p.Device == d && p.Name == "EQUATORIAL_EOD_COORD");
                         bool isCam = props.Any(p => p.Device == d && p.Name == "CCD_EXPOSURE");
                         bool isFoc = props.Any(p => p.Device == d && p.Name == "ABS_FOCUS_POSITION");
+                        bool isAo = props.Any(p => p.Device == d && p.Name == "AO_NS");
                         foreach (var combo in table.Controls.OfType<ComboBox>())
                         {
                             var kind = kinds[table.GetRow(combo)];
-                            if ((kind == DeviceKind.Telescope && isScope) || (kind == DeviceKind.Camera && isCam) || (kind == DeviceKind.Focuser && isFoc))
+                            if ((kind == DeviceKind.Telescope && isScope) || ((kind == DeviceKind.Camera || kind == DeviceKind.GuideCamera) && isCam) || (kind == DeviceKind.Focuser && isFoc)
+                                || (kind == DeviceKind.AdaptiveOptics && isAo))
                                 combo.Items.Add(new DeviceInfo { Kind = kind, Protocol = DeviceProtocol.Indi, Name = d + " (INDI)", Address = host + "/" + d });
                         }
                     }
@@ -263,10 +440,8 @@ namespace Sidralune.Views
         private bool SequenceActive => (_sequenceTask != null && !_sequenceTask.Done) || _sequencer.Running;
         private BackgroundTask _cameraJob;
         private string _cameraJobName;
-        // buttons that start camera work; true marks Imaging's Start/Loop, which may replace a running manual capture
-        private readonly List<Tuple<Control, bool>> _cameraButtons = new List<Tuple<Control, bool>>();
-        // buttons that may take over the camera from a live view (Record): the live view stops and they start
-        private readonly HashSet<Control> _replacesLiveView = new HashSet<Control>();
+        // the camera job also moves the mount (centring, three-point polar alignment)
+        private bool _cameraJobMovesMount;
         // the sequencer's Template, Open and Save, which wait while a sequence runs
         private readonly List<Control> _sequenceFileButtons = new List<Control>();
         // the camera tabs' Stop buttons (enabled while something uses the camera) and the sequencer's (while a sequence runs)
@@ -275,29 +450,54 @@ namespace Sidralune.Views
         private static string LiveViewJob => T("Live view");
         private bool LiveViewRunning => _cameraJob != null && !_cameraJob.Done && _cameraJobName == LiveViewJob;
         private Label _busyNote;
+        // the guider's assistants (the Star-Cross test, the Calibration and Guiding Assistants): the one running, and how to
+        // stop it. They move the mount or stop correcting it, so camera work waits for them
+        private Func<string> _assistantRunning;
+        private Action _assistantStop;
 
         /// <summary>
-        /// What is using the camera, or null when it is free. Start and Loop replace each other's capture (ignoreManual), and
-        /// Record takes over from a live view (ignoreLiveView).
+        /// What is using the camera, or null when it is free. The note under the camera controls leaves out Imaging's own
+        /// capture (ignoreManual), and Record takes over from a live view (ignoreLiveView).
         /// </summary>
         private string CameraBusyReason(bool ignoreManual = false, bool ignoreLiveView = false)
         {
             if (SequenceActive) return T("A sequence is running and using the camera");
             if (_cameraJob != null && !_cameraJob.Done && !(ignoreLiveView && LiveViewRunning)) return T("{0} is running and using the camera", _cameraJobName);
+            var assistant = _assistantRunning?.Invoke();
+            if (assistant != null) return T("{0} is running", assistant);
             if (!ignoreManual && ManualCapturing) return T("A capture or preview loop is running in Imaging");
             return null;
         }
 
+        /// <summary>How the frame was guided, as a line of its own under the frame's numbers; empty for an unguided frame.</summary>
+        private static string GuidingLine(Sidralune.Devices.Guiding.GuidingStats g)
+        {
+            if (g == null) return "";
+            var parts = new List<string>();
+            if (!double.IsNaN(g.RmsTotal)) parts.Add(T("Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″", g.RmsTotal, g.RmsRa, g.RmsDec, g.Peak));
+            if (g.Interrupted) parts.Add(parts.Count == 0 ? T("Guiding was interrupted") : T("interrupted"));
+            if (g.Bad) parts.Add(T("flagged"));
+            return "\r\n" + string.Join(" · ", parts);
+        }
+
         /// <summary>
         /// What Stop does on both camera tabs: end whatever uses the camera, as the note under the camera controls says
-        /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment or a sequence).
+        /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment, a sequence, or one of
+        /// the guider's assistants).
         /// </summary>
         private void StopCameraWork()
         {
             _captureCts?.Cancel();
             _cameraJob?.Cts.Cancel();
             _sequencer.Stop();
+            _assistantStop?.Invoke();
         }
+
+        /// <summary>
+        /// A button that starts camera work: greyed out while the camera is busy with something else. Record stays
+        /// available during a live view, which it takes over.
+        /// </summary>
+        private void CameraButton(Control c, bool takesOverLiveView = false) => Availability.When(c, () => CameraBusyReason(false, takesOverLiveView) == null);
 
         private bool CanUseCamera(bool ignoreManual = false, bool ignoreLiveView = false)
         {
@@ -307,16 +507,17 @@ namespace Sidralune.Views
         }
 
         /// <summary>Start camera work other than Imaging's own capture: autofocus, centring, polar alignment.</summary>
-        private void RunCameraJob(string name, Action<BackgroundTask> work, Action onDone = null)
+        private void RunCameraJob(string name, Action<BackgroundTask> work, Action onDone = null, bool movesMount = false)
         {
             _cameraJobName = name;
+            _cameraJobMovesMount = movesMount;
             _cameraJob = Tasks.Run(name, work, onDone);
             SyncCameraButtons();
         }
 
         private void SyncCameraButtons()
         {
-            foreach (var b in _cameraButtons) b.Item1.Enabled = CameraBusyReason(b.Item2, _replacesLiveView.Contains(b.Item1)) == null;
+            Availability.Sync();
             foreach (var b in _sequenceFileButtons) b.Enabled = !SequenceActive;
             foreach (var b in _cameraStops) b.Enabled = CameraBusyReason() != null;
             if (_sequenceStop != null) _sequenceStop.Enabled = SequenceActive;
@@ -463,7 +664,7 @@ namespace Sidralune.Views
                     MainForm.Instance.Post(() => { if (_cameraJob == t) vidStatus.Text = T("Live view stopped"); }); // unless Record took over
                 });
             };
-            _cameraButtons.Add(Tuple.Create((Control)live, false));
+            CameraButton(live);
             rec.Click += (s, e) =>
             {
                 if (!Have(Dm.Camera, NoCamera) || !CanUseCamera(false, true)) return;
@@ -505,8 +706,7 @@ namespace Sidralune.Views
                         T("Saved {0}", System.IO.Path.GetFileName(r.Path));
                 });
             };
-            _cameraButtons.Add(Tuple.Create((Control)rec, false));
-            _replacesLiveView.Add(rec);
+            CameraButton(rec, true);
             openPl.Click += (s, e) =>
             {
                 if (lastVideo == null) return;
@@ -521,8 +721,7 @@ namespace Sidralune.Views
             Action<bool> run = previewLoop =>
             {
                 if (!Have(Dm.Camera, NoCamera)) return;
-                if (!CanUseCamera(true)) return;
-                var previous = ManualCapturing ? _manualTask : null; // switching between Loop and Start: let its exposure end first
+                if (!CanUseCamera()) return;
                 _captureCts?.Cancel();
                 _captureCts = new CancellationTokenSource();
                 var ct = _captureCts.Token;
@@ -537,7 +736,6 @@ namespace Sidralune.Views
                 int n = previewLoop ? int.MaxValue : (int)count.Value;
                 _manualTask = Tasks.Run(previewLoop ? T("Preview loop") : Tn("Capturing {0} frame", "Capturing {0} frames", n), t =>
                 {
-                    while (previous != null && !previous.Done && !ct.IsCancellationRequested) Thread.Sleep(50);
                     for (int i = 0; i < n && !ct.IsCancellationRequested; i++)
                     {
                         Tasks.Report(t, previewLoop ? double.NaN : (double)i / n, (i + 1) + "/" + (previewLoop ? "∞" : n.ToString()));
@@ -547,8 +745,9 @@ namespace Sidralune.Views
             };
             start.Click += (s, e) => run(false);
             loop.Click += (s, e) => run(true);
-            _cameraButtons.Add(Tuple.Create((Control)start, true));
-            _cameraButtons.Add(Tuple.Create((Control)loop, true));
+            // greyed out while the camera is busy, a capture or preview loop of their own included: Stop first
+            CameraButton(start);
+            CameraButton(loop);
             // every frame the camera delivers (manual, sequence, autofocus) is shown here
             _capture.ImageCaptured += res =>
             {
@@ -557,7 +756,7 @@ namespace Sidralune.Views
                 {
                     _viewer.SetImage(res.Image, _viewer.Image == null);
                     camStatus.Text = (fromSequence ? T("Sequence") + " · " : "") + T("{0} stars · HFR {1:0.00} px · FWHM {2:0.00} px · median {3:0}", res.Stars, res.Hfr, res.Fwhm, res.Median * 65535) +
-                        (res.Path != null ? "\r\n" + T("Saved {0}", System.IO.Path.GetFileName(res.Path)) : "");
+                        GuidingLine(res.Guiding) + (res.Path != null ? "\r\n" + T("Saved {0}", System.IO.Path.GetFileName(res.Path)) : "");
                 });
             };
             Tasks.Changed += SyncCameraButtons;
@@ -597,7 +796,9 @@ namespace Sidralune.Views
             var mb = new FlowLayoutPanel { Height = 76 };
             Func<string, string, Action, FlatButton> mbtn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning, Theme.Current.Danger); } }); b.AutoSizeToText(); mb.Controls.Add(b); return b; };
             mbtn(T("Slew"), Icons.Target, () => GotoObject(gotoBox.Text, false));
-            _cameraButtons.Add(Tuple.Create((Control)mbtn(T("Center"), Icons.Solve, () => GotoObject(gotoBox.Text, true)), false)); // plate solves
+            var centre = mbtn(T("Center"), Icons.Solve, () => GotoObject(gotoBox.Text, true));
+            CameraButton(centre); // plate solves
+            Availability.When(centre, () => PolarBusyReason() == null);
             mbtn(T("Park"), Icons.Lock, () => { var tel = Need(Dm.Telescope, NoTelescope); Tasks.Run(T("Parking"), t => tel.Park()); });
             mbtn(T("Unpark"), Icons.Play, () => Need(Dm.Telescope, NoTelescope).Unpark());
             var track = new FlatButton(T("Tracking"), Icons.Clock) { Toggle = true, Checked = true }; track.AutoSizeToText();
@@ -656,10 +857,10 @@ namespace Sidralune.Views
             if (center)
             {
                 Need(Dm.Camera, NoCamera); // centring plate-solves its own frames
-                if (!CanUseCamera()) return;
+                if (!CanUseCamera() || !PolarFree()) return;
                 var c = new Centering { Capture = _capture };
                 c.Status += s => MainForm.Instance.SetStatus(s);
-                RunCameraJob(T("Centering {0}", q), t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast(T("Centered on {0}", q)));
+                RunCameraJob(T("Centering {0}", q), t => c.Center(raDeg, decDeg, t.Cts.Token).GetAwaiter().GetResult(), () => MainForm.Instance.Toast(T("Centered on {0}", q)), movesMount: true);
             }
             else
             {
@@ -709,7 +910,7 @@ namespace Sidralune.Views
                 });
             };
             g.Full(af);
-            _cameraButtons.Add(Tuple.Create((Control)af, false));
+            CameraButton(af);
             g.Full(plot);
             Poll += () => { var f = Dm.Focuser; pos.Text = f != null && f.Connected ? f.Position + (f.IsMoving ? " " + T("(moving)") : "") + "  " + (double.IsNaN(f.Temperature) ? "" : f.Temperature.ToString("0.0") + " °C") : T("No focuser"); };
             return g;
@@ -717,58 +918,45 @@ namespace Sidralune.Views
 
         // ================================================================== guiding
 
-        private Control BuildGuiding()
+        /// <summary>A guider's state in words; PHD2's and the Sidralune guider's states use the same names.</summary>
+        internal static string GuiderStateText(string state)
         {
-            var panel = new Panel { Dock = DockStyle.Fill };
-            var plot = new PlotControl { Dock = DockStyle.Fill, Title = T("Guiding error"), YLabel = T("arcsec"), XLabel = T("step") };
-            var ra = plot.AddSeries(T("RA")); var dec = plot.AddSeries(T("Dec"));
-            var stats = new Label { Dock = DockStyle.Top, Height = 28, Font = Theme.UiFontBold };
-            var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
-            Func<string, string, Action, FlatButton> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); return b; };
-            btn(T("Connect PHD2"), Icons.Connect, () => Tasks.Run(T("Connect PHD2"), t => Dm.Connect(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "localhost:4400" }),
-                () => MainForm.Instance.Toast(T("Connected to PHD2")),
-                ex => MainForm.Instance.Toast(T("Could not reach PHD2 on localhost:4400.") + " " + Phd2Hint, Icons.Warning, Theme.Current.Danger)));
-            Func<IGuider> guider = () => Need(Dm.Guider, NoGuider, Phd2Hint);
-            BackgroundTask guideTask = null;
-            btn(T("Start guiding"), Icons.Play, () => { var g = guider(); guideTask = Tasks.Run(T("Start guiding"), t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); }).Kind = ButtonKind.Primary;
-            btn(T("Calibrate & guide"), Icons.Target, () => { var g = guider(); guideTask = Tasks.Run(T("Calibrate"), t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
-            btn(T("Dither"), Icons.Grid, () => { var g = guider(); guideTask = Tasks.Run(T("Dither"), t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
-            var guideStop = btn(T("Stop"), Icons.Stop, () => guider().StopGuiding());
-            guideStop.Kind = ButtonKind.Danger;
-            // Stop is available while the guider is doing something (PHD2 is idle in "Stopped" and "Selected") or a guiding command runs
-            Action syncGuideStop = () =>
+            switch (state)
             {
-                var gd = Dm.Guider;
-                bool on = guideTask != null && !guideTask.Done;
-                try { on |= gd != null && gd.Connected && !string.IsNullOrEmpty(gd.State) && gd.State != "Stopped" && gd.State != "Selected"; } catch { }
-                guideStop.Enabled = on;
-            };
-            Tasks.Changed += syncGuideStop;
-            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(syncGuideStop);
-            syncGuideStop();
-            btn(T("Clear graph"), Icons.Remove, () => { ra.X.Clear(); ra.Y.Clear(); dec.X.Clear(); dec.Y.Clear(); plot.Invalidate(); });
-            int n = 0;
-            IGuider hooked = null;
-            Poll += () =>
+                case "Stopped": return T("Stopped");
+                case "Looping": return T("Looping");
+                case "Selected": return T("Star selected");
+                case "Calibrating": return T("Calibrating");
+                case "Guiding": return T("Guiding");
+                case "Paused": return T("Paused");
+                case "LostLock": return T("Star lost");
+                default: return state ?? "";
+            }
+        }
+
+        /// <summary>What a calibration found, in words: its directions and rates, when it was made, and what looked wrong.</summary>
+        internal static string CalibrationText(GuideCalibration c)
+        {
+            if (c == null) return T("Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment.");
+            var lines = new List<string>
             {
-                syncGuideStop();
-                var g = Dm.Guider;
-                if (g != hooked && g != null)
-                {
-                    hooked = g;
-                    g.Step += s => MainForm.Instance.Post(() =>
-                    {
-                        ra.Add(n, s.RaArcsec); dec.Add(n, s.DecArcsec); n++;
-                        if (ra.X.Count > 400) { ra.X.RemoveAt(0); ra.Y.RemoveAt(0); dec.X.RemoveAt(0); dec.Y.RemoveAt(0); }
-                        plot.Invalidate();
-                    });
-                }
-                stats.Text = g == null ? T("No guider connected — start PHD2 and enable its server (Tools → Enable Server)") : T("{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\"", g.State, g.RmsRaArcsec, g.RmsDecArcsec, g.RmsTotalArcsec);
+                T("Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square.", c.When.ToLocalTime(), c.RaAngleDeg, c.RaRatePxPerSec, c.DecAngleDeg, c.DecRatePxPerSec, c.OrthogonalityErrorDeg)
             };
-            panel.Controls.Add(plot);
-            panel.Controls.Add(stats);
-            panel.Controls.Add(bar);
-            return panel;
+            if (c.Predicted) lines.Add(T("Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."));
+            string axis = c.PredictionMiss == GuideCalibration.MissDecDirection || c.PredictionMiss == GuideCalibration.MissDecSpeed ? "Dec" : "RA";
+            if (c.PredictionMiss == GuideCalibration.MissRaDirection || c.PredictionMiss == GuideCalibration.MissDecDirection)
+                lines.Add(T("The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction.", axis, c.PredictionMissBy));
+            else if (c.PredictionMiss != null)
+                lines.Add(T("The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates.", axis, c.PredictionMissBy));
+            foreach (var issue in c.Issues)
+            {
+                if (issue == GuideCalibration.IssueOrthogonality) lines.Add("⚠ " + T("RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."));
+                if (issue == GuideCalibration.IssueRateRatio) lines.Add("⚠ " + T("RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."));
+                if (issue == GuideCalibration.IssueFewSteps) lines.Add("⚠ " + T("Few calibration steps. A shorter calibration step makes the calibration more accurate."));
+                if (issue == GuideCalibration.IssuePrediction) lines.Add("⚠ " + T("The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."));
+                if (issue == GuideCalibration.IssueNearPole) lines.Add("⚠ " + T("Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."));
+            }
+            return string.Join(Environment.NewLine, lines);
         }
 
         // ================================================================== sequencer
@@ -825,14 +1013,15 @@ namespace Sidralune.Views
             var run = new FlatButton(T("Run sequence"), Icons.Play) { Kind = ButtonKind.Primary }; run.AutoSizeToText();
             run.Click += (s, e) =>
             {
-                if (SequenceActive || !CanUseCamera()) return;
+                if (SequenceActive || !CanUseCamera() || !PolarFree()) return;
                 var missing = _sequencer.MissingDevices();
                 if (missing.Count > 0) { MainForm.Instance.Toast(Sequencer.DescribeMissing(missing) + T(", or click Connect simulated observatory."), Icons.Warning); return; }
                 _capture.ImageFolder = AppState.Settings.ImageFolder;
                 _sequenceTask = Tasks.Run(T("Sequence"), t => { using (t.Cts.Token.Register(_sequencer.Stop)) _sequencer.Start(_capture).GetAwaiter().GetResult(); });
             };
             bar.Controls.Add(run);
-            _cameraButtons.Add(Tuple.Create((Control)run, false));
+            CameraButton(run);
+            Availability.When(run, () => PolarBusyReason() == null);
             // the running sequence can still be edited, but not replaced or saved half done
             _sequenceFileButtons.AddRange(new Control[] { template, openSeq, saveSeq });
             var seqStop = btn(T("Stop"), Icons.Stop, () => _sequencer.Stop());
@@ -918,35 +1107,6 @@ namespace Sidralune.Views
             if (parent.Move(it, dir)) RefreshTree();
         }
 
-        // ================================================================== polar alignment
-
-        private Control BuildPolar()
-        {
-            var card = new Card(T("Three-point polar alignment")) { Dock = DockStyle.Fill };
-            var g = new FormGrid(160);
-            var step = g.Row(T("RA step (°)"), Ui.Num(25, 5, 60));
-            var exp = g.Row(T("Exposure (s)"), Ui.Num(4, 0, 60, 1));
-            var res = new Label { Height = 120, Font = Theme.HeaderFont, AutoSize = false };
-            var go = new FlatButton(T("Start polar alignment"), Icons.Target) { Kind = ButtonKind.Primary }; go.AutoSizeToText();
-            go.Click += (s, e) =>
-            {
-                if (!Have(Dm.Telescope, NoTelescope) || !Have(Dm.Camera, NoCamera) || !CanUseCamera()) return;
-                var pa = new PolarAlignment { Capture = _capture, StepDeg = (double)step.Value, Exposure = (double)exp.Value };
-                pa.Status += st => MainForm.Instance.SetStatus(st);
-                RunCameraJob(T("Polar alignment"), t =>
-                {
-                    var r = pa.Run(t.Cts.Token).GetAwaiter().GetResult();
-                    MainForm.Instance.Post(() => res.Text = T("Altitude error {0:+0.0;-0.0}'   Azimuth error {1:+0.0;-0.0}'", r.AltErrorArcmin, r.AzErrorArcmin) + "\r\n" + T("Total {0:0.0}'", r.TotalErrorArcmin) + "\r\n" + r.Advice);
-                });
-            };
-            g.Full(Ui.Hint(T("Point the mount near the celestial equator/meridian with clear sky to the west or east. Sidralune rotates the RA axis three times, plate-solves each frame, finds the mount's rotation axis and reports how far it is from the refracted celestial pole. Works without a view of Polaris.")));
-            g.Full(go);
-            _cameraButtons.Add(Tuple.Create((Control)go, false));
-            g.Full(res);
-            card.Controls.Add(g);
-            return card;
-        }
-
         // ================================================================== dome & weather
 
         private Control BuildDome()
@@ -959,11 +1119,12 @@ namespace Sidralune.Views
             var az = dg.Row(T("Azimuth"), Ui.Num(0, 0, 360, 1));
             var bar = new FlowLayoutPanel { Height = 80 };
             Action<string, string, Action> btn = (t, i, a) => { var b = new FlatButton(t, i, (s, e) => { try { a(); } catch (Exception ex) { MainForm.Instance.Toast(ex.Message, Icons.Warning); } }); b.AutoSizeToText(); bar.Controls.Add(b); };
+            var slave = new FlatButton(T("Follow telescope"), Icons.Refresh) { Toggle = true }; slave.AutoSizeToText();
             btn(T("Open"), Icons.Up, () => Need(Dm.Dome, NoDome).OpenShutter());
             btn(T("Close"), Icons.Down, () => Need(Dm.Dome, NoDome).CloseShutter());
-            btn(T("Slew"), Icons.Target, () => Need(Dm.Dome, NoDome).SlewToAzimuth((double)az.Value));
-            btn(T("Park"), Icons.Lock, () => Need(Dm.Dome, NoDome).Park());
-            var slave = new FlatButton(T("Follow telescope"), Icons.Refresh) { Toggle = true }; slave.AutoSizeToText();
+            // moving the dome by hand ends following the telescope, which would turn it straight back
+            btn(T("Slew"), Icons.Target, () => { var d = Need(Dm.Dome, NoDome); slave.Checked = false; d.SlewToAzimuth((double)az.Value); });
+            btn(T("Park"), Icons.Lock, () => { var d = Need(Dm.Dome, NoDome); slave.Checked = false; d.Park(); });
             bar.Controls.Add(slave);
             dg.Full(bar);
             dome.Controls.Add(dg);
@@ -982,9 +1143,115 @@ namespace Sidralune.Views
                     + "\r\n" + T("Safety: {0}", s == null ? T("no monitor") : s.IsSafe ? T("SAFE") : T("UNSAFE"));
                 wl.ForeColor = s != null && !s.IsSafe ? Theme.Current.Danger : Theme.Current.Text;
             };
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 50)); panel.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
             panel.Controls.Add(dome, 0, 0);
             panel.Controls.Add(weather, 1, 0);
+            panel.Controls.Add(BuildSwitches(), 0, 1);
+            panel.Controls.Add(BuildFlatPanel(), 1, 1);
             return panel;
+        }
+
+        /// <summary>The switch box's switches: on/off ones as tick boxes, ones with levels as numbers; built again when it changes.</summary>
+        private Control BuildSwitches()
+        {
+            var card = new Card(T("Switches")) { Dock = DockStyle.Fill };
+            var g = new FormGrid(160) { AutoScroll = true };
+            var none = new Label { Text = T("No switch box connected."), AutoSize = true, Tag = "dim" };
+            card.Controls.Add(g);
+            ISwitchDevice shown = null;
+            var editors = new List<Tuple<int, Control, double>>();
+            bool loading = false;
+            Action build = () =>
+            {
+                var sw = Dm.Switch;
+                if (sw == shown && g.Controls.Count > 0) return;
+                shown = sw;
+                editors.Clear();
+                g.SuspendLayout();
+                g.Controls.Clear(); g.RowStyles.Clear(); g.RowCount = 0;
+                if (sw == null) { g.Full(none); g.ResumeLayout(); return; }
+                int n = 0;
+                try { n = sw.Count; } catch { }
+                for (int k = 0; k < n; k++)
+                {
+                    int i = k;
+                    string name; double max;
+                    try { name = sw.GetName(i); max = sw.GetMaxValue(i); } catch { continue; }
+                    if (max <= 1)
+                    {
+                        var cb = g.Row(name, new CheckBox { Text = T("On") });
+                        cb.CheckedChanged += (s, e) => { if (!loading) Try(() => sw.SetSwitch(i, cb.Checked)); };
+                        editors.Add(Tuple.Create(i, (Control)cb, max));
+                    }
+                    else
+                    {
+                        var num = g.Row(name, Ui.Num(0, 0, (decimal)max));
+                        num.ValueChanged += (s, e) => { if (!loading) Try(() => sw.SetValue(i, (double)num.Value)); };
+                        editors.Add(Tuple.Create(i, (Control)num, max));
+                    }
+                }
+                g.ResumeLayout(true);
+                Theme.Apply(g);
+            };
+            build();
+            Dm.DevicesChanged += (s, e) => MainForm.Instance.Post(build);
+            Poll += () =>
+            {
+                build();
+                var sw = Dm.Switch;
+                if (sw == null) return;
+                loading = true;
+                try
+                {
+                    foreach (var ed in editors)
+                    {
+                        if (ed.Item2.Focused) continue;
+                        var cb = ed.Item2 as CheckBox;
+                        if (cb != null) cb.Checked = sw.GetSwitch(ed.Item1);
+                        var num = ed.Item2 as NumericUpDown;
+                        if (num != null) num.Value = Math.Max(num.Minimum, Math.Min(num.Maximum, (decimal)sw.GetValue(ed.Item1)));
+                    }
+                }
+                catch { }
+                finally { loading = false; }
+            };
+            return card;
+        }
+
+        /// <summary>The flat panel: its cover opened and closed, and its light on at a brightness or off.</summary>
+        private Control BuildFlatPanel()
+        {
+            var card = new Card(T("Flat panel")) { Dock = DockStyle.Fill };
+            var g = new FormGrid(160);
+            var state = g.Row(T("State"), new Label { Tag = "dim", AutoSize = true, UseMnemonic = false });
+            var brightness = g.Row(T("Brightness"), Ui.Num(128, 0, 255));
+            var open = MakeButton(T("Open cover"), Icons.Up);
+            var close = MakeButton(T("Close cover"), Icons.Down);
+            var on = MakeButton(T("Light on"), Icons.Star);
+            var off = MakeButton(T("Light off"), Icons.Close);
+            g.Full(ButtonRow(open, close, on, off));
+            g.Full(Ui.Hint(T("For flat frames: close the cover over the telescope, light the panel, and take FLAT exposures. The sequencer has a Flat panel instruction for the same.")));
+            card.Controls.Add(g);
+            Func<ICoverCalibrator> panel = () => Need(Dm.Cover, T("No flat panel connected."));
+            open.Click += (s, e) => Try(() => panel().OpenCover());
+            close.Click += (s, e) => Try(() => panel().CloseCover());
+            on.Click += (s, e) => Try(() => { var c = panel(); c.CalibratorOn((int)Math.Min(c.MaxBrightness, brightness.Value)); });
+            off.Click += (s, e) => Try(() => panel().CalibratorOff());
+            Poll += () =>
+            {
+                var c = Dm.Cover;
+                foreach (var b in new Control[] { open, close, on, off, brightness }) b.Enabled = c != null;
+                if (c == null) { state.Text = T("No flat panel connected."); return; }
+                try
+                {
+                    string cover = c.CoverState;
+                    string coverText = cover == "Open" ? T("open") : cover == "Closed" ? T("closed") : cover == "Moving" ? T("moving") : cover;
+                    if (brightness.Maximum != Math.Max(1, c.MaxBrightness)) brightness.Maximum = Math.Max(1, c.MaxBrightness);
+                    state.Text = T("Cover {0} · light {1} of {2}", coverText, c.Brightness, c.MaxBrightness);
+                }
+                catch (Exception ex) { state.Text = ex.Message; }
+            };
+            return card;
         }
 
         public IEnumerable<AppCommand> GetCommands()

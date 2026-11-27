@@ -418,6 +418,75 @@ namespace Sidralune.AppTests
             }
         }
 
+        /// <summary>Pixels of a window, as it holds them now, for which the test holds.</summary>
+        private static int CountPixels(IntPtr hwnd, Func<Color, bool> test)
+        {
+            RECT w;
+            GetWindowRect(hwnd, out w);
+            int width = w.Right - w.Left, height = w.Bottom - w.Top;
+            using (var bmp = new Bitmap(width, height))
+            {
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    var dest = g.GetHdc();
+                    var src = GetWindowDC(hwnd);
+                    try { BitBlt(dest, 0, 0, width, height, src, 0, 0, 0x00CC0020); }
+                    finally { ReleaseDC(hwnd, src); g.ReleaseHdc(dest); }
+                }
+                int n = 0;
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < width; x++) if (test(bmp.GetPixel(x, y))) n++;
+                return n;
+            }
+        }
+
+        [TestMethod]
+        public void TestDisabledFieldsInThePalette()
+        {
+            // Windows draws a disabled drop-down list with a light inner frame and a disabled number in its grey text colour;
+            // the theme draws both in the palette, by day and in the red night palette
+            Form form = null;
+            ComboBox cb = null;
+            NumericUpDown num = null;
+            try
+            {
+                foreach (bool night in new[] { false, true })
+                {
+                    OnUi(() =>
+                    {
+                        App.SetNightMode(night);
+                        form?.Dispose();
+                        // on the screen: off it, the windows hold no pixels to read back
+                        form = new Form { StartPosition = FormStartPosition.Manual, Location = new Point(40, 40), Size = new Size(300, 140), ShowInTaskbar = false };
+                        cb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Location = new Point(10, 10), Width = 200 };
+                        cb.Items.AddRange(new object[] { "The mount", "The guide camera (ST-4)" });
+                        cb.SelectedIndex = 0;
+                        num = new NumericUpDown { Location = new Point(10, 50), Width = 200, DecimalPlaces = 2, Minimum = 0, Maximum = 30, Value = 2 };
+                        form.Controls.Add(cb); form.Controls.Add(num);
+                        Theme.Apply(form);
+                        form.Show(App);
+                        cb.Enabled = num.Enabled = false;
+                    });
+                    Settle(400);
+                    string mode = night ? "Night" : "Day";
+                    // light pixels: the system's frame and grey text are far lighter than anything the dark palettes use for a disabled field
+                    Func<Color, bool> light = c => c.R > 150 && c.G > 150 && c.B > 150;
+                    Func<Color, bool> offRed = c => c.G > 40 || c.B > 40;
+                    var test = night ? offRed : light;
+                    int inBox = OnUi(() => CountPixels(cb.Handle, test)), inNumber = OnUi(() => CountPixels(num.Handle, test)) + OnUi(() => CountPixels(num.Controls.OfType<TextBox>().First().Handle, test));
+                    CheckTrue(mode + ": a disabled drop-down list is drawn in the palette", inBox == 0, inBox + " pixels");
+                    CheckTrue(mode + ": a disabled number field is drawn in the palette", inNumber == 0, inNumber + " pixels");
+                    var surface = OnUi(() => Theme.Current.Surface);
+                    int digits = OnUi(() => CountPixels(num.Controls.OfType<TextBox>().First().Handle, c => Math.Abs(c.R - surface.R) + Math.Abs(c.G - surface.G) + Math.Abs(c.B - surface.B) > 60));
+                    CheckTrue(mode + ": its number is still readable", digits > 10, digits + " pixels");
+                }
+            }
+            finally
+            {
+                OnUi(() => { form?.Dispose(); App.SetNightMode(false); });
+            }
+        }
+
         [TestMethod]
         public void TestComboBoxDropDownInNightMode()
         {

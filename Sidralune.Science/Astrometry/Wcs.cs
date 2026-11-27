@@ -43,6 +43,22 @@ namespace Sidralune.Science.Astrometry
         public double FieldWidthDeg => ImageWidth * PixelScale / 3600.0;
         public double FieldHeightDeg => ImageHeight * PixelScale / 3600.0;
 
+        /// <summary>
+        /// The same solution for the image after its content has moved by (dx, dy) pixels (Sidralune coords): what was at
+        /// (x, y) is at (x + dx, y + dy). The SIP terms go with the reference pixel; this solution is left as it is.
+        /// </summary>
+        public Wcs Offset(double dx, double dy)
+        {
+            var w = (Wcs)MemberwiseClone();
+            // its own distortion terms: changing one solution's in place leaves the other alone
+            w.A = (double[,])A?.Clone(); w.B = (double[,])B?.Clone();
+            w.AP = (double[,])AP?.Clone(); w.BP = (double[,])BP?.Clone();
+            // FITS pixels count up the image, Sidralune's down it
+            w.CrPix1 = CrPix1 + dx;
+            w.CrPix2 = CrPix2 - dy;
+            return w;
+        }
+
         private void ToFits(double x, double y, out double fx, out double fy) { fx = x + 1; fy = ImageHeight - y; }
         private void FromFits(double fx, double fy, out double x, out double y) { x = fx - 1; y = ImageHeight - fy; }
 

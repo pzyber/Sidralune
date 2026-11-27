@@ -90,10 +90,12 @@ CSV files always use a full stop as the decimal separator and a comma as the fie
 |---|---|---|
 | `settings.json` | Sites, equipment, observer details, preferences | `%LOCALAPPDATA%\Sidralune\Settings` |
 | `planner.json` | Observing lists and logbook | `%LOCALAPPDATA%\Sidralune\Settings` |
+| `guider.json` | The Sidralune guider's settings and its last calibration | `%LOCALAPPDATA%\Sidralune\Settings` |
 | `.sdstack` | Deep-sky stacking file lists | Wherever you save them |
 | `.json` sequence | Sequencer instruction trees | Wherever you save them |
 | `.cs` | C# scripts | `%LOCALAPPDATA%\Sidralune\Data\Scripts` by default |
 | Log files | One file per day, plus `crash-<date>-<time>.txt` reports | `%LOCALAPPDATA%\Sidralune\Logs` |
+| Guide logs | `Guide <date> <time>.csv`, one per guiding session: each frame's star position, offsets, pulses, SNR and HFD, and the calibration, dithers and lost stars | `%LOCALAPPDATA%\Sidralune\Logs` |
 
 All of these are plain text (JSON, CSV or C#) and can be backed up, versioned or edited by hand.
 

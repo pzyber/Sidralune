@@ -424,6 +424,8 @@ namespace Sidralune.Tests
                 lock (fake.Received)
                     CheckTrue("TRACK, tracking off, guide and motion commands", fake.Received.Any(r => r.Contains("ON_COORD_SET") && r.Contains("<oneSwitch name='TRACK'>On")) && fake.Received.Any(r => r.Contains("TELESCOPE_TRACK_STATE") && r.Contains("<oneSwitch name='TRACK_OFF'>On"))
                         && fake.Received.Any(r => r.Contains("TELESCOPE_TIMED_GUIDE_WE") && r.Contains("<oneNumber name='TIMED_GUIDE_E'>250")) && fake.Received.Any(r => r.Contains("TELESCOPE_MOTION_NS") && r.Contains("<oneSwitch name='MOTION_SOUTH'>On")));
+                CheckTrue("No GUIDE_RATE property: guide rates unknown", double.IsNaN(mount.GuideRateRa) && double.IsNaN(mount.GuideRateDec));
+                CheckTrue("A camera without guider properties has no guide port", !cam.CanPulseGuide && !cam.IsPulseGuiding);
                 CheckTrue("Camera properties", cam.SensorWidth == 32 && cam.SensorHeight == 24 && Math.Abs(cam.PixelSizeX - 3.76) < 1e-9 && cam.BitDepth == 16 && cam.CanSetTemperature && cam.CcdTemperature == -10.5 && cam.Bayer == BayerPattern.RGGB);
                 cam.StartExposure(0.5, true);
                 CheckTrue("Exposure delivered as a FITS BLOB", WaitFor(() => cam.ImageReady, 10000));
@@ -608,6 +610,12 @@ namespace Sidralune.Tests
                     CheckTrue("A query string with one '?'", fake.Requests.Any(r => r.Contains("destinationsideofpier?RightAscension=1&Declination=2&ClientID=")) && fake.Requests.All(r => r.Split(' ')[1].Count(ch => ch == '?') <= 1));
                     CheckTrue("Device path", fake.Requests.Any(r => r.StartsWith("PUT /api/v1/telescope/0/connected")));
                 }
+                fake.Values["guideraterightascension"] = "0.0041778"; fake.Values["ispulseguiding"] = "true";
+                CheckTrue("Guide rate and pulse state", mount.GuideRateRa == 0.0041778 && double.IsNaN(mount.GuideRateDec) && mount.IsPulseGuiding);
+                // a guide camera is one of the server's cameras, guiding through its port
+                var guideCam = (AlpacaCamera)AlpacaDiscovery.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Alpaca, Address = devices[1].Address });
+                guideCam.PulseGuide(GuideDirection.North, 200);
+                lock (fake.Requests) CheckTrue("Guide camera pulses through the camera's API", fake.Requests.Any(r => r.StartsWith("PUT /api/v1/camera/1/pulseguide")) && fake.Values["pulseguide.Direction"] == "0" && fake.Values["pulseguide.Duration"] == "200");
 
                 var cam = (AlpacaCamera)AlpacaDiscovery.Create(devices[1]);
                 cam.Connect();
@@ -687,6 +695,9 @@ namespace Sidralune.Tests
             public bool CanPark => true;
             public bool CanSync => true;
             public bool CanPulseGuide => true;
+            public bool IsPulseGuiding => true;
+            public double GuideRateRightAscension => 0.0041778;
+            public double GuideRateDeclination => 0.0020889;
             public bool CanSlewAltAzAsync => false;
             public double SiteLatitude => 48.5;
             public double SiteLongitude => -2.25;
@@ -728,6 +739,10 @@ namespace Sidralune.Tests
             public short BayerOffsetY => 1;
             public double LastExposureDuration => 3;
             public string LastExposureStartTime => "2026-10-24T21:15:30";
+            public bool CanPulseGuide => true;
+            public bool IsPulseGuiding => false;
+            public string Guided;
+            public void PulseGuide(int dir, int ms) => Guided = dir + " " + ms;
             public string Stopped;
             public void StartExposure(double s, bool light) { }
             public void AbortExposure() { throw new NotImplementedException(); }
@@ -827,6 +842,7 @@ namespace Sidralune.Tests
             tel.Park();
             CheckTrue("Goto switches tracking on, commands passed through", drv.Tracking && drv.Calls.SequenceEqual(new[] { "slew 1.5 2.5", "guide 1 400", "move 1 -0.5", "park" }), string.Join(", ", drv.Calls));
             CheckTrue("Destination side of pier", tel.DestinationSideOfPier(0, 0) == PierSide.West);
+            CheckTrue("Guide rates and pulse state from the driver", tel.GuideRateRa == 0.0041778 && tel.GuideRateDec == 0.0020889 && tel.IsPulseGuiding);
             tel.TrackingRate = TrackingRate.Lunar;
             CheckTrue("Tracking rate", drv.TrackingRate == 1 && tel.TrackingRate == TrackingRate.Lunar);
 
@@ -840,6 +856,9 @@ namespace Sidralune.Tests
             var img = cam.GetImage();
             CheckTrue("Image array converted, header filled", img.Width == 4 && img.Height == 3 && Math.Abs(img.Data[0][2 * 4 + 3] - 32 / 255.0) < 1e-6 && img.DateObs == new DateTime(2026, 10, 24, 21, 15, 30) && img.ExposureSeconds == 3
                 && img.Header.GetInt("XBINNING") == 2 && img.Header.GetDouble("CCD-TEMP") == -9.5 && img.Header.GetInt("GAIN") == 250);
+            var guideCam = Wrap((AscomCamera)AscomDiscovery.Create(info(DeviceKind.GuideCamera)), camDrv);
+            guideCam.PulseGuide(GuideDirection.West, 350);
+            CheckTrue("A guide camera is an ASCOM camera, and pulses through its port", guideCam.CanPulseGuide && !guideCam.IsPulseGuiding && camDrv.Guided == "3 350");
             var a3 = new short[2, 2, 3];
             a3[1, 0, 2] = 200;
             var c3 = AscomCamera.ConvertArray(a3, 400);
@@ -864,7 +883,7 @@ namespace Sidralune.Tests
             var wx = Wrap((AscomWeather)AscomDiscovery.Create(info(DeviceKind.ObservingConditions)), misc);
             var cover = Wrap((AscomCover)AscomDiscovery.Create(info(DeviceKind.CoverCalibrator)), misc);
             cover.CalibratorOn(42);
-            CheckTrue("ASCOM safety, weather and cover", safe.IsSafe && wx.Humidity == 71.5 && wx.SkyQuality == 21.2 && double.IsNaN(wx.WindSpeed) && cover.CoverState == "3" && cover.MaxBrightness == 255 && misc.CalibratorLevel == 42);
+            CheckTrue("ASCOM safety, weather and cover", safe.IsSafe && wx.Humidity == 71.5 && wx.SkyQuality == 21.2 && double.IsNaN(wx.WindSpeed) && cover.CoverState == "Open" && cover.MaxBrightness == 255 && misc.CalibratorLevel == 42);
             var domeDrv = new FakeAscomDome();
             var dome = Wrap((AscomDome)AscomDiscovery.Create(info(DeviceKind.Dome)), domeDrv);
             dome.SlewToAzimuth(123.5); dome.OpenShutter(); dome.Slaved = true;
@@ -896,22 +915,53 @@ namespace Sidralune.Tests
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.Focuser, Protocol = DeviceProtocol.Indi, Address = "h:1/F" }) is IndiFocuser
                 && dm.Create(new DeviceInfo { Kind = DeviceKind.Dome, Protocol = DeviceProtocol.Simulator }) is DomeSimulator);
             var guiders = dm.Discover(DeviceKind.Guider, false);
-            CheckTrue("Discovery offers the simulator and PHD2", guiders.Any(d => d.Protocol == DeviceProtocol.Simulator) && guiders.Any(d => d.Protocol == DeviceProtocol.Phd2 && d.Address == "localhost:4400"));
+            CheckTrue("Discovery offers PHD2 as the guider to connect (the Sidralune guider is built in)", guiders.Count == 1 && guiders[0].Protocol == DeviceProtocol.Phd2 && guiders[0].Address == "localhost:4400");
+            CheckTrue("Without a guide camera or PHD2 there is no guider", dm.Guider == null && dm.BuiltinGuider != null && dm.BuiltinGuider.Connected);
+            var guideCams = dm.Discover(DeviceKind.GuideCamera, false);
+            CheckTrue("Discovery offers a guide camera simulator", guideCams[0].Protocol == DeviceProtocol.Simulator && guideCams[0].Kind == DeviceKind.GuideCamera && guideCams[0].Name == "Guide Camera Simulator");
+            CheckTrue("A guide camera from any protocol is a camera", dm.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Alpaca, Address = "h:1/0" }) is AlpacaCamera
+                && dm.Create(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Indi, Address = "h:1/G" }) is IndiCamera);
             dm.ConnectSimulators();
-            CheckTrue("Simulated observatory connected", dm.Telescope is TelescopeSimulator && dm.Camera is CameraSimulator && dm.Focuser != null && dm.FilterWheel != null && dm.Dome != null && dm.Weather != null && dm.Safety != null && changes == 6);
+            CheckTrue("Simulated observatory connected", dm.Telescope is TelescopeSimulator && dm.Camera is CameraSimulator && dm.GuideCamera is CameraSimulator && dm.Focuser != null && dm.FilterWheel != null
+                && dm.Dome != null && dm.Weather != null && dm.Safety != null && dm.Rotator is RotatorSimulator && dm.Switch is SwitchSimulator && dm.Cover is CoverCalibratorSimulator && dm.Guider == dm.BuiltinGuider && changes == 10);
             var cs = (CameraSimulator)dm.Camera;
-            CheckTrue("Camera simulator linked to mount, focuser and wheel", cs.Mount == dm.Telescope && cs.Focuser == dm.Focuser && cs.Wheel == dm.FilterWheel);
+            CheckTrue("Camera simulator linked to mount, focuser, wheel and rotator", cs.Mount == dm.Telescope && cs.Focuser == dm.Focuser && cs.Wheel == dm.FilterWheel && cs.Rotator == dm.Rotator && cs.OnRotator);
+            var gcs = (CameraSimulator)dm.GuideCamera;
+            CheckTrue("Guide camera simulator: its own small sensor and guide scope, on the same mount", gcs.Mount == dm.Telescope && gcs.SensorWidth == 1280 && gcs.FocalLengthMm == 240 && gcs.CanPulseGuide
+                && gcs.Info.Kind == DeviceKind.GuideCamera && dm.Get(DeviceKind.GuideCamera) == gcs);
             var oldFocuser = dm.Focuser;
             dm.Connect(new DeviceInfo { Kind = DeviceKind.Focuser, Protocol = DeviceProtocol.Simulator });
             CheckTrue("Replacing a device disconnects the old one and relinks the camera", !oldFocuser.Connected && dm.Focuser != oldFocuser && cs.Focuser == dm.Focuser);
-            CheckTrue("Get by kind", dm.Get(DeviceKind.Dome) == dm.Dome && dm.Get(DeviceKind.Rotator) == null && dm.All.Count() == 7);
+            CheckTrue("Get by kind", dm.Get(DeviceKind.Dome) == dm.Dome && dm.Get(DeviceKind.Rotator) == dm.Rotator && dm.Get(DeviceKind.AdaptiveOptics) == null && dm.All.Count() == 12);
             dm.Disconnect(DeviceKind.Dome);
             CheckTrue("Disconnect one", dm.Dome == null);
             dm.DisconnectAll();
-            CheckTrue("Disconnect all", !dm.All.Any() && dm.Telescope == null);
+            CheckTrue("Disconnect all", !dm.All.Any() && dm.Telescope == null && dm.BuiltinGuider.Connected);
+
+            // PHD2 guides instead of the Sidralune guider; the guide camera belongs to one of them at a time
+            var fake = new FakePhd2();
+            var phd2Info = new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Phd2, Name = "PHD2", Address = "127.0.0.1:" + fake.Port };
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" });
+            string phd2Refused = null;
+            try { dm.Connect(phd2Info); } catch (InvalidOperationException ex) { phd2Refused = ex.Message; }
+            CheckTrue("No PHD2 while a guide camera is connected (PHD2 opens it itself)", phd2Refused == "Disconnect the guide camera to use PHD2." && !dm.Phd2Connected && dm.GuideCamera != null && dm.Guider == dm.BuiltinGuider);
+            dm.Disconnect(DeviceKind.GuideCamera);
+            dm.Connect(phd2Info);
+            CheckTrue("Without the guide camera, PHD2 connects and is the guider", dm.Guider is Phd2Client && dm.Phd2Connected && dm.GuideCamera == null);
+            string refused = null;
+            try { dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" }); } catch (InvalidOperationException ex) { refused = ex.Message; }
+            CheckTrue("No guide camera while PHD2 is connected", refused != null && refused.StartsWith("PHD2 is connected") && dm.GuideCamera == null);
+            dm.Disconnect(DeviceKind.Guider);
+            dm.Connect(new DeviceInfo { Kind = DeviceKind.GuideCamera, Protocol = DeviceProtocol.Simulator, Address = "sim" });
+            CheckTrue("After PHD2, the Sidralune guider guides again with the guide camera", !dm.Phd2Connected && dm.Guider == dm.BuiltinGuider);
+            dm.DisconnectAll();
             bool noSim = false;
-            try { dm.Create(new DeviceInfo { Kind = DeviceKind.Rotator, Protocol = DeviceProtocol.Simulator }); } catch (NotSupportedException) { noSim = true; }
-            CheckTrue("No rotator simulator", noSim);
+            try { dm.Create(new DeviceInfo { Kind = DeviceKind.Guider, Protocol = DeviceProtocol.Simulator }); } catch (NotSupportedException) { noSim = true; }
+            CheckTrue("No guider simulator (the Sidralune guider guides the simulators)", noSim);
+            CheckTrue("Every kind of device but the guider has a simulator, and discovery offers it", Enum.GetValues(typeof(DeviceKind)).Cast<DeviceKind>().Where(k => k != DeviceKind.Guider)
+                .All(k => dm.Discover(k, false).Any(d => d.Protocol == DeviceProtocol.Simulator && dm.Create(d) != null)));
+            CheckTrue("Rotator and AO simulators", dm.Create(new DeviceInfo { Kind = DeviceKind.Rotator, Protocol = DeviceProtocol.Simulator }) is RotatorSimulator
+                && dm.Create(new DeviceInfo { Kind = DeviceKind.AdaptiveOptics, Protocol = DeviceProtocol.Simulator }) is AoSimulator);
         }
     }
 }

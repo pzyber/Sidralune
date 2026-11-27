@@ -116,7 +116,7 @@ namespace Sidralune.Views
                 if (tel == null || _solve == null || !_solve.Success) { MainForm.Instance.Toast(T("Needs a solution and a connected telescope"), Icons.Info); return; }
                 double cra, cdec; _solve.Wcs.Centre(out cra, out cdec);
                 var app = new SkyContext(AppState.Site, AstroTime.Now).IcrsToApparent(cra * AstroMath.Deg2Rad, cdec * AstroMath.Deg2Rad);
-                tel.SyncToCoordinates(app.RaHours, app.DecDeg);
+                DeviceManager.Instance.SyncTelescope(tel, app.RaHours, app.DecDeg);
                 MainForm.Instance.Toast(T("Telescope synced"));
             }, ButtonKind.Normal);
             btn(T("Show field in sky chart"), Icons.Sky, () =>

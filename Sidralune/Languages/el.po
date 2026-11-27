@@ -1265,7 +1265,7 @@ msgstr "Τροχός φίλτρων"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Guider"
-msgstr "Κάμερα οδήγησης"
+msgstr "Σύστημα οδήγησης"
 
 #: Sidralune/MainForm.cs Sidralune/Views/ObservatoryView.cs
 msgid "Dome"
@@ -2530,10 +2530,6 @@ msgid "Databases: citizen science projects"
 msgstr "Βάσεις δεδομένων: έργα επιστήμης πολιτών"
 
 #: Sidralune/Views/ObservatoryView.cs
-msgid "Start PHD2, enable its server (Tools → Enable Server) and click Connect PHD2."
-msgstr "Εκκινήστε το PHD2, ενεργοποιήστε τον διακομιστή του (Tools → Enable Server) και πατήστε Σύνδεση PHD2."
-
-#: Sidralune/Views/ObservatoryView.cs
 msgid "No telescope connected."
 msgstr "Δεν έχει συνδεθεί τηλεσκόπιο."
 
@@ -2547,7 +2543,1975 @@ msgstr "Δεν έχει συνδεθεί εστιαστής."
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No guider connected."
+msgstr "Δεν έχει συνδεθεί σύστημα οδήγησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The guide star was lost during the Star-Cross test."
+msgstr "Το αστέρι οδήγησης χάθηκε κατά τη δοκιμή Star-Cross."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Diagnosis.cs
+msgid "The Star-Cross test stopped because the mount slewed."
+msgstr "Η δοκιμή Star-Cross σταμάτησε επειδή η βάση μετακινήθηκε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Diagnosis"
+msgstr "Διάγνωση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Save frames on trouble"
+msgstr "Αποθήκευση καρέ σε πρόβλημα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When the guide star is lost or a calibration fails, the last five guide frames (and for a lost star the next three) are saved as FITS in the Guide frames folder in Logs, at most once every five minutes, to see afterwards what happened."
+msgstr "Όταν χάνεται το αστέρι οδήγησης ή αποτυγχάνει μια βαθμονόμηση, τα πέντε τελευταία καρέ οδήγησης (και για χαμένο αστέρι τα τρία επόμενα) αποθηκεύονται ως FITS στον φάκελο Guide frames του Logs, το πολύ μία φορά ανά πέντε λεπτά, για να φανεί μετά τι έγινε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass"
+msgstr "Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass slope weight"
+msgstr "Βάρος κλίσης Lowpass"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects the median of the last errors, ahead by their slope times the slope weight: for errors that wander slowly under average seeing. Never more than the error just measured."
+msgstr "Διορθώνει τη διάμεσο των τελευταίων σφαλμάτων, μπροστά κατά την κλίση τους επί το βάρος κλίσης: για σφάλματα που περιπλανώνται αργά με μέτριο seeing. Ποτέ περισσότερο από το σφάλμα που μόλις μετρήθηκε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, drives the star out and back along each axis in a cross: West, East and West, then North, South and North. It shows whether RA and Dec are at right angles, the speed each way, the backlash when an axis turns round, and stiction when it starts. Guiding goes on afterwards."
+msgstr "Κατά την οδήγηση, πηγαίνει το αστέρι πέρα-δώθε σε κάθε άξονα σε σταυρό: δύση, ανατολή και δύση, έπειτα βορράς, νότος και βορράς. Δείχνει αν RA και Dec είναι κάθετοι, την ταχύτητα σε κάθε κατεύθυνση, το τζόγο όταν ένας άξονας αλλάζει φορά και την κόλληση στην εκκίνηση. Η οδήγηση συνεχίζεται μετά."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Run the Star-Cross test"
+msgstr "Εκτέλεση δοκιμής Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test"
+msgstr "Δοκιμή Star-Cross"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} ms"
+msgstr "{0:0} ms"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA and Dec are {0:0.0}° from square."
+msgstr "Οι RA και Dec απέχουν {0:0.0}° από την καθετότητα."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Speeds: West {0:0.00}, East {1:0.00}, North {2:0.00}, South {3:0.00} px/s."
+msgstr "Ταχύτητες: δύση {0:0.00}, ανατολή {1:0.00}, βορράς {2:0.00}, νότος {3:0.00} px/s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash: RA {0} turning East, {1} turning back; Dec {2} turning South, {3} turning back."
+msgstr "Τζόγος: RA {0} στη στροφή προς ανατολή, {1} στην επιστροφή· Dec {2} στη στροφή προς νότο, {3} στην επιστροφή."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The first pulse from rest moved the star {0:0}% (RA) and {1:0}% (Dec) as far as one later on: much less is stiction, or backlash left from guiding."
+msgstr "Ο πρώτος παλμός από ακινησία μετακίνησε το αστέρι {0:0}% (RA) και {1:0}% (Dec) όσο ένας μεταγενέστερος: πολύ λιγότερο είναι κόλληση ή τζόγος που έμεινε από την οδήγηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The cross as an image: {0}"
+msgstr "Ο σταυρός ως εικόνα: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star-Cross test finished"
+msgstr "Η δοκιμή Star-Cross ολοκληρώθηκε"
+
+#: Sidralune.Devices/Guiding/GuideLogAnalysis.cs
+msgid "Not a guide log from Sidralune or PHD2."
+msgstr "Δεν είναι αρχείο καταγραφής οδήγησης του Sidralune ή του PHD2."
+
+#: Sidralune/Views/GuideLogWindow.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log"
+msgstr "Αρχείο οδήγησης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "This session"
+msgstr "Αυτή η συνεδρία"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own error"
+msgstr "Το σφάλμα της ίδιας της βάσης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Length"
+msgstr "Διάρκεια"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Steps"
+msgstr "Βήματα"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Total"
+msgstr "Σύνολο"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Peak"
+msgstr "Κορυφή"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "px"
+msgstr "px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "time"
+msgstr "ώρα"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Spectrum of the RA error"
+msgstr "Φάσμα του σφάλματος RA"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "period (min)"
+msgstr "περίοδος (λεπτά)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guide logs"
+msgstr "Αρχεία οδήγησης"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Guiding from {0:yyyy-MM-dd HH:mm}"
+msgstr "Οδήγηση από {0:yyyy-MM-dd HH:mm}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "No guiding in this log."
+msgstr "Δεν υπάρχει οδήγηση σε αυτό το αρχείο."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Open a guide log of Sidralune's or PHD2's, or show this session's."
+msgstr "Ανοίξτε ένα αρχείο οδήγησης του Sidralune ή του PHD2, ή δείξτε αυτό της τρέχουσας συνεδρίας."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00} px"
+msgstr "{0:0.00} px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "{0:0.00}″"
+msgstr "{0:0.00}″"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log does not give the pixel scale: the numbers are in pixels."
+msgstr "Το αρχείο δεν δίνει την κλίμακα: οι αριθμοί είναι σε pixel."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Pixel scale {0:0.000}″/px"
+msgstr "Κλίμακα {0:0.000}″/px"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Session"
+msgstr "Συνεδρία"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Found by plate solve"
+msgstr "Βρέθηκε με αστρομετρική επίλυση"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Calibration: {0}"
+msgstr "Βαθμονόμηση: {0}"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The log holds no calibration: it guided with one made earlier."
+msgstr "Το αρχείο δεν έχει βαθμονόμηση: η οδήγηση έγινε με προηγούμενη."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (″)"
+msgstr "πλάτος (″)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "amplitude (px)"
+msgstr "πλάτος (px)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short a log for a spectrum: it needs at least a few minutes of guiding."
+msgstr "Πολύ σύντομο αρχείο για φάσμα: χρειάζονται τουλάχιστον λίγα λεπτά οδήγησης."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "worm"
+msgstr "ατέρμονας"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The mount's own RA error (the corrections added back at {0:0.00} px/s)"
+msgstr "Το σφάλμα RA της ίδιας της βάσης (οι διορθώσεις προστέθηκαν ξανά στα {0:0.00} px/s)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)"
+msgstr "Το σφάλμα RA που έμεινε μετά την οδήγηση (το αρχείο δεν δίνει τον ρυθμό RA, οπότε οι διορθώσεις δεν μπορούν να προστεθούν)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "The RA error left after guiding"
+msgstr "Το σφάλμα RA που έμεινε μετά την οδήγηση"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "FFT"
+msgstr "FFT"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Lomb–Scargle (the frames are unevenly spaced)"
+msgstr "Lomb–Scargle (τα καρέ έχουν άνισα διαστήματα)"
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Largest: ±{0:0.00}{1} at {2:0.0} min."
+msgstr "Μέγιστο: ±{0:0.00}{1} στα {2:0.0} λεπτά."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Periodic error: ±{0:0.00}{1} ({2:0.00}{1} peak to peak) at {3:0.0} min."
+msgstr "Περιοδικό σφάλμα: ±{0:0.00}{1} ({2:0.00}{1} από κορυφή σε κορυφή) στα {3:0.0} λεπτά."
+
+#: Sidralune/Views/GuideLogWindow.cs
+msgid "Too short for the worm period: guide at least one and a half worm periods."
+msgstr "Πολύ σύντομο για την περίοδο του ατέρμονα: οδηγήστε τουλάχιστον μιάμιση περίοδο."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide log viewer"
+msgstr "Προβολή αρχείων οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The graph, calibration and statistics of a guide log, for the session and for each frame between dithers, and the spectrum of the RA error, which shows the mount's periodic error and its period. It opens with this session's log; Open… reads any guide log of Sidralune's or PHD2's."
+msgstr "Το γράφημα, η βαθμονόμηση και τα στατιστικά ενός αρχείου οδήγησης, για τη συνεδρία και για κάθε καρέ μεταξύ των dither, και το φάσμα του σφάλματος RA, που δείχνει το περιοδικό σφάλμα της βάσης και την περίοδό του. Ανοίγει με το αρχείο αυτής της συνεδρίας· το Άνοιγμα… διαβάζει οποιοδήποτε αρχείο οδήγησης του Sidralune ή του PHD2."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Prediction"
+msgstr "Πρόβλεψη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predict from the plate solve"
+msgstr "Πρόβλεψη από την αστρομετρική επίλυση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "With a guide frame solved at this pointing, the directions come from the solve and the speeds from the mount's guide rates, and three steps each way only confirm them. When they disagree, it calibrates in full and says why."
+msgstr "Με καρέ οδήγησης επιλυμένο σε αυτή τη θέση, οι κατευθύνσεις προκύπτουν από την επίλυση και οι ταχύτητες από τους ρυθμούς οδήγησης της βάσης, και τρία βήματα προς κάθε κατεύθυνση απλώς τις επιβεβαιώνουν. Όταν διαφωνούν, γίνεται πλήρης βαθμονόμηση και λέγεται γιατί."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Predicted from the plate-solved guide frame and the guide rates, and confirmed with three steps each way."
+msgstr "Προβλέφθηκε από το επιλυμένο καρέ οδήγησης και τους ρυθμούς οδήγησης και επιβεβαιώθηκε με τρία βήματα προς κάθε κατεύθυνση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star {1:0}° from the predicted direction."
+msgstr "Η πρόβλεψη από την επίλυση δεν χρησιμοποιήθηκε: το {0} μετακίνησε το αστέρι {1:0}° από την προβλεπόμενη κατεύθυνση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The prediction from the plate solve was not used: {0} moved the star at {1:0} % of the predicted speed. Check the mount's guide rates."
+msgstr "Η πρόβλεψη από την επίλυση δεν χρησιμοποιήθηκε: το {0} μετακίνησε το αστέρι με {1:0} % της προβλεπόμενης ταχύτητας. Ελέγξτε τους ρυθμούς οδήγησης της βάσης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "No guide frame yet."
+msgstr "Δεν υπάρχει ακόμη καρέ οδήγησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "Solving a guide frame needs the mount's position: no telescope connected."
+msgstr "Η επίλυση καρέ οδήγησης χρειάζεται τη θέση της βάσης: δεν έχει συνδεθεί τηλεσκόπιο."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Solve.cs
+msgid "The guide frame could not be plate-solved."
+msgstr "Το καρέ οδήγησης δεν μπόρεσε να επιλυθεί αστρομετρικά."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Solve guide frames"
+msgstr "Επίλυση καρέ οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Last solve"
+msgstr "Τελευταία επίλυση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When guiding starts, a guide frame is solved near the mount's position: the camera's scale and angle come from it, and guide stars are chosen from the catalogue's single stars that do not vary. A lost guide star is found again by solving, even far beyond its search box, and brought back."
+msgstr "Όταν ξεκινά η οδήγηση, ένα καρέ οδήγησης επιλύεται κοντά στη θέση της βάσης: από αυτό προκύπτουν η κλίμακα και η γωνία της κάμερας, και τα αστέρια οδήγησης επιλέγονται από τα μονά, μη μεταβλητά αστέρια του καταλόγου. Ένα χαμένο αστέρι οδήγησης βρίσκεται ξανά με επίλυση, ακόμη και πολύ έξω από το πλαίσιο αναζήτησής του, και επαναφέρεται."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.000}″/px, angle {1:0.0}°, focal length {2:0} mm"
+msgstr "{0:0.000}″/px, γωνία {1:0.0}°, εστιακή απόσταση {2:0} mm"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Not solved yet"
+msgstr "Δεν έχει επιλυθεί ακόμη"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · peak {3:0.00}″"
+msgstr "Οδήγηση {0:0.00}″ RMS (RA {1:0.00}″, Dec {2:0.00}″) · μέγιστο {3:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guiding was interrupted"
+msgstr "Η οδήγηση διακόπηκε"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "interrupted"
+msgstr "διακόπηκε"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "flagged"
+msgstr "σημειώθηκε"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dither pattern"
+msgstr "Μοτίβο dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random"
+msgstr "Τυχαίο"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Spiral"
+msgstr "Σπείρα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Random dithers anywhere within the amount. Spiral steps out by the amount along a square spiral round where it began, 24 places before it begins again, so no two frames share a place."
+msgstr "Το τυχαίο dither πηγαίνει οπουδήποτε μέσα στο ποσό. Η σπείρα βγαίνει κατά το ποσό σε τετράγωνη σπείρα γύρω από το σημείο έναρξης, 24 θέσεις πριν ξεκινήσει ξανά, ώστε κανένα ζεύγος καρέ να μη μοιράζεται θέση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop the guider first."
+msgstr "Σταματήστε πρώτα τον οδηγό."
+
+#: Sidralune/AppState.cs
+msgid "My equipment"
+msgstr "Ο εξοπλισμός μου"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Focal length"
+msgstr "Εστιακή απόσταση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0} mm, from the equipment profile (Observatory → Equipment)"
+msgstr "{0:0} mm, από το προφίλ εξοπλισμού (Αστεροσκοπείο → Εξοπλισμός)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect all"
+msgstr "Σύνδεση όλων"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connecting the equipment"
+msgstr "Σύνδεση του εξοπλισμού"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Some devices could not connect: {0}"
+msgstr "Ορισμένες συσκευές δεν συνδέθηκαν: {0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The equipment is connected."
+msgstr "Ο εξοπλισμός συνδέθηκε."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect the device remembered in each row for this profile"
+msgstr "Σύνδεση της συσκευής που θυμάται κάθε γραμμή για αυτό το προφίλ"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New…"
+msgstr "Νέο…"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename…"
+msgstr "Μετονομασία…"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Equipment profile"
+msgstr "Προφίλ εξοπλισμού"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Reducer or Barlow (×)"
+msgstr "Reducer ή Barlow (×)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guides through"
+msgstr "Οδήγηση μέσω"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "An off-axis guider"
+msgstr "Οδηγού εκτός άξονα"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A guide scope"
+msgstr "Τηλεσκοπίου οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "A profile is a rig: the device connected in each row above, which Connect all connects again, the imaging telescope and camera from the lists in Settings → Equipment, and the guider's own settings and calibration. The site is chosen in Settings → Location."
+msgstr "Ένα προφίλ είναι ένα σύνολο εξοπλισμού: η συσκευή που συνδέεται σε κάθε γραμμή παραπάνω, την οποία η Σύνδεση όλων συνδέει ξανά, το τηλεσκόπιο και η κάμερα απεικόνισης από τις λίστες στις Ρυθμίσεις → Εξοπλισμός, και οι δικές του ρυθμίσεις και βαθμονόμηση του οδηγού. Η τοποθεσία επιλέγεται στις Ρυθμίσεις → Τοποθεσία."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Focal length {0:0} mm, aperture {1:0} mm, f/{2:0.0}"
+msgstr "Εστιακή απόσταση {0:0} mm, διάμετρος {1:0} mm, f/{2:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "New profile"
+msgstr "Νέο προφίλ"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Rename profile"
+msgstr "Μετονομασία προφίλ"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0} is running"
+msgstr "{0} εκτελείται"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "{0} is running and needs the mount only tracking"
+msgstr "{0} εκτελείται και η στήριξη πρέπει απλώς να παρακολουθεί τον ουρανό"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The frames stopped, so the alignment was stopped."
+msgstr "Τα καρέ σταμάτησαν, οπότε η ευθυγράμμιση σταμάτησε."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No frame came from the camera."
+msgstr "Δεν ήρθε καρέ από την κάμερα."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The camera is not taking frames."
+msgstr "Η κάμερα δεν τραβά καρέ."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Imaging camera"
+msgstr "Κύρια κάμερα"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Frames show here. Connect a camera in Observatory → Equipment."
+msgstr "Τα καρέ εμφανίζονται εδώ. Συνδέστε κάμερα στο Αστεροσκοπείο → Εξοπλισμός."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Say whether the camera sees a mirror image."
+msgstr "Δηλώστε αν η κάμερα βλέπει κατοπτρική εικόνα."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "Set switch"
+msgstr "Ρύθμιση διακόπτη"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "{0} to {1}"
+msgstr "{0} σε {1}"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "No switch named {0}."
+msgstr "Δεν υπάρχει διακόπτης με όνομα {0}."
+
+#: Sidralune.Devices/Automation/Sequencer.cs Sidralune/Views/ObservatoryView.cs
+msgid "Flat panel"
+msgstr "Πάνελ flat"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "The flat panel's cover did not finish moving."
+msgstr "Το κάλυμμα του πάνελ flat δεν ολοκλήρωσε την κίνησή του."
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a switch box"
+msgstr "κουτί διακοπτών"
+
+#: Sidralune.Devices/Automation/Sequencer.cs
+msgid "a flat panel"
+msgstr "πάνελ flat"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Switches"
+msgstr "Διακόπτες"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No switch box connected."
+msgstr "Δεν έχει συνδεθεί κουτί διακοπτών."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Brightness"
+msgstr "Φωτεινότητα"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Open cover"
+msgstr "Άνοιγμα καλύμματος"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Close cover"
+msgstr "Κλείσιμο καλύμματος"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light on"
+msgstr "Άναμμα φωτός"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Light off"
+msgstr "Σβήσιμο φωτός"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "For flat frames: close the cover over the telescope, light the panel, and take FLAT exposures. The sequencer has a Flat panel instruction for the same."
+msgstr "Για flat: κλείστε το κάλυμμα μπροστά στο τηλεσκόπιο, ανάψτε το πάνελ και τραβήξτε εκθέσεις FLAT. Ο ακολουθητής έχει γι' αυτό την εντολή Πάνελ flat."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No flat panel connected."
+msgstr "Δεν έχει συνδεθεί πάνελ flat."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "open"
+msgstr "ανοιχτό"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "closed"
+msgstr "κλειστό"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Cover {0} · light {1} of {2}"
+msgstr "Κάλυμμα {0} · φως {1} από {2}"
+
+#: Sidralune.Devices/Automation/Capture.cs
+msgid "Plate solving failed at point {0}: {1}"
+msgstr "Η αστρομετρική επίλυση απέτυχε στο σημείο {0}: {1}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount within 20° of the celestial pole first."
+msgstr "Στοχεύστε πρώτα τη στήριξη έως 20° από τον ουράνιο πόλο."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point the mount nearer the celestial equator first (Dec within ±60°)."
+msgstr "Στοχεύστε πρώτα τη στήριξη πιο κοντά στον ουράνιο ισημερινό (Dec εντός ±60°)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Let other programs guide with Sidralune"
+msgstr "Να οδηγούν άλλα προγράμματα με το Sidralune"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Programs that can guide with PHD2 connect here instead, as if Sidralune's guider were PHD2. PHD2 itself must not use the same port."
+msgstr "Τα προγράμματα που μπορούν να οδηγούν με το PHD2 συνδέονται εδώ αντί γι' αυτό, σαν ο οδηγός του Sidralune να ήταν το PHD2. Το ίδιο το PHD2 δεν πρέπει να χρησιμοποιεί την ίδια θύρα."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Drift alignment needs the mount connected, to know where it points."
+msgstr "Η ευθυγράμμιση με ολίσθηση χρειάζεται συνδεδεμένη στήριξη, για να ξέρει πού στοχεύει."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Point near the celestial equator (Dec within ±30°): near the meridian for the azimuth error, or 25–35° up in the east or west for the altitude error."
+msgstr "Στοχεύστε κοντά στον ουράνιο ισημερινό (Dec εντός ±30°): κοντά στον μεσημβρινό για το σφάλμα αζιμουθίου, ή 25–35° ύψος στα ανατολικά ή δυτικά για το σφάλμα ύψους."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Near the meridian: this measures the azimuth error."
+msgstr "Κοντά στον μεσημβρινό: εδώ μετριέται το σφάλμα αζιμουθίου."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the east: this measures the altitude error."
+msgstr "Στα ανατολικά: εδώ μετριέται το σφάλμα ύψους."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "In the west: this measures the altitude error."
+msgstr "Στα δυτικά: εδώ μετριέται το σφάλμα ύψους."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the altitude error, though lower in the east or west would tell it better."
+msgstr "Εδώ μετριέται το σφάλμα ύψους, αλλά χαμηλότερα στα ανατολικά ή δυτικά θα φαινόταν καλύτερα."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "This measures the azimuth error, though nearer the meridian would tell it better."
+msgstr "Εδώ μετριέται το σφάλμα αζιμουθίου, αλλά πιο κοντά στον μεσημβρινό θα φαινόταν καλύτερα."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Start guiding first: drift alignment measures while guiding with the Dec corrections held back."
+msgstr "Ξεκινήστε πρώτα την οδήγηση: η ευθυγράμμιση με ολίσθηση μετρά κατά την οδήγηση με τις διορθώσεις Dec συγκρατημένες."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Move the polar axis {0} by {1:0.0}′"
+msgstr "Μετακινήστε τον πολικό άξονα {0} κατά {1:0.0}′"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: the mount turns between the frames."
+msgstr "Σταματήστε πρώτα την οδήγηση: η στήριξη στρέφεται ανάμεσα στα καρέ."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "No guide frame came."
+msgstr "Δεν ήρθε καρέ οδήγησης."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} of 3…"
+msgstr "Καρέ {0} από 3…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Frame {0} could not be plate-solved."
+msgstr "Το καρέ {0} δεν επιλύθηκε αστρομετρικά."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° east…"
+msgstr "Στροφή του RA κατά {0:0}° προς τα ανατολικά…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Turning RA {0:0}° west…"
+msgstr "Στροφή του RA κατά {0:0}° προς τα δυτικά…"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Three frames are needed."
+msgstr "Χρειάζονται τρία καρέ."
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "The frames did not turn: was RA moved between them?"
+msgstr "Τα καρέ δεν στράφηκαν: μετακινήθηκε το RA ανάμεσά τους;"
+
+#: Sidralune.Devices/Guiding/GuidePolarAlignment.cs
+msgid "Stop guiding first: polar drift alignment follows a star while the mount only tracks."
+msgstr "Σταματήστε πρώτα την οδήγηση: η ευθυγράμμιση με πολική ολίσθηση ακολουθεί ένα άστρο ενώ η στήριξη απλώς παρακολουθεί τον ουρανό."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Port {0} is in use (is PHD2 running?)"
+msgstr "Η θύρα {0} χρησιμοποιείται (τρέχει το PHD2;)"
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Connect the guide camera in Sidralune's Observatory → Equipment."
+msgstr "Συνδέστε την κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός του Sidralune."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Not looping."
+msgstr "Δεν τρέχει βρόχος."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling is still going on."
+msgstr "Η σταθεροποίηση συνεχίζεται ακόμη."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling timed out."
+msgstr "Η σταθεροποίηση άργησε πολύ."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "No AO connected."
+msgstr "Η σταθεροποίηση απέτυχε."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Stop looping first."
+msgstr "Δεν υπάρχει συνδεδεμένη ΠΟ."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "No guide star."
+msgstr "Σταματήστε πρώτα τον βρόχο."
+
+#: Sidralune.Devices/Guiding/GuiderServer.cs
+msgid "Settling failed."
+msgstr "Δεν υπάρχει άστρο οδήγησης."
+
+#: Sidralune.Devices/Guiding/Phd2Client.cs
+msgid "That is Sidralune's own PHD2-compatible server, not PHD2."
+msgstr "Αυτός είναι ο ίδιος ο συμβατός με PHD2 διακομιστής του Sidralune, όχι το PHD2."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's X steps."
+msgstr "Η βαθμονόμηση της ΠΟ απέτυχε: το άστρο δεν κινήθηκε με τα βήματα X της ΠΟ."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Ao.cs
+msgid "AO calibration failed: the star did not move with the AO's Y steps."
+msgstr "Η βαθμονόμηση της ΠΟ απέτυχε: το άστρο δεν κινήθηκε με τα βήματα Y της ΠΟ."
+
+#: Sidralune.Devices/Serial/SxAo.cs
+msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
+msgstr "Η SX AO αναφέρει υλικολογισμικό 000: πρέπει να ξαναγραφτεί."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
+msgstr "Η ΠΟ δεν έχει βαθμονομηθεί ακόμη: βαθμονομείται μετά τη στήριξη όταν ξεκινά η οδήγηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO calibrated {0:yyyy-MM-dd HH:mm}: X {1:0.00} px a step towards {2:0}°, Y {3:0.00} px a step towards {4:0}°."
+msgstr "ΠΟ βαθμονομήθηκε {0:yyyy-MM-dd HH:mm}: X {1:0.00} px ανά βήμα προς {2:0}°, Y {3:0.00} px ανά βήμα προς {4:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile"
+msgstr "Προφίλ άστρου"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "ADU"
+msgstr "ADU"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "pixels from the star"
+msgstr "pixel από το άστρο"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "X"
+msgstr "X"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Y"
+msgstr "Y"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Graph"
+msgstr "Γράφημα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframe"
+msgstr "Υποκαρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO {0:+0;-0;0}, {1:+0;-0;0}"
+msgstr "ΠΟ {0:+0;-0;0}, {1:+0;-0;0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "bumping the mount"
+msgstr "η στήριξη αναλαμβάνει"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs Sidralune/Views/ObservatoryView.cs
+msgid "AO"
+msgstr "ΠΟ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star profile · peak {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+msgstr "Προφίλ άστρου · κορυφή {0:0} ADU · HFD {1:0.0} px · FWHM {2:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RMS {0:0.00}″"
+msgstr "RMS {0:0.00}″"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Subframes"
+msgstr "Υποκαρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, download only a box round the stars"
+msgstr "Κατά την οδήγηση, ανάγνωση μόνο ενός πλαισίου γύρω από τα άστρα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "2×2 mean"
+msgstr "Μέσος όρος 2×2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "3×3 median"
+msgstr "Διάμεσος 3×3"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The guide camera turns with it"
+msgstr "Η κάμερα οδήγησης στρέφεται μαζί του"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rotator direction"
+msgstr "Φορά του περιστροφέα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reversed (a mirrored image)"
+msgstr "Αντίστροφη (κατοπτρική εικόνα)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "For an off-axis guider on a rotator: the calibration turns with the rotator, so turning it needs no new calibration."
+msgstr "Για οδηγό εκτός άξονα σε περιστροφέα: η βαθμονόμηση στρέφεται μαζί με τον περιστροφέα, οπότε η στροφή του δεν θέλει νέα βαθμονόμηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive PEC"
+msgstr "Predictive PEC"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predictive gain (%)"
+msgstr "Προβλεπτικό μερίδιο (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Reactive gain (%)"
+msgstr "Αντιδραστικό μερίδιο (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Worm period (s)"
+msgstr "Περίοδος ατέρμονα (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Period"
+msgstr "Περίοδος"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adjust it from the guiding"
+msgstr "Προσαρμογή από την οδήγηση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Retain model (%)"
+msgstr "Διατήρηση μοντέλου (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Travel (steps each way)"
+msgstr "Διαδρομή (βήματα προς κάθε πλευρά)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration step (steps)"
+msgstr "Βήμα βαθμονόμησης (βήματα)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration leg (steps)"
+msgstr "Σκέλος βαθμονόμησης (βήματα)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump the mount at (%)"
+msgstr "Ανάληψη από τη στήριξη στο (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bump step (″)"
+msgstr "Βήμα στήριξης (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "After a dither"
+msgstr "Μετά από dither"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Recentre the AO with the mount"
+msgstr "Επανακεντράρισμα της ΠΟ με τη στήριξη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO aggressiveness (%)"
+msgstr "Επιθετικότητα ΠΟ (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO minimum move (px)"
+msgstr "Ελάχιστη μετακίνηση ΠΟ (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO corrects every frame; when it passes the bump point of its travel, the mount takes over in small moves. The AO is calibrated after the mount."
+msgstr "Η ΠΟ διορθώνει κάθε καρέ· όταν ξεπεράσει το σημείο ανάληψης της διαδρομής της, η στήριξη αναλαμβάνει με μικρές κινήσεις. Η ΠΟ βαθμονομείται μετά τη στήριξη."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Clear AO calibration"
+msgstr "Διαγραφή βαθμονόμησης ΠΟ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Adaptive optics"
+msgstr "Προσαρμοστική οπτική"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Port"
+msgstr "Θύρα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Other computers"
+msgstr "Άλλοι υπολογιστές"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Allow them to connect"
+msgstr "Να επιτρέπεται η σύνδεσή τους"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2-compatible server"
+msgstr "Διακομιστής συμβατός με PHD2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Learns the mount's periodic error while guiding and corrects it before it shows: for mounts with a regular worm error. It trains for two worm periods."
+msgstr "Μαθαίνει το περιοδικό σφάλμα της στήριξης κατά την οδήγηση και το διορθώνει πριν φανεί: για στηρίξεις με κανονικό σφάλμα ατέρμονα. Εκπαιδεύεται για δύο περιόδους ατέρμονα."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Starts learning when guiding starts."
+msgstr "Αρχίζει να μαθαίνει όταν ξεκινά η οδήγηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Predicting, period {0:0} s"
+msgstr "Πρόβλεψη, περίοδος {0:0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: {0:0.0} of 2 periods"
+msgstr "Εκπαίδευση: {0:0.0} από 2 περιόδους"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Listening on port {0} · {1} connected"
+msgstr "Ακρόαση στη θύρα {0} · συνδεδεμένοι: {1}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO steps"
+msgstr "Βήματα ΠΟ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The AO moved by hand the same way, along its own axes, to check it."
+msgstr "Μετακινεί την ΠΟ με το χέρι με τον ίδιο τρόπο, κατά μήκος των δικών της αξόνων, για έλεγχο."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "AO moved. Choose a guide star to see how far it moves."
+msgstr "Η ΠΟ μετακινήθηκε. Επιλέξτε άστρο οδήγησης για να δείτε πόσο κινείται."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The AO calibration expected {0:0.0} px towards {1:0}°. Calibrate the AO again."
+msgstr "⚠ Η βαθμονόμηση ΠΟ ανέμενε {0:0.0} px προς {1:0}°. Βαθμονομήστε ξανά την ΠΟ."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Three-point (plate solving)"
+msgstr "Τριών σημείων (αστρομετρία)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Drift alignment"
+msgstr "Ευθυγράμμιση με ολίσθηση"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Static polar alignment"
+msgstr "Στατική πολική ευθυγράμμιση"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar drift alignment"
+msgstr "Ευθυγράμμιση με πολική ολίσθηση"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "PHD2 is connected: these methods use Sidralune's own guider."
+msgstr "Το PHD2 είναι συνδεδεμένο: αυτές οι μέθοδοι χρησιμοποιούν τον δικό οδηγό του Sidralune."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Stop guiding first: the mount only tracks for this method."
+msgstr "Σταματήστε πρώτα την οδήγηση: σε αυτή τη μέθοδο η στήριξη απλώς παρακολουθεί τον ουρανό."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guide frames show here. Connect a guide camera in Observatory → Equipment."
+msgstr "Τα καρέ οδήγησης εμφανίζονται εδώ. Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Sidralune guides with the Dec corrections held back, and the Dec drift tells the polar axis's error: near the meridian and the celestial equator the azimuth error, 25–35° up in the east or west the altitude error. Adjust, measure again, until both are small."
+msgstr "Το Sidralune οδηγεί με τις διορθώσεις Dec συγκρατημένες, και η ολίσθηση σε Dec φανερώνει το σφάλμα του πολικού άξονα: κοντά στον μεσημβρινό και τον ουράνιο ισημερινό το σφάλμα αζιμουθίου, σε ύψος 25–35° στα ανατολικά ή δυτικά το σφάλμα ύψους. Ρυθμίστε και μετρήστε ξανά ώσπου να είναι και τα δύο μικρά."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start over"
+msgstr "Από την αρχή"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error: not measured yet"
+msgstr "Σφάλμα ύψους: δεν έχει μετρηθεί ακόμη"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Altitude error {0:+0.0;-0.0}′"
+msgstr "Σφάλμα ύψους {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error: not measured yet"
+msgstr "Σφάλμα αζιμουθίου: δεν έχει μετρηθεί ακόμη"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Azimuth error {0:+0.0;-0.0}′"
+msgstr "Σφάλμα αζιμουθίου {0:+0.0;-0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: measure for a minute or two."
+msgstr "Πολύ σύντομο για συμπέρασμα: μετρήστε ένα ή δύο λεπτά."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Guiding stopped, so the measurement was dropped."
+msgstr "Η οδήγηση σταμάτησε, οπότε η μέτρηση απορρίφθηκε."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Connect the mount: drift alignment needs to know where it points."
+msgstr "Συνδέστε τη στήριξη: η ευθυγράμμιση με ολίσθηση πρέπει να ξέρει πού στοχεύει."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "altitude error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "σφάλμα ύψους {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "azimuth error {0:+0.0;-0.0}′ ± {1:0.0}′"
+msgstr "σφάλμα αζιμουθίου {0:+0.0;-0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: Dec drift {1:+0.00;-0.00}″/min ± {2:0.00}"
+msgstr "{0:0} s: ολίσθηση Dec {1:+0.00;-0.00}″/min ± {2:0.00}"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turning RA"
+msgstr "Στροφή RA"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The mount turns itself"
+msgstr "Η στήριξη στρέφει μόνη της"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. Sidralune takes a frame, turns RA about 15° west twice and plate-solves each frame: the mount's axis is the point the frames turn about, and the plate solution places the refracted pole. Then turn the altitude and azimuth knobs until the star reaches its circle."
+msgstr "Στοχεύστε κοντά στον ουράνιο πόλο. Το Sidralune τραβά ένα καρέ, στρέφει το RA περίπου 15° προς τα δυτικά δύο φορές και επιλύει αστρομετρικά κάθε καρέ: ο άξονας της στήριξης είναι το σημείο γύρω από το οποίο στρέφονται τα καρέ, και η αστρομετρική λύση τοποθετεί τον διαθλασμένο πόλο. Στη συνέχεια γυρίστε τις βίδες ύψους και αζιμουθίου ώσπου το άστρο να φτάσει στον κύκλο του."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Start alignment"
+msgstr "Έναρξη ευθυγράμμισης"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Next frame"
+msgstr "Επόμενο καρέ"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mount axis"
+msgstr "Άξονας στήριξης"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Pole"
+msgstr "Πόλος"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn RA about {0:0}° west, then click Next frame."
+msgstr "Στρέψτε το RA περίπου {0:0}° προς τα δυτικά και πατήστε Επόμενο καρέ."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "The star is not found: turn the knobs more slowly, or click Start alignment again."
+msgstr "Το άστρο δεν βρίσκεται: γυρίστε τις βίδες πιο αργά, ή πατήστε ξανά Έναρξη ευθυγράμμισης."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Turn the altitude and azimuth knobs until the star is in its circle: {0:0.0}′ to go."
+msgstr "Γυρίστε τις βίδες ύψους και αζιμουθίου ώσπου το άστρο να είναι στον κύκλο του: απομένουν {0:0.0}′."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Mirrored (an off-axis guider's prism, a diagonal)"
+msgstr "Κατοπτρική (πρίσμα οδηγού εκτός άξονα, διαγώνιος)"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Point near the celestial pole. With the mount only tracking, a star is followed: its drift gives the polar axis's error, with no calibration and no plate solving. Stop when the error has settled, then move the star into its circle with the altitude and azimuth knobs."
+msgstr "Στοχεύστε κοντά στον ουράνιο πόλο. Ενώ η στήριξη απλώς παρακολουθεί τον ουρανό, ακολουθείται ένα άστρο: η ολίσθησή του δίνει το σφάλμα του πολικού άξονα, χωρίς βαθμονόμηση και χωρίς αστρομετρική επίλυση. Σταματήστε όταν το σφάλμα σταθεροποιηθεί και μετακινήστε το άστρο στον κύκλο του με τις βίδες ύψους και αζιμουθίου."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Follow a star"
+msgstr "Ακολούθηση άστρου"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Too short to tell: follow the star for a minute or two."
+msgstr "Πολύ σύντομο για συμπέρασμα: ακολουθήστε το άστρο ένα ή δύο λεπτά."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Polar alignment error {0:0.0}′ ± {1:0.0}′"
+msgstr "Σφάλμα πολικής ευθυγράμμισης {0:0.0}′ ± {1:0.0}′"
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Move the star into its circle with the altitude and azimuth knobs."
+msgstr "Μετακινήστε το άστρο στον κύκλο του με τις βίδες ύψους και αζιμουθίου."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "From the guider's calibration."
+msgstr "Από τη βαθμονόμηση του οδηγού."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Without a calibration, say whether the guide camera sees a mirror image."
+msgstr "Χωρίς βαθμονόμηση, δηλώστε αν η κάμερα οδήγησης βλέπει κατοπτρική εικόνα."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "Following the star… {0} frames so far."
+msgstr "Ακολούθηση άστρου… έως τώρα καρέ: {0}."
+
+#: Sidralune/Views/ObservatoryView.Polar.cs
+msgid "{0:0} s: error {1:0.0}′ ± {2:0.0}′. Stop when it has settled."
+msgstr "{0:0} s: σφάλμα {1:0.0}′ ± {2:0.0}′. Σταματήστε όταν σταθεροποιηθεί."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, or click Connect PHD2."
+msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός ή πατήστε Σύνδεση PHD2."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "No telescope connected: the assistant needs to know where the mount points and to slew it."
+msgstr "Δεν είναι συνδεδεμένο τηλεσκόπιο: ο βοηθός πρέπει να ξέρει πού δείχνει η στήριξη και να τη μετακινεί."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The mount does not report its guide rate. 0.5× sidereal or faster is best."
+msgstr "Η στήριξη δεν αναφέρει την ταχύτητα οδήγησης. Το καλύτερο είναι 0,5× αστρική ή ταχύτερα."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The guide rate is {0:0.0#}× sidereal. 0.5× or faster calibrates and guides better."
+msgstr "Η ταχύτητα οδήγησης είναι {0:0.0#}× αστρική. Με 0,5× ή ταχύτερα η βαθμονόμηση και η οδήγηση είναι καλύτερες."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The calibration step is fixed at {0} ms. 0 works it out for the place and the guide rate."
+msgstr "Το βήμα βαθμονόμησης είναι σταθερό στα {0} ms. Το 0 το υπολογίζει από τη θέση και την ταχύτητα οδήγησης."
+
+#: Sidralune.Devices/Guiding/CalibrationAssistant.cs
+msgid "The assistant has not moved the mount."
+msgstr "Ο βοηθός δεν έχει μετακινήσει τη στήριξη."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Start guiding first: the Guiding Assistant measures while guiding is paused."
+msgstr "Ξεκινήστε πρώτα την οδήγηση: ο βοηθός οδήγησης μετρά ενώ η οδήγηση είναι σε παύση."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec came back more slowly than it went, so the backlash could not be told apart."
+msgstr "Η Dec επέστρεψε πιο αργά απ' ό,τι πήγε, οπότε το τζόγο δεν μπορούσε να ξεχωρίσει."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "The backlash test was stopped."
+msgstr "Η δοκιμή τζόγου διακόπηκε."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Minimum move RA {0:0.00} px and Dec {1:0.00} px, a little under the seeing's wander."
+msgstr "Ελάχιστη μετακίνηση RA {0:0.00} px και Dec {1:0.00} px, λίγο κάτω από την αναταραχή του seeing."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is small ({0:0} ms): no compensation needed."
+msgstr "Το τζόγο στη Dec είναι μικρό ({0:0} ms): δεν χρειάζεται αντιστάθμιση."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Turn on Dec backlash compensation at {0:0} ms (adapting between {1:0} and {2:0} ms)."
+msgstr "Ενεργοποιήστε την αντιστάθμιση τζόγου στη Dec στα {0:0} ms (προσαρμόζεται μεταξύ {1:0} και {2:0} ms)."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec North only, against the drift."
+msgstr "Το τζόγο στη Dec είναι μεγάλο ({0:0.0} s): οδηγήστε τη Dec μόνο βόρεια, αντίθετα στην ολίσθηση."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Dec backlash is large ({0:0.0} s): guide Dec South only, against the drift."
+msgstr "Το τζόγο στη Dec είναι μεγάλο ({0:0.0} s): οδηγήστε τη Dec μόνο νότια, αντίθετα στην ολίσθηση."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "Polar alignment is off by at least {0:0}′. Observatory → Polar alignment can measure and correct it."
+msgstr "Η πολική ευθυγράμμιση αποκλίνει τουλάχιστον {0:0}′. Η Παρατήρηση → Πολική ευθυγράμμιση μπορεί να τη μετρήσει και να τη διορθώσει."
+
+#: Sidralune.Devices/Guiding/GuidingAssistant.cs
+msgid "RA changes quickly ({0:0.00}″/s): a {1:0.0#} s exposure follows it better."
+msgstr "Η RA αλλάζει γρήγορα ({0:0.00}″/s): μια έκθεση {1:0.0#} s την ακολουθεί καλύτερα."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is not running."
+msgstr "Ο οδηγός δεν λειτουργεί."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guider is busy."
+msgstr "Ο οδηγός είναι απασχολημένος."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Choose a guide star first."
+msgstr "Επιλέξτε πρώτα αστέρι οδήγησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The lock position must be inside the frame."
+msgstr "Η θέση κλειδώματος πρέπει να είναι μέσα στο καρέ."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Wait until calibration has finished."
+msgstr "Περιμένετε να τελειώσει η βαθμονόμηση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Calibrate first: comet tracking moves the lock position through the calibration."
+msgstr "Βαθμονομήστε πρώτα: η παρακολούθηση κομήτη μετακινεί τη θέση κλειδώματος μέσω της βαθμονόμησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The comet {0} is not in the comet list. Download the comet data in Settings, or enter the rates."
+msgstr "Ο κομήτης {0} δεν είναι στη λίστα κομητών. Κατεβάστε τα δεδομένα κομητών στις Ρυθμίσεις ή εισαγάγετε τις ταχύτητες."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Start guiding first, then keep the comet centred by moving the lock position."
+msgstr "Ξεκινήστε πρώτα την οδήγηση και μετά κρατήστε τον κομήτη στο κέντρο μετακινώντας τη θέση κλειδώματος."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Train for longer: at least a minute gives usable rates."
+msgstr "Εκπαιδεύστε περισσότερο: τουλάχιστον ένα λεπτό δίνει χρήσιμες ταχύτητες."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Click Loop first, so the pulse's effect can be seen."
+msgstr "Πατήστε πρώτα Βρόχος, ώστε να φανεί το αποτέλεσμα του παλμού."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "Manual pulses are for looping, not while calibrating or guiding."
+msgstr "Οι χειροκίνητοι παλμοί είναι για τον βρόχο, όχι κατά τη βαθμονόμηση ή την οδήγηση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop the guider before taking dark frames."
+msgstr "Σταματήστε τον οδηγό πριν τραβήξετε σκοτεινά καρέ."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Dark frames are being taken with the guide camera."
+msgstr "Η κάμερα οδήγησης τραβά σκοτεινά καρέ."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The guide star was lost during the backlash test."
+msgstr "Το αστέρι οδήγησης χάθηκε κατά τη δοκιμή τζόγου."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.Tools.cs
+msgid "The backlash test stopped because the mount slewed."
+msgstr "Η δοκιμή τζόγου σταμάτησε επειδή η στήριξη μετακινήθηκε."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Select star here"
+msgstr "Επιλογή αστεριού εδώ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Set lock position here"
+msgstr "Θέση κλειδώματος εδώ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Assistants"
+msgstr "Βοηθοί"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Darks"
+msgstr "Σκοτεινά καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Tools"
+msgstr "Εργαλεία"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "brightness jumped: frame not used"
+msgstr "η φωτεινότητα πήδηξε: το καρέ δεν χρησιμοποιήθηκε"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} stars"
+msgstr "{0} αστέρια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0:0.0#} s"
+msgstr "{0:0.0#} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Auto exposure"
+msgstr "Αυτόματη έκθεση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the star's SNR"
+msgstr "Ακολουθεί το SNR του αστεριού"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Shortest exposure (s)"
+msgstr "Συντομότερη έκθεση (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Longest exposure (s)"
+msgstr "Μακρύτερη έκθεση (s)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Multi-star"
+msgstr "Πολλά αστέρια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide on several stars"
+msgstr "Οδήγηση σε πολλά αστέρια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Most stars"
+msgstr "Το πολύ αστέρια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Star brightness"
+msgstr "Φωτεινότητα αστεριού"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Skip frames where it jumps"
+msgstr "Παράλειψη καρέ όπου πηδά"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Brightness tolerance (%)"
+msgstr "Ανοχή φωτεινότητας (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A frame in which the guide star's brightness changes by more than the tolerance is not used for a correction; after three in a row, the new brightness counts."
+msgstr "Ένα καρέ όπου η φωτεινότητα του αστεριού οδήγησης αλλάζει περισσότερο από την ανοχή δεν χρησιμοποιείται για διόρθωση· μετά από τρία στη σειρά ισχύει η νέα φωτεινότητα."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA algorithm"
+msgstr "Αλγόριθμος RA"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hysteresis"
+msgstr "Υστέρηση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2"
+msgstr "Lowpass2"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter"
+msgstr "Z-filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lowpass2 aggressiveness (%)"
+msgstr "Επιθετικότητα Lowpass2 (%)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Z-filter exposure factor"
+msgstr "Συντελεστής έκθεσης Z-filter"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec algorithm"
+msgstr "Αλγόριθμος Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Resist Switch"
+msgstr "Resist Switch"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide Dec"
+msgstr "Οδήγηση Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Both ways"
+msgstr "Και προς τις δύο"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North only"
+msgstr "Μόνο βόρεια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South only"
+msgstr "Μόνο νότια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Off"
+msgstr "Ανενεργό"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash compensation"
+msgstr "Αντιστάθμιση τζόγου"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "When Dec turns"
+msgstr "Όταν η Dec αλλάζει φορά"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash (ms)"
+msgstr "Τζόγο (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at least (ms)"
+msgstr "Τζόγο τουλάχιστον (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Backlash at most (ms)"
+msgstr "Τζόγο το πολύ (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guide stars"
+msgstr "Αστέρια οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Corrects a share of the error, smoothed with the one before."
+msgstr "Διορθώνει μέρος του σφάλματος, εξομαλυμένο με το προηγούμενο."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Changes direction only when the error clearly asks for it, which suits Dec's backlash."
+msgstr "Αλλάζει φορά μόνο όταν το σφάλμα το ζητά καθαρά, κάτι που ταιριάζει στο τζόγο της Dec."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Fits a line through the last errors so the seeing averages out: for smooth mounts in good seeing."
+msgstr "Περνά μια ευθεία από τα τελευταία σφάλματα ώστε το seeing να εξομαλύνεται: για ομαλές στηρίξεις με καλό seeing."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guides as if the exposures were longer: for slow errors in poor seeing."
+msgstr "Οδηγεί σαν οι εκθέσεις να ήταν μεγαλύτερες: για αργά σφάλματα με κακό seeing."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Now {0:0} ms, as it has adapted."
+msgstr "Τώρα {0:0} ms, όπως έχει προσαρμοστεί."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, measures how the stars move with corrections paused: the seeing, the drift, RA's swing and the polar alignment error. Give it two minutes, longer for polar alignment."
+msgstr "Κατά την οδήγηση μετρά πώς κινούνται τα αστέρια με τις διορθώσεις σε παύση: το seeing, την ολίσθηση, την ταλάντωση της RA και το σφάλμα πολικής ευθυγράμμισης. Δώστε του δύο λεπτά, περισσότερο για την πολική ευθυγράμμιση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Afterwards"
+msgstr "Μετά"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measure Dec backlash"
+msgstr "Μέτρηση τζόγου Dec"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start measuring"
+msgstr "Έναρξη μέτρησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop and analyse"
+msgstr "Διακοπή και ανάλυση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Apply the ticked settings"
+msgstr "Εφαρμογή των επιλεγμένων ρυθμίσεων"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibrates near the meridian and the celestial equator, where calibration is most reliable, on the side the mount points to now, then rates the calibration."
+msgstr "Βαθμονομεί κοντά στον μεσημβρινό και τον ουράνιο ισημερινό, όπου η βαθμονόμηση είναι πιο αξιόπιστη, στην πλευρά όπου δείχνει τώρα η στήριξη, και μετά αξιολογεί τη βαθμονόμηση."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Hour angle (h)"
+msgstr "Ωριαία γωνία (h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Declination (°)"
+msgstr "Απόκλιση (°)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Slew and calibrate"
+msgstr "Μετακίνηση και βαθμονόμηση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Return"
+msgstr "Επιστροφή"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Suggest again"
+msgstr "Νέα πρόταση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration Assistant"
+msgstr "Βοηθός βαθμονόμησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant"
+msgstr "Βοηθός οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Measuring… {0} frames so far."
+msgstr "Μέτρηση… {0} καρέ ως τώρα."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0} frames over {1:0} s."
+msgstr "{0} καρέ σε {1:0} s."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+msgstr "Seeing: RA {0:0.00}″, Dec {1:0.00}″ RMS."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Drift: RA {0:0.00}″, Dec {1:0.00}″ a minute."
+msgstr "Ολίσθηση: RA {0:0.00}″, Dec {1:0.00}″ ανά λεπτό."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA swing {0:0.0}″ peak to peak, changing up to {1:0.00}″ a second."
+msgstr "Ταλάντωση RA {0:0.0}″ από κορυφή σε κορυφή, με μεταβολή έως {1:0.00}″ ανά δευτερόλεπτο."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Polar alignment off by at least {0:0.0}′."
+msgstr "Η πολική ευθυγράμμιση αποκλίνει τουλάχιστον {0:0.0}′."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash: {0}"
+msgstr "Τζόγο Dec: {0}"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec backlash {0:0} ± {1:0} ms."
+msgstr "Τζόγο Dec {0:0} ± {1:0} ms."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "PHD2 is connected: it has its own Guiding Assistant."
+msgstr "Το PHD2 είναι συνδεδεμένο: έχει δικό του βοηθό οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding Assistant finished"
+msgstr "Ο βοηθός οδήγησης τελείωσε"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Settings applied."
+msgstr "Οι ρυθμίσεις εφαρμόστηκαν."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Good"
+msgstr "Καλή"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Acceptable"
+msgstr "Αποδεκτή"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Poor"
+msgstr "Κακή"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Calibration: {0}."
+msgstr "Βαθμονόμηση: {0}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Guiding stopped, so the Guiding Assistant did too."
+msgstr "Η οδήγηση σταμάτησε, οπότε σταμάτησε και ο βοηθός οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a telescope: the assistant slews it."
+msgstr "Συνδέστε τηλεσκόπιο: ο βοηθός το μετακινεί."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West of the meridian, {0:0}° up."
+msgstr "Δυτικά του μεσημβρινού, σε ύψος {0:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East of the meridian, {0:0}° up."
+msgstr "Ανατολικά του μεσημβρινού, σε ύψος {0:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Nothing"
+msgstr "Τίποτα"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The dark library"
+msgstr "Τη βιβλιοθήκη σκοτεινών καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The bad-pixel map"
+msgstr "Τον χάρτη ελαττωματικών pixel"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A dark library subtracts a master dark from each guide frame; a bad-pixel map mends the hot and cold pixels. Either removes hot pixels that could be taken for stars."
+msgstr "Η βιβλιοθήκη σκοτεινών καρέ αφαιρεί ένα κύριο σκοτεινό καρέ από κάθε καρέ οδήγησης· ο χάρτης ελαττωματικών pixel διορθώνει τα θερμά και ψυχρά pixel. Και τα δύο αφαιρούν θερμά pixel που θα μπορούσαν να περάσουν για αστέρια."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames each"
+msgstr "Σκοτεινά καρέ ανά έκθεση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build dark library"
+msgstr "Δημιουργία βιβλιοθήκης σκοτεινών καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark frames"
+msgstr "Σκοτεινά καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Threshold (σ)"
+msgstr "Κατώφλι (σ)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Build bad-pixel map"
+msgstr "Δημιουργία χάρτη ελαττωματικών pixel"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Cover the guide scope (or close the camera's shutter), then click Continue."
+msgstr "Καλύψτε το τηλεσκόπιο οδήγησης (ή κλείστε το κλείστρο της κάμερας) και πατήστε Συνέχεια."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Continue"
+msgstr "Συνέχεια"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Taking dark frames"
+msgstr "Λήψη σκοτεινών καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map"
+msgstr "Χάρτης ελαττωματικών pixel"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library"
+msgstr "Βιβλιοθήκη σκοτεινών καρέ"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library built. Uncover the guide scope."
+msgstr "Η βιβλιοθήκη σκοτεινών καρέ δημιουργήθηκε. Ξεσκεπάστε το τηλεσκόπιο οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map built: {0} hot and {1} cold pixels. Uncover the guide scope."
+msgstr "Ο χάρτης ελαττωματικών pixel δημιουργήθηκε: {0} θερμά και {1} ψυχρά pixel. Ξεσκεπάστε το τηλεσκόπιο οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Exposures: {0} s"
+msgstr "Εκθέσεις: {0} s"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "{0}: {1:0} %"
+msgstr "{0}: {1:0} %"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Connect a guide camera to build or use dark frames."
+msgstr "Συνδέστε κάμερα οδήγησης για να δημιουργήσετε ή να χρησιμοποιήσετε σκοτεινά καρέ."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: none yet."
+msgstr "Βιβλιοθήκη σκοτεινών καρέ: καμία ακόμη."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dark library: {0} s, {1} frames each, {2:yyyy-MM-dd}."
+msgstr "Βιβλιοθήκη σκοτεινών καρέ: {0} s, {1} καρέ το καθένα, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It fits the guide camera."
+msgstr "Ταιριάζει στην κάμερα οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "It doesn't fit the guide camera as set up now; build it again."
+msgstr "Δεν ταιριάζει στην κάμερα οδήγησης όπως είναι ρυθμισμένη τώρα· δημιουργήστε την ξανά."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: none yet."
+msgstr "Χάρτης ελαττωματικών pixel: κανένας ακόμη."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Bad-pixel map: {0} hot and {1} cold pixels, {2:yyyy-MM-dd}."
+msgstr "Χάρτης ελαττωματικών pixel: {0} θερμά και {1} ψυχρά pixel, {2:yyyy-MM-dd}."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position X (px)"
+msgstr "Θέση κλειδώματος X (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position Y (px)"
+msgstr "Θέση κλειδώματος Y (px)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Or right-click the frame: Set lock position here."
+msgstr "Ή δεξί κλικ στο καρέ: Θέση κλειδώματος εδώ."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Sticky lock position"
+msgstr "Μόνιμη θέση κλειδώματος"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Keep it through stops"
+msgstr "Διατήρηση μετά από διακοπές"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Move by (″)"
+msgstr "Μετακίνηση κατά (″)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "North"
+msgstr "Βορράς"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "South"
+msgstr "Νότος"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "East"
+msgstr "Ανατολή"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "West"
+msgstr "Δύση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Moves the telescope that far on the sky, through the calibration; without one, that many pixels in the frame."
+msgstr "Μετακινεί το τηλεσκόπιο τόσο στον ουρανό, μέσω της βαθμονόμησης· χωρίς βαθμονόμηση, τόσα pixel στο καρέ."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Rates from"
+msgstr "Ταχύτητες από"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Entered rates"
+msgstr "Καταχωρισμένες ταχύτητες"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "A comet's orbit"
+msgstr "Την τροχιά ενός κομήτη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training"
+msgstr "Εκπαίδευση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "RA (″/h, on the sky)"
+msgstr "RA (″/h, στον ουρανό)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Dec (″/h)"
+msgstr "Dec (″/h)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Comet tracking"
+msgstr "Παρακολούθηση κομήτη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Follow the comet"
+msgstr "Ακολούθηση του κομήτη"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Start training"
+msgstr "Έναρξη εκπαίδευσης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Stop training"
+msgstr "Διακοπή εκπαίδευσης"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse (ms)"
+msgstr "Παλμός (ms)"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While looping: one pulse, and how far the star moved, to check the guide cable and the guide rate."
+msgstr "Στον βρόχο: ένας παλμός και πόσο μετακινήθηκε το αστέρι, για έλεγχο του καλωδίου και της ταχύτητας οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Manual guide"
+msgstr "Χειροκίνητη οδήγηση"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Lock position"
+msgstr "Θέση κλειδώματος"
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Pulse sent. Choose a guide star to see how far it moves."
+msgstr "Ο παλμός στάλθηκε. Επιλέξτε αστέρι οδήγησης για να δείτε πόσο μετακινείται."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "The star moved {0:0.0} px towards {1:0}°."
+msgstr "Το αστέρι μετακινήθηκε {0:0.0} px προς {1:0}°."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "As calibrated ({0:0.0} px towards {1:0}°)."
+msgstr "Όπως στη βαθμονόμηση ({0:0.0} px προς {1:0}°)."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "⚠ The calibration expected {0:0.0} px towards {1:0}°. Check the guide cable, the guide rate and Dec backlash."
+msgstr "⚠ Η βαθμονόμηση περίμενε {0:0.0} px προς {1:0}°. Ελέγξτε το καλώδιο οδήγησης, την ταχύτητα οδήγησης και το τζόγο της Dec."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Training: keep the comet centred in the imaging camera by moving the lock position."
+msgstr "Εκπαίδευση: κρατήστε τον κομήτη στο κέντρο της κύριας κάμερας μετακινώντας τη θέση κλειδώματος."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "Following at RA {0:0.0}″/h and Dec {1:0.0}″/h."
+msgstr "Ακολουθεί με RA {0:0.0}″/h και Dec {1:0.0}″/h."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "No comets yet: download the comet data in Settings."
+msgstr "Δεν υπάρχουν ακόμη κομήτες: κατεβάστε τα δεδομένα κομητών στις Ρυθμίσεις."
+
+#: Sidralune/Views/ObservatoryView.Guiding.cs
+msgid "While guiding, the lock position follows the comet, so the comet stays put in the imaging camera."
+msgstr "Κατά την οδήγηση η θέση κλειδώματος ακολουθεί τον κομήτη, ώστε ο κομήτης να μένει ακίνητος στην κύρια κάμερα."
+
+#: Sidralune.Devices/DeviceManager.cs Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect the guide camera to use PHD2."
+msgstr "Αποσυνδέστε την κάμερα οδήγησης για να χρησιμοποιήσετε το PHD2."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "PHD2 is connected and uses the guide camera itself. Disconnect PHD2 to guide with Sidralune."
+msgstr "Το PHD2 είναι συνδεδεμένο και χρησιμοποιεί το ίδιο την κάμερα οδήγησης. Αποσυνδέστε το PHD2 για να οδηγήσετε με το Sidralune."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "In use by PHD2"
+msgstr "Σε χρήση από το PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Disconnect PHD2"
+msgstr "Αποσύνδεση PHD2"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 is connected: it has its own settings and calibration."
+msgstr "Το PHD2 είναι συνδεδεμένο: έχει τις δικές του ρυθμίσεις και βαθμονόμηση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Connect a guide camera in Observatory → Equipment, then click Loop"
+msgstr "Συνδέστε κάμερα οδήγησης στο Αστεροσκοπείο → Εξοπλισμός και πατήστε Βρόχος"
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the guide camera."
+msgstr "Αυτή η κάμερα είναι ήδη συνδεδεμένη ως κάμερα οδήγησης."
+
+#: Sidralune.Devices/DeviceManager.cs
+msgid "This camera is already connected as the imaging camera."
+msgstr "Αυτή η κάμερα είναι ήδη συνδεδεμένη ως κάμερα λήψης."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide camera connected."
 msgstr "Δεν έχει συνδεθεί κάμερα οδήγησης."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The guide camera has no guide port. Guide through the mount instead."
+msgstr "Η κάμερα οδήγησης δεν έχει θύρα οδήγησης. Οδηγήστε μέσω της στήριξης."
+
+#: Sidralune.Devices/Guiding/GuideOutput.cs
+msgid "The mount cannot take guide pulses. Guide through the guide camera's port instead."
+msgstr "Η στήριξη δεν δέχεται παλμούς οδήγησης. Οδηγήστε μέσω της θύρας της κάμερας οδήγησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding was stopped."
+msgstr "Η οδήγηση σταμάτησε."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Stop guiding before choosing another star."
+msgstr "Σταματήστε την οδήγηση πριν επιλέξετε άλλον αστέρα."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No suitable guide star in the frame."
+msgstr "Κανένας κατάλληλος αστέρας οδήγησης στο καρέ."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No star there to guide on."
+msgstr "Κανένας αστέρας εκεί για οδήγηση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding did not settle within {0} s."
+msgstr "Η οδήγηση δεν σταθεροποιήθηκε μέσα σε {0} s."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Not guiding."
+msgstr "Δεν γίνεται οδήγηση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "No guide star found. Check the guide camera's focus and exposure."
+msgstr "Δεν βρέθηκε αστέρας οδήγησης. Ελέγξτε την εστίαση και την έκθεση της κάμερας οδήγησης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Guiding stopped because the mount slewed."
+msgstr "Η οδήγηση σταμάτησε επειδή η στήριξη μετακινήθηκε."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera was disconnected."
+msgstr "Η κάμερα οδήγησης αποσυνδέθηκε."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide camera failed three times in a row: {0}"
+msgstr "Η κάμερα οδήγησης απέτυχε τρεις φορές στη σειρά: {0}"
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in RA. Check the guide cable or the mount's connection and guide rate."
+msgstr "Η βαθμονόμηση απέτυχε: ο αστέρας δεν μετακινήθηκε αρκετά σε RA. Ελέγξτε το καλώδιο οδήγησης ή τη σύνδεση και την ταχύτητα οδήγησης της στήριξης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: the star did not move far enough in Dec. Check the guide cable or the mount's connection and guide rate."
+msgstr "Η βαθμονόμηση απέτυχε: ο αστέρας δεν μετακινήθηκε αρκετά σε Dec. Ελέγξτε το καλώδιο οδήγησης ή τη σύνδεση και την ταχύτητα οδήγησης της στήριξης."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration stopped because the mount slewed."
+msgstr "Η βαθμονόμηση σταμάτησε επειδή η στήριξη μετακινήθηκε."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "The guide star was lost during calibration."
+msgstr "Ο αστέρας οδήγησης χάθηκε κατά τη βαθμονόμηση."
+
+#: Sidralune.Devices/Guiding/SidraluneGuider.cs
+msgid "Calibration failed: Dec did not start moving. Dec may not be connected, or the mount has a lot of backlash."
+msgstr "Η βαθμονόμηση απέτυχε: ο άξονας Dec δεν άρχισε να κινείται. Ίσως ο Dec δεν είναι συνδεδεμένος ή η στήριξη έχει μεγάλο τζόγο."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Start PHD2 and enable its server (Tools → Enable Server)."
+msgstr "Ξεκινήστε το PHD2 και ενεργοποιήστε τον διακομιστή του (Tools → Enable Server)."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide camera"
+msgstr "Κάμερα οδήγησης"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Stopped"
+msgstr "Σταματημένο"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Looping"
+msgstr "Βρόχος"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star selected"
+msgstr "Επιλέχθηκε αστέρας"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrating"
+msgstr "Βαθμονόμηση"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Paused"
+msgstr "Σε παύση"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost"
+msgstr "Ο αστέρας χάθηκε"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Not calibrated. Calibrate & guide calibrates first; Start guiding calibrates when there is no calibration for this equipment."
+msgstr "Χωρίς βαθμονόμηση. Το «Βαθμονόμηση και οδήγηση» βαθμονομεί πρώτα· το «Έναρξη οδήγησης» βαθμονομεί όταν δεν υπάρχει βαθμονόμηση για αυτόν τον εξοπλισμό."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated {0:yyyy-MM-dd HH:mm}: RA {1:0}° at {2:0.00} px/s, Dec {3:0}° at {4:0.00} px/s, {5:0.0}° from square."
+msgstr "Βαθμονομήθηκε {0:yyyy-MM-dd HH:mm}: RA {1:0}° με {2:0.00} px/s, Dec {3:0}° με {4:0.00} px/s, {5:0.0}° από ορθή γωνία."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec are far from square: backlash or poor seeing may have upset the calibration. Calibrate again."
+msgstr "Οι RA και Dec απέχουν πολύ από ορθή γωνία: τζόγος ή κακό seeing μπορεί να χάλασαν τη βαθμονόμηση. Βαθμονομήστε ξανά."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA and Dec moved at rates that do not fit the declination. Check the guide rates, then calibrate again."
+msgstr "Οι RA και Dec κινήθηκαν με ταχύτητες που δεν ταιριάζουν με την απόκλιση. Ελέγξτε τις ταχύτητες οδήγησης και βαθμονομήστε ξανά."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Few calibration steps. A shorter calibration step makes the calibration more accurate."
+msgstr "Λίγα βήματα βαθμονόμησης. Ένα μικρότερο βήμα κάνει τη βαθμονόμηση ακριβέστερη."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The star moved at another speed than the guide rate and focal length predict. Check the guide scope's focal length and the mount's guide rate."
+msgstr "Ο αστέρας κινήθηκε με άλλη ταχύτητα από αυτή που προβλέπουν η ταχύτητα οδήγησης και η εστιακή απόσταση. Ελέγξτε την εστιακή απόσταση του τηλεσκοπίου οδήγησης και την ταχύτητα οδήγησης της στήριξης."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibrated near the pole, where RA moves the star little. Calibrate nearer the celestial equator when you can."
+msgstr "Βαθμονομήθηκε κοντά στον πόλο, όπου η RA μετακινεί ελάχιστα τον αστέρα. Βαθμονομήστε πιο κοντά στον ουράνιο ισημερινό όταν μπορείτε."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Sidralune guider"
+msgstr "Σύστημα οδήγησης Sidralune"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 takes its guide frames itself."
+msgstr "Το PHD2 λαμβάνει μόνο του τα καρέ οδήγησης."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Take guide frames and follow the star, without guiding"
+msgstr "Λήψη καρέ οδήγησης και παρακολούθηση του αστέρα χωρίς οδήγηση"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Select star"
+msgstr "Επιλογή αστέρα"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Choose the best guide star, or click a star in the frame"
+msgstr "Επιλέξτε τον καλύτερο αστέρα οδήγησης ή κάντε κλικ σε έναν αστέρα στο καρέ"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide through"
+msgstr "Οδήγηση μέσω"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The mount"
+msgstr "Της στήριξης"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "The guide camera (ST-4)"
+msgstr "Της κάμερας οδήγησης (ST-4)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Guide scope focal length (mm)"
+msgstr "Εστιακή απόσταση τηλεσκοπίου οδήγησης (mm)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Search box radius (px)"
+msgstr "Ακτίνα πεδίου αναζήτησης (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration step (ms)"
+msgstr "Βήμα βαθμονόμησης (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "0 works the step out from the guide rate, the pixel scale and the declination."
+msgstr "Το 0 υπολογίζει το βήμα από την ταχύτητα οδήγησης, την κλίμακα pixel και την απόκλιση."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration distance (px)"
+msgstr "Απόσταση βαθμονόμησης (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "After a meridian flip"
+msgstr "Μετά από αναστροφή μεσημβρινού"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Mount reverses Dec"
+msgstr "Η στήριξη αντιστρέφει τον Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Most mounts do not turn their Dec pulses round after a flip. If Dec runs away after a flip, change this."
+msgstr "Οι περισσότερες στηρίξεις δεν αντιστρέφουν τους παλμούς Dec μετά από αναστροφή. Αν ο Dec ξεφεύγει μετά από αναστροφή, αλλάξτε αυτό."
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Clear calibration"
+msgstr "Διαγραφή βαθμονόμησης"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA aggressiveness (%)"
+msgstr "Επιθετικότητα RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA hysteresis (%)"
+msgstr "Υστέρηση RA (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA minimum move (px)"
+msgstr "Ελάχιστη μετακίνηση RA (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "RA maximum pulse (ms)"
+msgstr "Μέγιστος παλμός RA (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec aggressiveness (%)"
+msgstr "Επιθετικότητα Dec (%)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec minimum move (px)"
+msgstr "Ελάχιστη μετακίνηση Dec (px)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Dec maximum pulse (ms)"
+msgstr "Μέγιστος παλμός Dec (ms)"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Large Dec errors"
+msgstr "Μεγάλα σφάλματα Dec"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Correct at once"
+msgstr "Άμεση διόρθωση"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Calibration"
+msgstr "Βαθμονόμηση"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "No guide star: click a star or Select star"
+msgstr "Κανένας αστέρας οδήγησης: κάντε κλικ σε αστέρα ή στο Επιλογή αστέρα"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star lost at {0:0.0}, {1:0.0}"
+msgstr "Ο αστέρας χάθηκε στο {0:0.0}, {1:0.0}"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "Star at {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+msgstr "Αστέρας στο {0:0.0}, {1:0.0} · SNR {2:0} · HFD {3:0.0} px"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "saturated"
+msgstr "κορεσμένος"
+
+#: Sidralune/Views/ObservatoryView.cs
+msgid "PHD2 shows its guide frames itself"
+msgstr "Το PHD2 δείχνει μόνο του τα καρέ οδήγησης"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "No dome connected."
@@ -2576,10 +4540,6 @@ msgstr "Παρακολούθηση ασφάλειας"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Switch"
 msgstr "Διακόπτης"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Cover calibrator"
-msgstr "Κάλυμμα-βαθμονομητής"
 
 #: Sidralune/Views/ObservatoryView.cs Sidralune/Views/SettingsView.cs
 msgid "Equipment"
@@ -2700,14 +4660,6 @@ msgstr "Αποσύνδεση όλων"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Disconnecting all devices"
 msgstr "Αποσύνδεση όλων των συσκευών"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Imaging focal length (mm)"
-msgstr "Εστιακή απόσταση (mm)"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "Aperture (mm)"
-msgstr "Διάμετρος (mm)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "ASCOM drivers are used through COM late binding, so no SDK is needed; install the ASCOM Platform plus your device drivers. Alpaca devices are found by UDP broadcast. INDI servers (for example on a Raspberry Pi) are reached over TCP 7624. LX200/OnStep mounts connect via serial or Wi-Fi."
@@ -3126,10 +5078,6 @@ msgstr "Dither"
 #: Sidralune/Views/ObservatoryView.cs
 msgid "Clear graph"
 msgstr "Καθαρισμός γραφήματος"
-
-#: Sidralune/Views/ObservatoryView.cs
-msgid "No guider connected — start PHD2 and enable its server (Tools → Enable Server)"
-msgstr "Δεν έχει συνδεθεί κάμερα οδήγησης — εκκινήστε το PHD2 και ενεργοποιήστε τον διακομιστή του (Tools → Enable Server)"
 
 #: Sidralune/Views/ObservatoryView.cs
 msgid "{0} · RMS RA {1:0.00}\"  Dec {2:0.00}\"  total {3:0.00}\""
@@ -8837,6 +10785,36 @@ msgstr "Dither pixel"
 
 #: property grid
 msgctxt "option"
+msgid "Guiding Wait Minutes"
+msgstr "Αναμονή για οδήγηση (λεπτά)"
+
+#: property grid
+msgctxt "option"
+msgid "Drift Correction"
+msgstr "Διόρθωση ολίσθησης"
+
+#: property grid
+msgctxt "option"
+msgid "Max Guiding Rms"
+msgstr "Μέγ. RMS οδήγησης"
+
+#: property grid
+msgctxt "option"
+msgid "When Guiding Is Bad"
+msgstr "Όταν η οδήγηση είναι κακή"
+
+#: property grid
+msgctxt "option"
+msgid "Flag"
+msgstr "Σήμανση"
+
+#: property grid
+msgctxt "option"
+msgid "Retake"
+msgstr "Επανάληψη λήψης"
+
+#: property grid
+msgctxt "option"
 msgid "Exposure Ms"
 msgstr "Έκθεση ms"
 
@@ -9014,6 +10992,56 @@ msgstr "Παρκάρισμα τηλεσκοπίου"
 msgctxt "option"
 msgid "Dome Shutter"
 msgstr "Θυρίδα θόλου"
+
+#: property grid
+msgctxt "option"
+msgid "Switch"
+msgstr "Διακόπτης"
+
+#: property grid
+msgctxt "option"
+msgid "Value"
+msgstr "Τιμή"
+
+#: property grid
+msgctxt "option"
+msgid "Action"
+msgstr "Ενέργεια"
+
+#: property grid
+msgctxt "option"
+msgid "Open Cover"
+msgstr "Άνοιγμα καλύμματος"
+
+#: property grid
+msgctxt "option"
+msgid "Close Cover"
+msgstr "Κλείσιμο καλύμματος"
+
+#: property grid
+msgctxt "option"
+msgid "Light On"
+msgstr "Άναμμα φωτός"
+
+#: property grid
+msgctxt "option"
+msgid "Light Off"
+msgstr "Σβήσιμο φωτός"
+
+#: property grid
+msgctxt "option"
+msgid "Brightness"
+msgstr "Φωτεινότητα"
+
+#: property grid
+msgctxt "option"
+msgid "Set Switch"
+msgstr "Ρύθμιση διακόπτη"
+
+#: property grid
+msgctxt "option"
+msgid "Flat Panel"
+msgstr "Πάνελ flat"
 
 #: property grid
 msgctxt "option"

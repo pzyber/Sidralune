@@ -329,7 +329,7 @@ namespace Sidralune
                 {
                     if (kv.Key == DeviceKind.Telescope && dm.Telescope != null && dm.Telescope.Connected) extra = dm.Telescope.Slewing ? " · " + T("slewing") : dm.Telescope.AtPark ? " · " + T("parked") : dm.Telescope.Tracking ? " · " + T("tracking") : "";
                     if (kv.Key == DeviceKind.Camera && dm.Camera != null && dm.Camera.Connected && !double.IsNaN(dm.Camera.CcdTemperature)) extra = string.Format(" · {0:0.0}°C", dm.Camera.CcdTemperature);
-                    if (kv.Key == DeviceKind.Guider && dm.Guider != null) extra = " · " + dm.Guider.State;
+                    if (kv.Key == DeviceKind.Guider && dm.Guider != null) extra = " · " + (dm.Phd2Connected ? "PHD2" : DeviceManager.BuiltinGuiderName) + " · " + Views.ObservatoryView.GuiderStateText(dm.Guider.State);
                 }
                 catch { }
                 kv.Value.Set(DeviceTitle(kv.Key) + state + extra, d == null ? Theme.Current.TextFaint : (d.Connected ? Theme.Current.Success : Theme.Current.Danger));

@@ -6,9 +6,10 @@ using Sidralune.Imaging;
 
 namespace Sidralune.Devices
 {
-    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider }
+    public enum DeviceKind { Telescope, Camera, Focuser, FilterWheel, Dome, Rotator, Switch, SafetyMonitor, ObservingConditions, CoverCalibrator, Guider, GuideCamera, AdaptiveOptics }
 
-    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2 }
+    /// <summary>How a device is reached. <see cref="Builtin"/> is part of Sidralune itself (the Sidralune guider).</summary>
+    public enum DeviceProtocol { Simulator, Ascom, Alpaca, Indi, Lx200, Phd2, Builtin, SxAo }
 
     /// <summary>Identifies a device a user can connect to.</summary>
     public class DeviceInfo
@@ -53,6 +54,11 @@ namespace Sidralune.Devices
         bool CanPark { get; }
         bool CanSync { get; }
         bool CanPulseGuide { get; }
+        /// <summary>True while a guide pulse is running (false when the mount cannot tell).</summary>
+        bool IsPulseGuiding { get; }
+        /// <summary>Guide rates in degrees per second, NaN when the mount does not report them.</summary>
+        double GuideRateRa { get; }
+        double GuideRateDec { get; }
         bool CanSlewAltAz { get; }
         double SiteLatitude { get; }
         double SiteLongitude { get; }
@@ -108,6 +114,10 @@ namespace Sidralune.Devices
         void AbortExposure();
         /// <summary>Download the last image (normalised 0..1).</summary>
         AstroImage GetImage();
+        /// <summary>The camera has a guide (ST-4) port that sends pulses to the mount.</summary>
+        bool CanPulseGuide { get; }
+        bool IsPulseGuiding { get; }
+        void PulseGuide(GuideDirection dir, int ms);
     }
 
     public interface IFocuser : IDevice
@@ -148,6 +158,24 @@ namespace Sidralune.Devices
         void AbortSlew();
     }
 
+    /// <summary>The AO unit's own axes: North and South move its Y axis, East and West its X axis (as its maker names them).</summary>
+    public enum AoDirection { North, South, East, West }
+
+    /// <summary>
+    /// An adaptive optics unit: a tip-tilt element that moves the image a little, quickly, in steps, within a travel of
+    /// MaxSteps each way from its centre.
+    /// </summary>
+    public interface IAdaptiveOptics : IDevice
+    {
+        int MaxSteps { get; set; }
+        /// <summary>Steps from the centre: X positive West, Y positive North.</summary>
+        int PositionX { get; }
+        int PositionY { get; }
+        /// <summary>Moves by count steps; false when a limit stopped it short.</summary>
+        bool Step(AoDirection dir, int count);
+        void Center();
+    }
+
     public interface IRotator : IDevice
     {
         double Position { get; }
@@ -165,6 +193,8 @@ namespace Sidralune.Devices
         void SetSwitch(int i, bool on);
         double GetValue(int i);
         void SetValue(int i, double v);
+        /// <summary>The highest value a switch takes: 1 for one that is only on or off.</summary>
+        double GetMaxValue(int i);
     }
 
     public interface ISafetyMonitor : IDevice
@@ -204,6 +234,8 @@ namespace Sidralune.Devices
         public int RaPulse, DecPulse;
         public double Snr;
         public double StarMass;
+        /// <summary>The star's offset from the lock position in the image (pixels) and its HFD, when the guider knows them.</summary>
+        public double Dx = double.NaN, Dy = double.NaN, Hfd = double.NaN;
     }
 
     public interface IGuider : IDevice

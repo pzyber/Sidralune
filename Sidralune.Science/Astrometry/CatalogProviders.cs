@@ -46,6 +46,32 @@ namespace Sidralune.Science.Astrometry
     }
 
     /// <summary>
+    /// One catalogue, and another when the first fails (an online one without a connection): from then on, the second.
+    /// </summary>
+    public class FallbackCatalogProvider : IStarCatalogProvider
+    {
+        private readonly IStarCatalogProvider _primary, _fallback;
+        private volatile bool _failed;
+
+        public FallbackCatalogProvider(IStarCatalogProvider primary, IStarCatalogProvider fallback) { _primary = primary; _fallback = fallback; }
+
+        public string Name => _failed ? _fallback.Name : _primary.Name;
+        public bool IsOnline => !_failed && _primary.IsOnline;
+
+        public List<RefStar> Cone(double raDeg, double decDeg, double radiusDeg, double magLimit, int maxStars)
+        {
+            if (!_failed)
+                try { return _primary.Cone(raDeg, decDeg, radiusDeg, magLimit, maxStars); }
+                catch (Exception ex)
+                {
+                    _failed = true;
+                    Log.Warn("Astrometry", _primary.Name + " could not be reached, using " + _fallback.Name + ": " + ex.Message);
+                }
+            return _fallback.Cone(raDeg, decDeg, radiusDeg, magLimit, maxStars);
+        }
+    }
+
+    /// <summary>
     /// VizieR cone search (ASU-TSV) for Gaia DR3 (I/355/gaiadr3), UCAC4 (I/322A), Tycho-2 (I/259) or APASS DR9 (II/336),
     /// with a disk cache so repeated solves of the same field work offline.
     /// </summary>

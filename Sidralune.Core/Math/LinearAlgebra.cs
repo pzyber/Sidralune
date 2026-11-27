@@ -39,6 +39,86 @@ namespace Sidralune.Core.Mathematics
             return x;
         }
 
+        /// <summary>
+        /// Cholesky factor L (lower triangular, A = L Lᵀ) of a symmetric positive definite matrix. When the matrix is
+        /// only nearly positive definite (rounding, a kernel matrix with close points), a small multiple of the mean
+        /// diagonal is added and the factorisation tried again, up to five times; null when it still fails.
+        /// </summary>
+        public static double[,] Cholesky(double[,] A)
+        {
+            int n = A.GetLength(0);
+            double mean = 0;
+            for (int i = 0; i < n; i++) mean += A[i, i];
+            mean = n > 0 ? Math.Abs(mean / n) : 0;
+            double jitter = 0;
+            for (int attempt = 0; attempt < 6; attempt++)
+            {
+                var L = new double[n, n];
+                bool ok = true;
+                for (int j = 0; j < n && ok; j++)
+                {
+                    double d = A[j, j] + jitter;
+                    for (int k = 0; k < j; k++) d -= L[j, k] * L[j, k];
+                    if (d <= 0 || double.IsNaN(d)) { ok = false; break; }
+                    double ljj = Math.Sqrt(d);
+                    L[j, j] = ljj;
+                    for (int i = j + 1; i < n; i++)
+                    {
+                        double s = A[i, j];
+                        for (int k = 0; k < j; k++) s -= L[i, k] * L[j, k];
+                        L[i, j] = s / ljj;
+                    }
+                }
+                if (ok) return L;
+                jitter = jitter == 0 ? Math.Max(1e-12, 1e-10 * mean) : jitter * 100;
+            }
+            return null;
+        }
+
+        /// <summary>Solves L y = b for lower triangular L (forward substitution).</summary>
+        public static double[] ForwardSubstitute(double[,] L, double[] b)
+        {
+            int n = b.Length;
+            var y = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                double s = b[i];
+                for (int k = 0; k < i; k++) s -= L[i, k] * y[k];
+                y[i] = s / L[i, i];
+            }
+            return y;
+        }
+
+        /// <summary>Solves Lᵀ x = y for lower triangular L (back substitution with the transpose).</summary>
+        public static double[] BackSubstituteTransposed(double[,] L, double[] y)
+        {
+            int n = y.Length;
+            var x = new double[n];
+            for (int i = n - 1; i >= 0; i--)
+            {
+                double s = y[i];
+                for (int k = i + 1; k < n; k++) s -= L[k, i] * x[k];
+                x[i] = s / L[i, i];
+            }
+            return x;
+        }
+
+        /// <summary>Solves A x = b for a symmetric positive definite A through its Cholesky factor; null when it fails.</summary>
+        public static double[] CholeskySolve(double[,] A, double[] b)
+        {
+            var L = Cholesky(A);
+            return L == null ? null : BackSubstituteTransposed(L, ForwardSubstitute(L, b));
+        }
+
+        /// <summary>The matrix K[i, j] = k(a[i], b[j]) of a kernel between two sets of points.</summary>
+        public static double[,] KernelMatrix(IList<double> a, IList<double> b, Func<double, double, double> k)
+        {
+            var K = new double[a.Count, b.Count];
+            for (int i = 0; i < a.Count; i++)
+                for (int j = 0; j < b.Count; j++) K[i, j] = k(a[i], b[j]);
+            return K;
+        }
+
         /// <summary>Matrix inverse via Gauss-Jordan. Returns null if singular.</summary>
         public static double[,] Inverse(double[,] A)
         {

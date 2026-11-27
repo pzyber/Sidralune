@@ -31,6 +31,9 @@ namespace Sidralune
         public List<EyepieceProfile> Eyepieces = new List<EyepieceProfile> { new EyepieceProfile(), new EyepieceProfile { Name = "10 mm 82°", FocalMm = 10, AfovDeg = 82 }, new EyepieceProfile { Name = "6 mm 68°", FocalMm = 6, AfovDeg = 68 }, new EyepieceProfile { Name = "32 mm 50°", FocalMm = 32, AfovDeg = 50 } };
         public List<CameraProfile> Cameras = new List<CameraProfile> { new CameraProfile(), new CameraProfile { Name = "IMX462 planetary", PixelUm = 2.9, Width = 1920, Height = 1080, ReadNoise = 0.8, Qe = 0.8, Color = true } };
         public int ActiveTelescope, ActiveEyepiece, ActiveCamera;
+        /// <summary>The equipment profiles (rigs) and the one in use; see EquipmentProfile.</summary>
+        public List<EquipmentProfile> Profiles = new List<EquipmentProfile>();
+        public int ActiveProfile;
         public int ObserverAge = 40, ObserverExperience = 1;
         public bool NightMode;
         public string LastView = "home";
@@ -126,8 +129,96 @@ namespace Sidralune
             {
                 var t = Settings.Telescopes.Count > 0 ? Settings.Telescopes[Math.Min(Settings.ActiveTelescope, Settings.Telescopes.Count - 1)] : new TelescopeProfile();
                 var c = Settings.Cameras.Count > 0 ? Settings.Cameras[Math.Min(Settings.ActiveCamera, Settings.Cameras.Count - 1)] : new CameraProfile();
-                return new ImagingSystem { Name = c.Name + " on " + t.Name, ApertureMm = t.ApertureMm, FocalLengthMm = t.FocalMm, CentralObstruction = t.Obstruction, PixelSizeUm = c.PixelUm, WidthPx = c.Width, HeightPx = c.Height, ReadNoiseE = c.ReadNoise, QuantumEfficiency = c.Qe, IsColor = c.Color };
+                // the rig's reducer or Barlow, when the planner shows the rig's telescope
+                var p = Profile;
+                double factor = p != null && p.Telescope == t.Name && p.FocalFactor > 0 ? p.FocalFactor : 1;
+                return new ImagingSystem { Name = c.Name + " on " + t.Name, ApertureMm = t.ApertureMm, FocalLengthMm = t.FocalMm * factor, CentralObstruction = t.Obstruction, PixelSizeUm = c.PixelUm, WidthPx = c.Width, HeightPx = c.Height, ReadNoiseE = c.ReadNoise, QuantumEfficiency = c.Qe, IsColor = c.Color };
             }
+        }
+
+        // ---------------------------------------------------------------- equipment profiles
+
+        /// <summary>The equipment profile in use (the rig).</summary>
+        public static EquipmentProfile Profile => Settings.Profiles.Count > 0 ? Settings.Profiles[Math.Max(0, Math.Min(Settings.ActiveProfile, Settings.Profiles.Count - 1))] : null;
+        /// <summary>Raised when another profile is used, or the one in use changes.</summary>
+        public static event EventHandler ProfileChanged;
+
+        /// <summary>The profile's imaging telescope from the planner's list (the first when it is no longer there).</summary>
+        public static TelescopeProfile ProfileTelescope
+        {
+            get
+            {
+                var p = Profile;
+                return Settings.Telescopes.FirstOrDefault(t => p != null && t.Name == p.Telescope) ?? Settings.Telescopes.FirstOrDefault() ?? new TelescopeProfile();
+            }
+        }
+
+        /// <summary>The profile's camera from the planner's list (the first when it is no longer there).</summary>
+        public static CameraProfile ProfileCamera
+        {
+            get
+            {
+                var p = Profile;
+                return Settings.Cameras.FirstOrDefault(c => p != null && c.Name == p.Camera) ?? Settings.Cameras.FirstOrDefault() ?? new CameraProfile();
+            }
+        }
+
+        /// <summary>
+        /// Hands the profile in use to the observatory: the guider's own settings file, the imaging focal length and
+        /// aperture, and the guide camera's focal length, which the guider takes from here. Switched to another profile,
+        /// the planner shows the rig's telescope and camera too.
+        /// </summary>
+        public static void ApplyProfile(bool switched = false)
+        {
+            var p = Profile;
+            if (p == null) return;
+            var t = ProfileTelescope;
+            var dm = DeviceManager.Instance;
+            if (switched)
+            {
+                int ti = Settings.Telescopes.IndexOf(t), ci = Settings.Cameras.IndexOf(ProfileCamera);
+                if (ti >= 0) Settings.ActiveTelescope = ti;
+                if (ci >= 0) Settings.ActiveCamera = ci;
+            }
+            // refused only while the guider takes frames, and the Equipment tab does not switch profiles then
+            try { dm.UseGuiderSettings(Path.Combine(AppPaths.Settings, p.GuiderFile)); }
+            catch (Exception ex) { Log.Warn("Settings", "Guider settings of " + p.Name + ": " + ex.Message); }
+            double fl = p.ImagingFocalLength(t.FocalMm);
+            dm.ApplyOptics(fl, t.ApertureMm, p.GuideFocalLength(fl));
+            ProfileChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        /// <summary>A profile's name as shown: the first profile, not named yet, is "My equipment" in the interface language.</summary>
+        public static string NameOf(EquipmentProfile p) => p == null || string.IsNullOrWhiteSpace(p.Name) ? T("My equipment") : p.Name;
+
+        /// <summary>A telescope or camera of the planner's lists was renamed: the profiles using it follow.</summary>
+        public static void RenamedInPlanner(object item, string oldName, string newName)
+        {
+            foreach (var p in Settings.Profiles)
+            {
+                if (item is TelescopeProfile && p.Telescope == oldName) p.Telescope = newName;
+                if (item is CameraProfile && p.Camera == oldName) p.Camera = newName;
+            }
+        }
+
+        /// <summary>
+        /// The first profile, from the setup so far: the planner's telescope and camera in use, a guide scope of the
+        /// focal length the guider had, and the guider's settings file as it was.
+        /// </summary>
+        private static void FirstProfile()
+        {
+            if (Settings.Profiles == null) Settings.Profiles = new List<EquipmentProfile>();
+            if (Settings.Profiles.Count > 0) return;
+            var t = Settings.Telescopes.Count > 0 ? Settings.Telescopes[Math.Max(0, Math.Min(Settings.ActiveTelescope, Settings.Telescopes.Count - 1))] : null;
+            var c = Settings.Cameras.Count > 0 ? Settings.Cameras[Math.Max(0, Math.Min(Settings.ActiveCamera, Settings.Cameras.Count - 1))] : null;
+            double guideFocal = 240;
+            try { guideFocal = Devices.Guiding.GuiderSettings.Load().FocalLengthMm; } catch { }
+            Settings.Profiles.Add(new EquipmentProfile
+            {
+                Name = "", Telescope = t != null ? t.Name : "", Camera = c != null ? c.Name : "",
+                Guiding = GuideOptics.GuideScope, GuideFocalLengthMm = guideFocal, GuiderFile = "guider.json"
+            });
+            Settings.ActiveProfile = 0;
         }
 
         // ---------------------------------------------------------------- persistence
@@ -150,6 +241,8 @@ namespace Sidralune
                 Settings.Sites = new List<Observer> { new Observer { Name = "Home", LatitudeDeg = 52.0, LongitudeDeg = Math.Round(off * 15, 1), ElevationM = 20, SqmZenith = 20.8, Bortle = 5 } };
             }
             DeviceManager.Instance.Site = Site;
+            FirstProfile();
+            ApplyProfile();
             Core.Catalogs.SkyNames.InLanguage = Settings.SkyNamesInLanguage;
             ApplyColorSettings();
         }
@@ -400,8 +493,59 @@ namespace Sidralune
 
         private void Sync()
         {
-            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = Guards[c].All(s => s._job == null);
+            foreach (var c in _controls) if (!c.IsDisposed) c.Enabled = IdleFor(c) && Availability.Holds(c);
             Changed?.Invoke();
+        }
+
+        /// <summary>Whether every slot guarding a control is idle (true for a control no slot guards).</summary>
+        internal static bool IdleFor(Control c)
+        {
+            List<JobSlot> slots;
+            return !Guards.TryGetValue(c, out slots) || slots.All(s => s._job == null);
+        }
+    }
+
+    /// <summary>
+    /// When buttons are available: greyed out while something elsewhere is busy with what they need (the camera, the mount,
+    /// the guider), as well as while a JobSlot guarding them runs. Their Enabled is set here and by JobSlot only, so the two
+    /// never disagree. Sync looks again after a change neither can see (a view calls it on its timer).
+    /// </summary>
+    public static class Availability
+    {
+        private static readonly Dictionary<Control, List<Func<bool>>> Conditions = new Dictionary<Control, List<Func<bool>>>();
+
+        /// <summary>The control is also greyed out while available does not hold. Several conditions all must hold.</summary>
+        public static void When(Control c, Func<bool> available)
+        {
+            List<Func<bool>> list;
+            if (!Conditions.TryGetValue(c, out list)) Conditions[c] = list = new List<Func<bool>>();
+            list.Add(available);
+            Apply(c);
+        }
+
+        /// <summary>Whether a control's conditions all hold (true without any).</summary>
+        internal static bool Holds(Control c)
+        {
+            List<Func<bool>> list;
+            if (!Conditions.TryGetValue(c, out list)) return true;
+            // a condition that cannot be told yet (a view still being built) does not grey the control out
+            foreach (var f in list) { bool ok; try { ok = f(); } catch { ok = true; } if (!ok) return false; }
+            return true;
+        }
+
+        private static void Apply(Control c)
+        {
+            if (!c.IsDisposed) c.Enabled = JobSlot.IdleFor(c) && Holds(c);
+        }
+
+        /// <summary>Sets every control with conditions again; call on the UI thread.</summary>
+        public static void Sync()
+        {
+            foreach (var c in Conditions.Keys.ToList())
+            {
+                if (c.IsDisposed) { Conditions.Remove(c); continue; }
+                Apply(c);
+            }
         }
     }
 }
