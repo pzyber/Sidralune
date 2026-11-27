@@ -70,6 +70,8 @@ namespace Sidralune.Devices.Automation
             _refStars = null; _refWcs = null;
             _refRa = _refDec = _mountRa = _mountDec = double.NaN;
             _ditherE = _ditherN = 0;
+            // a reference that failed on the field before says nothing about this one
+            _waitFrames = 0;
         }
 
         private void Say(string s) { Log?.Invoke(s); }
@@ -85,7 +87,8 @@ namespace Sidralune.Devices.Automation
             var step = new DriftStep();
             Last = step;
             // another field (a slew, a new target), or another frame size: a new reference
-            if (_refStars != null && (frame.Width != _w || frame.Height != _h || !MountNear(tel, _mountRa, _mountDec))) Reset();
+            // (also while waiting to try a reference again: _mountRa is where the one that failed was taken)
+            if ((_refStars != null && (frame.Width != _w || frame.Height != _h)) || !MountNear(tel, _mountRa, _mountDec)) Reset();
             // a reference that could not be solved (the Moon, a planet, clouds) is not tried on every frame
             if (_refWcs == null && _waitFrames > 0) { _waitFrames--; step.Note = "waiting before trying a reference again"; return await DitherOnly(step, frame, tel, ditherPx, ct); }
             var lum = frame.Luminance();
@@ -97,6 +100,8 @@ namespace Sidralune.Devices.Automation
                 if (stars.Count < MinStars)
                 {
                     _refStars = null; _waitFrames = RetryAfterFrames;
+                    // where it was tried: a slew to another field ends the wait
+                    _mountRa = tel.RightAscension; _mountDec = tel.Declination;
                     step.Note = "too few stars for a reference frame";
                     Say("Drift correction: " + step.Note);
                     return await DitherOnly(step, frame, tel, ditherPx, ct);

@@ -266,6 +266,12 @@ namespace Sidralune.Tests
                 log.Clear();
                 new TakeExposures { Count = 3, Exposure = 3, DitherEvery = 1, DitherPixels = 8, FrameType = "LIGHT" }.Run(ctx, ct).Wait();
                 CheckTrue("Without a reference, the dithers are still made", log.Count(m => m.Contains("no drift measured; dithered")) == 2 && !ctx.Drift.HasReference, string.Join(" | ", log));
+                // a slew to another field ends the wait for another try: its first frame is the reference
+                ctx.Drift.MinStars = 10;
+                Centering.Slew(tel, tel.SiderealTime + 1, 35, ct).Wait();
+                log.Clear();
+                new TakeExposures { Count = 1, Exposure = 3, DitherEvery = 0, FrameType = "LIGHT" }.Run(ctx, ct).Wait();
+                CheckTrue("…until a slew to another field, whose first frame is the reference", log.Any(m => m.StartsWith("Drift correction: reference frame")) && ctx.Drift.HasReference, string.Join(" | ", log));
             }
             finally
             {

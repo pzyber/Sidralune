@@ -55,6 +55,20 @@ namespace Sidralune.Devices
             }
         }
 
+        /// <summary>
+        /// Syncs the mount to where it really points (a plate solve). The Sidralune guider is told: what it keeps of the
+        /// sky is in the mount's old coordinates.
+        /// </summary>
+        public void SyncTelescope(ITelescope tel, double raHours, double decDeg)
+        {
+            double ra0 = double.NaN, dec0 = double.NaN;
+            try { ra0 = tel.RightAscension; dec0 = tel.Declination; } catch { }
+            tel.SyncToCoordinates(raHours, decDeg);
+            SidraluneGuider g;
+            lock (_builtinLock) g = _builtin;
+            g?.MountSynced(ra0, dec0);
+        }
+
         /// <summary>PHD2 is connected and guides instead of the Sidralune guider.</summary>
         public bool Phd2Connected => _phd2 != null;
         public Observer Site = new Observer();

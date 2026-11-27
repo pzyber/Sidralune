@@ -1172,6 +1172,19 @@ namespace Sidralune.Tests
                     Centering.Slew(tel, tel.RightAscension, tel.Declination + 4.0 / 60, ct).Wait();
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…after a centring move of 4′ it solves again", g.IsGuiding && solves == 1 && g.StarOnSkyKnown, solves.ToString());
+                    // centring syncs the mount, then slews to the target: the mount says it points where it did, but has moved
+                    g.StopGuiding();
+                    double sra = tel.RightAscension, sdec = tel.Declination;
+                    dm.SyncTelescope(tel, sra, sdec + 3.0 / 60);
+                    Centering.Slew(tel, sra, sdec, ct).Wait();
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…and after a centring that synced the mount first", g.IsGuiding && solves == 2 && g.StarOnSkyKnown, solves.ToString());
+                    // a meridian flip: the same coordinates on the other side of the pier, with the field turned round
+                    g.StopGuiding();
+                    var pier = typeof(TelescopeSimulator).GetField("_pier", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    pier.SetValue(tel, tel.SideOfPier == PierSide.East ? PierSide.West : PierSide.East);
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…and after a meridian flip back to the same coordinates", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
                 }
                 finally { g.Solved -= counted; }
 

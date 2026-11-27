@@ -553,7 +553,7 @@ namespace Sidralune.Devices.Automation
                 Status?.Invoke(Lang.T("Pointing error {0:0.00}'", err));
                 if (err <= ToleranceArcmin) return last;
                 var solvedNow = toJNow(cra, cdec);
-                if (UseSync && tel.CanSync) { tel.SyncToCoordinates(solvedNow[0], solvedNow[1]); await Slew(tel, target[0], target[1], ct); }
+                if (UseSync && tel.CanSync) { Capture.Devices.SyncTelescope(tel, solvedNow[0], solvedNow[1]); await Slew(tel, target[0], target[1], ct); }
                 else
                 {
                     // offset the slew by the measured error

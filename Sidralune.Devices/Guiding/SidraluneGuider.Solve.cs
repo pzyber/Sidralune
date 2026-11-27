@@ -98,6 +98,8 @@ namespace Sidralune.Devices.Guiding
             /// <summary>The binning and camera the frame was taken with: its pixels mean nothing with others.</summary>
             public int Binning;
             public string Camera;
+            /// <summary>The mount's side of the pier: on the other side the field is turned round (a meridian flip).</summary>
+            public PierSide Pier = PierSide.Unknown;
         }
 
         // the last guide frame solved at this pointing (null after a slew or a rotator turn), and the guide star's place on
@@ -142,6 +144,9 @@ namespace Sidralune.Devices.Guiding
             var sky = _sky;
             if (sky == null) return true;
             if (sky.Binning != Math.Max(1, Settings.Binning) || sky.Camera != CameraId()) { ForgetSky(); return false; }
+            // a meridian flip brings the mount back to the same coordinates with the field turned round
+            var pier = MountPierSide();
+            if (sky.Pier != PierSide.Unknown && pier != PierSide.Unknown && pier != sky.Pier) { ForgetSky(); return false; }
             if (double.IsNaN(sky.MountRa)) return true;
             if (MountNear(sky.MountRa, sky.MountDec)) return true;
             ForgetSky();
@@ -240,6 +245,25 @@ namespace Sidralune.Devices.Guiding
         }
 
         /// <summary>
+        /// The mount was synced: its coordinates jumped without it moving (centring syncs, then slews to the target). The
+        /// places kept in its old coordinates (the solve's, the stop's, the last try's) are moved by the same jump, so a
+        /// slew afterwards is still seen; when the jump cannot be told, the solve is forgotten.
+        /// </summary>
+        /// <param name="raBeforeHours">Where the mount said it pointed just before the sync (hours).</param>
+        /// <param name="decBeforeDeg">…and its declination (degrees).</param>
+        public void MountSynced(double raBeforeHours, double decBeforeDeg)
+        {
+            double ra = MountRa(), dec = MountDeclination();
+            if (double.IsNaN(ra) || double.IsNaN(dec) || double.IsNaN(raBeforeHours) || double.IsNaN(decBeforeDeg)) { ForgetSky(); return; }
+            double dRa = AstroMath.NormalizeDeg180((ra - raBeforeHours) * 15) / 15, dDec = dec - decBeforeDeg;
+            Func<double, double> shift = v => double.IsNaN(v) ? v : AstroMath.NormalizeHours(v + dRa);
+            var sky = _sky;
+            if (sky != null) { sky.MountRa = shift(sky.MountRa); sky.MountDec += dDec; }
+            _stopRa = shift(_stopRa); _stopDec += dDec;
+            _triedRa = shift(_triedRa); _triedDec += dDec;
+        }
+
+        /// <summary>
         /// Plate-solves a guide frame near the last solve here, or else the mount's position, with the guide camera's scale.
         /// The solution gives the camera's scale and angle (kept in the settings) and the catalogue's stars in the frame.
         /// </summary>
@@ -274,7 +298,7 @@ namespace Sidralune.Devices.Guiding
             List<RefStar> stars;
             try { stars = catalog.Cone(ra, dec, radius, 15, 5000); }
             catch (Exception ex) { stars = new List<RefStar>(); Log.Warn("Guider", "No catalogue stars for the guide frame: " + ex.Message); }
-            _sky = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination(), Binning = Math.Max(1, Settings.Binning), Camera = CameraId() };
+            _sky = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination(), Binning = Math.Max(1, Settings.Binning), Camera = CameraId(), Pier = MountPierSide() };
             // of where the mount points now: nothing from a stop before to check
             _stopNoted = false;
             var s = new GuideFrameSolve
@@ -434,9 +458,11 @@ namespace Sidralune.Devices.Guiding
         private GuideStarInfo Reacquire(float[] lum, int w, int h)
         {
             // brought back by a solve, the star is within a few pixels of the lock: a small box, so a brighter neighbour
-            // farther out in the search box is not taken instead
+            // farther out in the search box is not taken instead. It must be about as bright as before the knock (the
+            // frames around it may be smeared, or dimmed by a cloud): a much fainter or much brighter star is another one
             var m = GuideStars.Measure(lum, w, h, LockX, LockY, Math.Max(5, Settings.SearchRadius / 2));
-            if (m == null || m.Saturated || (!double.IsNaN(_reacquireFlux) && m.Flux < 0.3 * _reacquireFlux))
+            bool other = m != null && !double.IsNaN(_reacquireFlux) && _reacquireFlux > 0 && (m.Flux < 0.3 * _reacquireFlux || m.Flux > 3 * _reacquireFlux);
+            if (m == null || m.Saturated || other)
             {
                 if (++_reacquireFrames >= 5) _reacquire = false;
                 return null;
