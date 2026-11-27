@@ -1084,13 +1084,20 @@ namespace Sidralune.Devices.Guiding
             // star in the box (a cloud dims the star where it is, which needs no solve)
             if (r != null && guiding)
             {
-                if (r.Promoted) ShiftStarOnSky(r.PromotedOffX, r.PromotedOffY);
+                if (r.Promoted)
+                {
+                    ShiftStarOnSky(r.PromotedOffX, r.PromotedOffY);
+                    // another star is the guide star now: the old one's brightness says nothing about it, so the star
+                    // brought back to the lock position is taken again whatever its brightness
+                    _eventFlux = double.NaN;
+                }
                 bool jumped = r.PrimaryRejected && r.PrimaryFound && Star != null && !double.IsNaN(beforeX)
                     && Math.Sqrt((Star.X - beforeX) * (Star.X - beforeX) + (Star.Y - beforeY) * (Star.Y - beforeY)) > Math.Max(3, Settings.SearchRadius / 3.0);
                 if ((r.Promoted || jumped) && StarOnSkyKnown && !_checkStar)
                 {
                     // the frame of the event may be smeared across it (a knock during the exposure): solved two frames on
-                    _checkStar = true; _checkWait = 2; _eventFlux = beforeFlux;
+                    _checkStar = true; _checkWait = 2;
+                    if (!r.Promoted) _eventFlux = beforeFlux;
                 }
             }
             if (found || chosen != null) _lostSince = DateTime.MaxValue;

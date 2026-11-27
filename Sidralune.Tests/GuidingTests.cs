@@ -1155,6 +1155,12 @@ namespace Sidralune.Tests
                 // the star is taken again once the pulses have brought it back, and guiding then holds it at the lock position
                 CheckTrue("…with the guide star at the lock position", SpinUntil(() => g.IsGuiding && Math.Abs(g.Star.X - g.LockX) < 3 && Math.Abs(g.Star.Y - g.LockY) < 3 && off() < 4 * sc, 20000),
                     string.Format("{0:0.0},{1:0.0} vs {2:0.0},{3:0.0}, {4:0.0}\" away", g.Star.X, g.Star.Y, g.LockX, g.LockY, off()));
+                // the mount passes the place on its way back: guiding corrects again once the pulses that bring it back are done
+                int steps = 0;
+                Action<GuideStep> stepped = s => Interlocked.Increment(ref steps);
+                g.Step += stepped;
+                try { SpinUntil(() => steps >= 3, 30000); }
+                finally { g.Step -= stepped; }
                 string log;
                 using (var rd = new StreamReader(new FileStream(g.GuideLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) log = rd.ReadToEnd();
                 CheckTrue("The guide log says how it was found", log.Contains("Star found by plate solve"));
@@ -1169,7 +1175,13 @@ namespace Sidralune.Tests
                 {
                     g.StopGuiding();
                     g.StartGuiding(false, ct).Wait();
-                    CheckTrue("Started again where it stopped, it guides without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves.ToString());                    g.StopGuiding();
+                    CheckTrue("Started again where it stopped, it guides without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves + " " + g.KeptSolveCheck);
+                    // the kept solve is checked against a fresh frame: a drift while stopped is taken into it
+                    g.StopGuiding();
+                    tel.Bump(5 * sc, -4 * sc);
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…a drift while stopped is taken into the kept solve, without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves + " " + g.KeptSolveCheck);
+                    g.StopGuiding();
                     Centering.Slew(tel, tel.RightAscension, tel.Declination + 4.0 / 60, ct).Wait();
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…after a centring move of 4′ it solves again", g.IsGuiding && solves == 1 && g.StarOnSkyKnown, solves.ToString());
@@ -1185,11 +1197,6 @@ namespace Sidralune.Tests
                     tel.SetSideOfPier(tel.SideOfPier == PierSide.East ? PierSide.West : PierSide.East);
                     g.StartGuiding(false, ct).Wait();
                     CheckTrue("…and after a meridian flip back to the same coordinates", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
-                    // the kept solve is checked against a fresh frame: a drift while stopped is taken into it…
-                    g.StopGuiding();
-                    tel.Bump(5 * sc, -4 * sc);
-                    g.StartGuiding(false, ct).Wait();
-                    CheckTrue("…a drift while stopped is taken into the kept solve, without solving again", g.IsGuiding && solves == 3 && g.StarOnSkyKnown, solves.ToString());
                     // …a cloud hiding the stars at the start can neither check it nor solve: the kept solve is used
                     g.StopGuiding();
                     var gcam = (CameraSimulator)dm.GuideCamera;

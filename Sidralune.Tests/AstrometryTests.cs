@@ -127,6 +127,8 @@ namespace Sidralune.Tests
             Check("…and back to the moved pixel x", mx, 120 + 37.5, 1e-3);
             Check("…and y", my, 700 - 21.25, 1e-3);
             CheckTrue("…leaving the solution it came from alone", w.CrPix1 != moved.CrPix1 && w.PixelScale == moved.PixelScale && w.SipOrder == moved.SipOrder);
+            w.A[2, 0] = 9e-6;
+            CheckTrue("…with distortion terms of its own", moved.A[2, 0] == 2e-6 && moved.AP != null && !ReferenceEquals(moved.AP, w.AP));
         }
 
         [TestMethod]

@@ -122,6 +122,8 @@ namespace Sidralune.Devices.Guiding
         public const int KeptSkyStars = 12;
         /// <summary>How many frames a kept solve is checked on before it is given up.</summary>
         public const int KeptSkyFrames = 2;
+        /// <summary>Why the solve kept through the last stop did not fit the frames at the start after it; null when it did.</summary>
+        public string KeptSolveCheck { get; private set; }
         // where the mount pointed when a solve before guiding was last tried: a failure is not tried again at every start there
         private double _triedRa = double.NaN, _triedDec = double.NaN;
         // where the mount pointed and the rotator stood when frames last stopped: the solve is kept for the next start if
@@ -308,19 +310,24 @@ namespace Sidralune.Devices.Guiding
         {
             var sky = _sky;
             if (sky == null) return Tuple.Create("no solve", true);
-            Tuple<string, bool> result = null;
+            Tuple<string, bool> result = null, misfit = null;
             for (int frame = 0; frame < KeptSkyFrames; frame++)
             {
                 var f = await StaticPolarAlignment.NextFrame(this, DateTime.UtcNow, ct);
                 double mx, my;
                 result = KeptSkyFits(sky, f, out mx, out my);
-                if (result.Item1 != null) continue;
+                if (result.Item1 != null)
+                {
+                    // a frame that could tell it does not fit outweighs one that could not (a cloud coming after it)
+                    if (result.Item2) misfit = result;
+                    continue;
+                }
                 // the stars drifted: the solve moves with them
                 if (Math.Abs(mx) > 0.3 || Math.Abs(my) > 0.3)
                     lock (_skyLock) if (_sky == sky) _sky = sky.With(sky.Wcs.Offset(mx, my), sky.MountRa, sky.MountDec);
                 return result;
             }
-            return result;
+            return misfit ?? result;
         }
 
         /// <summary>One frame against a kept solve (see CheckKeptSky), with the stars' shift from it when they fit.</summary>
@@ -356,7 +363,8 @@ namespace Sidralune.Devices.Guiding
             int needed = Math.Max(3, (int)Math.Ceiling(0.6 * looked));
             if (agree < needed)
             {
-                string why = string.Format(CultureInfo.InvariantCulture, "{0} of {1} catalogue stars where it puts them", agree, looked);
+                string why = string.Format(CultureInfo.InvariantCulture, "{0} of {1} catalogue stars where it puts them, {2} found, offsets {3}", agree, looked, dx.Count,
+                    string.Join("; ", dx.Select((v, i) => string.Format(CultureInfo.InvariantCulture, "{0:0.0},{1:0.0}", v, dy[i]))));
                 // the stars are elsewhere (the mount moved), or hardly any are to be seen (a cloud): only the first tells
                 int seen = StarDetector.Detect(lum, w, h, new StarDetectionOptions { Sigma = 5, MaxStars = 50 }).Count;
                 return Tuple.Create(seen >= needed ? why : why + string.Format(CultureInfo.InvariantCulture, ", {0} stars in the frame", seen), seen >= needed);
@@ -468,12 +476,14 @@ namespace Sidralune.Devices.Guiding
                 try { check = await CheckKeptSky(ct); }
                 catch (OperationCanceledException) { throw; }
                 catch (Exception ex) { check = Tuple.Create(ex.Message, false); }
+                KeptSolveCheck = check.Item1;
                 if (check.Item1 != null)
                 {
                     // a frame that cannot tell (a cloud, no frame): solved again all the same, and the kept solve used
                     // if that fails too
                     if (!check.Item2) unjudged = _sky;
-                    Log.Info("Guider", "The solve kept from the last stop does not fit the frame (" + check.Item1 + "): solving again");                    _log.Event("Plate solve", "the kept solve does not fit the frame (" + check.Item1 + "): solving again");
+                    Log.Info("Guider", "The solve kept from the last stop does not fit the frame (" + check.Item1 + "): solving again");
+                    _log.Event("Plate solve", "the kept solve does not fit the frame (" + check.Item1 + "): solving again");
                     ForgetSky();
                 }
                 else if (Star != null && !_lost) RememberStarOnSky(Star);
@@ -589,8 +599,18 @@ namespace Sidralune.Devices.Guiding
             _log.Event("Star found by plate solve", string.Format(CultureInfo.InvariantCulture, "{0}; RA {1} ms, Dec {2} ms", where, raMs, decMs));
             var pulser = new GuidePulser(_dm, Settings.Output);
             // the star moved the way a West pulse moves it: East brings it back (and South for North), as in a correction
-            await PulseFor(pulser, raPx > 0 ? GuideDirection.East : GuideDirection.West, raMs, ct);
-            await PulseFor(pulser, decPx > 0 ? GuideDirection.South : GuideDirection.North, decMs, ct);
+            try
+            {
+                await PulseFor(pulser, raPx > 0 ? GuideDirection.East : GuideDirection.West, raMs, ct);
+                await PulseFor(pulser, decPx > 0 ? GuideDirection.South : GuideDirection.North, decMs, ct);
+            }
+            catch
+            {
+                // stopped (or failed) part of the way back: how far the field has come is not known, so the solve of the
+                // displaced frame no longer says where anything is
+                ForgetSky();
+                throw;
+            }
             // the field came back with the star, which guiding then holds at the lock position: the solve of the displaced
             // frame is moved with it, so it stays of the frames guided on
             double ra = MountRa(), dec = MountDeclination();

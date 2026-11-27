@@ -50,6 +50,9 @@ namespace Sidralune.Science.Astrometry
         public Wcs Offset(double dx, double dy)
         {
             var w = (Wcs)MemberwiseClone();
+            // its own distortion terms: changing one solution's in place leaves the other alone
+            w.A = (double[,])A?.Clone(); w.B = (double[,])B?.Clone();
+            w.AP = (double[,])AP?.Clone(); w.BP = (double[,])BP?.Clone();
             // FITS pixels count up the image, Sidralune's down it
             w.CrPix1 = CrPix1 + dx;
             w.CrPix2 = CrPix2 - dy;
