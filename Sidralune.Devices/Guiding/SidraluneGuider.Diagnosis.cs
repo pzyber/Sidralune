@@ -223,7 +223,13 @@ namespace Sidralune.Devices.Guiding
         /// <summary>Each measured frame is kept a while, and taken for a save under way.</summary>
         private void KeepForDiagnosis(AstroImage frame)
         {
-            if (!Settings.SaveDiagnosticFrames) { _kept.Clear(); return; }
+            if (!Settings.SaveDiagnosticFrames)
+            {
+                // a save under way is dropped: no frames are wanted now, and the next save is not held up
+                _saving = null;
+                _kept.Clear();
+                return;
+            }
             var k = new KeptFrame { Frame = frame, LockX = LockX, LockY = LockY, StarX = Star != null ? Star.X : double.NaN, StarY = Star != null ? Star.Y : double.NaN, State = _state, Time = DateTime.UtcNow };
             if (_saving != null)
             {

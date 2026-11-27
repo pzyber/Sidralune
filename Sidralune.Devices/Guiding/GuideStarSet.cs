@@ -59,6 +59,8 @@ namespace Sidralune.Devices.Guiding
         /// <summary>How many stars the last frame used.</summary>
         public int LastUsed { get; private set; }
         private readonly List<double> _flux = new List<double>();
+        /// <summary>The guide star's usual brightness (the median of its recent accepted frames); NaN before there is one.</summary>
+        public double ReferenceFlux => _flux.Count > 0 ? Median(_flux) : double.NaN;
         private int _rejectedRun;
         private DateTime _lastSearch = DateTime.MinValue;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Sidralune.Core.Util;
 using Sidralune.Devices;
@@ -149,6 +150,8 @@ namespace Sidralune.Views
 
         private void Clear()
         {
+            // a spectrum still being worked out for the log before is not drawn
+            _spectrumRun++;
             _graph.Clear(); _spectrum.Clear(); _calPlot.Clear();
             _grid.Rows.Clear();
             _about.Text = T("Open a guide log of Sidralune's or PHD2's, or show this session's.");
@@ -216,14 +219,32 @@ namespace Sidralune.Views
 
         private static string FormatLength(TimeSpan t) => t.TotalHours >= 1 ? string.Format("{0}:{1:mm\\:ss}", (int)t.TotalHours, t) : t.ToString("mm\\:ss");
 
-        /// <summary>The spectrum of the selected session's RA error, with the worm period and its harmonics marked.</summary>
+        private int _spectrumRun;
+
+        /// <summary>
+        /// The spectrum of the selected session's RA error, with the worm period and its harmonics marked. It is worked out
+        /// in the background (Lomb–Scargle over a long log takes seconds), and only the newest is shown.
+        /// </summary>
         private void ShowSpectrum()
         {
             var s = Session;
+            int run = ++_spectrumRun;
             _spectrum.Clear();
-            if (s == null) { _spectrumText.Text = ""; return; }
+            _spectrumText.Text = "";
+            if (s == null) return;
             double worm = (double)_worm.Value;
-            var sp = GuideSpectrum.Of(s, _ownError.Checked, worm);
+            bool own = _ownError.Checked;
+            Task.Run(() => GuideSpectrum.Of(s, own, worm)).ContinueWith(t =>
+            {
+                if (t.IsFaulted || IsDisposed || !IsHandleCreated) return;
+                try { BeginInvoke(new Action(() => { if (run == _spectrumRun && !IsDisposed) DrawSpectrum(t.Result, worm, own); })); }
+                catch (InvalidOperationException) { } // the window closed meanwhile
+            });
+        }
+
+        private void DrawSpectrum(GuideSpectrum sp, double worm, bool own)
+        {
+            _spectrum.Clear();
             string unit = sp.InArcsec ? "″" : " px";
             _spectrum.YLabel = sp.InArcsec ? T("amplitude (″)") : T("amplitude (px)");
             if (sp.PeriodSec.Length == 0)
@@ -240,7 +261,7 @@ namespace Sidralune.Views
                 if (worm / h <= maxP)
                     _spectrum.Markers.Add(new PlotMarker { X = worm / h / 60, Label = h == 1 ? T("worm") : "÷2", ThemeColor = p => p.Warning });
             string what = sp.CorrectionsAdded ? T("The mount's own RA error (the corrections added back at {0:0.00} px/s)", sp.RaRatePxPerSec)
-                : _ownError.Checked ? T("The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)")
+                : own ? T("The RA error left after guiding (the log does not give the RA rate, so the corrections cannot be added back)")
                 : T("The RA error left after guiding");
             string method = sp.Method == "FFT" ? T("FFT") : T("Lomb–Scargle (the frames are unevenly spaced)");
             string peak = T("Largest: ±{0:0.00}{1} at {2:0.0} min.", sp.PeakAmplitude, unit, sp.PeakPeriodSec / 60);

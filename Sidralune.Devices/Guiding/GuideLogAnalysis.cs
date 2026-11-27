@@ -324,14 +324,32 @@ namespace Sidralune.Devices.Guiding
             var dithers = s.Events.Where(e => e.Name == "Dither").Select(e => e.Time).ToList();
             if (addCorrections && s.RaRatePxPerSec > 0)
             {
-                // each RA pulse moved the star rate × its length, East back against a positive offset: added back
+                // each RA pulse moved the star rate × its length back against the offset. Which way is East in the log's RA
+                // offsets differs between programs: added back the right way, the track is the mount's smooth error; the
+                // wrong way, every correction shows twice as frame-to-frame jumps. So the sign leaving the smaller jumps is used.
                 rate = s.RaRatePxPerSec;
+                Func<int, bool> dithered = i => dithers.Any(d => d > st[i - 1].Time && d <= st[i].Time);
+                var err = y;
+                double r0 = rate;
+                Func<double, double> roughness = sign =>
+                {
+                    double sumP = 0, prev = 0, r2 = 0;
+                    for (int i = 0; i < n; i++)
+                    {
+                        if (i > 0) sumP += st[i - 1].RaMs / 1000;
+                        double v = err[i] + sign * r0 * sumP;
+                        if (i > 0 && !dithered(i)) r2 += (v - prev) * (v - prev);
+                        prev = v;
+                    }
+                    return r2;
+                };
+                double sgn = roughness(-1) < roughness(1) ? -1 : 1;
                 double sum = 0, offset = 0;
                 var g = new double[n];
                 for (int i = 0; i < n; i++)
                 {
                     if (i > 0) sum += st[i - 1].RaMs / 1000;
-                    g[i] = y[i] + rate * sum;
+                    g[i] = y[i] + sgn * rate * sum;
                 }
                 // a dither moves the lock: the error jumps without the mount moving, so the jump is taken out
                 y[0] = g[0];

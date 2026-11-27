@@ -61,9 +61,10 @@ namespace Sidralune.AppTests
                 CheckTrue("A row for the session and one for each frame between dithers", OnUi(() => grid.Rows.Count == 13 && (string)grid.Rows[0].Cells[0].Value == "Session"), OnUi(() => grid.Rows.Count.ToString()));
                 CheckTrue("…in arcseconds", OnUi(() => ((string)grid.Rows[1].Cells[4].Value).EndsWith("″")));
                 Func<string> spectrumText = () => OnUi(() => All(w).OfType<Label>().Select(l => l.Text).FirstOrDefault(t => t.Contains("Largest:")) ?? "");
-                CheckTrue("The spectrum finds the periodic error", spectrumText().StartsWith("The mount's own RA error") && spectrumText().Contains("Periodic error: ±") && spectrumText().Contains("at 8.0 min"), spectrumText());
+                // worked out in the background
+                CheckTrue("The spectrum finds the periodic error", WaitFor(() => spectrumText().StartsWith("The mount's own RA error")) && spectrumText().StartsWith("The mount's own RA error") && spectrumText().Contains("Periodic error: ±") && spectrumText().Contains("at 8.0 min"), spectrumText());
                 OnUi(() => Button(w, "The mount's own error").PerformClick());
-                CheckTrue("…and without the corrections added back, what guiding left", spectrumText().StartsWith("The RA error left after guiding"), spectrumText());
+                CheckTrue("…and without the corrections added back, what guiding left", WaitFor(() => spectrumText().StartsWith("The RA error left after guiding")), spectrumText());
                 string other = Path.Combine(dir, "notes.txt");
                 File.WriteAllText(other, "nothing to see\n");
                 OnUi(() => w.Load(other));

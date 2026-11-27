@@ -401,8 +401,8 @@ namespace Sidralune.Devices.Guiding
                         var c = g.Calibration;
                         return new Dictionary<string, object>
                         {
-                            { "calibrated", c != null }, { "xAngle", c != null ? c.RaAngleDeg : 0 }, { "xRate", c != null ? c.RaRatePxPerSec * 1000 : 0 },
-                            { "xParity", "+" }, { "yAngle", c != null ? c.DecAngleDeg : 0 }, { "yRate", c != null ? c.DecRatePxPerSec * 1000 : 0 },
+                            { "calibrated", c != null }, { "xAngle", c != null ? c.RaAngleDeg : 0 }, { "xRate", c != null ? c.RaRatePxPerSec : 0 },
+                            { "xParity", "+" }, { "yAngle", c != null ? c.DecAngleDeg : 0 }, { "yRate", c != null ? c.DecRatePxPerSec : 0 },
                             { "yParity", "+" }, { "declination", c != null && !double.IsNaN(c.DecDeg) ? c.DecDeg : 0 }
                         };
                     }

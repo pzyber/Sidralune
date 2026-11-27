@@ -450,6 +450,10 @@ namespace Sidralune.Views
         private static string LiveViewJob => T("Live view");
         private bool LiveViewRunning => _cameraJob != null && !_cameraJob.Done && _cameraJobName == LiveViewJob;
         private Label _busyNote;
+        // the guider's assistants (the Star-Cross test, the Calibration and Guiding Assistants): the one running, and how to
+        // stop it. They move the mount or stop correcting it, so camera work waits for them
+        private Func<string> _assistantRunning;
+        private Action _assistantStop;
 
         /// <summary>
         /// What is using the camera, or null when it is free. The note under the camera controls leaves out Imaging's own
@@ -459,14 +463,12 @@ namespace Sidralune.Views
         {
             if (SequenceActive) return T("A sequence is running and using the camera");
             if (_cameraJob != null && !_cameraJob.Done && !(ignoreLiveView && LiveViewRunning)) return T("{0} is running and using the camera", _cameraJobName);
+            var assistant = _assistantRunning?.Invoke();
+            if (assistant != null) return T("{0} is running", assistant);
             if (!ignoreManual && ManualCapturing) return T("A capture or preview loop is running in Imaging");
             return null;
         }
 
-        /// <summary>
-        /// What Stop does on both camera tabs: end whatever uses the camera, as the note under the camera controls says
-        /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment or a sequence).
-        /// </summary>
         /// <summary>How the frame was guided, as a line of its own under the frame's numbers; empty for an unguided frame.</summary>
         private static string GuidingLine(Sidralune.Devices.Guiding.GuidingStats g)
         {
@@ -478,11 +480,17 @@ namespace Sidralune.Views
             return "\r\n" + string.Join(" · ", parts);
         }
 
+        /// <summary>
+        /// What Stop does on both camera tabs: end whatever uses the camera, as the note under the camera controls says
+        /// (a capture or preview loop, a recording or live view, autofocus, centring, polar alignment, a sequence, or one of
+        /// the guider's assistants).
+        /// </summary>
         private void StopCameraWork()
         {
             _captureCts?.Cancel();
             _cameraJob?.Cts.Cancel();
             _sequencer.Stop();
+            _assistantStop?.Invoke();
         }
 
         /// <summary>

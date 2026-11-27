@@ -92,10 +92,12 @@ namespace Sidralune.Views
             var start = btn(T("Start guiding"), Icons.Play, () => { if (!PolarFree()) return; var g = guider(); guideJob.Run(T("Start guiding"), t => g.StartGuiding(false, t.Cts.Token).GetAwaiter().GetResult()); });
             start.Kind = ButtonKind.Primary;
             var calibrate = btn(T("Calibrate & guide"), Icons.Target, () => { if (!PolarFree()) return; var g = guider(); guideJob.Run(T("Calibrate"), t => g.StartGuiding(true, t.Cts.Token).GetAwaiter().GetResult()); });
-            var dither = btn(T("Dither"), Icons.Grid, () => { if (!PolarFree()) return; var g = guider(); guideJob.Run(T("Dither"), t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
+            var dither = btn(T("Dither"), Icons.Grid, () => { if (!PolarFree() || !CanUseCamera()) return; var g = guider(); guideJob.Run(T("Dither"), t => g.Dither(5, false, 1.5, 10, 120, t.Cts.Token).GetAwaiter().GetResult()); });
             // one guiding command at a time: a second start would wait for the same settling
             guideJob.Guard(start, calibrate, dither);
             foreach (var b in new[] { start, calibrate, dither }) Availability.When(b, () => PolarBusyReason() == null);
+            // a dither moves the mount: not in the middle of a frame (a sequence dithers between its own)
+            Availability.When(dither, () => CameraBusyReason() == null);
             // while the guide camera takes dark frames (or a single frame) the Sidralune guider cannot loop or guide
             foreach (var b in new[] { start, calibrate, dither }) Availability.When(b, () => Dm.Phd2Connected || !Dm.BuiltinGuider.CameraInUse);
             foreach (var b in new[] { loop, select }) Availability.When(b, () => !Dm.Phd2Connected && !Dm.BuiltinGuider.CameraInUse);
@@ -765,6 +767,20 @@ namespace Sidralune.Views
             page.Controls.Add(new Collapsible(T("Calibration Assistant"), caGrid));
             page.Controls.Add(new Collapsible(T("Guiding Assistant"), gaGrid));
 
+            // camera work (a capture, a sequence) waits while an assistant moves the mount or holds corrections back, and the
+            // camera tabs' Stop ends it
+            _assistantRunning = () => job.Busy ? (job.Name == T("Return") ? T("Calibration Assistant") : job.Name) : ga != null && ga.Measuring ? T("Guiding Assistant") : null;
+            _assistantStop = () =>
+            {
+                string name = _assistantRunning();
+                if (name == null) return;
+                job.Cancel();
+                if (ga != null && ga.Measuring) { ga.Cancel(); gaText.Text = T("{0} stopped", name); }
+                MainForm.Instance.Toast(T("{0} stopped", name), Icons.Info);
+                SyncCameraButtons();
+            };
+            job.Changed += SyncCameraButtons;
+
             Func<GuidingAssistantResult, string> describe = r =>
             {
                 if (r == null || r.Frames < 3) return r == null ? "" : T("Measuring… {0} frames so far.", r.Frames);
@@ -801,11 +817,12 @@ namespace Sidralune.Views
             {
                 var g = Dm.BuiltinGuider;
                 if (Dm.Phd2Connected) throw new InvalidOperationException(T("PHD2 is connected: it has its own Guiding Assistant."));
-                if (!PolarFree()) return;
+                if (!PolarFree() || !CanUseCamera()) return;
                 ga = new GuidingAssistant(g);
                 ga.Start();
                 showResult(null);
                 gaText.Text = describe(ga.Current);
+                SyncCameraButtons();
             });
             gaStop.Click += (s, e) =>
             {
@@ -829,7 +846,7 @@ namespace Sidralune.Views
             Func<double, string> ms = v => double.IsNaN(v) ? "–" : T("{0:0} ms", v);
             scRun.Click += (s, e) =>
             {
-                if (!PolarFree()) return;
+                if (!PolarFree() || !CanUseCamera()) return;
                 StarCrossResult r = null;
                 job.Run(T("Star-Cross test"), t => r = Dm.BuiltinGuider.RunStarCross(t.Cts.Token).GetAwaiter().GetResult(), () =>
                 {
@@ -862,7 +879,7 @@ namespace Sidralune.Views
             caSuggest.Click += (s, e) => { edited = false; };
             caRun.Click += (s, e) =>
             {
-                if (!PolarFree()) return;
+                if (!PolarFree() || !CanUseCamera()) return;
                 var a = assistant();
                 a.TargetHaHours = (double)caHa.Value; a.TargetDecDeg = (double)caDec.Value;
                 caResult.Text = "";
@@ -874,18 +891,20 @@ namespace Sidralune.Views
                     caResult.Text = T("Calibration: {0}.", word) + Environment.NewLine + CalibrationText(c);
                 });
             };
-            caReturn.Click += (s, e) => { var a = assistant(); job.Run(T("Return"), t => a.Return(t.Cts.Token).GetAwaiter().GetResult()); };
+            caReturn.Click += (s, e) => { if (!CanUseCamera()) return; var a = assistant(); job.Run(T("Return"), t => a.Return(t.Cts.Token).GetAwaiter().GetResult()); };
 
             poll = () =>
             {
                 var g = Dm.BuiltinGuider;
                 bool phd2 = Dm.Phd2Connected, busy = job.Busy || guideJob.Busy;
                 // the assistant goes when guiding stops under it
-                if (ga != null && ga.Measuring && !g.InGuidingPhase) { ga.Cancel(); gaText.Text = T("Guiding stopped, so the Guiding Assistant did too."); }
+                if (ga != null && ga.Measuring && !g.InGuidingPhase) { ga.Cancel(); gaText.Text = T("Guiding stopped, so the Guiding Assistant did too."); SyncCameraButtons(); }
                 bool measuring = ga != null && ga.Measuring;
-                gaStart.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null;
+                // the assistants move the mount (or stop correcting it): not while the imaging camera exposes, a sequence runs or a capture
+                bool cameraFree = CameraBusyReason() == null;
+                gaStart.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null && cameraFree;
                 gaStop.Enabled = measuring && !job.Busy;
-                scRun.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null;
+                scRun.Enabled = !phd2 && !busy && !measuring && g.InGuidingPhase && g.Calibration != null && PolarBusyReason() == null && cameraFree;
                 // settings are read when the work starts: they stay editable while it runs
                 backlashTest.Enabled = !phd2;
                 apply.Enabled = !phd2 && !job.Busy;
@@ -894,8 +913,8 @@ namespace Sidralune.Views
 
                 var tel = Dm.Telescope;
                 bool mount = tel != null && tel.Connected;
-                caRun.Enabled = !phd2 && !busy && mount && Dm.GuideCamera != null && !g.CameraInUse && PolarBusyReason() == null;
-                caReturn.Enabled = !phd2 && !busy && mount && ca != null && !double.IsNaN(ca.StartRa);
+                caRun.Enabled = !phd2 && !busy && mount && Dm.GuideCamera != null && !g.CameraInUse && PolarBusyReason() == null && cameraFree;
+                caReturn.Enabled = !phd2 && !busy && mount && ca != null && !double.IsNaN(ca.StartRa) && cameraFree;
                 caSuggest.Enabled = caHa.Enabled = caDec.Enabled = !phd2;
                 if (!mount) { caWhere.Text = T("Connect a telescope: the assistant slews it."); caChecks.Text = ""; return; }
                 try
@@ -1147,7 +1166,7 @@ namespace Sidralune.Views
                 var dir = p.Value;
                 p.Key.Click += (s, e) =>
                 {
-                    if (!PolarFree()) return;
+                    if (!PolarFree() || !CanUseCamera()) return;
                     var g = Dm.BuiltinGuider;
                     int ms = (int)pulse.Value;
                     ManualPulseResult r = null;
@@ -1168,6 +1187,7 @@ namespace Sidralune.Views
                 var dir = p.Value;
                 p.Key.Click += (s, e) =>
                 {
+                    if (!CanUseCamera()) return;
                     var g = Dm.BuiltinGuider;
                     int steps = (int)aoSteps.Value;
                     ManualPulseResult r = null;
@@ -1238,11 +1258,13 @@ namespace Sidralune.Views
                     : src == CometRateSource.Comet && comet.Items.Count == 0 ? T("No comets yet: download the comet data in Settings.")
                     : T("While guiding, the lock position follows the comet, so the comet stays put in the imaging camera.");
                 bool looping = g.IsRunning && !g.IsCalibrating && !guiding;
-                foreach (var b in new Control[] { mNorth, mSouth, mEast, mWest }) b.Enabled = !phd2 && looping && !job.Busy && PolarBusyReason() == null;
+                // a manual move shifts the image: not in the middle of an imaging frame
+                bool cameraFree = CameraBusyReason() == null;
+                foreach (var b in new Control[] { mNorth, mSouth, mEast, mWest }) b.Enabled = !phd2 && looping && !job.Busy && PolarBusyReason() == null && cameraFree;
                 bool ao = Dm.Ao != null;
                 ShowRow(manualGrid, aoSteps, ao);
                 aoButtons.Visible = aoHint.Visible = ao;
-                foreach (var b in new Control[] { aNorth, aSouth, aEast, aWest }) b.Enabled = !phd2 && looping && !job.Busy;
+                foreach (var b in new Control[] { aNorth, aSouth, aEast, aWest }) b.Enabled = !phd2 && looping && !job.Busy && cameraFree;
                 pulse.Enabled = !phd2;
             };
             return page;

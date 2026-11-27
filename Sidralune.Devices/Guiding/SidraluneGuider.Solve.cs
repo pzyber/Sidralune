@@ -95,6 +95,9 @@ namespace Sidralune.Devices.Guiding
             public List<RefStar> Stars;
             /// <summary>Where the mount said it pointed (hours, degrees; NaN without a mount).</summary>
             public double MountRa = double.NaN, MountDec = double.NaN;
+            /// <summary>The binning and camera the frame was taken with: its pixels mean nothing with others.</summary>
+            public int Binning;
+            public string Camera;
         }
 
         // the last guide frame solved at this pointing (null after a slew or a rotator turn), and the guide star's place on
@@ -102,11 +105,18 @@ namespace Sidralune.Devices.Guiding
         private volatile SkyField _sky;
         // where the mount pointed when a solve before guiding was last tried: a failure is not tried again at every start there
         private double _triedRa = double.NaN, _triedDec = double.NaN;
+        // where the mount pointed and the rotator stood when frames last stopped: the solve is kept for the next start if
+        // neither has moved since
+        private bool _stopNoted;
+        private double _stopRa = double.NaN, _stopDec = double.NaN, _stopRotator = double.NaN;
         private double _starRa = double.NaN, _starDec = double.NaN;
         // when the guide star was lost, and when a solve may next look for it
         private DateTime _lostSince = DateTime.MaxValue, _nextFind = DateTime.MinValue;
         // another star took over or the star's brightness jumped: a solve checks it is still the star guided on
         private volatile bool _checkStar;
+        // frames to wait before the check solve, and the guide star's brightness before the event (to know it again)
+        private int _checkWait;
+        private double _eventFlux = double.NaN, _reacquireFlux = double.NaN;
         // the star was brought back: the next frames take the star at the lock position as the guide star again
         private volatile bool _reacquire;
         private int _reacquireFrames;
@@ -131,6 +141,7 @@ namespace Sidralune.Devices.Guiding
         {
             var sky = _sky;
             if (sky == null) return true;
+            if (sky.Binning != Math.Max(1, Settings.Binning) || sky.Camera != CameraId()) { ForgetSky(); return false; }
             if (double.IsNaN(sky.MountRa)) return true;
             if (MountNear(sky.MountRa, sky.MountDec)) return true;
             ForgetSky();
@@ -184,9 +195,48 @@ namespace Sidralune.Devices.Guiding
         private void ForgetSky()
         {
             _sky = null;
+            _triedRa = _triedDec = double.NaN;
+            _stopNoted = false;
             _checkStar = false;
             _reacquire = false;
             _starRa = _starDec = double.NaN;
+        }
+
+        /// <summary>
+        /// Frames stopped: the guide star goes with the session, the solve stays, with where the mount pointed and the
+        /// rotator stood, so a start at the same place (around autofocus, a program stopping and starting guiding) does
+        /// not take a frame and solve again.
+        /// </summary>
+        private void KeepSkyAtStop()
+        {
+            _checkStar = false;
+            _reacquire = false;
+            _starRa = _starDec = double.NaN;
+            _stopRa = MountRa(); _stopDec = MountDeclination(); _stopRotator = RotatorAngle();
+            _stopNoted = true;
+        }
+
+        /// <summary>
+        /// Frames start again: the solve kept at the stop is forgotten if the mount has moved since by more than a few
+        /// guide pixels (centring stops guiding for its slews), the rotator has turned, or either cannot be told.
+        /// </summary>
+        private void CheckSkyAfterStop()
+        {
+            if (!_stopNoted) return;
+            _stopNoted = false;
+            var sky = _sky;
+            if (sky == null && double.IsNaN(_triedRa)) return;
+            double ra = MountRa(), dec = MountDeclination(), rot = RotatorAngle();
+            bool moved = double.IsNaN(ra) || double.IsNaN(dec) || double.IsNaN(_stopRa) || double.IsNaN(_stopDec);
+            if (!moved)
+            {
+                double arcsec = 3600 * Math.Sqrt(Math.Pow(AstroMath.NormalizeDeg180((ra - _stopRa) * 15) * Math.Cos(dec * AstroMath.Deg2Rad), 2) + Math.Pow(dec - _stopDec, 2));
+                double scale = sky != null ? sky.Wcs.PixelScale : PixelScale;
+                moved = arcsec > Math.Max(5, 3 * (scale > 0 ? scale : 1));
+            }
+            if (!double.IsNaN(_stopRotator) || !double.IsNaN(rot))
+                moved |= double.IsNaN(_stopRotator) || double.IsNaN(rot) || Math.Abs(AstroMath.NormalizeDeg180(rot - _stopRotator)) > 0.2;
+            if (moved) ForgetSky();
         }
 
         /// <summary>
@@ -224,14 +274,24 @@ namespace Sidralune.Devices.Guiding
             List<RefStar> stars;
             try { stars = catalog.Cone(ra, dec, radius, 15, 5000); }
             catch (Exception ex) { stars = new List<RefStar>(); Log.Warn("Guider", "No catalogue stars for the guide frame: " + ex.Message); }
-            _sky = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination() };
+            _sky = new SkyField { Wcs = wcs, Stars = stars, MountRa = MountRa(), MountDec = MountDeclination(), Binning = Math.Max(1, Settings.Binning), Camera = CameraId() };
+            // of where the mount points now: nothing from a stop before to check
+            _stopNoted = false;
             var s = new GuideFrameSolve
             {
                 ScaleArcsec = wcs.PixelScale, AngleDeg = wcs.RotationDeg, Mirrored = wcs.Determinant > 0,
                 Binning = Math.Max(1, Settings.Binning), PixelSizeUm = CameraPixelUm(), FocalLengthMm = Settings.FocalLengthMm, Camera = CameraId()
             };
-            Settings.LastSolve = s;
-            SaveSettings();
+            // written only when it says something new: a solve every 30 s while a star is lost would otherwise rewrite
+            // guider.json from the guide loop again and again
+            var old = Settings.LastSolve;
+            bool same = old != null && old.Fits(s.Binning, s.PixelSizeUm, s.FocalLengthMm, s.Camera) && old.Mirrored == s.Mirrored
+                && Math.Abs(old.ScaleArcsec / s.ScaleArcsec - 1) < 0.002 && Math.Abs(AstroMath.NormalizeDeg180(old.AngleDeg - s.AngleDeg)) < 0.2;
+            if (!same)
+            {
+                Settings.LastSolve = s;
+                SaveSettings();
+            }
             SolveMessage = null;
             string what = string.Format(CultureInfo.InvariantCulture, "{0:0.000}\"/px, angle {1:0.0}, focal length {2:0} mm", s.ScaleArcsec, s.AngleDeg, s.SolvedFocalMm);
             Log.Info("Guider", "Guide frame solved: " + what);
@@ -268,24 +328,32 @@ namespace Sidralune.Devices.Guiding
         {
             SkyStillHere();
             if (!Settings.SolveGuideFrames || _sky != null) return;
+            var tel = _dm.Telescope;
+            if (tel == null || !tel.Connected)
+            {
+                // nothing to solve with: said once, not at every start, and tried once a mount is connected
+                string why = Lang.T("Solving a guide frame needs the mount's position: no telescope connected.");
+                if (SolveMessage != why) NoteSolveFailed(why);
+                return;
+            }
             if (!double.IsNaN(_triedRa) && MountNear(_triedRa, _triedDec)) return;
             _triedRa = MountRa(); _triedDec = MountDeclination();
             try
             {
-                var tel = _dm.Telescope;
-                if (tel == null || !tel.Connected) throw new InvalidOperationException(Lang.T("Solving a guide frame needs the mount's position: no telescope connected."));
                 var f = await StaticPolarAlignment.NextFrame(this, DateTime.UtcNow, ct);
                 await SolveFrame(f, ct);
                 if (Star != null && !_lost) RememberStarOnSky(Star);
             }
             catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                SolveMessage = ex.Message;
-                Log.Warn("Guider", "Guide frame not solved: " + ex.Message);
-                _log.Event("Plate solve", "failed: " + ex.Message);
-                Solved?.Invoke();
-            }
+            catch (Exception ex) { NoteSolveFailed(ex.Message); }
+        }
+
+        private void NoteSolveFailed(string why)
+        {
+            SolveMessage = why;
+            Log.Warn("Guider", "Guide frame not solved: " + why);
+            _log.Event("Plate solve", "failed: " + why);
+            Solved?.Invoke();
         }
 
         /// <summary>
@@ -297,6 +365,7 @@ namespace Sidralune.Devices.Guiding
             var now = DateTime.UtcNow;
             bool lostLong = _lost && (now - _lostSince).TotalSeconds >= FindLostAfterSeconds;
             if (!_checkStar && !lostLong) return false;
+            if (!lostLong && _checkWait > 0) { _checkWait--; return false; }
             if (_phase != Phase.Guiding || _paused || !Settings.SolveGuideFrames || !StarOnSkyKnown || Settings.Calibration == null) { _checkStar = false; return false; }
             return now >= _nextFind;
         }
@@ -350,7 +419,9 @@ namespace Sidralune.Devices.Guiding
             await PulseFor(pulser, raPx > 0 ? GuideDirection.East : GuideDirection.West, raMs, ct);
             await PulseFor(pulser, decPx > 0 ? GuideDirection.South : GuideDirection.North, decMs, ct);
             _resetAlgorithms = true;
-            // the stars measured since the knock may be others: the guide star is taken again at the lock position
+            // the stars measured since the knock may be others: the guide star is taken again at the lock position, if it
+            // is about as bright as it was
+            _reacquireFlux = _eventFlux;
             _reacquireFrames = 0;
             _reacquire = true;
         }
@@ -362,8 +433,10 @@ namespace Sidralune.Devices.Guiding
         /// </summary>
         private GuideStarInfo Reacquire(float[] lum, int w, int h)
         {
-            var m = GuideStars.Measure(lum, w, h, LockX, LockY, Settings.SearchRadius);
-            if (m == null || m.Saturated)
+            // brought back by a solve, the star is within a few pixels of the lock: a small box, so a brighter neighbour
+            // farther out in the search box is not taken instead
+            var m = GuideStars.Measure(lum, w, h, LockX, LockY, Math.Max(5, Settings.SearchRadius / 2));
+            if (m == null || m.Saturated || (!double.IsNaN(_reacquireFlux) && m.Flux < 0.3 * _reacquireFlux))
             {
                 if (++_reacquireFrames >= 5) _reacquire = false;
                 return null;

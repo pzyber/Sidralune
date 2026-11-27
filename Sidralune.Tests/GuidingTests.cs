@@ -1150,13 +1150,30 @@ namespace Sidralune.Tests
                 Info(string.Format("Knocked {0:0}\" away", off()));
                 CheckTrue("After a knock, solving brings the mount back to where it pointed", SpinUntil(() => g.IsGuiding && !g.Lost && off() < 4 * sc, 90000),
                     string.Format("{0}, {1:0.0}\" away", g.State, off()));
-                Thread.Sleep(3000);
-                CheckTrue("…with the guide star at the lock position", g.IsGuiding && Math.Abs(g.Star.X - g.LockX) < 3 && Math.Abs(g.Star.Y - g.LockY) < 3 && off() < 4 * sc,
+                // the star is taken again once the pulses have brought it back, and guiding then holds it at the lock position
+                CheckTrue("…with the guide star at the lock position", SpinUntil(() => g.IsGuiding && Math.Abs(g.Star.X - g.LockX) < 3 && Math.Abs(g.Star.Y - g.LockY) < 3 && off() < 4 * sc, 20000),
                     string.Format("{0:0.0},{1:0.0} vs {2:0.0},{3:0.0}, {4:0.0}\" away", g.Star.X, g.Star.Y, g.LockX, g.LockY, off()));
                 string log;
                 using (var rd = new StreamReader(new FileStream(g.GuideLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) log = rd.ReadToEnd();
                 CheckTrue("The guide log says how it was found", log.Contains("Star found by plate solve"));
                 Info(string.Join(" | ", log.Split('\n').Where(l => l.Contains("Plate") || l.Contains("plate") || l.Contains("Star") || l.Contains("Stars")).Take(12)));
+
+                // stopped and started where it was (around autofocus, a program's stop and guide): the solve is kept; after
+                // a centring move of a few arcminutes it is made again
+                int solves = 0;
+                Action counted = () => { if (g.SolveMessage == null) solves++; };
+                g.Solved += counted;
+                try
+                {
+                    g.StopGuiding();
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("Started again where it stopped, it guides without solving again", g.IsGuiding && solves == 0 && g.StarOnSkyKnown, solves.ToString());
+                    g.StopGuiding();
+                    Centering.Slew(tel, tel.RightAscension, tel.Declination + 4.0 / 60, ct).Wait();
+                    g.StartGuiding(false, ct).Wait();
+                    CheckTrue("…after a centring move of 4′ it solves again", g.IsGuiding && solves == 1 && g.StarOnSkyKnown, solves.ToString());
+                }
+                finally { g.Solved -= counted; }
 
                 // a slew: the place on the sky is forgotten, the scale kept
                 g.StopGuiding();

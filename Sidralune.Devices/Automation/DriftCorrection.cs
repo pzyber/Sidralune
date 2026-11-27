@@ -56,6 +56,9 @@ namespace Sidralune.Devices.Automation
         private double _mountRa = double.NaN, _mountDec = double.NaN; // where the mount said it pointed (hours, deg)
         private double _ditherE, _ditherN;                            // where the frames are meant to be, from the reference (arcsec)
         private int _decSign = 1;                                     // +1: a North pulse moves the mount north here
+        private int _waitFrames;                                      // frames left before a failed reference is tried again
+        /// <summary>After a reference that could not be solved, how many frames pass before another is tried; how many stars a reference needs.</summary>
+        public int RetryAfterFrames = 5, MinStars = 10;
 
         /// <summary>The reference is solved: drift can be measured on the sky.</summary>
         public bool HasReference => _refWcs != null;
@@ -83,17 +86,32 @@ namespace Sidralune.Devices.Automation
             Last = step;
             // another field (a slew, a new target), or another frame size: a new reference
             if (_refStars != null && (frame.Width != _w || frame.Height != _h || !MountNear(tel, _mountRa, _mountDec))) Reset();
+            // a reference that could not be solved (the Moon, a planet, clouds) is not tried on every frame
+            if (_refWcs == null && _waitFrames > 0) { _waitFrames--; step.Note = "waiting before trying a reference again"; return await DitherOnly(step, frame, tel, ditherPx, ct); }
             var lum = frame.Luminance();
             var stars = await Task.Run(() => StarDetector.Detect(lum, frame.Width, frame.Height, new StarDetectionOptions { MaxStars = 200 }), ct);
             double ra, dec;
             if (_refStars == null)
             {
                 // the reference: its stars, and a plate solution for its scale and orientation
+                if (stars.Count < MinStars)
+                {
+                    _refStars = null; _waitFrames = RetryAfterFrames;
+                    step.Note = "too few stars for a reference frame";
+                    Say("Drift correction: " + step.Note);
+                    return await DitherOnly(step, frame, tel, ditherPx, ct);
+                }
                 _refStars = stars; _w = frame.Width; _h = frame.Height;
                 _mountRa = tel.RightAscension; _mountDec = tel.Declination;
                 _ditherE = _ditherN = 0;
                 var wcs = await SolveFrame(frame, tel, ct);
-                if (wcs == null) { step.Note = "the reference frame could not be plate-solved"; Say("Drift correction: " + step.Note); return step; }
+                if (wcs == null)
+                {
+                    _waitFrames = RetryAfterFrames;
+                    step.Note = "the reference frame could not be plate-solved";
+                    Say(string.Format(CultureInfo.InvariantCulture, "Drift correction: {0}; trying again after {1} frames", step.Note, RetryAfterFrames));
+                    return await DitherOnly(step, frame, tel, ditherPx, ct);
+                }
                 _refWcs = wcs;
                 _refWcs.Centre(out _refRa, out _refDec);
                 step.Method = "reference";
@@ -120,7 +138,7 @@ namespace Sidralune.Devices.Automation
                 else
                 {
                     var wcs = await SolveFrame(frame, tel, ct);
-                    if (wcs == null) { step.Note = "the frame could neither be registered nor plate-solved"; Say("Drift correction: " + step.Note); return step; }
+                    if (wcs == null) { step.Note = "the frame could neither be registered nor plate-solved"; Say("Drift correction: " + step.Note); return await DitherOnly(step, frame, tel, ditherPx, ct); }
                     wcs.Centre(out ra, out dec);
                     step.Method = "plate solve";
                 }
@@ -148,6 +166,36 @@ namespace Sidralune.Devices.Automation
             Say(string.Format(CultureInfo.InvariantCulture, "Drift {0:0.0}\" E, {1:0.0}\" N ({2}{3}): moved {4:0.0}\" E, {5:0.0}\" N by {6}{7}",
                 step.DriftEast, step.DriftNorth, step.Method, step.Matches > 0 ? ", " + step.Matches + " stars" : "", moveE, moveN, step.MovedBy, ditherPx > 0 ? ", with a dither" : ""));
             return step;
+        }
+
+        /// <summary>
+        /// No drift measured (no reference yet, or a frame that could not be measured): a dither asked for is still made,
+        /// from the last dither place to a new one, so the frames are dithered and stay within the dither's reach.
+        /// </summary>
+        private async Task<DriftStep> DitherOnly(DriftStep step, AstroImage frame, ITelescope tel, double ditherPx, CancellationToken ct)
+        {
+            if (ditherPx <= 0) return step;
+            double scale = _refWcs != null ? _refWcs.PixelScale : FrameScale(frame);
+            if (!(scale > 0)) { Say("Drift correction: no dither, the camera's scale is not known"); return step; }
+            double e = (2 * Random.NextDouble() - 1) * ditherPx * scale, n = (2 * Random.NextDouble() - 1) * ditherPx * scale;
+            double moveE = e - _ditherE, moveN = n - _ditherN;
+            _ditherE = e; _ditherN = n;
+            await MoveBy(step, tel, moveE, moveN, ct);
+            Say(string.Format(CultureInfo.InvariantCulture, "Drift correction: no drift measured; dithered {0:0.0}\" E, {1:0.0}\" N by {2}", moveE, moveN, step.MovedBy));
+            return step;
+        }
+
+        /// <summary>The imaging camera's scale for a frame (arcsec per pixel), from its pixel size and the focal length; NaN when not known.</summary>
+        private double FrameScale(AstroImage frame)
+        {
+            try
+            {
+                var cam = Devices.Camera;
+                double bin = frame.Header.GetDouble("XBINNING", 1);
+                double px = cam != null ? cam.PixelSizeX : frame.Header.GetDouble("XPIXSZ", double.NaN) / Math.Max(1, bin);
+                return px > 0 && Devices.FocalLengthMm > 0 ? 206.265 * px * Math.Max(1, bin) / Devices.FocalLengthMm : double.NaN;
+            }
+            catch { return double.NaN; }
         }
 
         /// <summary>
@@ -212,12 +260,11 @@ namespace Sidralune.Devices.Automation
             try
             {
                 var cam = Devices.Camera;
-                double bin = frame.Header.GetDouble("XBINNING", 1);
-                double px = cam != null ? cam.PixelSizeX : frame.Header.GetDouble("XPIXSZ", double.NaN) / Math.Max(1, bin);
                 var ctx = new SkyContext(Devices.Site, AstroTime.FromDateTime(DateTime.UtcNow));
                 var c = ctx.ApparentToIcrs(tel.RightAscension * AstroMath.Hour2Rad, tel.Declination * AstroMath.Deg2Rad);
                 var opt = new SolveOptions { HintRa = c.RaHours * 15, HintDec = c.DecDeg, SearchRadius = 2, AllowBlind = false };
-                if (px > 0 && Devices.FocalLengthMm > 0) opt.ScaleHint = 206.265 * px * Math.Max(1, bin) / Devices.FocalLengthMm;
+                double scale = FrameScale(frame);
+                if (scale > 0) opt.ScaleHint = scale;
                 Devices.PrepareSolve(opt, cam);
                 var sr = await Task.Run(() => PlateSolver.Solve(frame, opt, null, ct), ct);
                 return sr.Success ? sr.Wcs : null;

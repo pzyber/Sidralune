@@ -141,11 +141,13 @@ namespace Sidralune.AppTests
                 CheckTrue("The Guiding Assistant can start while guiding", WaitFor(() => OnUi(() => Button(assist, "Start measuring").Enabled), 40000));
                 OnUi(() => Button(assist, "Start measuring").PerformClick());
                 CheckTrue("It pauses corrections", WaitFor(() => g.State == SidraluneGuider.Paused, 3000), g.State);
+                CheckTrue("…meanwhile a sequence and a dither wait for it", WaitFor(() => OnUi(() => !Button(view, "Run sequence").Enabled && !Button(bar, "Dither").Enabled), 3000));
                 Thread.Sleep(4000);
                 OnUi(() => Button(assist, "Stop and analyse").PerformClick());
                 // the live text shows the seeing too: the result is in once its suggestions (and Apply) are there
                 CheckTrue("It describes what it measured", WaitFor(() => OnUi(() => All(assist).OfType<Label>().Any(l => l.Text.Contains("Seeing: RA ")) && Button(assist, "Apply the ticked settings").Visible), 15000));
                 CheckTrue("…and guiding resumes", WaitFor(() => g.IsGuiding, 5000), g.State);
+                CheckTrue("…and a sequence and a dither can start again", WaitFor(() => OnUi(() => Button(view, "Run sequence").Enabled && Button(bar, "Dither").Enabled), 5000));
                 OnUi(() => Button(assist, "Apply the ticked settings").PerformClick());
                 double suggested = Math.Max(0.05, Math.Round(0.65 * g.Settings.AssistantResults[0].SeeingRaArcsec / g.PixelScale, 2));
                 CheckTrue("Apply sets the suggested minimum move", Math.Abs(g.Settings.RaMinMovePx - suggested) < 1e-9, g.Settings.RaMinMovePx + " vs " + suggested);

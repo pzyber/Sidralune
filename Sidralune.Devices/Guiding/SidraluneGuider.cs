@@ -296,6 +296,10 @@ namespace Sidralune.Devices.Guiding
         /// <summary>Starts taking guide frames (and following the star once there is one), if not already.</summary>
         public void Loop()
         {
+            bool fresh;
+            lock (_lock) fresh = _session == null;
+            // the solve kept from the last stop, unless the mount has moved since (outside the lock: the mount is asked)
+            if (fresh) CheckSkyAfterStop();
             lock (_lock)
             {
                 if (_session != null) return;
@@ -338,6 +342,9 @@ namespace Sidralune.Devices.Guiding
             }
             pending?.Done.TrySetCanceled();
             _phase = Phase.Watching;
+            // the solve is kept with where the mount points: the next start uses it only if the mount has not moved since
+            // (centring stops guiding for its slews)
+            if (s != null) KeepSkyAtStop();
             if (CometFollowing) { CometFollowing = false; Log.Info("Guider", "Comet tracking off"); }
             CometTraining = false;
             if (s != null)
@@ -810,6 +817,7 @@ namespace Sidralune.Devices.Guiding
             lock (_lock) if (_session == cts) _session = null;
             cts.Cancel();
             _phase = Phase.Watching;
+            KeepSkyAtStop();
             _log.Dispose();
             SetState(Stopped);
             Failed?.Invoke(message);
@@ -1023,6 +1031,7 @@ namespace Sidralune.Devices.Guiding
             ConfigureStars();
             StarSetFrame r = null;
             GuideStarInfo chosen = null, reacquired = null;
+            double beforeX = double.NaN, beforeY = double.NaN, beforeFlux = double.NaN;
             bool found = false, lostNow = false;
             lock (_lock)
             {
@@ -1056,6 +1065,7 @@ namespace Sidralune.Devices.Guiding
                 }
                 else if (Star != null)
                 {
+                    beforeX = Star.X; beforeY = Star.Y; beforeFlux = _stars.ReferenceFlux;
                     r = _stars.Track(lum, w, h, LockX, LockY, guiding, EdgeMargin);
                     if (r.Promoted) { LockX = r.NewLockX; LockY = r.NewLockY; }
                     if (r.PrimaryFound || r.Promoted) Star = _stars.Primary;
@@ -1069,12 +1079,19 @@ namespace Sidralune.Devices.Guiding
                     if (!guiding && r.PrimaryFound && !_keepLock) { LockX = Star.X; LockY = Star.Y; }
                 }
             }
-            if (lostNow) _lostSince = DateTime.UtcNow;
-            // another star took over, or the star's brightness jumped: a knock may have put a different star in the box
+            if (lostNow) { _lostSince = DateTime.UtcNow; _eventFlux = beforeFlux; }
+            // another star took over, or the star's brightness and its place both jumped: a knock may have put a different
+            // star in the box (a cloud dims the star where it is, which needs no solve)
             if (r != null && guiding)
             {
                 if (r.Promoted) ShiftStarOnSky(r.PromotedOffX, r.PromotedOffY);
-                if ((r.Promoted || r.PrimaryRejected) && StarOnSkyKnown) _checkStar = true;
+                bool jumped = r.PrimaryRejected && r.PrimaryFound && Star != null && !double.IsNaN(beforeX)
+                    && Math.Sqrt((Star.X - beforeX) * (Star.X - beforeX) + (Star.Y - beforeY) * (Star.Y - beforeY)) > Math.Max(3, Settings.SearchRadius / 3.0);
+                if ((r.Promoted || jumped) && StarOnSkyKnown && !_checkStar)
+                {
+                    // the frame of the event may be smeared across it (a knock during the exposure): solved two frames on
+                    _checkStar = true; _checkWait = 2; _eventFlux = beforeFlux;
+                }
             }
             if (found || chosen != null) _lostSince = DateTime.MaxValue;
             if (chosen != null) RememberStarOnSky(chosen);

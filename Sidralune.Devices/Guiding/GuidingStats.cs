@@ -61,12 +61,17 @@ namespace Sidralune.Devices.Guiding
 
         private GuidingRecorder(IGuider g) { _guider = g; g.Step += OnStep; }
 
-        /// <summary>A recorder for a guider that is guiding now; null when there is none or it is not guiding (unguided frames).</summary>
+        /// <summary>
+        /// A recorder for a guider in its guiding phase; null when there is none or it is not guiding (unguided frames). A
+        /// frame begun while the star is lost or guiding is paused is interrupted from the start.
+        /// </summary>
         public static GuidingRecorder Start(IGuider g)
         {
             if (g == null) return null;
-            try { if (!g.Connected || !g.IsGuiding) return null; } catch { return null; }
-            return new GuidingRecorder(g);
+            try { if (!g.Connected || !Automation.GuidingPause.Guiding(g)) return null; } catch { return null; }
+            var rec = new GuidingRecorder(g);
+            rec.Check();
+            return rec;
         }
 
         private void OnStep(GuideStep s) { lock (_steps) if (!_done) _steps.Add(s); }
