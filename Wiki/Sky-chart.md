@@ -162,6 +162,7 @@ Deep-sky objects have their own limit, and their labels appear progressively as 
 - **Planets** are drawn at their apparent size once it is larger than a dot; Saturn gets its rings.
 - **Moons** of Mars, Jupiter, Saturn, Uranus, Neptune and Pluto appear when the field is narrower than 3°, at their current places around the planet (see [Planets' moons](#planets-moons)). Click a moon to select it, as any other object.
 - **The Moon** is drawn with its correct phase and orientation; the Sun at its true size.
+- When you change the time, the selection marker on a selected Sun, Moon, planet or planet's moon moves with it, and **Center** and **Slew** go to where it is at the chart's time.
 - **Comets** are drawn with a short tail pointing away from the Sun, **asteroids** as small crosses, both labelled when bright enough or when you zoom in. A selected comet or asteroid is always drawn and labelled, at its place at the chart's time, and the selection marker moves with it. They come from the installed MPC files, the four built-in asteroids, and anything you added in the [Solar system](Solar-system#minor-bodies) workspace, and appear as soon as they are loaded or added.
 - **Milky Way** is shaded along the galactic plane at night.
 - **Telescope position** is a crosshair at the connected mount's current pointing.

@@ -456,6 +456,46 @@ namespace Sidralune.AppTests
         }
 
         [TestMethod]
+        public void TestSelectedBodyFollowsTime()
+        {
+            // the Moon, the Sun or a planet selected and then the time moved on: the selection marker and Center go to where
+            // it is at the new time, not where it was when it was selected (the Moon moves about its own width in an hour)
+            var sky = View<SkyView>("sky");
+            var t0 = AstroTime.FromDateTime(new DateTime(2026, 11, 27, 21, 12, 0, DateTimeKind.Utc));
+            var t1 = t0.AddHours(2);
+            try
+            {
+                foreach (var b in new[] { Body.Moon, Body.Sun, Body.Mars })
+                {
+                    var r = OnUi(() =>
+                    {
+                        AppState.SetTime(t0);
+                        var o = SkyView.PlanetObject(b);
+                        AppState.Select(o);
+                        AppState.SetTime(t1);
+                        var marked = sky.Chart.Highlight;
+                        // Center
+                        sky.Goto(Field<SelectedObject>(sky, "_sel"));
+                        // the chart's middle on the sky, as the next frame draws it
+                        Call(sky.Chart, "Setup", sky.Chart.Width, sky.Chart.Height);
+                        var c = (Vec3)Call(sky.Chart, "CenterIcrs");
+                        double ra, dec;
+                        c.ToSpherical(out ra, out dec);
+                        return Tuple.Create(marked, ra, dec);
+                    });
+                    var now = new SkyContext(AppState.Site, t1).BodyPlace(b).Astrometric;
+                    double off = AstroMath.Separation(r.Item1.RaDeg * AstroMath.Deg2Rad, r.Item1.DecDeg * AstroMath.Deg2Rad, now.Ra, now.Dec) * AstroMath.Rad2Deg * 3600;
+                    CheckTrue(b + ": marked where it is two hours later", off < 1, off.ToString("0.0") + "\"");
+                    double centre = AstroMath.Separation(r.Item2, r.Item3, now.Ra, now.Dec) * AstroMath.Rad2Deg * 3600;
+                    // (the planetarium's middle goes through the horizon and refraction and back: some arcseconds; the Moon
+                    // was a degree off before)
+                    CheckTrue(b + ": Center goes there", centre < 60, centre.ToString("0.0") + "\"");
+                }
+            }
+            finally { OnUi(() => AppState.GoLive()); }
+        }
+
+        [TestMethod]
         public void TestPlanetMoonInfo()
         {
             // the info panel describes a clicked moon
