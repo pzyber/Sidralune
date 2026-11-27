@@ -415,6 +415,8 @@ namespace Sidralune.Views
                 var p = ctx.BodyPlace(o.Planet.Value);
                 if (o.Planet.Value != Body.Sun && o.Planet.Value != Body.Moon) PlanetPhysics.Fill(o.Planet.Value, p, ctx.JdTT);
                 ra = p.Astrometric.RaHours * 15; dec = p.Astrometric.DecDeg; hz = p.Horizontal; app = p.Apparent;
+                // the selection marker, Center and Slew follow it as the time changes (the Moon moves its own width in an hour)
+                o.RaDeg = ra; o.DecDeg = dec;
                 if (o.Planet.Value != Body.Moon && o.Planet.Value != Body.Sun) { mag = p.Magnitude; size = p.DiameterArcsec / 60; }
                 lines.Add(row(T("Distance"), T("{0:0.0000} AU ({1:N0} km)", p.Distance, p.Distance * AstroMath.AU_km)));
                 if (o.Planet.Value != Body.Sun)
