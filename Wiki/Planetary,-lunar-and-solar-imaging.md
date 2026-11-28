@@ -4,7 +4,7 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 |---|---|
 | **Pre-process** | Centre, crop, debayer, sort and reject frames; correct field rotation |
 | **Lucky stacking** | Analyse frame quality, align with many alignment points, stack the best frames |
-| **Sharpen & deconvolve** | Wavelet sharpening and deconvolution, with a profile for each object, for one image or a whole night's |
+| **Sharpen & deconvolve** | Deconvolution, wavelets, unsharp mask, noise filters, limb and halo protection, colour and tone curves, live on one image, with a profile for each object, for one image or a whole night's |
 | **Derotation** | Combine images taken minutes apart by undoing the planet's rotation |
 | **Solar & lunar** | Limb tools, prominences, colourising, mosaics |
 
@@ -16,6 +16,12 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 - [Pre-process](#pre-process)
 - [Lucky stacking](#lucky-stacking)
 - [Sharpen & deconvolve](#sharpen--deconvolve)
+  - [Deconvolution](#deconvolution)
+  - [Wavelets](#wavelets)
+  - [Unsharp mask](#unsharp-mask)
+  - [Noise reduction](#noise-reduction)
+  - [Limb & halos](#limb--halos)
+  - [Colour & tone](#colour--tone)
   - [Profiles](#profiles)
   - [Sharpening many images](#sharpening-many-images)
 - [Derotation](#derotation)
@@ -85,23 +91,75 @@ Other options: **Use field derotation** applies the per-frame rotation from pre-
 
 Stacked planetary images look soft until they are sharpened. Open an image with **Open image…** or send one from Lucky stacking with **Sharpen →**.
 
-The tab works in two layers: the **source image** (the image you opened, with the steps you applied to it), and **wavelet sharpening** applied live on top of it. Deconvolution and channel alignment are steps: they change the source, and the line under the buttons lists them in order ("Steps: Deconvolution 2.0 px, 15 iterations → Align RGB channels"). The sliders only change what is shown on top of it.
+The tab works in two layers:
 
-**Wavelets**: six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform, and **Denoise** soft-thresholds the finest layers against the measured noise first. There is no button: a moment after you move a slider, the image is sharpened again from the source (the status bar shows a "Wavelets" task meanwhile). The sliders never pile up, so moving them back undoes the sharpening. Start from the defaults (layers 1–3 at 120, 60 and 20, the rest at 0, Denoise at 60) and adjust: layer 1 brings out the finest detail but also the noise, so for a noisy stack lower it or raise **Denoise**.
+- The **source image**: the image you opened, with the **steps** you applied to it. Deconvolution and channel alignment are steps: they change the source, and the line under their buttons lists them in order ("Steps: Deconvolution 2.0 px, 15 iterations → Align RGB channels").
+- The **live settings**, applied on top of the source in this order: wavelets, unsharp mask, a noise filter, limb and halo protection, then colour and tone. There is no button. A moment after you change one, the image is made again from the source (the status bar shows a "Wavelets" task meanwhile). The settings never pile up, so setting one back undoes it.
 
-**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It is a step, so it always sits underneath the wavelets, and the wavelets are applied again to the result.
+The settings are in sections under the buttons; click a section's title to open or close it.
+
+**Save result…** saves the image as shown: the source with the live settings. It suggests the image's own name ending in `_sharpened`, in the image's folder.
+
+### Deconvolution
+
+| Setting | Meaning |
+|---|---|
+| **Method** | **Richardson-Lucy (TV)**: iterative, with total-variation regularisation to limit noise. **Wiener**: in one pass, in the frequency domain; fast, and good for a strong, even blur |
+| **PSF** | The blur to undo. **Gaussian**, **Deconv. FWHM** pixels wide, or **From an image…**: a recorded PSF taken from an image of a star, or of a moon of the planet, recorded with the same telescope and camera. The image's brightest point of light is taken, out to where it fades into the sky. The file's name is shown under the list |
+| **Iterations** | Richardson-Lucy only: more sharpen more and amplify noise more |
+| **Wiener K** | Wiener only: how much noise to expect; raise it if Wiener makes the image grainy or ringed |
+
+Click **Deconvolve**. Use it gently (FWHM 1.5–3 px, 10–30 iterations). A deconvolution is a step, so it always sits under the live settings, which are applied again to the result.
 
 **Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. It is a step too.
 
-**Stop**, under these two buttons, ends a deconvolution part way, or a channel alignment between the red and the blue channel; the image is left as it was. **Revert to the opened image** takes all the steps off again; the sliders stay where they are.
+**Stop**, under these two buttons, ends a deconvolution part way, or a channel alignment between the red and the blue channel; the image is left as it was. **Revert to the opened image** takes all the steps off again; the live settings stay as they are.
 
-**Save result…** saves the image as shown: the source with the wavelet sharpening. It suggests the image's own name ending in `_sharpened`, in the image's folder.
+### Wavelets
+
+Six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform, and **Denoise** soft-thresholds the finest layers against the measured noise first. Start from the defaults (layers 1–3 at 120, 60 and 20, the rest at 0, Denoise at 60) and adjust: layer 1 brings out the finest detail but also the noise, so for a noisy stack lower it or raise **Denoise**.
+
+**Sharpen the luminance only** sharpens (and filters, see below) the brightness and adds the same change to each colour channel, so the colours stay as they were and no colour noise is made. It is a good choice for colour cameras, whose channels are noisier than their sum.
+
+### Unsharp mask
+
+A classic unsharp mask after the wavelets: **Radius** is the width of the blur in pixels, **Amount** how strongly the difference is added back (0 is off). A small radius (1–2 px) brings out fine detail that the wavelet layers leave between their scales.
+
+### Noise reduction
+
+A **Filter** after the sharpening, which smooths the grain it brings out while keeping edges:
+
+| Filter | What it does |
+|---|---|
+| **None** | No filter (the default) |
+| **Bilateral** | Averages neighbours weighted by both distance and likeness, so edges, which differ, are left alone. The strongest of the three |
+| **Sigma** | Averages only the neighbours whose values are close to the pixel's own. Gentler, and keeps fine structure better |
+| **Bilateral, then sigma** | Both, one after the other |
+
+**Strength** scales how different two pixels may be and still be averaged, in units of the grain measured on the planet (100 = once the grain). Raise it until the grain is gone, and stop before the belts and spots soften.
+
+### Limb & halos
+
+Sharpening leaves a bright rim inside a planet's limb and a dark ring outside it, and can push bright areas past white.
+
+- **Protect limb** takes the sharpening off in a band along the limb (3% of the radius, at least 2 pixels, fading out over as much again). The disc is found as in the Derotation tab. 100 leaves the limb exactly as it was in the source.
+- **Suppress halos** pulls each pixel back towards the range of its neighbours in the source: never brighter than the brightest of them, never darker than the darkest. Bright rims and dark rings, which go past both, are taken off, and so is highlight clipping, while detail inside that range stays sharpened. It works everywhere, around moons and ring edges too.
+
+### Colour & tone
+
+| Setting | Meaning |
+|---|---|
+| **Normalise the colour** | Scales red and blue so the planet is grey on average, as a white balance. Only the planet counts, not the sky, which may be coloured in twilight |
+| **Saturation** | 100 leaves the colour as it is, 0 makes the image grey |
+| **Gamma** | Above 100 brightens the mid-tones, below darkens them; black and white stay |
+| **Contrast** | An S-curve that keeps black, white and the middle grey: positive deepens the shadows and brightens the highlights |
+| Curve | A tone curve over everything else. Click to add a point, drag a point to move it, right-click or double-click a point to remove it. The ends stay at the left and right edges and move only up and down. The curve passes through its points without swinging past them. **Straight curve** takes the points off |
 
 The **Solar & lunar** tab has a separate **Wavelet sharpen** button with fixed settings, for quick full-disc sharpening.
 
 ### Profiles
 
-Jupiter, Saturn, Mars and the Moon each need their own sharpening, so the tab keeps a **profile** for each object: the steps, the six layers, **Denoise** and the deconvolution settings. **Profile** shows the object the settings are for: **Other** (images whose object is not known), the Sun, the Moon or a planet.
+Jupiter, Saturn, Mars and the Moon each need their own sharpening, so the tab keeps a **profile** for each object: the steps, the deconvolution settings and all the live settings. **Profile** shows the object the settings are for: **Other** (images whose object is not known), the Sun, the Moon or a planet.
 
 - **The object comes from the file name.** When you open an image, Sidralune looks for the object in its name, then in the names of the folders above it:
   - an English name, also at the start of a word (`Jupiter`, `JupiterRGB`), or a short name as a whole word (`Jup`, `Sat`, `Ven`, `Mer`, `Ura`, `Nep`), as FireCapture writes them;
@@ -112,6 +170,8 @@ Jupiter, Saturn, Mars and the Moon each need their own sharpening, so the tab ke
 - **When opening: Apply the profile** (on by default) applies the object's profile to the image: its settings are shown and its steps are run on the image, in order. Turn it off to open images as they are.
 - **Choosing an object in Profile** applies its profile to the image in the same way. An object without a profile keeps the settings shown, so you can make one for it.
 - **A profile is kept** when you click **Save result…**, **Sharpen files…** or **Watch folder…**: the settings shown become the profile of the object in **Profile**. A toast after **Save result…** says which profile was kept. Profiles are kept with the other settings, so they are there next time.
+
+**Save preset…** saves the settings shown, steps included, to a file, and **Load preset…** applies one as choosing a profile does: its settings are shown and its steps are run on the image, while **Profile** stays on the object chosen. Use presets to keep more than one set of settings for an object (good and poor seeing, say) or to share them. They are kept in a `Sharpening presets` folder beside Sidralune's settings unless you choose another.
 
 ### Sharpening many images
 
@@ -167,6 +227,6 @@ WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM
 2. **Pre-process** each: Object mode Planetary, Centre object, Reject edge frames, Keep best percent 100, Format Ser, Win jupos naming on.
 3. **Lucky stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
 4. **Derotation**: add the five stacks, planet Jupiter, target time in the middle, **Derotate & stack to target time**, **Save result…**.
-5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, **Save result…**. These settings become the Jupiter profile.
+5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, raise **Protect limb** if a bright rim shows, and **Save result…**. These settings become the Jupiter profile.
 6. Optionally fine-tune colour and levels in [Process](Image-processing).
 7. On later nights, **Sharpen files…** sharpens all the Jupiter stacks with that profile in one go, or **Watch folder…** sharpens each stack as soon as it is saved.

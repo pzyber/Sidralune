@@ -140,6 +140,46 @@ namespace Sidralune.Imaging
             foreach (var v in Data) s += v;
             if (s > 0) for (int i = 0; i < Data.Length; i++) Data[i] = (float)(Data[i] / s);
         }
+
+        /// <summary>
+        /// A recorded PSF: the brightest point source in an image (a star, or a moon of the planet), above the image's
+        /// sky level, out to where its light has faded into the sky (3 to 31 pixels from its centre).
+        /// </summary>
+        public static Psf FromImage(AstroImage img)
+        {
+            var d = img.Channels == 1 ? img.Data[0] : img.Luminance();
+            int w = img.Width, h = img.Height;
+            float sky = Stats.Median(d);
+            int peak = 0;
+            for (int i = 1; i < d.Length; i++) if (d[i] > d[peak]) peak = i;
+            double top = d[peak] - sky;
+            if (!(top > 0)) throw new ArgumentException(Core.Util.Lang.T("The PSF image has no star or other point of light in it"));
+            int cx = peak % w, cy = peak / w;
+            // out to the first ring whose mean is within 1% of the peak above the sky
+            int r = 3;
+            for (; r < 31; r++)
+            {
+                double s = 0; int n = 0;
+                for (int k = 0; k < 8 * r; k++)
+                {
+                    double a = 2 * Math.PI * k / (8 * r);
+                    int x = cx + (int)Math.Round(r * Math.Cos(a)), y = cy + (int)Math.Round(r * Math.Sin(a));
+                    if (x >= 0 && x < w && y >= 0 && y < h) { s += d[y * w + x] - sky; n++; }
+                }
+                if (n == 0 || s / n < 0.01 * top) break;
+            }
+            var p = new Psf { Size = 2 * r + 1 };
+            p.Data = new float[p.Size * p.Size];
+            for (int y = -r; y <= r; y++)
+                for (int x = -r; x <= r; x++)
+                {
+                    int ix = cx + x, iy = cy + y;
+                    double v = ix >= 0 && ix < w && iy >= 0 && iy < h ? d[iy * w + ix] - sky : 0;
+                    p.Data[(y + r) * p.Size + x + r] = (float)Math.Max(0, v);
+                }
+            p.Normalize();
+            return p;
+        }
     }
 
     /// <summary>FFT convolution engine with a fixed PSF (precomputed optical transfer function).</summary>

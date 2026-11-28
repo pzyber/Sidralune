@@ -188,5 +188,94 @@ namespace Sidralune.AppTests
                 OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = savedApply);
             }
         }
+
+        [TestMethod]
+        public void TestSharpenLiveChain()
+        {
+            var view = View<PlanetaryView>("planetary");
+            OnUi(() => ((TabbedPanel)typeof(PlanetaryView).GetField("_tabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(view)).Select(2));
+            Settle();
+            string dir = Path.Combine(Root, "sharpenchain");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
+            var ch = Enumerable.Range(0, 3).Select(c =>
+            {
+                var d = Synthetic.Planet(96, 96, 48, 48, 30, 0, 1.5, 0.005, 2 + c).Data[0];
+                for (int i = 0; i < d.Length; i++) d[i] *= 0.4f + 0.15f * c;
+                return d;
+            }).ToArray();
+            var img = new AstroImage(96, 96, ch);
+            var sharpJob = Field<JobSlot>(view, "_sharpJob");
+            var wavelets = Field<JobSlot>(view, "_waveletJob");
+            Func<AstroImage> shown = () => OnUi(() => Field<ImageViewer>(view, "_sharpViewer").Image);
+            bool savedApply = AppState.Settings.ApplySharpenProfile;
+            try
+            {
+                OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = false);
+                OnUi(() => Call(view, "SetSharpenImage", img, null));
+                CheckTrue("The image is sharpened", WaitFor(() => !wavelets.Busy && shown() != null && shown() != img, 10000));
+                var titles = OnUi(() => All(view).OfType<Collapsible>().Select(c => c.Title).ToList());
+                CheckTrue("The settings in sections", new[] { "Deconvolution", "Wavelets", "Unsharp mask", "Noise reduction", "Limb & halos", "Colour & tone" }.All(titles.Contains), string.Join(", ", titles));
+
+                // a live setting changes the image shown: saturation 0 makes it grey
+                OnUi(() => Field<Slider>(view, "_saturation").Value = 0);
+                CheckTrue("Saturation 0 shows a grey image", WaitFor(() =>
+                {
+                    var s = OnUi(() => Field<ImageViewer>(view, "_sharpViewer").Image);
+                    return !wavelets.Busy && s != null && s.Channels == 3 && Math.Abs(s.Data[0][48 * 96 + 48] - s.Data[2][48 * 96 + 48]) < 1e-4;
+                }, 10000));
+                OnUi(() => Field<Slider>(view, "_saturation").Value = 100);
+                // the curve: the editor's points reach the profile, and Straight curve takes them off
+                var curve = Field<CurveEditor>(view, "_curve");
+                OnUi(() => curve.Points = new[] { 0, 0, 0.5, 0.8, 1, 1 });
+                CheckTrue("The curve is in the settings", OnUi(() => ((SharpenProfile)Call(view, "CurrentProfile")).Curve).SequenceEqual(new[] { 0, 0, 0.5, 0.8, 1, 1 }));
+                int changes = 0;
+                OnUi(() => { All(view).OfType<Collapsible>().First(c => c.Title == "Colour & tone").Expanded = true; curve.CurveChanged += (s, e) => changes++; Button(view, "Straight curve").PerformClick(); });
+                CheckTrue("Straight curve takes the points off and says so", OnUi(() => curve.Points) == null && changes == 1);
+
+                // deconvolution: the settings the method and the PSF use, and the step it adds
+                var method = Field<ComboBox>(view, "_decMethod");
+                OnUi(() => { Field<NumericUpDown>(view, "_decFwhm").Value = 2.0m; Field<NumericUpDown>(view, "_decIt").Value = 15; Field<NumericUpDown>(view, "_wienerK").Value = 0.01m; });
+                OnUi(() => method.SelectedIndex = 1);
+                CheckTrue("Wiener: K, not iterations", OnUi(() => !Field<NumericUpDown>(view, "_decIt").Enabled && Field<NumericUpDown>(view, "_wienerK").Enabled && Field<NumericUpDown>(view, "_decFwhm").Enabled));
+                OnUi(() => Button(view, "Deconvolve").PerformClick());
+                CheckTrue("A Wiener step", WaitFor(() => !sharpJob.Busy && OnUi(() => Field<Label>(view, "_stepsLabel").Text) == "Steps: Wiener 2.0 px, K 0.01", 20000), OnUi(() => Field<Label>(view, "_stepsLabel").Text));
+                string star = Path.Combine(dir, "star.fits");
+                var frame = new AstroImage(32, 32, 1);
+                var g = Psf.Gaussian(2.2);
+                for (int y = 0; y < g.Size; y++) for (int x = 0; x < g.Size; x++) frame.Data[0][(10 + y) * 32 + 12 + x] = g.Data[y * g.Size + x] * 5;
+                FitsIO.Write(star, frame);
+                OnUi(() => Call(view, "ShowPsf", star));
+                CheckTrue("A recorded PSF: named, and no FWHM", OnUi(() => Field<Label>(view, "_psfLabel").Text == "PSF: star.fits" && Field<Label>(view, "_psfLabel").Visible && !Field<NumericUpDown>(view, "_decFwhm").Enabled && Field<ComboBox>(view, "_psfKind").SelectedIndex == 1));
+                OnUi(() => method.SelectedIndex = 0);
+                OnUi(() => Button(view, "Deconvolve").PerformClick());
+                CheckTrue("A Richardson-Lucy step with the recorded PSF", WaitFor(() => !sharpJob.Busy && OnUi(() => Field<Label>(view, "_stepsLabel").Text).EndsWith("→ Deconvolution with star.fits, 15 iterations"), 20000), OnUi(() => Field<Label>(view, "_stepsLabel").Text));
+                OnUi(() => Call(view, "ShowPsf", ""));
+                CheckTrue("Back to the Gaussian", OnUi(() => !Field<Label>(view, "_psfLabel").Visible && Field<NumericUpDown>(view, "_decFwhm").Enabled && Field<ComboBox>(view, "_psfKind").SelectedIndex == 0));
+
+                // presets: a file's settings are shown and its steps run, as for a profile
+                string preset = Path.Combine(dir, "soft.json");
+                var p = new SharpenProfile { Object = "Saturn", Layers = new[] { 0.5, 0.2, 0, 0, 0, 0 }, Denoise = 1.0, LuminanceOnly = true, UnsharpAmount = 0.7, NoiseFilter = SharpenNoiseFilter.Sigma, NoiseStrength = 1.2, ProtectLimb = 0.5, SuppressHalos = 0.4,
+                    NormalizeColour = true, Saturation = 1.4, Gamma = 1.2, Contrast = 0.3, Curve = new[] { 0, 0, 0.5, 0.6, 1, 1 }, DeconvMethod = DeconvolutionMethod.Wiener, WienerK = 0.05, Steps = { new SharpenStep { Kind = SharpenStepKind.AlignChannels } } };
+                File.WriteAllText(preset, Core.Util.Json.Serialize(p, true));
+                string profileBefore = OnUi(() => Field<ComboBox>(view, "_profileBox").Text);
+                OnUi(() => Call(view, "UsePreset", preset));
+                CheckTrue("The preset's steps run", WaitFor(() => !sharpJob.Busy && OnUi(() => Field<Label>(view, "_stepsLabel").Text) == "Steps: Align RGB channels", 20000));
+                var now = OnUi(() => (SharpenProfile)Call(view, "CurrentProfile"));
+                CheckTrue("Its settings are shown", now.Layers.SequenceEqual(p.Layers) && now.Denoise == 1.0 && now.LuminanceOnly && now.UnsharpAmount == 0.7 && now.NoiseFilter == SharpenNoiseFilter.Sigma && now.NoiseStrength == 1.2
+                    && now.ProtectLimb == 0.5 && now.SuppressHalos == 0.4 && now.NormalizeColour && now.Saturation == 1.4 && now.Gamma == 1.2 && now.Contrast == 0.3 && now.Curve.SequenceEqual(p.Curve)
+                    && now.DeconvMethod == DeconvolutionMethod.Wiener && now.WienerK == 0.05);
+                CheckTrue("The object chosen stays", OnUi(() => Field<ComboBox>(view, "_profileBox").Text) == profileBefore);
+                string bad = Path.Combine(dir, "notes.json");
+                File.WriteAllText(bad, "not a preset");
+                OnUi(() => Call(view, "UsePreset", bad));
+                CheckTrue("A file that is not a preset says so", WaitFor(() => Toasts().Any(t => t == "notes.json is not a sharpening preset")), string.Join(" | ", Toasts()));
+            }
+            finally
+            {
+                AppState.Settings.ApplySharpenProfile = savedApply;
+                OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = savedApply);
+            }
+        }
     }
 }

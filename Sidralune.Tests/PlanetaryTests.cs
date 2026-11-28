@@ -236,5 +236,202 @@ namespace Sidralune.Tests
             var q = read[0];
             CheckTrue("A profile survives the settings file", q.Layers.SequenceEqual(p.Layers) && q.Denoise == p.Denoise && q.Steps.Count == 2 && q.Steps[0].Kind == SharpenStepKind.Deconvolution && q.Steps[0].Fwhm == 1.8 && q.Steps[0].Iterations == 6 && q.Steps[1].Kind == SharpenStepKind.AlignChannels, json);
         }
+
+        [TestMethod]
+        public void TestMonotoneCurve()
+        {
+            var straight = new MonotoneCurve(null);
+            CheckTrue("No points: the straight line", straight.IsIdentity && Math.Abs(straight[0.3] - 0.3) < 1e-12 && new MonotoneCurve(new[] { 0.5, 0.5 }).IsIdentity);
+            var c = new MonotoneCurve(new[] { 0, 0, 0.25, 0.4, 0.5, 0.7, 1, 1 });
+            CheckTrue("Through its points", Math.Abs(c[0.25] - 0.4) < 1e-12 && Math.Abs(c[0.5] - 0.7) < 1e-12 && c[0] == 0 && c[1] == 1);
+            bool rising = true;
+            for (int i = 1; i <= 1000; i++) if (c[i / 1000.0] < c[(i - 1) / 1000.0] - 1e-12) rising = false;
+            CheckTrue("Rising points give a rising curve", rising);
+            var flat = new MonotoneCurve(new[] { 0, 0, 0.3, 0.5, 0.6, 0.5, 1, 1 });
+            bool level = Enumerable.Range(0, 101).Select(i => 0.3 + 0.3 * i / 100).All(x => Math.Abs(flat[x] - 0.5) < 1e-9);
+            CheckTrue("No swing past the points where two are level", level);
+            var ends = new MonotoneCurve(new[] { 0.2, 0.1, 0.8, 0.9 });
+            CheckTrue("Ends added level with the first and last points, values kept within 0..1", Math.Abs(ends[0] - 0.1) < 1e-12 && Math.Abs(ends[1] - 0.9) < 1e-12 && ends[-1] == ends[0] && ends[2] == ends[1]);
+        }
+
+        [TestMethod]
+        public void TestSharpenChain()
+        {
+            int w = 128, h = 128;
+            // a banded colour disc kept away from black and white, with some noise
+            Func<int, AstroImage> planet = seed =>
+            {
+                var ch = Enumerable.Range(0, 3).Select(c =>
+                {
+                    var d = Synthetic.Planet(w, h, 64, 64, 40, 0, 1.8, 0.012, seed + c).Data[0];
+                    for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) d[y * w + x] = (float)(0.05 + d[y * w + x] * (0.45 + 0.1 * c) * (0.8 + 0.2 * Math.Cos((y - 64) / 40.0 * 8)));
+                    return d;
+                }).ToArray();
+                return new AstroImage(w, h, ch);
+            };
+            var img = planet(3);
+            var wav = new SharpenProfile { Layers = new[] { 1.0, 0.5, 0.2, 0, 0, 0 }, Denoise = 0.3 };
+
+            // every live setting at its default: the wavelets alone, as profiles saved before them
+            var old = (SharpenProfile)Core.Util.Json.PopulateType(typeof(SharpenProfile), Core.Util.Json.Parse("{\"Object\":\"Jupiter\",\"Layers\":[1.0,0.5,0.2,0,0,0],\"Denoise\":0.3,\"DeconvFwhm\":2.0,\"DeconvIterations\":15,\"Steps\":[]}"));
+            var byHand = img.Clone();
+            for (int c = 0; c < 3; c++) byHand.Data[c] = Wavelets.Sharpen(img.Data[c], w, h, wav.Layers, new[] { 0.3, 0.15, 0, 0, 0, 0 });
+            byHand.Clip(0, 1);
+            var plain = old.Finish(img);
+            CheckTrue("A profile without the new settings sharpens with the wavelets alone", old.NoiseFilter == SharpenNoiseFilter.None && old.Saturation == 1 && old.Curve == null
+                && Enumerable.Range(0, 3).All(c => plain.Data[c].SequenceEqual(byHand.Data[c])));
+
+            // luminance only: each channel changes by the same amount, so the colour is left as it was
+            var lum = wav.Clone(); lum.LuminanceOnly = true;
+            var l = lum.Finish(img);
+            double spread = 0;
+            for (int i = 0; i < w * h; i++)
+            {
+                if (l.Data.Any(d => d[i] <= 0 || d[i] >= 1)) continue;
+                double dr = l.Data[0][i] - img.Data[0][i], dg = l.Data[1][i] - img.Data[1][i], db = l.Data[2][i] - img.Data[2][i];
+                spread = Math.Max(spread, Math.Max(Math.Abs(dr - dg), Math.Abs(db - dg)));
+            }
+            CheckTrue("Luminance only: the same change in each channel", spread < 1e-5, spread.ToString("E2"));
+            // on a grey image the brightness is each channel, so it is sharpened as each channel would be
+            var greyImg = new AstroImage(w, h, new[] { (float[])img.Data[1].Clone(), (float[])img.Data[1].Clone(), (float[])img.Data[1].Clone() });
+            var lg = lum.Finish(greyImg); var pg = wav.Finish(greyImg);
+            double same = Enumerable.Range(0, w * h).Max(i => Math.Abs(lg.Data[0][i] - pg.Data[0][i]));
+            CheckTrue("And it sharpens the brightness as each channel would be", same < 1e-4, same.ToString("E2"));
+
+            // unsharp mask on top of the wavelets
+            var usm = wav.Clone(); usm.UnsharpAmount = 1.5; usm.UnsharpRadius = 1.2;
+            CheckTrue("The unsharp mask sharpens more", Filters.LaplacianVariance(usm.Finish(img).Data[1], w, h) > 1.3 * Filters.LaplacianVariance(plain.Data[1], w, h));
+
+            // the noise filters bring a noisy planet closer to the same planet without noise, sharpened alike
+            var noisy = new AstroImage(w, h, new[] { Synthetic.Planet(w, h, 64, 64, 40, 0, 1.8, 0.012, 4).Data[0] });
+            var clean = new AstroImage(w, h, new[] { Synthetic.Planet(w, h, 64, 64, 40, 0, 1.8, 0, 4).Data[0] });
+            var reference = new AstroImage(w, h, new[] { Wavelets.Sharpen(clean.Data[0], w, h, wav.Layers, new[] { 0.3, 0.15, 0, 0, 0, 0 }, 0.012) });
+            Func<AstroImage, double> off = im =>
+            {
+                double s = 0; int n = 0;
+                for (int y = 34; y < 94; y++) for (int x = 34; x < 94; x++) { double e = im.Data[0][y * w + x] - reference.Data[0][y * w + x]; s += e * e; n++; }
+                return Math.Sqrt(s / n);
+            };
+            double e0 = off(wav.Finish(noisy));
+            foreach (SharpenNoiseFilter f in new[] { SharpenNoiseFilter.Bilateral, SharpenNoiseFilter.Sigma, SharpenNoiseFilter.BilateralAndSigma })
+            {
+                var nf = wav.Clone(); nf.NoiseFilter = f; nf.NoiseStrength = 1.5;
+                double e1 = off(nf.Finish(noisy));
+                CheckTrue(f + " takes noise off", e1 < 0.85 * e0, e0.ToString("E2") + " → " + e1.ToString("E2"));
+            }
+
+            // halos: sharpened pixels held within the brightest and darkest of their neighbours as they were
+            var strong = new SharpenProfile { Layers = new[] { 3.0, 2.0, 1.0, 0, 0, 0 }, Denoise = 0 };
+            var halo = strong.Clone(); halo.SuppressHalos = 1;
+            var hres = halo.Finish(img);
+            double past = 0;
+            for (int c = 0; c < 3; c++)
+            {
+                var lo = Filters.Morphology(img.Data[c], w, h, 2, false); var hi = Filters.Morphology(img.Data[c], w, h, 2, true);
+                for (int i = 0; i < w * h; i++) past = Math.Max(past, Math.Max(hres.Data[c][i] - hi[i], lo[i] - hres.Data[c][i]));
+            }
+            var sres = strong.Finish(img);
+            double pastBefore = 0;
+            for (int c = 0; c < 3; c++)
+            {
+                var lo = Filters.Morphology(img.Data[c], w, h, 2, false); var hi = Filters.Morphology(img.Data[c], w, h, 2, true);
+                for (int i = 0; i < w * h; i++) pastBefore = Math.Max(pastBefore, Math.Max(sres.Data[c][i] - hi[i], lo[i] - sres.Data[c][i]));
+            }
+            CheckTrue("Suppress halos at full strength: nothing past its neighbours", past < 1e-6 && pastBefore > 0.02, pastBefore.ToString("0.000") + " → " + past.ToString("E2"));
+
+            // the limb: no sharpening on it, the inside as before
+            var limb = strong.Clone(); limb.ProtectLimb = 1;
+            var lres = limb.Finish(img);
+            var lumImg = img.Luminance();
+            var ob = ObjectDetection.Detect(lumImg, w, h);
+            var circ = ObjectDetection.FitLimb(lumImg, w, h, ob) ?? new[] { ob.Cx, ob.Cy, ob.Radius };
+            double band = Math.Max(2.0, 0.03 * circ[2]), onLimb = 0, inside = 0;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    double dist = Math.Abs(Math.Sqrt((x - circ[0]) * (x - circ[0]) + (y - circ[1]) * (y - circ[1])) - circ[2]);
+                    int i = y * w + x;
+                    if (dist <= band) onLimb = Math.Max(onLimb, Math.Abs(lres.Data[1][i] - Math.Min(1, Math.Max(0, img.Data[1][i]))));
+                    if (dist >= 2 * band) inside = Math.Max(inside, Math.Abs(lres.Data[1][i] - sres.Data[1][i]));
+                }
+            CheckTrue("Protect limb at full strength: the limb as it was, the rest sharpened as before", onLimb < 1e-6 && inside < 1e-6, onLimb.ToString("E2") + ", " + inside.ToString("E2"));
+
+            // colour: normalised to grey on the planet, saturation, gamma, contrast and the curve
+            var norm = new SharpenProfile { Layers = new double[6], Denoise = 0, NormalizeColour = true };
+            var nres = norm.Finish(img);
+            var disc = Enumerable.Range(0, w * h).Where(i => lumImg[i] > 0.25).ToList();
+            var means = Enumerable.Range(0, 3).Select(c => disc.Average(i => (double)nres.Data[c][i])).ToArray();
+            CheckTrue("Normalise the colour: the planet grey on average", Math.Abs(means[0] / means[1] - 1) < 0.02 && Math.Abs(means[2] / means[1] - 1) < 0.02, string.Join(", ", means.Select(m => m.ToString("0.0000"))));
+            var grey = new SharpenProfile { Layers = new double[6], Denoise = 0, Saturation = 0 }.Finish(img);
+            CheckTrue("Saturation 0: grey", Enumerable.Range(0, w * h).All(i => Math.Abs(grey.Data[0][i] - grey.Data[1][i]) < 1e-5 && Math.Abs(grey.Data[2][i] - grey.Data[1][i]) < 1e-5));
+            Func<SharpenProfile, double, double> tone = (p, v) =>
+            {
+                var flatImage = new AstroImage(16, 16, 1);
+                for (int i = 0; i < 256; i++) flatImage.Data[0][i] = (float)v;
+                return p.Finish(flatImage).Data[0][8 * 16 + 8];
+            };
+            var flatLayers = new double[6];
+            CheckTrue("Gamma 2 brightens the mid-tones", Math.Abs(tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Gamma = 2 }, 0.25) - 0.5) < 2e-3);
+            CheckTrue("Contrast keeps black, white and the middle, and deepens the shadows", Math.Abs(tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Contrast = 1 }, 0.25) - 0.15625) < 2e-3
+                && tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Contrast = 1 }, 0) == 0 && Math.Abs(tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Contrast = 1 }, 1) - 1) < 1e-6
+                && Math.Abs(tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Contrast = 1 }, 0.5) - 0.5) < 2e-3);
+            CheckTrue("The curve moves the tones through its points", Math.Abs(tone(new SharpenProfile { Layers = flatLayers, Denoise = 0, Curve = new[] { 0, 0, 0.5, 0.7, 1, 1 } }, 0.5) - 0.7) < 2e-3);
+
+            // kept in the settings file
+            var all = new SharpenProfile { LuminanceOnly = true, UnsharpRadius = 2.2, UnsharpAmount = 0.8, NoiseFilter = SharpenNoiseFilter.BilateralAndSigma, NoiseStrength = 1.4, ProtectLimb = 0.6, SuppressHalos = 0.3,
+                NormalizeColour = true, Saturation = 1.3, Gamma = 1.1, Contrast = 0.2, Curve = new[] { 0, 0, 0.4, 0.5, 1, 1 }, DeconvMethod = DeconvolutionMethod.Wiener, WienerK = 0.02, PsfFile = @"C:\psf\star.fits" };
+            var back = (SharpenProfile)Core.Util.Json.PopulateType(typeof(SharpenProfile), Core.Util.Json.Parse(Core.Util.Json.Serialize(all)));
+            CheckTrue("The live settings survive the settings file", back.LuminanceOnly && back.UnsharpRadius == 2.2 && back.UnsharpAmount == 0.8 && back.NoiseFilter == SharpenNoiseFilter.BilateralAndSigma && back.NoiseStrength == 1.4
+                && back.ProtectLimb == 0.6 && back.SuppressHalos == 0.3 && back.NormalizeColour && back.Saturation == 1.3 && back.Gamma == 1.1 && back.Contrast == 0.2 && back.Curve.SequenceEqual(all.Curve)
+                && back.DeconvMethod == DeconvolutionMethod.Wiener && back.WienerK == 0.02 && back.PsfFile == all.PsfFile);
+        }
+
+        [TestMethod]
+        public void TestRecordedPsfAndWiener()
+        {
+            // a recorded star, off centre on a noisy sky
+            int w = 64, h = 64;
+            var star = Psf.Gaussian(2.5);
+            var frame = new AstroImage(w, h, 1);
+            var rng = new Random(4);
+            int r = star.Size / 2;
+            for (int i = 0; i < w * h; i++) frame.Data[0][i] = 0.1f + (float)(rng.NextDouble() * 0.002);
+            for (int y = -r; y <= r; y++) for (int x = -r; x <= r; x++) frame.Data[0][(20 + y) * w + 41 + x] += 8f * star.Data[(y + r) * star.Size + x + r];
+            var psf = Psf.FromImage(frame);
+            int pr = psf.Size / 2, peak = Array.IndexOf(psf.Data, psf.Data.Max());
+            CheckTrue("The recorded PSF: odd, centred on the star, adding up to one", psf.Size % 2 == 1 && psf.Size >= 7 && psf.Size <= 63 && peak == pr * psf.Size + pr && Math.Abs(psf.Data.Sum() - 1) < 1e-4, psf.Size + ", " + peak);
+            double fw = 0;
+            for (int x = 0; x < psf.Size; x++) if (psf.Data[pr * psf.Size + x] >= psf.Data[peak] / 2) fw++;
+            CheckTrue("As wide as the star", fw >= 2 && fw <= 4, fw.ToString());
+            bool none = false;
+            try { Psf.FromImage(new AstroImage(16, 16, 1)); } catch (ArgumentException) { none = true; }
+            CheckTrue("An empty image has no PSF", none);
+
+            // deconvolving a blurred disc with Wiener and that PSF brings it closer to the truth
+            string dir = Path.Combine(Path.GetTempPath(), "SidraluneTests", "psf");
+            Directory.CreateDirectory(dir);
+            string file = Path.Combine(dir, "star.fits");
+            FitsIO.Write(file, frame);
+            int dw = 128, dh = 128;
+            var truth = Synthetic.Planet(dw, dh, 64, 64, 40, 0, 0, 0, 2);
+            var conv = new FftConvolver(dw, dh, Psf.Gaussian(2.5));
+            var blurred = new AstroImage(dw, dh, new[] { conv.Convolve(truth.Data[0]) });
+            Func<AstroImage, double> err = im => Math.Sqrt(Enumerable.Range(0, dw * dh).Average(i => Math.Pow(im.Data[0][i] - truth.Data[0][i], 2)));
+            foreach (var step in new[]
+            {
+                new SharpenStep { Kind = SharpenStepKind.Deconvolution, Method = DeconvolutionMethod.Wiener, WienerK = 0.002, Fwhm = 2.5 },
+                new SharpenStep { Kind = SharpenStepKind.Deconvolution, Method = DeconvolutionMethod.Wiener, WienerK = 0.002, PsfFile = file },
+                new SharpenStep { Kind = SharpenStepKind.Deconvolution, Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = 20, PsfFile = file }
+            })
+            {
+                var im = blurred.Clone();
+                SharpenProfile.ApplyStep(im, step);
+                CheckTrue(string.Format("{0} with {1} sharpens", step.Method, step.PsfFile.Length > 0 ? "the recorded PSF" : "a Gaussian"), err(im) < 0.85 * err(blurred), err(blurred).ToString("0.0000") + " → " + err(im).ToString("0.0000"));
+            }
+            bool missing = false;
+            try { SharpenProfile.ApplyStep(blurred.Clone(), new SharpenStep { Kind = SharpenStepKind.Deconvolution, PsfFile = Path.Combine(dir, "gone.fits") }); }
+            catch (FileNotFoundException ex) { missing = ex.Message.Contains("gone.fits"); }
+            CheckTrue("A PSF file that is gone says which", missing);
+        }
     }
 }

@@ -151,6 +151,34 @@ namespace Sidralune.Imaging
             return o;
         }
 
+        /// <summary>
+        /// Sigma filter (Lee 1983): each pixel becomes the mean of its neighbours within the radius whose values lie within
+        /// ±range of its own, so noise is smoothed while edges, which differ by more, are kept.
+        /// </summary>
+        public static float[] SigmaFilter(float[] d, int w, int h, int radius, double range)
+        {
+            var o = new float[d.Length];
+            Parallel.For(0, h, Core.Util.StopRequest.Options, y =>
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float c = d[y * w + x];
+                    double s = 0; int n = 0;
+                    for (int dy = -radius; dy <= radius; dy++)
+                    {
+                        int yy = Mirror(y + dy, h);
+                        for (int dx = -radius; dx <= radius; dx++)
+                        {
+                            float v = d[yy * w + Mirror(x + dx, w)];
+                            if (Math.Abs(v - c) <= range) { s += v; n++; }
+                        }
+                    }
+                    o[y * w + x] = (float)(s / n);
+                }
+            });
+            return o;
+        }
+
         /// <summary>FFT convolution with a (small or large) kernel centred at kernel's middle. Output same size as input.</summary>
         public static float[] ConvolveFft(float[] d, int w, int h, float[] kernel, int kw, int kh)
         {

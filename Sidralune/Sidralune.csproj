@@ -66,6 +66,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\ColorUi.cs" />
+    <Compile Include="UI\CurveEditor.cs" />
     <Compile Include="UI\EclipseMap.cs" />
     <Compile Include="UI\MonitorColor.cs" />
     <Compile Include="UI\PlotControl.cs" />

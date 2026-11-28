@@ -981,6 +981,14 @@ msgstr "Alle opnamen afgekeurd"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "{0} van {1} opnamen geschreven ({2} afgekeurd), uitsnede {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "De PSF-afbeelding {0} is er niet"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "De PSF-afbeelding bevat geen ster of ander lichtpunt"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Onleesbaar: {0}"
@@ -5926,12 +5934,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Deconvolutie {0:0.0} px, {1} iteraties"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Deconvolutie met {0}, {1} iteraties"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Open een gestapelde planeetopname (TIFF/FITS/PNG) of stuur er een vanuit Stapelen"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Wavelets"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Straal"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Hoeveelheid"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Onscherp masker"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Bilateraal"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Bilateraal, dan sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5961,10 +5997,6 @@ msgstr "Deconv. FWHM"
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Iteraties"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Richardson-Lucy-deconvolutie (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6001,6 +6033,22 @@ msgstr "Bestanden verscherpen…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Map bewaken…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Voorinstelling opslaan…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Voorinstelling laden…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6725,12 +6773,24 @@ msgid "Align RGB channels"
 msgstr "RGB-kanalen uitlijnen"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener met {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Stappen: geen"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Stappen: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6748,6 +6808,10 @@ msgstr "Omzetten naar profiel…"
 msgid "Colour"
 msgstr "Kleur"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Alleen de luminantie verscherpen"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6759,6 +6823,10 @@ msgstr "Uit sterren (empirisch)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gauss"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "Uit een afbeelding…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6784,6 +6852,10 @@ msgstr "Ringonderdrukking"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Een afbeelding van een ster of van een maan van de planeet"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "FWHM meten"
@@ -6807,6 +6879,50 @@ msgstr "Wavelet-verscherping toepassen"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Sterkte"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Rand beschermen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Halo’s onderdrukken"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Rand en halo’s"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Balans"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Kleur normaliseren"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gamma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Contrast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Rechte curve"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Kleur en toon"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Verscherpingsvoorinstellingen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} is geen verscherpingsvoorinstelling"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

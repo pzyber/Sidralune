@@ -988,6 +988,14 @@ msgstr "Visi kadri noraidīti"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "Ierakstīti {0} no {1} kadriem ({2} noraidīti), apgriezums {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "PSF attēla {0} nav"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "PSF attēlā nav zvaigznes vai cita gaismas punkta"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Nelasāms: {0}"
@@ -5943,12 +5951,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Dekonvolūcija {0:0.0} px, iterācijas: {1}"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Dekonvolūcija ar {0}, iterācijas: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Atveriet sakrautu planētas attēlu (TIFF/FITS/PNG) vai nosūtiet to no Sakraušanas"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Viļņveidoles"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Rādiuss"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Daudzums"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Neasa maska"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Divpusējs"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Divpusējs, tad sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5978,10 +6014,6 @@ msgstr "Dekonv. FWHM"
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Iterācijas"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Richardson-Lucy dekonvolūcija (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6018,6 +6050,22 @@ msgstr "Asināt failus…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Uzraudzīt mapi…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Saglabāt iestatījumu kopu…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Ielādēt iestatījumu kopu…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6749,12 +6797,24 @@ msgid "Align RGB channels"
 msgstr "Izlīdzināt RGB kanālus"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener ar {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Soļi: nav"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Soļi: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6772,6 +6832,10 @@ msgstr "Pārvērst profilā…"
 msgid "Colour"
 msgstr "Krāsa"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Asināt tikai spožumu"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6783,6 +6847,10 @@ msgstr "No zvaigznēm (empīriska)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gausa"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "No attēla…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6808,6 +6876,10 @@ msgstr "Gredzenu mazināšana"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Zvaigznes vai planētas pavadoņa attēls"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "Mērīt FWHM"
@@ -6831,6 +6903,50 @@ msgstr "Lietot viļņveidoļu asināšanu"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Stiprums"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Aizsargāt malu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Slāpēt oreolus"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Mala un oreoli"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Līdzsvars"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Normalizēt krāsu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gamma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Kontrasts"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Taisna līkne"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Krāsa un tonis"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Asināšanas iestatījumu kopas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} nav asināšanas iestatījumu kopa"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

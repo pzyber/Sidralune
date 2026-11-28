@@ -282,11 +282,13 @@ namespace Sidralune.Views
         private string _sharpPath;
         private readonly List<SharpenStep> _sharpSteps = new List<SharpenStep>();
         private readonly Slider[] _layers = new Slider[6];
-        private Slider _denoise;
-        private NumericUpDown _decFwhm, _decIt;
-        private ComboBox _profileBox;
-        private CheckBox _applyProfile;
-        private Label _stepsLabel, _watchLabel;
+        private Slider _denoise, _usmRadius, _usmAmount, _noiseStrength, _protectLimb, _suppressHalos, _saturation, _gamma, _contrast;
+        private NumericUpDown _decFwhm, _decIt, _wienerK;
+        private ComboBox _profileBox, _decMethod, _psfKind, _noiseFilter;
+        private CheckBox _applyProfile, _lumOnly, _normalize;
+        private CurveEditor _curve;
+        private string _psfFile = ""; // the recorded PSF chosen, or "" for the Gaussian
+        private Label _stepsLabel, _watchLabel, _psfLabel;
         private FlatButton _watchButton;
         private bool _loadingProfile; // the settings are being changed by the view, not by the user
         private System.Windows.Forms.Timer _sharpDebounce;
@@ -308,9 +310,24 @@ namespace Sidralune.Views
             Object = ProfileObject(_profileBox.SelectedIndex),
             Layers = _layers.Select(l => l.Value / 100.0).ToArray(),
             Denoise = _denoise.Value / 100.0,
+            DeconvMethod = _decMethod.SelectedIndex == 1 ? DeconvolutionMethod.Wiener : DeconvolutionMethod.RichardsonLucyTV,
             DeconvFwhm = (double)_decFwhm.Value,
             DeconvIterations = (int)_decIt.Value,
-            Steps = _sharpSteps.Select(s => s.Clone()).ToList()
+            WienerK = (double)_wienerK.Value,
+            PsfFile = _psfFile,
+            Steps = _sharpSteps.Select(s => s.Clone()).ToList(),
+            LuminanceOnly = _lumOnly.Checked,
+            UnsharpRadius = _usmRadius.Value / 10.0,
+            UnsharpAmount = _usmAmount.Value / 100.0,
+            NoiseFilter = (SharpenNoiseFilter)Math.Max(0, _noiseFilter.SelectedIndex),
+            NoiseStrength = _noiseStrength.Value / 100.0,
+            ProtectLimb = _protectLimb.Value / 100.0,
+            SuppressHalos = _suppressHalos.Value / 100.0,
+            NormalizeColour = _normalize.Checked,
+            Saturation = _saturation.Value / 100.0,
+            Gamma = _gamma.Value / 100.0,
+            Contrast = _contrast.Value / 100.0,
+            Curve = _curve.Points
         };
 
         /// <summary>Keeps the settings shown as the chosen object's profile, and returns them.</summary>
@@ -340,13 +357,30 @@ namespace Sidralune.Views
         /// <summary>Shows a profile's settings and applies its steps to the image as opened.</summary>
         private void UseProfile(SharpenProfile p)
         {
-            Func<Slider, double, int> clamp = (s, v) => Math.Max(s.Minimum, Math.Min(s.Maximum, (int)Math.Round(v * 100)));
+            Func<Slider, double, double, int> set = (s, v, scale) => Math.Max(s.Minimum, Math.Min(s.Maximum, (int)Math.Round(v * scale)));
+            Func<NumericUpDown, double, decimal> num = (n, v) => Math.Max(n.Minimum, Math.Min(n.Maximum, double.IsNaN(v) ? n.Minimum : (decimal)v));
             _loadingProfile = true;
-            for (int i = 0; i < _layers.Length; i++) _layers[i].Value = clamp(_layers[i], p.Layers != null && i < p.Layers.Length ? p.Layers[i] : 0);
-            _denoise.Value = clamp(_denoise, p.Denoise);
-            _decFwhm.Value = Math.Max(_decFwhm.Minimum, Math.Min(_decFwhm.Maximum, (decimal)p.DeconvFwhm));
-            _decIt.Value = Math.Max(_decIt.Minimum, Math.Min(_decIt.Maximum, p.DeconvIterations));
+            for (int i = 0; i < _layers.Length; i++) _layers[i].Value = set(_layers[i], p.Layers != null && i < p.Layers.Length ? p.Layers[i] : 0, 100);
+            _denoise.Value = set(_denoise, p.Denoise, 100);
+            _decMethod.SelectedIndex = p.DeconvMethod == DeconvolutionMethod.Wiener ? 1 : 0;
+            _decFwhm.Value = num(_decFwhm, p.DeconvFwhm);
+            _decIt.Value = num(_decIt, p.DeconvIterations);
+            _wienerK.Value = num(_wienerK, p.WienerK);
+            ShowPsf(p.PsfFile);
+            _lumOnly.Checked = p.LuminanceOnly;
+            _usmRadius.Value = set(_usmRadius, p.UnsharpRadius, 10);
+            _usmAmount.Value = set(_usmAmount, p.UnsharpAmount, 100);
+            _noiseFilter.SelectedIndex = Math.Max(0, Math.Min(_noiseFilter.Items.Count - 1, (int)p.NoiseFilter));
+            _noiseStrength.Value = set(_noiseStrength, p.NoiseStrength, 100);
+            _protectLimb.Value = set(_protectLimb, p.ProtectLimb, 100);
+            _suppressHalos.Value = set(_suppressHalos, p.SuppressHalos, 100);
+            _normalize.Checked = p.NormalizeColour;
+            _saturation.Value = set(_saturation, p.Saturation, 100);
+            _gamma.Value = set(_gamma, p.Gamma, 100);
+            _contrast.Value = set(_contrast, p.Contrast, 100);
+            _curve.Points = p.Curve;
             _loadingProfile = false;
+            SyncDeconvolution();
             _sharpDebounce.Stop();
             _sharpSteps.Clear();
             var steps = (p.Steps ?? new List<SharpenStep>()).Where(s => s != null).Select(s => s.Clone()).ToList();
@@ -362,18 +396,60 @@ namespace Sidralune.Views
             });
         }
 
-        private static string StepText(SharpenStep s) =>
-            s.Kind == SharpenStepKind.Deconvolution ? T("Deconvolution {0:0.0} px, {1} iterations", s.Fwhm, s.Iterations) : T("Align RGB channels");
+        private static string StepText(SharpenStep s)
+        {
+            if (s.Kind != SharpenStepKind.Deconvolution) return T("Align RGB channels");
+            string file = string.IsNullOrEmpty(s.PsfFile) ? null : Path.GetFileName(s.PsfFile);
+            if (s.Method == DeconvolutionMethod.Wiener)
+                return file == null ? T("Wiener {0:0.0} px, K {1:0.####}", s.Fwhm, s.WienerK) : T("Wiener with {0}, K {1:0.####}", file, s.WienerK);
+            return file == null ? T("Deconvolution {0:0.0} px, {1} iterations", s.Fwhm, s.Iterations) : T("Deconvolution with {0}, {1} iterations", file, s.Iterations);
+        }
 
         private void ShowSteps() =>
             _stepsLabel.Text = _sharpSteps.Count == 0 ? T("Steps: none") : T("Steps: {0}", string.Join(" → ", _sharpSteps.Select(StepText)));
+
+        /// <summary>The PSF shown: the recorded one from a file, or the Gaussian ("").</summary>
+        private void ShowPsf(string file)
+        {
+            _psfFile = file ?? "";
+            bool was = _loadingProfile;
+            _loadingProfile = true;
+            _psfKind.SelectedIndex = _psfFile.Length > 0 ? 1 : 0;
+            _loadingProfile = was;
+            _psfLabel.Text = _psfFile.Length > 0 ? T("PSF: {0}", Path.GetFileName(_psfFile)) : "";
+            _psfLabel.Visible = _psfFile.Length > 0;
+            SyncDeconvolution();
+        }
+
+        // the settings the chosen method and PSF use; the others are greyed out
+        private void SyncDeconvolution()
+        {
+            bool wiener = _decMethod.SelectedIndex == 1;
+            _decIt.Enabled = !wiener;
+            _wienerK.Enabled = wiener;
+            _decFwhm.Enabled = _psfFile.Length == 0;
+        }
+
+        private static Slider NewSlider(int min, int max, int value) => new Slider { Minimum = min, Maximum = max, Value = value, TickStyle = TickStyle.None };
 
         private Control BuildSharpen()
         {
             var panel = new Panel { Dock = DockStyle.Fill };
             _sharpViewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"), Stretch = DisplayStretch.None };
-            var side = Side(T("Wavelets"), 360);
-            var g = new FormGrid(100);
+            var side = Side(T("Options"), 380);
+            var sections = new List<Control>();
+            EventHandler changed = (s, e) => { if (_loadingProfile) return; _sharpDebounce.Stop(); _sharpDebounce.Start(); };
+            _sharpDebounce = new System.Windows.Forms.Timer { Interval = 250 };
+            _sharpDebounce.Tick += (s, e) => { _sharpDebounce.Stop(); UpdateSharpen(); };
+            Func<FormGrid, string, int, int, int, Slider> slider = (grid, label, min, max, value) =>
+            {
+                var s = grid.Row(label, NewSlider(min, max, value));
+                s.ValueChanged += changed;
+                return s;
+            };
+
+            // the profile, the image and the files
+            var g = new FormGrid(110);
             _profileBox = g.Row(Tc("sharpening", "Profile"), Ui.Combo(new object[] { T("Other") }.Concat(PlanetaryObject.Objects.Select(b => (object)BodyNames.Name(b))).ToArray()));
             _profileBox.SelectedIndexChanged += (s, e) =>
             {
@@ -383,23 +459,9 @@ namespace Sidralune.Views
             };
             _applyProfile = g.Row(T("When opening"), new CheckBox { Text = T("Apply the profile"), Checked = AppState.Settings.ApplySharpenProfile });
             _applyProfile.CheckedChanged += (s, e) => { AppState.Settings.ApplySharpenProfile = _applyProfile.Checked; AppState.Save(); };
-            EventHandler changed = (s, e) => { if (_loadingProfile) return; _sharpDebounce.Stop(); _sharpDebounce.Start(); };
-            for (int i = 0; i < 6; i++)
-            {
-                _layers[i] = new Slider { Minimum = -50, Maximum = 400, Value = i == 0 ? 120 : i == 1 ? 60 : i == 2 ? 20 : 0, TickStyle = TickStyle.None };
-                _layers[i].ValueChanged += changed;
-                g.Row(T("Layer {0}", i + 1), _layers[i]);
-            }
-            _denoise = new Slider { Minimum = 0, Maximum = 300, Value = 60, TickStyle = TickStyle.None };
-            _denoise.ValueChanged += changed;
-            g.Row(T("Denoise"), _denoise);
-            _sharpDebounce = new System.Windows.Forms.Timer { Interval = 250 };
-            _sharpDebounce.Tick += (s, e) => { _sharpDebounce.Stop(); UpdateSharpen(); };
-            _decFwhm = g.Row(T("Deconv. FWHM"), Ui.Num(2.0m, 0.5m, 15, 1, 0.1m));
-            _decIt = g.Row(T("Iterations"), Ui.Num(15, 1, 200));
-            var buttons = new FlowLayoutPanel { Height = 160, FlowDirection = FlowDirection.TopDown };
-            Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; buttons.Controls.Add(b); return b; };
-            btn(T("Open image…"), Icons.Open, () =>
+            var buttons = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown };
+            Func<FlowLayoutPanel, string, string, Action, ButtonKind, FlatButton> btn = (bar, t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; bar.Controls.Add(b); return b; };
+            btn(buttons, T("Open image…"), Icons.Open, () =>
             {
                 if (_sharpJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter })
@@ -410,25 +472,7 @@ namespace Sidralune.Views
                     _sharpJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () => SetSharpenImage(loaded, path));
                 }
             }, ButtonKind.Normal);
-            btn(T("Richardson-Lucy deconvolution (TV)"), Icons.Check, () =>
-            {
-                if (_sharpSource == null) return;
-                var src = _sharpSource.Clone(); var step = new SharpenStep { Kind = SharpenStepKind.Deconvolution, Fwhm = (double)_decFwhm.Value, Iterations = (int)_decIt.Value };
-                _sharpJob.Run(T("Deconvolution"), t => SharpenProfile.ApplyStep(src, step, t.Cts.Token), () => { _sharpSource = src; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
-            }, ButtonKind.Normal);
-            btn(T("Align RGB channels (ADC)"), Icons.Check, () =>
-            {
-                if (_sharpSource == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
-                if (_sharpSource.Channels != 3) { MainForm.Instance.Toast(T("Aligning channels needs a colour image"), Icons.Info); return; }
-                var s = _sharpSource.Clone(); var step = new SharpenStep { Kind = SharpenStepKind.AlignChannels };
-                _sharpJob.Run(T("Aligning colour channels"), t => SharpenProfile.ApplyStep(s, step, t.Cts.Token), () => { _sharpSource = s; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
-            }, ButtonKind.Normal);
-            btn(T("Revert to the opened image"), Icons.Undo, () =>
-            {
-                if (_sharpOriginal == null) return;
-                _sharpSource = _sharpOriginal; _sharpSteps.Clear(); ShowSteps(); UpdateSharpen();
-            }, ButtonKind.Normal);
-            btn(T("Save result…"), Icons.Save, () =>
+            btn(buttons, T("Save result…"), Icons.Save, () =>
             {
                 var img = _sharpViewer.Image; if (img == null) return;
                 using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = _sharpPath != null ? Path.GetFileNameWithoutExtension(SharpenBatch.OutputPath(_sharpPath)) : "planet.tif", FilterIndex = 4 })
@@ -441,7 +485,7 @@ namespace Sidralune.Views
                 KeepProfile();
                 MainForm.Instance.Toast(T("Saved. These settings are now the {0} profile.", _profileBox.Text), Icons.Check, Theme.Current.Success);
             }, ButtonKind.Primary);
-            btn(T("Sharpen files…"), Icons.Layers, () =>
+            btn(buttons, T("Sharpen files…"), Icons.Layers, () =>
             {
                 if (_sharpJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
@@ -450,7 +494,7 @@ namespace Sidralune.Views
                     if (d.ShowDialog() == DialogResult.OK) SharpenFiles(d.FileNames);
                 }
             }, ButtonKind.Normal);
-            _watchButton = btn(T("Watch folder…"), Icons.Eye, () =>
+            _watchButton = btn(buttons, T("Watch folder…"), Icons.Eye, () =>
             {
                 if (_watcher != null) { StopWatching(); return; }
                 using (var d = new FolderBrowserDialog())
@@ -459,36 +503,166 @@ namespace Sidralune.Views
                     if (d.ShowDialog() == DialogResult.OK) StartWatching(d.SelectedPath);
                 }
             }, ButtonKind.Normal);
+            // presets: the settings in a file, to keep several for one object or to share them
+            var savePreset = btn(buttons, T("Save preset…"), Icons.Save, SavePreset, ButtonKind.Normal);
+            var loadPreset = btn(buttons, T("Load preset…"), Icons.Open, LoadPreset, ButtonKind.Normal);
+            buttons.Height = buttons.Controls.Count * 36 + 4;
+            g.Full(buttons);
+            _watchLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(350, 0), Visible = false };
+            g.Full(_watchLabel);
+            sections.Add(g);
+
+            // deconvolution and channel alignment: the steps
+            var dc = new FormGrid(110);
+            _decMethod = dc.Row(T("Method"), Ui.Combo(T("Richardson-Lucy (TV)"), T("Wiener")));
+            _psfKind = dc.Row(T("PSF"), Ui.Combo(T("Gaussian"), T("From an image…")));
+            _psfLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(350, 0), Visible = false };
+            dc.Full(_psfLabel);
+            _decFwhm = dc.Row(T("Deconv. FWHM"), Ui.Num(2.0m, 0.5m, 15, 1, 0.1m));
+            _decIt = dc.Row(T("Iterations"), Ui.Num(15, 1, 200));
+            _wienerK = dc.Row(T("Wiener K"), Ui.Num(0.01m, 0.0001m, 1, 4, 0.001m));
+            _decMethod.SelectedIndexChanged += (s, e) => SyncDeconvolution();
+            _psfKind.SelectedIndexChanged += (s, e) =>
+            {
+                if (_loadingProfile) return;
+                if (_psfKind.SelectedIndex == 0) { ShowPsf(""); return; }
+                using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Title = T("An image of a star, or of a moon of the planet") })
+                {
+                    if (_sharpPath != null) d.InitialDirectory = Path.GetDirectoryName(_sharpPath);
+                    ShowPsf(d.ShowDialog() == DialogResult.OK ? d.FileName : _psfFile);
+                }
+            };
+            var stepButtons = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown };
+            btn(stepButtons, T("Deconvolve"), Icons.Check, () =>
+            {
+                if (_sharpSource == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
+                var src = _sharpSource.Clone();
+                var step = new SharpenStep
+                {
+                    Kind = SharpenStepKind.Deconvolution, Method = _decMethod.SelectedIndex == 1 ? DeconvolutionMethod.Wiener : DeconvolutionMethod.RichardsonLucyTV,
+                    Fwhm = (double)_decFwhm.Value, Iterations = (int)_decIt.Value, WienerK = (double)_wienerK.Value, PsfFile = _psfFile
+                };
+                _sharpJob.Run(T("Deconvolution"), t => SharpenProfile.ApplyStep(src, step, t.Cts.Token), () => { _sharpSource = src; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
+            }, ButtonKind.Normal);
+            btn(stepButtons, T("Align RGB channels (ADC)"), Icons.Check, () =>
+            {
+                if (_sharpSource == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
+                if (_sharpSource.Channels != 3) { MainForm.Instance.Toast(T("Aligning channels needs a colour image"), Icons.Info); return; }
+                var s = _sharpSource.Clone(); var step = new SharpenStep { Kind = SharpenStepKind.AlignChannels };
+                _sharpJob.Run(T("Aligning colour channels"), t => SharpenProfile.ApplyStep(s, step, t.Cts.Token), () => { _sharpSource = s; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
+            }, ButtonKind.Normal);
+            btn(stepButtons, T("Revert to the opened image"), Icons.Undo, () =>
+            {
+                if (_sharpOriginal == null) return;
+                _sharpSource = _sharpOriginal; _sharpSteps.Clear(); ShowSteps(); UpdateSharpen();
+            }, ButtonKind.Normal);
             // Stop, under the two buttons that change the image, ends a deconvolution, a channel alignment, the steps of
             // a profile or sharpening files; the other buttons wait
             var sharpStop = _sharpJob.StopButton(n => n == T("Deconvolution") || n == T("Aligning colour channels") || n == T("Applying the profile") || n == T("Sharpening images"));
             sharpStop.Width = 300;
+            Ui.InsertAfter(stepButtons, sharpStop, T("Align RGB channels (ADC)"));
+            stepButtons.Height = stepButtons.Controls.Count * 36 + 4; // each button and its margins
+            dc.Full(stepButtons);
+            _stepsLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(350, 0) };
+            dc.Full(_stepsLabel);
+            sections.Add(new Collapsible(T("Deconvolution"), dc));
+
+            // the live chain: wavelets, unsharp mask, noise, limb and halos, colour and tone
+            var wv = new FormGrid(110);
+            _lumOnly = wv.Row(T("Colour"), new CheckBox { Text = T("Sharpen the luminance only") });
+            _lumOnly.CheckedChanged += changed;
+            for (int i = 0; i < 6; i++) _layers[i] = slider(wv, T("Layer {0}", i + 1), -50, 400, i == 0 ? 120 : i == 1 ? 60 : i == 2 ? 20 : 0);
+            _denoise = slider(wv, T("Denoise"), 0, 300, 60);
+            wv.Full(Ui.Hint(T("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets.")));
+            sections.Add(new Collapsible(T("Wavelets"), wv));
+
+            var us = new FormGrid(110);
+            _usmRadius = slider(us, T("Radius"), 3, 50, 15);
+            _usmAmount = slider(us, T("Amount"), 0, 300, 0);
+            sections.Add(new Collapsible(T("Unsharp mask"), us, false));
+
+            var nz = new FormGrid(110);
+            _noiseFilter = nz.Row(T("Filter"), Ui.Combo(T("None"), T("Bilateral"), T("Sigma"), T("Bilateral, then sigma")));
+            _noiseFilter.SelectedIndexChanged += changed;
+            _noiseStrength = slider(nz, T("Strength"), 0, 300, 100);
+            sections.Add(new Collapsible(T("Noise reduction"), nz, false));
+
+            var lh = new FormGrid(110);
+            _protectLimb = slider(lh, T("Protect limb"), 0, 100, 0);
+            _suppressHalos = slider(lh, T("Suppress halos"), 0, 100, 0);
+            sections.Add(new Collapsible(T("Limb & halos"), lh, false));
+
+            var tone = new FormGrid(110);
+            _normalize = tone.Row(T("Balance"), new CheckBox { Text = T("Normalise the colour") });
+            _normalize.CheckedChanged += changed;
+            _saturation = slider(tone, T("Saturation"), 0, 300, 100);
+            _gamma = slider(tone, T("Gamma"), 30, 300, 100);
+            _contrast = slider(tone, T("Contrast"), -100, 100, 0);
+            _curve = new CurveEditor();
+            _curve.CurveChanged += changed;
+            tone.Full(_curve);
+            var resetCurve = new FlatButton(T("Straight curve"), Icons.Undo, (s, e) => _curve.Reset());
+            resetCurve.AutoSizeToText();
+            tone.Full(resetCurve);
+            sections.Add(new Collapsible(T("Colour & tone"), tone, false));
+
             // Watch folder stays available, so watching can be stopped at any time
-            _sharpJob.Guard(buttons.Controls.Cast<Control>().Where(c => c != _watchButton).Concat(new Control[] { _profileBox }).ToArray());
-            Ui.InsertAfter(buttons, sharpStop, T("Align RGB channels (ADC)"));
-            buttons.Height = buttons.Controls.Count * 36 + 4; // each button and its margins
-            g.Full(buttons);
-            _stepsLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0) };
-            g.Full(_stepsLabel);
+            _sharpJob.Guard(buttons.Controls.OfType<FlatButton>().Where(c => c != _watchButton)
+                .Concat(stepButtons.Controls.OfType<FlatButton>().Where(c => c != sharpStop))
+                .Concat(new Control[] { _profileBox, savePreset, loadPreset }).ToArray());
             ShowSteps();
-            _watchLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0), Visible = false };
-            g.Full(_watchLabel);
-            g.Full(Ui.Hint(T("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets.")));
-            side.Controls.Add(g);
+            ShowPsf("");
+            var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+            sections.Reverse();
+            foreach (var c in sections) { c.Dock = DockStyle.Top; scroll.Controls.Add(c); }
+            side.Controls.Add(scroll);
             panel.Controls.Add(_sharpViewer);
             panel.Controls.Add(side);
             Disposed += (s, e) => { if (_watcher != null) _watcher.Dispose(); };
             return panel;
         }
 
+        private static string PresetFolder => Path.Combine(Core.Util.AppPaths.Settings, "Sharpening presets");
+
+        /// <summary>Saves the settings shown, steps included, as a preset file.</summary>
+        private void SavePreset()
+        {
+            Directory.CreateDirectory(PresetFolder);
+            using (var d = new SaveFileDialog { Filter = T("Sharpening presets") + "|*.json", InitialDirectory = PresetFolder, FileName = _profileBox.Text + ".json" })
+            {
+                if (d.ShowDialog() != DialogResult.OK) return;
+                File.WriteAllText(d.FileName, Core.Util.Json.Serialize(CurrentProfile(), true));
+            }
+        }
+
+        /// <summary>Applies a preset file's settings, as choosing a profile does; the object chosen stays.</summary>
+        private void LoadPreset()
+        {
+            if (_sharpJob.Refuse()) return;
+            Directory.CreateDirectory(PresetFolder);
+            using (var d = new OpenFileDialog { Filter = T("Sharpening presets") + "|*.json", InitialDirectory = PresetFolder })
+            {
+                if (d.ShowDialog() != DialogResult.OK) return;
+                UsePreset(d.FileName);
+            }
+        }
+
+        private void UsePreset(string path)
+        {
+            SharpenProfile p;
+            try { p = (SharpenProfile)Core.Util.Json.PopulateType(typeof(SharpenProfile), Core.Util.Json.Parse(File.ReadAllText(path))); }
+            catch (Exception ex) { p = null; Core.Util.Log.Warn("Planetary", ex.Message); }
+            if (p == null) { MainForm.Instance.Toast(T("{0} is not a sharpening preset", Path.GetFileName(path)), Icons.Warning, Theme.Current.Danger); return; }
+            UseProfile(p);
+        }
+
         private void UpdateSharpen()
         {
             if (_sharpSource == null) return;
             var src = _sharpSource;
-            var amt = _layers.Select(l => l.Value / 100.0).ToArray();
-            double dn = _denoise.Value / 100.0;
+            var p = CurrentProfile();
             AstroImage o = null;
-            _waveletJob.Replace(T("Wavelets"), t => o = SharpenProfile.Wavelets(src, amt, dn, t.Cts.Token), () => _sharpViewer.SetImage(o, false));
+            _waveletJob.Replace(T("Wavelets"), t => o = p.Finish(src, t.Cts.Token), () => _sharpViewer.SetImage(o, false));
         }
 
         /// <summary>

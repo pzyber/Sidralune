@@ -988,6 +988,14 @@ msgstr "Všechny snímky zamítnuty"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "Zapsáno {0} z {1} snímků ({2} zamítnuto), ořez {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "Obrázek PSF {0} neexistuje"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "Obrázek PSF neobsahuje hvězdu ani jiný světelný bod"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Nečitelné: {0}"
@@ -5943,12 +5951,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Dekonvoluce {0:0.0} px, iterace: {1}"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Dekonvoluce s {0}, iterace: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Otevřete složený snímek planety (TIFF/FITS/PNG) nebo ho pošlete ze Skládání"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Vlnky"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Poloměr"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Míra"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Maska rozostření"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Bilaterální"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Bilaterální, pak sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5978,10 +6014,6 @@ msgstr "Dekonv. FWHM"
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Iterace"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Dekonvoluce Richardson-Lucy (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6018,6 +6050,22 @@ msgstr "Doostřit soubory…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Sledovat složku…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Uložit předvolbu…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Načíst předvolbu…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6749,12 +6797,24 @@ msgid "Align RGB channels"
 msgstr "Zarovnat kanály RGB"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener s {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Kroky: žádné"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Kroky: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6772,6 +6832,10 @@ msgstr "Převést do profilu…"
 msgid "Colour"
 msgstr "Barva"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Doostřit jen jas"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6783,6 +6847,10 @@ msgstr "Z hvězd (empirická)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gaussova"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "Ze snímku…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6808,6 +6876,10 @@ msgstr "Potlačení prstenců"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Snímek hvězdy nebo měsíce planety"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "Změřit FWHM"
@@ -6831,6 +6903,50 @@ msgstr "Použít doostření vlnkami"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Síla"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Chránit okraj"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Potlačit halo"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Okraj a halo"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Vyvážení"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Normalizovat barvu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gama"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Rovná křivka"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Barva a tón"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Předvolby doostření"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} není předvolba doostření"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

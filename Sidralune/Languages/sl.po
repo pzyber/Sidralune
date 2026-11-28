@@ -995,6 +995,14 @@ msgstr "Vsi posnetki zavrnjeni"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "Zapisanih {0} od {1} posnetkov ({2} zavrnjenih), obrez {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "Posnetka PSF {0} ni"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "Posnetek PSF nima zvezde ali druge svetle točke"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Neberljivo: {0}"
@@ -5960,12 +5968,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Dekonvolucija {0:0.0} px, ponovitve: {1}"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Dekonvolucija z {0}, ponovitve: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Odprite zloženo sliko planeta (TIFF/FITS/PNG) ali jo pošljite iz Zlaganja"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Valčki"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Polmer"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Količina"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Maska neostrine"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Dvostranski"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Dvostranski, nato sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5995,10 +6031,6 @@ msgstr "FWHM dekonv."
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Ponovitve"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Dekonvolucija Richardson-Lucy (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6035,6 +6067,22 @@ msgstr "Izostri datoteke…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Spremljaj mapo…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Shrani prednastavitev…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Naloži prednastavitev…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6773,12 +6821,24 @@ msgid "Align RGB channels"
 msgstr "Poravnaj kanale RGB"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener z {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Koraki: brez"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Koraki: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6796,6 +6856,10 @@ msgstr "Pretvori v profil…"
 msgid "Colour"
 msgstr "Barva"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Izostri samo svetlost"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6807,6 +6871,10 @@ msgstr "Iz zvezd (empirična)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gaussova"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "Iz posnetka…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6832,6 +6900,10 @@ msgstr "Zmanjšanje obročev"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Posnetek zvezde ali lune planeta"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "Izmeri FWHM"
@@ -6855,6 +6927,50 @@ msgstr "Uporabi ostrenje z valčki"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Moč"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Zaščiti rob"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Zaduši halo"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Rob in halo"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Ravnovesje"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Normaliziraj barvo"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gama"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Ravna krivulja"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Barva in ton"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Prednastavitve ostrenja"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} ni prednastavitev ostrenja"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

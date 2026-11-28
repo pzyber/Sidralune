@@ -467,7 +467,8 @@ namespace Sidralune.UI
 
         public Collapsible(string title, Control content, bool expanded = true)
         {
-            _header = new Label { Text = title, Dock = DockStyle.Top, Height = 30, Font = Theme.UiFontBold, Padding = new Padding(22, 0, 0, 0), TextAlign = ContentAlignment.MiddleLeft, Cursor = Cursors.Hand };
+            // "&" is text in a title ("Colour & tone"), not a shortcut marker
+            _header = new Label { Text = title, Dock = DockStyle.Top, Height = 30, Font = Theme.UiFontBold, Padding = new Padding(22, 0, 0, 0), TextAlign = ContentAlignment.MiddleLeft, Cursor = Cursors.Hand, UseMnemonic = false };
             _header.Paint += (s, e) =>
             {
                 var p = Theme.Current;

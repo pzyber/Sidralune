@@ -54,8 +54,8 @@ namespace Sidralune.AppTests
             Func<string, Func<FlatButton>> stopBeside = b => () => All(Button(planetary, b).Parent).OfType<FlatButton>().First(x => x.Text == "Stop");
             CheckStop("Pre-process", Field<JobSlot>(planetary, "_ppJob"), "Pre-processing", stopBeside("Process"));
             CheckStop("Lucky stacking", Field<JobSlot>(planetary, "_luckyJob"), "Lucky stacking", stopBeside("Analyse & stack"));
-            CheckStop("Sharpen & deconvolve", Field<JobSlot>(planetary, "_sharpJob"), "Deconvolution", stopBeside("Richardson-Lucy deconvolution (TV)"));
-            CheckStop("Sharpen & deconvolve channel alignment", Field<JobSlot>(planetary, "_sharpJob"), "Aligning colour channels", stopBeside("Richardson-Lucy deconvolution (TV)"));
+            CheckStop("Sharpen & deconvolve", Field<JobSlot>(planetary, "_sharpJob"), "Deconvolution", stopBeside("Deconvolve"));
+            CheckStop("Sharpen & deconvolve channel alignment", Field<JobSlot>(planetary, "_sharpJob"), "Aligning colour channels", stopBeside("Deconvolve"));
             CheckTrue("Sharpen & deconvolve: Stop sits under Align RGB channels", OnUi(() =>
             {
                 var panel = Button(planetary, "Align RGB channels (ADC)").Parent;
@@ -328,7 +328,7 @@ namespace Sidralune.AppTests
             WhileBusy(Field<JobSlot>(planetary, "_sharpJob"), () =>
             {
                 CheckTrue("Planetary: Sharpen → in Lucky stacking waits for a deconvolution, the rest of the tab does not", !enabled("Sharpen →") && enabled("Analyse & stack"));
-                OnUi(() => Call(planetary, "SetSharpenImage", Stars(7)));
+                OnUi(() => Call(planetary, "SetSharpenImage", Stars(7), null));
                 CheckTrue("Planetary: deconvolution keeps its image", Field<AstroImage>(planetary, "_sharpSource") == sharp);
             });
             CheckTrue("Planetary: Sharpen → is back afterwards", enabled("Sharpen →"));

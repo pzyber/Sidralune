@@ -988,6 +988,14 @@ msgstr "Visi kadrai atmesti"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "Įrašyta {0} iš {1} kadrų ({2} atmesta), apkarpymas {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "PSF vaizdo {0} nėra"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "PSF vaizde nėra žvaigždės ar kito šviesos taško"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Neįskaitoma: {0}"
@@ -5943,12 +5951,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Dekonvoliucija {0:0.0} px, iteracijų: {1}"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Dekonvoliucija su {0}, iteracijų: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Atidarykite sudėtą planetos vaizdą (TIFF/FITS/PNG) arba nusiųskite jį iš Sudėjimo"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Bangelės"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Spindulys"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Kiekis"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Neryškumo kaukė"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Dvišalis"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Dvišalis, tada sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5978,10 +6014,6 @@ msgstr "Dekonv. FWHM"
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Iteracijos"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Richardson-Lucy dekonvoliucija (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6018,6 +6050,22 @@ msgstr "Ryškinti failus…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Stebėti aplanką…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Įrašyti nuostatą…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Įkelti nuostatą…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6749,12 +6797,24 @@ msgid "Align RGB channels"
 msgstr "Sulygiuoti RGB kanalus"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener su {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Žingsniai: nėra"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Žingsniai: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6772,6 +6832,10 @@ msgstr "Konvertuoti į profilį…"
 msgid "Colour"
 msgstr "Spalva"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Ryškinti tik skaistį"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6783,6 +6847,10 @@ msgstr "Iš žvaigždžių (empirinė)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gauso"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "Iš vaizdo…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6808,6 +6876,10 @@ msgstr "Žiedų mažinimas"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Žvaigždės ar planetos palydovo vaizdas"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "Matuoti FWHM"
@@ -6831,6 +6903,50 @@ msgstr "Taikyti bangelių ryškinimą"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Stiprumas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Saugoti kraštą"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Slopinti aureoles"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Kraštas ir aureolės"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Balansas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Normalizuoti spalvą"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gama"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Kontrastas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Tiesi kreivė"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Spalva ir tonas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Ryškinimo nuostatos"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} nėra ryškinimo nuostata"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

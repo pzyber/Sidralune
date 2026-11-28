@@ -981,6 +981,14 @@ msgstr "Kõik kaadrid tagasi lükatud"
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr "{0}/{1} kaadrit kirjutatud ({2} tagasi lükatud), kärbe {3}×{4}"
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr "PSF-pilti {0} ei ole"
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr "PSF-pildil pole tähte ega muud valguspunkti"
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr "Loetamatu: {0}"
@@ -5926,12 +5934,40 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr "Dekonvolutsioon {0:0.0} px, iteratsioone: {1}"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr "Dekonvolutsioon, {0}, iteratsioone: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Ava liidetud planeedipilt (TIFF/FITS/PNG) või saada see Liitmisest"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Lainikud"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr "Raadius"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr "Hulk"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr "Ebaterav mask"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr "Bilateraalne"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr "Sigma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
+msgstr "Bilateraalne, siis sigma"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgctxt "sharpening"
@@ -5961,10 +5997,6 @@ msgstr "Dekonv. FWHM"
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
 msgstr "Iteratsioonid"
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
-msgstr "Richardson-Lucy dekonvolutsioon (TV)"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Deconvolution"
@@ -6001,6 +6033,22 @@ msgstr "Teravda faile…"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
 msgstr "Jälgi kausta…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr "Salvesta eelseadistus…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr "Laadi eelseadistus…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr "Richardson-Lucy (TV)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
+msgstr "Wiener"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Sharpening images"
@@ -6725,12 +6773,24 @@ msgid "Align RGB channels"
 msgstr "Joonda RGB-kanalid"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr "Wiener {0:0.0} px, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr "Wiener, {0}, K {1:0.####}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr "Sammud: puuduvad"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
 msgstr "Sammud: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
+msgstr "PSF: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"
@@ -6748,6 +6808,10 @@ msgstr "Teisenda profiili…"
 msgid "Colour"
 msgstr "Värv"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr "Teravda ainult heledust"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr "PSF"
@@ -6759,6 +6823,10 @@ msgstr "Tähtedest (empiiriline)"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
 msgstr "Gaussi"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
+msgstr "Pildilt…"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Moffat"
@@ -6784,6 +6852,10 @@ msgstr "Rõngaste vähendamine"
 msgid "Wiener K"
 msgstr "Wiener K"
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr "Pilt tähest või planeedi kuust"
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr "Mõõda FWHM"
@@ -6807,6 +6879,50 @@ msgstr "Rakenda lainikteravdus"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
 msgstr "Tugevus"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr "Kaitse serva"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr "Summuta halosid"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr "Serv ja halod"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr "Tasakaal"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr "Normaliseeri värv"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr "Gamma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr "Sirge kõver"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr "Värv ja toon"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr "Teravdamise eelseadistused"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
+msgstr "{0} ei ole teravdamise eelseadistus"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Multiscale wavelet denoise"

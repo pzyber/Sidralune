@@ -180,6 +180,10 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Local alignment | Multi-point alignment boxes with sub-pixel cross-correlation, multi-scale, per-point frame selection, smooth blending |
 | Field rotation | Parallactic angle from site, time and target; or estimated from the images by polar cross-correlation |
 | Limb fitting | Radial gradient edges, RANSAC and Kåsa algebraic circle fit |
+| Planetary sharpening | À trous wavelets with soft-thresholded fine layers; unsharp mask; bilateral (Tomasi & Manduchi 1998) and sigma (Lee 1983) filters scaled to the grain measured on the disc (the median absolute residual of a 2-pixel Gaussian blur); optionally on the luminance only, the change added to each channel alike |
+| Limb and halo protection | The sharpening blended back to the source in a band along the fitted limb; each pixel clamped towards the minimum and maximum of its 5 × 5 neighbourhood in the source |
+| Tone curve | Monotone cubic Hermite interpolation (Fritsch & Carlson 1980), with gamma and a smoothstep contrast curve in one lookup table |
+| Recorded PSF | The brightest point source above the median sky, out to the ring whose mean falls below 1% of its peak, normalised |
 | Channel alignment (dispersion) | Red and blue registered onto green by phase correlation over the whole image (up to 1024 pixels around the centre of light, so a planet's limb is included), with a window tapered only at its edges and a second pass for the sub-pixel remainder |
 | Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation |
 

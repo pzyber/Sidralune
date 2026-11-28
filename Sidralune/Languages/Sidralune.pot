@@ -981,6 +981,14 @@ msgstr ""
 msgid "{0} of {1} frames written ({2} rejected), crop {3}×{4}"
 msgstr ""
 
+#: Sidralune.Imaging/Planetary/SharpenProfile.cs
+msgid "The PSF image {0} is not there"
+msgstr ""
+
+#: Sidralune.Imaging/Processing/Deconvolution.cs
+msgid "The PSF image has no star or other point of light in it"
+msgstr ""
+
 #: Sidralune.Imaging/Stacking/StackingEngine.cs
 msgid "Unreadable: {0}"
 msgstr ""
@@ -5926,11 +5934,39 @@ msgid "Deconvolution {0:0.0} px, {1} iterations"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution with {0}, {1} iterations"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Radius"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Amount"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Unsharp mask"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sigma"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Bilateral, then sigma"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
@@ -5960,10 +5996,6 @@ msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Iterations"
-msgstr ""
-
-#: Sidralune/Views/PlanetaryView.cs
-msgid "Richardson-Lucy deconvolution (TV)"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
@@ -6000,6 +6032,22 @@ msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Watch folder…"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Save preset…"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Load preset…"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Richardson-Lucy (TV)"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
@@ -6725,11 +6773,23 @@ msgid "Align RGB channels"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener {0:0.0} px, K {1:0.####}"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Wiener with {0}, K {1:0.####}"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: none"
 msgstr ""
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Steps: {0}"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "PSF: {0}"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
@@ -6748,6 +6808,10 @@ msgstr ""
 msgid "Colour"
 msgstr ""
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen the luminance only"
+msgstr ""
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "PSF"
 msgstr ""
@@ -6758,6 +6822,10 @@ msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Gaussian"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "From an image…"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
@@ -6784,6 +6852,10 @@ msgstr ""
 msgid "Wiener K"
 msgstr ""
 
+#: Sidralune/Views/PlanetaryView.cs
+msgid "An image of a star, or of a moon of the planet"
+msgstr ""
+
 #: Sidralune/Views/ProcessingView.cs
 msgid "Measure FWHM"
 msgstr ""
@@ -6806,6 +6878,50 @@ msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Strength"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Protect limb"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Suppress halos"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Limb & halos"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Balance"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Normalise the colour"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Gamma"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Contrast"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Straight curve"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour & tone"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening presets"
+msgstr ""
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} is not a sharpening preset"
 msgstr ""
 
 #: Sidralune/Views/ProcessingView.cs
