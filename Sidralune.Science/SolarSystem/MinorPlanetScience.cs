@@ -284,6 +284,11 @@ namespace Sidralune.Science.SolarSystem
         public double X, Y;     // Jupiter equatorial radii; X positive to the west, Y to the north
         public bool InFront;    // between Jupiter and the observer
         public bool Transit, Occulted;
+        /// <summary>The moon's shadow on Jupiter, in the same frame, and whether it is on the disc seen from the Earth.</summary>
+        public double ShadowX, ShadowY;
+        public bool ShadowOnDisc;
+        /// <summary>The moon's radius, and so roughly its shadow's, in Jupiter's equatorial radii.</summary>
+        public double Radius;
     }
 
     /// <summary>Positions of Io, Europa, Ganymede and Callisto (Meeus, Astronomical Algorithms ch. 44, low accuracy).</summary>
@@ -329,9 +334,40 @@ namespace Sidralune.Science.SolarSystem
                 double X = rr[i] * AstroMath.SinD(u[i]), Y = -rr[i] * AstroMath.CosD(u[i]) * AstroMath.SinD(De);
                 bool front = AstroMath.CosD(u[i]) > 0;
                 bool overlap = X * X + Y * Y / (0.935 * 0.935) < 1;
-                res[i] = new GalileanMoon { Name = Names[i], X = X, Y = Y, InFront = front, Transit = overlap && front, Occulted = overlap && !front };
+                res[i] = new GalileanMoon { Name = Names[i], X = X, Y = Y, InFront = front, Transit = overlap && front, Occulted = overlap && !front, Radius = Radii[i] };
+                Shadow(res[i], rr[i], u[i], psi, Ds, De);
             }
             return res;
+        }
+
+        // Io, Europa, Ganymede and Callisto's radii (1821.6, 1560.8, 2634.1 and 2410.3 km) in Jupiter's equatorial radius (71492 km)
+        private static readonly double[] Radii = { 0.02548, 0.02183, 0.03684, 0.03371 };
+        private const double Flattening = 0.935;
+
+        /// <summary>
+        /// Where the moon's shadow falls on Jupiter: the line from the Sun through the moon meets the planet's spheroid.
+        /// In Jupiter's equatorial frame (x west, y north, z towards the Earth's direction in the equatorial plane) the
+        /// moon is at (r sin u, 0, r cos u) and the Sun lies psi further on in the moon's angle (u counts from the
+        /// Earth, u - psi from the Sun), at the Sun's jovicentric declination Ds. Seen from the Earth, at declination De,
+        /// the point is then projected onto the sky.
+        /// </summary>
+        private static void Shadow(GalileanMoon m, double r, double u, double psi, double Ds, double De)
+        {
+            double mx = r * AstroMath.SinD(u), mz = r * AstroMath.CosD(u);
+            double sx = AstroMath.CosD(Ds) * AstroMath.SinD(psi), sy = AstroMath.SinD(Ds), sz = AstroMath.CosD(Ds) * AstroMath.CosD(psi);
+            // |M - t S| = 1 on the spheroid (y scaled by the flattening), the nearer crossing towards Jupiter (t > 0)
+            double f2 = Flattening * Flattening;
+            double A = sx * sx + sy * sy / f2 + sz * sz, B = -2 * (mx * sx + mz * sz), C = mx * mx + mz * mz - 1;
+            double disc = B * B - 4 * A * C;
+            if (disc < 0) return;
+            double t = (-B - Math.Sqrt(disc)) / (2 * A);
+            if (t <= 0) return; // the moon is not between the Sun and Jupiter
+            double px = mx - t * sx, py = -t * sy, pz = mz - t * sz;
+            // seen from the Earth: the side of Jupiter facing it, projected with the Earth's jovicentric declination
+            double ez = py * AstroMath.SinD(De) + pz * AstroMath.CosD(De);
+            m.ShadowX = px;
+            m.ShadowY = py * AstroMath.CosD(De) - pz * AstroMath.SinD(De);
+            m.ShadowOnDisc = ez > 0;
         }
 
         /// <summary>Transit/occultation start and end times over a span (minute resolution).</summary>

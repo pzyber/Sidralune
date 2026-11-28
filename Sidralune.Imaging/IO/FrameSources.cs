@@ -466,7 +466,61 @@ namespace Sidralune.Imaging.IO
         public static IFrameSource Open(IList<string> paths)
         {
             if (paths.Count == 1) return Open(paths[0]);
+            // several videos: one after the other, as one long video
+            if (paths.All(IsVideo))
+            {
+                var parts = new List<IFrameSource>();
+                try { foreach (var p in paths) parts.Add(Open(p)); return new ConcatFrameSource(parts); }
+                catch { foreach (var s in parts) s.Dispose(); throw; }
+            }
             return new FileSequenceSource(paths);
         }
+
+        public static bool IsVideo(string path)
+        {
+            string ext = System.IO.Path.GetExtension(path ?? "").ToLowerInvariant();
+            return ext == ".ser" || ext == ".avi";
+        }
+    }
+
+    /// <summary>Several videos of the same size read as one, frame after frame, each frame with its own time stamp.</summary>
+    public class ConcatFrameSource : IFrameSource
+    {
+        private readonly IList<IFrameSource> _parts;
+        private readonly int[] _start;
+
+        public ConcatFrameSource(IList<IFrameSource> parts)
+        {
+            if (parts == null || parts.Count == 0) throw new ArgumentException("No videos");
+            var first = parts[0];
+            foreach (var p in parts)
+                if (p.Width != first.Width || p.Height != first.Height || p.Channels != first.Channels || p.Bayer != first.Bayer)
+                    throw new InvalidDataException(Core.Util.Lang.T("{0} is not the same size or kind of video as {1}", System.IO.Path.GetFileName(p.Path), System.IO.Path.GetFileName(first.Path)));
+            _parts = parts;
+            _start = new int[parts.Count];
+            for (int i = 1; i < parts.Count; i++) _start[i] = _start[i - 1] + parts[i - 1].FrameCount;
+        }
+
+        public int FrameCount => _start[_start.Length - 1] + _parts[_parts.Count - 1].FrameCount;
+        public int Width => _parts[0].Width;
+        public int Height => _parts[0].Height;
+        public int Channels => _parts[0].Channels;
+        public BayerPattern Bayer => _parts[0].Bayer;
+        public int BitDepth => _parts.Max(p => p.BitDepth);
+        public string Path => _parts[0].Path;
+        /// <summary>The videos, in order.</summary>
+        public IList<IFrameSource> Parts => _parts;
+
+        private int Part(int index, out int local)
+        {
+            int k = _start.Length - 1;
+            while (k > 0 && index < _start[k]) k--;
+            local = index - _start[k];
+            return k;
+        }
+
+        public AstroImage ReadFrame(int index) { int local; int k = Part(index, out local); return _parts[k].ReadFrame(local); }
+        public DateTime? Timestamp(int index) { int local; int k = Part(index, out local); return _parts[k].Timestamp(local); }
+        public void Dispose() { foreach (var p in _parts) p.Dispose(); }
     }
 }

@@ -209,6 +209,12 @@ namespace Sidralune.Views
             btn(T("Open source…"), Icons.Open, () => { var files = PickSource(_luckyJob); if (files != null) _openLucky(() => FrameSourceFactory.Open(files), null); }, ButtonKind.Normal);
             bar.Controls.Add(new Label { Text = T("Stack %:"), AutoSize = true, Margin = new Padding(6, 8, 4, 0), Tag = "dim" });
             bar.Controls.Add(percents);
+            // derotating every frame to the middle time, for long videos or several in a row
+            bar.Controls.Add(new Label { Text = T("Derotate:"), AutoSize = true, Margin = new Padding(12, 8, 4, 0), Tag = "dim" });
+            var rotateBodies = new[] { Body.Jupiter, Body.Saturn, Body.Mars, Body.Venus };
+            var rotate = Ui.Combo(new object[] { T("Off") }.Concat(rotateBodies.Select(b => (object)BodyNames.Name(b))).ToArray());
+            rotate.Width = 110;
+            bar.Controls.Add(rotate);
             btn(T("Analyse & stack"), Icons.Stack, () =>
             {
                 if (_luckySource == null) { MainForm.Instance.Toast(T("Open a source first"), Icons.Info); return; }
@@ -216,6 +222,7 @@ namespace Sidralune.Views
                 var src = _luckySource;
                 // the run works on a copy of the options, which stay editable for the next run
                 var run = new LuckyStacker { Options = stacker.Options.Clone() };
+                if (rotate.SelectedIndex > 0) run.Derotation = FrameRotation(rotateBodies[rotate.SelectedIndex - 1], src);
                 LuckyResult res = null;
                 _luckyJob.Run(T("Lucky stacking"), t => res = run.Run(src, new Progress<string>(s => t.Status = s), new Progress<double>(f => Tasks.Report(t, f)), t.Cts.Token), () =>
                 {
@@ -791,10 +798,66 @@ namespace Sidralune.Views
 
         // ================================================================== derotation
 
-        private class DeroItem { public string Path; public AstroImage Image; public DateTime Time; public DiscGeometry Geo; public override string ToString() => System.IO.Path.GetFileName(Path) + "  " + Time.ToString("HH:mm:ss"); }
+        private class DeroItem
+        {
+            public string Path; public AstroImage Image; public DateTime Time; public DiscGeometry Geo;
+            /// <summary>The filter (PlanetaryFilters' codes), from the file name or chosen in the tab.</summary>
+            public string Filter;
+            public override string ToString() => System.IO.Path.GetFileName(Path) + "  " + Time.ToString("HH:mm:ss") + "  " + FilterName(Filter);
+        }
+
+        /// <summary>A filter as shown: colour images by name, the filters by their usual letters.</summary>
+        private static string FilterName(string code) => code == PlanetaryFilters.Colour ? T("Colour") : code;
+
+        /// <summary>
+        /// Jupiter's moons in transit and their shadows on the disc at a time, as spots in an image with this geometry
+        /// (moon i is Id 2i, its shadow 2i + 1).
+        /// </summary>
+        private static List<MovingSpot> MoonSpots(DateTime utc, DiscGeometry g)
+        {
+            var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(utc));
+            var list = new List<MovingSpot>();
+            var moons = Science.SolarSystem.GalileanMoons.Positions(ctx.JdTDB);
+            for (int i = 0; i < moons.Length; i++)
+            {
+                var m = moons[i];
+                double x, y;
+                if (m.Transit) { SphereDerotation.ImagePoint(g, m.X, m.Y, out x, out y); list.Add(new MovingSpot { Id = 2 * i, X = x, Y = y, Radius = m.Radius * g.Radius * 1.1 }); }
+                // the penumbra makes a shadow a little larger than the moon
+                if (m.ShadowOnDisc) { SphereDerotation.ImagePoint(g, m.ShadowX, m.ShadowY, out x, out y); list.Add(new MovingSpot { Id = 2 * i + 1, X = x, Y = y, Radius = m.Radius * g.Radius * 1.3 }); }
+            }
+            return list;
+        }
+
+        // the Derotation tab's image north angle and mirroring, which Lucky stacking uses too
+        private NumericUpDown _deroNorth;
+        private CheckBox _deroMirror;
+
+        /// <summary>
+        /// The planet's rotation and orientation at the middle of a video, for derotating its frames: the pole from the
+        /// ephemeris turned by the Derotation tab's image north angle and mirroring (the stacker measures them from the
+        /// frames instead when the planet turns enough during them).
+        /// </summary>
+        private PlanetRotation FrameRotation(Body b, IFrameSource src)
+        {
+            var t0 = src.Timestamp(0); var t1 = src.Timestamp(src.FrameCount - 1);
+            var mid = t0.HasValue && t1.HasValue ? t0.Value + TimeSpan.FromTicks((t1.Value - t0.Value).Ticks / 2) : DateTime.UtcNow;
+            var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(mid));
+            var pl = ctx.BodyPlace(b);
+            double cm, lat, pa;
+            PlanetPhysics.Orientation(b, ctx.JdTDB, pl.Astrometric.ToVector(), pl.LightTimeDays, out cm, out lat, out pa);
+            bool ringed = b == Body.Saturn;
+            return new PlanetRotation
+            {
+                PeriodHours = SphereDerotation.PeriodHours(b), Flattening = PlanetPhysics.PolarRadiusKm(b) / PlanetPhysics.EquatorialRadiusKm(b),
+                PoleAngleDeg = pa + (_deroNorth != null ? (double)_deroNorth.Value : 0), SubObserverLatDeg = lat, Mirrored = _deroMirror != null && _deroMirror.Checked,
+                RingInner = ringed ? SphereDerotation.SaturnRingInner : 0, RingOuter = ringed ? SphereDerotation.SaturnRingOuter : 0
+            };
+        }
 
         // the images of the Derotation tab, and the action that shows them after a change
         private readonly List<DeroItem> _deroItems = new List<DeroItem>();
+        private Action<string[]> _deroLoad;
         private Action _deroRefresh;
 
         private Control BuildDerotation()
@@ -812,8 +875,15 @@ namespace Sidralune.Views
             var planet = g.Row(T("Planet"), Ui.Combo(deroBodies.Select(BodyNames.Name).ToArray()));
             var north = g.Row(T("Image north angle (°)"), Ui.Num(0, -180, 180, 1));
             var mirror = g.Row(T("Mirrored"), new CheckBox { Text = T("Image is mirror-reversed") });
+            _deroNorth = north; _deroMirror = mirror;
             var target = g.Row(T("Target time (UTC)"), new TextBox());
             var ld = g.Row(T("Limb darkening comp."), new CheckBox { Text = T("Compensate"), Checked = true });
+            var maxRot = g.Row(T("Leave out beyond (°)"), Ui.Num(20, 0, 180, 0));
+            var farWeight = g.Row(T("Weight of the farthest (%)"), Ui.Num(50, 0, 100, 0));
+            var moons = g.Row(T("Moons"), new CheckBox { Text = T("Follow moons and shadows"), Checked = true });
+            planet.SelectedIndexChanged += (s, e) => moons.Enabled = planet.SelectedIndex == 0; // Jupiter's
+            var filter = g.Row(T("Filter"), Ui.Combo(PlanetaryFilters.All.Select(FilterName).ToArray()));
+            bool showingFilter = false;
             var info = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0), Visible = false }; // the last result, once there is one
             Func<string, DateTime?> timeFromName = n =>
             {
@@ -826,13 +896,20 @@ namespace Sidralune.Views
             {
                 var lum = it.Image.Luminance();
                 var ob = ObjectDetection.Detect(lum, it.Image.Width, it.Image.Height);
-                var circ = ObjectDetection.FitLimb(lum, it.Image.Width, it.Image.Height, ob) ?? new[] { ob.Cx, ob.Cy, ob.Radius };
                 var ctx = new SkyContext(AppState.Site, AstroTime.FromDateTime(it.Time));
                 var pl = ctx.BodyPlace(b);
                 double cm, lat, pa;
                 PlanetPhysics.Orientation(b, ctx.JdTDB, pl.Astrometric.ToVector(), pl.LightTimeDays, out cm, out lat, out pa);
                 double flat = PlanetPhysics.PolarRadiusKm(b) / PlanetPhysics.EquatorialRadiusKm(b);
-                return new DiscGeometry { Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = flat, PoleAngleDeg = pa + northDeg, SubObserverLatDeg = lat, Mirrored = mirrored };
+                // Saturn's rings reach beyond its globe: its disc is found from their length instead of the limb
+                bool ringed = b == Body.Saturn;
+                var circ = (ringed ? SphereDerotation.RingedDisc(lum, it.Image.Width, it.Image.Height, ob, pa + northDeg, mirrored, SphereDerotation.SaturnRingOuter) : null)
+                    ?? ObjectDetection.FitLimb(lum, it.Image.Width, it.Image.Height, ob) ?? new[] { ob.Cx, ob.Cy, ob.Radius };
+                return new DiscGeometry
+                {
+                    Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = flat, PoleAngleDeg = pa + northDeg, SubObserverLatDeg = lat, Mirrored = mirrored,
+                    RingInner = ringed ? SphereDerotation.SaturnRingInner : 0, RingOuter = ringed ? SphereDerotation.SaturnRingOuter : 0
+                };
             };
             Action refresh = () =>
             {
@@ -844,35 +921,36 @@ namespace Sidralune.Views
             _deroRefresh = refresh;
             var bar = new FlowLayoutPanel { Height = 80, FlowDirection = FlowDirection.TopDown };
             Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; bar.Controls.Add(b); };
+            // loads images into the list in the background; they join it when all are in
+            _deroLoad = files =>
+            {
+                if (_deroJob.Refuse()) return;
+                var added = new List<DeroItem>();
+                var untimed = new List<string>();
+                loadingName = Tn("Loading {0} image", "Loading {0} images", files.Length);
+                _deroJob.Run(loadingName, t =>
+                {
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        t.Cts.Token.ThrowIfCancellationRequested();
+                        Tasks.Report(t, (double)i / files.Length, Path.GetFileName(files[i]));
+                        var img = ImageFile.Load(files[i]);
+                        var time = img.DateObs ?? timeFromName(files[i]);
+                        if (time.HasValue) added.Add(new DeroItem { Path = files[i], Image = img, Time = time.Value, Filter = PlanetaryFilters.FromImage(files[i], img.Channels) });
+                        else untimed.Add(Path.GetFileName(files[i]));
+                    }
+                }, () =>
+                {
+                    items.AddRange(added);
+                    refresh();
+                    if (untimed.Count > 0) MainForm.Instance.Toast(T("No time found for {0} (use FITS DATE-OBS or WinJUPOS naming)", string.Join(", ", untimed)), Icons.Warning);
+                });
+            };
             Action addImages = () =>
             {
                 if (_deroJob.Refuse()) return;
                 using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
-                {
-                    if (d.ShowDialog() != DialogResult.OK) return;
-                    var files = d.FileNames;
-                    var added = new List<DeroItem>();
-                    var untimed = new List<string>();
-                    // loaded in the background; the images join the list when all are in
-                    loadingName = Tn("Loading {0} image", "Loading {0} images", files.Length);
-                    _deroJob.Run(loadingName, t =>
-                    {
-                        for (int i = 0; i < files.Length; i++)
-                        {
-                            t.Cts.Token.ThrowIfCancellationRequested();
-                            Tasks.Report(t, (double)i / files.Length, Path.GetFileName(files[i]));
-                            var img = ImageFile.Load(files[i]);
-                            var time = img.DateObs ?? timeFromName(files[i]);
-                            if (time.HasValue) added.Add(new DeroItem { Path = files[i], Image = img, Time = time.Value });
-                            else untimed.Add(Path.GetFileName(files[i]));
-                        }
-                    }, () =>
-                    {
-                        items.AddRange(added);
-                        refresh();
-                        if (untimed.Count > 0) MainForm.Instance.Toast(T("No time found for {0} (use FITS DATE-OBS or WinJUPOS naming)", string.Join(", ", untimed)), Icons.Warning);
-                    });
-                }
+                    if (d.ShowDialog() == DialogResult.OK) _deroLoad(d.FileNames);
             };
             btn(T("Derotate & stack to target time"), Icons.Stack, () =>
             {
@@ -882,20 +960,72 @@ namespace Sidralune.Views
                 var b = deroBodies[Math.Max(0, planet.SelectedIndex)];
                 AstroImage res = null;
                 double nd = (double)north.Value; bool mr = mirror.Checked;
+                var opt = new DerotationOptions { MaxRotationDeg = (double)maxRot.Value, FarWeight = (double)farWeight.Value / 100, LimbDarkeningCompensation = ld.Checked };
+                bool follow = moons.Checked && b == Body.Jupiter;
+                var all = items.ToList();
+                int used = 0;
+                FilterCombination how = FilterCombination.Single;
+                string lumCode = null;
                 _deroJob.Run(T("Derotating"), t =>
                 {
-                    foreach (var it in items) { t.Cts.Token.ThrowIfCancellationRequested(); it.Geo = geometry(it, b, nd, mr); }
-                    var imgs = items.Select(i => i.Image).ToList(); var geos = items.Select(i => i.Geo).ToList(); var times = items.Select(i => i.Time).ToList();
-                    res = SphereDerotation.DerotateAndStack(imgs, geos, times, tt, SphereDerotation.PeriodHours(b), t.Cts.Token);
+                    foreach (var it in all) { t.Cts.Token.ThrowIfCancellationRequested(); it.Geo = geometry(it, b, nd, mr); }
+                    // every filter on the first image's disc and canvas, so the stacks line up
+                    opt.Reference = all[0].Geo; opt.Width = all[0].Image.Width; opt.Height = all[0].Image.Height;
+                    if (follow) opt.TargetSpots = MoonSpots(tt, all[0].Geo);
+                    var stacks = new Dictionary<string, AstroImage>();
+                    foreach (var grp in all.GroupBy(i => i.Filter))
+                    {
+                        var inGroup = grp.ToList();
+                        if (follow) opt.Spots = inGroup.Select(i => (IList<MovingSpot>)MoonSpots(i.Time, i.Geo)).ToList();
+                        var r = SphereDerotation.Stack(inGroup.Select(i => i.Image).ToList(), inGroup.Select(i => i.Geo).ToList(), inGroup.Select(i => i.Time).ToList(), tt, SphereDerotation.PeriodHours(b), opt, t.Cts.Token);
+                        stacks[grp.Key] = r.Image;
+                        used += r.Used;
+                    }
+                    res = PlanetaryFilters.Combine(stacks, out how, out lumCode);
+                    if (res == null)
+                    {
+                        // no colour from these filters: all of them as one
+                        if (follow) opt.Spots = all.Select(i => (IList<MovingSpot>)MoonSpots(i.Time, i.Geo)).ToList();
+                        res = SphereDerotation.Stack(all.Select(i => i.Image).ToList(), all.Select(i => i.Geo).ToList(), all.Select(i => i.Time).ToList(), tt, SphereDerotation.PeriodHours(b), opt, t.Cts.Token).Image;
+                    }
                 }, () =>
                 {
                     viewer.SetImage(res);
-                    var g0 = items[0].Geo;
+                    var g0 = all[0].Geo;
                     info.Visible = true;
-                    info.Text = T("Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min", g0.Radius, g0.PoleAngleDeg, g0.SubObserverLatDeg, (items.Last().Time - items.First().Time).TotalMinutes);
+                    var lines = new List<string> { T("Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min", g0.Radius, g0.PoleAngleDeg, g0.SubObserverLatDeg, (all.Last().Time - all.First().Time).TotalMinutes) };
+                    if (used < all.Count) lines.Add(Tn("{0} of {1} image used: the others are more than {2}° of rotation from the target time", "{0} of {1} images used: the others are more than {2}° of rotation from the target time", all.Count, used, all.Count, (double)maxRot.Value));
+                    if (how == FilterCombination.Rgb) lines.Add(T("R, G and B combined into colour"));
+                    else if (how == FilterCombination.LRgb) lines.Add(T("R, G and B combined into colour, with {0} as the luminance", lumCode));
+                    else if (how == FilterCombination.ColourWithLuminance) lines.Add(T("Colour images with {0} as the luminance", lumCode));
+                    else if (how == FilterCombination.Separate) lines.Add(T("Colour needs R, G and B: these filters were stacked together"));
+                    info.Text = string.Join("\n", lines);
                     _stacked = res;
                 });
             }, ButtonKind.Primary);
+            btn(T("Measure orientation"), Icons.Target, () =>
+            {
+                if (items.Count < 2) { MainForm.Instance.Toast(T("Add images first"), Icons.Info); return; }
+                var b = deroBodies[Math.Max(0, planet.SelectedIndex)];
+                double period = SphereDerotation.PeriodHours(b);
+                // the first and the last image, which the planet turned most between
+                var first = items.First(); var last = items.Last();
+                OrientationEstimator.Result est = null;
+                double ephemerisPa = 0, nd = (double)north.Value;
+                bool mr = mirror.Checked;
+                _deroJob.Run(T("Measuring the orientation"), t =>
+                {
+                    var ga = geometry(first, b, nd, mr); var gb = geometry(last, b, nd, mr);
+                    ephemerisPa = ga.PoleAngleDeg - nd;
+                    est = OrientationEstimator.Estimate(first.Image, ga, first.Time, last.Image, gb, last.Time, period, t.Cts.Token);
+                }, () =>
+                {
+                    if (est == null) { MainForm.Instance.Toast(T("The planet must turn at least {0}° between the first and the last image to measure its orientation", OrientationEstimator.MinRotationDeg), Icons.Info); return; }
+                    north.Value = (decimal)Math.Round(Math.IEEERemainder(est.PoleAngleDeg - ephemerisPa, 360), 1);
+                    mirror.Checked = est.Mirrored;
+                    MainForm.Instance.Toast(est.Mirrored ? T("Image north angle {0:0.0}°, mirror-reversed", (double)north.Value) : T("Image north angle {0:0.0}°, not mirror-reversed", (double)north.Value), Icons.Check, Theme.Current.Success);
+                });
+            }, ButtonKind.Normal);
             btn(T("Save result…"), Icons.Save, () => { if (viewer.Image == null) return; using (var d = new SaveFileDialog { Filter = "TIFF 16-bit|*.tif", FileName = "derotated.tif" }) if (d.ShowDialog() == DialogResult.OK) TiffIO.Write(d.FileName, viewer.Image); }, ButtonKind.Normal);
             g.Full(heading);
             // removing images, by button or with Delete; the target time follows the images that are left
@@ -918,13 +1048,36 @@ namespace Sidralune.Views
             g.Full(bar);
             g.Full(info);
             g.Full(Ui.Hint(T("Each image is re-projected on an oblate spheroid as if taken at the target time, using the planet's rotation period, the sub-Earth latitude and pole position angle from the ephemeris. Set 'image north angle' if your images are not north-up.")));
-            list.SelectedIndexChanged += (s, e) => { var it = list.SelectedItem as DeroItem; if (it != null) viewer.SetImage(it.Image); };
+            // the filter list is for the selected images: greyed out without any
+            Availability.When(filter, () => list.SelectedItems.Count > 0);
+            list.SelectedIndexChanged += (s, e) =>
+            {
+                Availability.Sync();
+                var it = list.SelectedItem as DeroItem;
+                if (it == null) return;
+                viewer.SetImage(it.Image);
+                showingFilter = true;
+                filter.SelectedIndex = Math.Max(0, Array.IndexOf(PlanetaryFilters.All, it.Filter));
+                showingFilter = false;
+            };
+            filter.SelectedIndexChanged += (s, e) =>
+            {
+                if (showingFilter || list.SelectedItems.Count == 0) return;
+                var code = PlanetaryFilters.All[Math.Max(0, filter.SelectedIndex)];
+                var rows = list.SelectedIndices.Cast<int>().ToList();
+                foreach (int i in rows) ((DeroItem)list.Items[i]).Filter = code;
+                // the rows show the new filter (a row is drawn again when set again); the selection stays
+                showingFilter = true;
+                foreach (int i in rows) list.Items[i] = list.Items[i];
+                foreach (int i in rows) list.SetSelected(i, true);
+                showingFilter = false;
+            };
             // Stop, under Derotate & stack, ends derotating or loading images; everything else waits for the job
             var deroStop = _deroJob.StopButton(n => n == T("Derotating") || n == loadingName);
             deroStop.Width = 300;
             _deroJob.Guard(g.Controls.Cast<Control>().Where(c => c != bar).Concat(bar.Controls.Cast<Control>()).ToArray());
             Ui.InsertAfter(bar, deroStop, T("Derotate & stack to target time"));
-            bar.Height = 120;
+            bar.Height = bar.Controls.Count * 36 + 4;
             var side = Side(T("Derotation"), 380);
             side.Controls.Add(g);
             panel.Controls.Add(viewer);

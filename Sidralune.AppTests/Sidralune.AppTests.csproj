@@ -57,6 +57,9 @@
     <Compile Include="..\Sidralune.Tests\Checks.cs">
       <Link>Checks.cs</Link>
     </Compile>
+    <Compile Include="..\Sidralune.Tests\PlanetRenderer.cs">
+      <Link>PlanetRenderer.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

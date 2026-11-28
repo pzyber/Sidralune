@@ -5,7 +5,7 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 | **Pre-process** | Centre, crop, debayer, sort and reject frames; correct field rotation |
 | **Lucky stacking** | Analyse frame quality, align with many alignment points, stack the best frames |
 | **Sharpen & deconvolve** | Deconvolution, wavelets, unsharp mask, noise filters, limb and halo protection, colour and tone curves, live on one image, with a profile for each object, for one image or a whole night's |
-| **Derotation** | Combine images taken minutes apart by undoing the planet's rotation |
+| **Derotation** | Combine images taken minutes apart by undoing the planet's rotation, also R, G and B into colour |
 | **Solar & lunar** | Limb tools, prominences, colourising, mosaics |
 
 > Never point a telescope at the Sun without a certified full-aperture solar filter or a dedicated solar telescope.
@@ -25,6 +25,10 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
   - [Profiles](#profiles)
   - [Sharpening many images](#sharpening-many-images)
 - [Derotation](#derotation)
+  - [Weighing by time](#weighing-by-time)
+  - [Filters and colour](#filters-and-colour)
+  - [Measuring the orientation](#measuring-the-orientation)
+  - [Moons, shadows and rings](#moons-shadows-and-rings)
 - [Solar & lunar](#solar--lunar)
 - [Field rotation on alt-az mounts](#field-rotation-on-alt-az-mounts)
 - [WinJUPOS file names](#winjupos-file-names)
@@ -84,6 +88,8 @@ What happens:
 6. **Stacking**: the selected parts of the selected frames are combined with smooth blending between alignment points. **Drizzle scale** (1, 1.5, 2 or 3) can increase resolution for undersampled data. **Normalize** equalises brightness between frames.
 
 **Next stack** cycles through the stacks you made. **Save stacks…** writes them as 16-bit TIFF files, named with the WinJUPOS convention and the percentage (for example `2026-10-18-2215_3_0000_p25.tif`) when the video has time stamps. When the video's name or folder names the planet, its one-letter code follows the time (`2026-10-18-2215_3-J_0000_p25.tif`), so the Sharpen & deconvolve tab knows which profile to use. **Sharpen →** sends the current stack to the next tab.
+
+**Derotate** on the toolbar (Jupiter, Saturn, Mars or Venus; off by default) turns every frame back to the middle time of the frames before it is used, so a video longer than the planet allows, or several in a row, stacks without smearing. To stack several videos as one, select them all in **Open source…**; they must be the same size and kind, and their frames keep their own time stamps (SER videos have them; derotation needs them). The pole comes from the ephemeris, turned by the **Image north angle (°)** and **Mirrored** set in the Derotation tab; when the planet turns at least 4.5° during the frames, the stacker measures both from the frames themselves instead, as **Measure orientation** does. The stack's time is the middle time, and the notification says how far the planet turned.
 
 Other options: **Use field derotation** applies the per-frame rotation from pre-processing; **Max frames in memory** limits memory use for long videos; **Sharpen** applies a quick wavelet sharpening to the output.
 
@@ -181,18 +187,49 @@ Jupiter, Saturn, Mars and the Moon each need their own sharpening, so the tab ke
 
 ## Derotation
 
-Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of minutes. The **Derotation** tab combines several stacked images taken over 10–30 minutes, which raises the signal-to-noise ratio and allows stronger sharpening.
+Jupiter rotates once every 9 h 55 min, so features move visibly in a couple of minutes. The **Derotation** tab combines several stacked images taken over 10–30 minutes, which raises the signal-to-noise ratio and allows stronger sharpening. It also brings images taken through different filters to one moment, so a mono camera's R, G and B, recorded minutes apart, make one colour image.
 
-1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below). The images appear in a list in time order; click one to view it. **Remove selected** (or the Delete key) takes images out again and **Clear list** empties it; the target time follows the images that are left.
+1. Click **Add images…** and select stacks of the same planet. Each image's time comes from its FITS `DATE-OBS` or from a WinJUPOS-compatible file name (`YYYY-MM-DD-HHMM_T`, see below). The images appear in a list in time order, each with its filter; click one to view it. **Remove selected** (or the Delete key) takes images out again and **Clear list** empties it; the target time follows the images that are left.
 2. Choose the **Planet** (Jupiter, Saturn, Mars or Venus).
 3. Set the **Target time (UTC)**, normally the middle of the series.
-4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal).
+4. Set **Image north angle (°)** if your images are not north-up, and tick **Mirrored** if they are mirror-reversed (taken with a diagonal), or let **Measure orientation** find both (see below).
 5. Tick **Compensate** next to **Limb darkening comp.** to correct for the darkening towards the limb.
 6. Click **Derotate & stack to target time**. **Stop**, under it, ends derotating (or loading images) part way.
 
-Each image's disc is detected (limb fitting), then re-projected on the planet's oblate spheroid as if it had been taken at the target time, using the planet's rotation period, the sub-Earth latitude and the pole's position angle from the ephemeris. The re-projected images are averaged, and **Save result…** stores the derotated stack.
+Each image's disc is detected (limb fitting), then re-projected on the planet's oblate spheroid as if it had been taken at the target time, using the planet's rotation period, the sub-Earth latitude and the pole's position angle from the ephemeris. The re-projected images are combined, and **Save result…** stores the derotated stack. The line under the buttons gives the disc, how many images were used and how the filters were combined.
 
 Rotation periods used: Jupiter System III (9 h 55 m 29.7 s), Saturn System III (10 h 39 m 22 s), Mars (24 h 37 m 22 s) and Venus' cloud tops (about 96 hours, retrograde).
+
+### Weighing by time
+
+An image taken far from the target time has been turned a long way, and what it shows of the planet's edges has been stretched the most. So each image is weighed by how far it was turned:
+
+| Setting | Meaning |
+|---|---|
+| **Leave out beyond (°)** | Images more than this far from the target time, in degrees of the planet's rotation, are left out (20° by default: about 33 minutes for Jupiter, 70 for Mars). 0 uses every image. The image nearest the target time is always used |
+| **Weight of the farthest (%)** | The weight of an image at that limit; the nearest weigh 100% and the weights fall evenly between. 100 weighs all alike: more signal and less noise, while features that change during the series (clouds, shadows) soften. Lower keeps them truer |
+
+### Filters and colour
+
+Each image's filter is read from its file name, the last filter word in it: `R`, `G`, `B`, `L`, `IR` (also `IR685`, `IR-pass`), `CH4`, `UV`, or `Red`, `Green`, `Blue`, `Lum`. FireCapture's names put the observer's initial first and the filter after it (`2026-11-28-2130_4-B-R-Jup`: observer B, filter R), which is why the last one counts. Colour images are **Colour**, and a mono image whose name names no filter is **L**. To change it, select images in the list and choose another **Filter**.
+
+The images of each filter are derotated and stacked separately, all to the same target time and onto the first image's disc, so they line up. Then:
+
+- **Colour** images, or **R**, **G** and **B** together, make the colour;
+- **L**, or **IR** when there is no L, is used as the luminance: the colour image's brightness becomes the L or IR image's, and its colour stays (LRGB);
+- filters that make no colour (R and G without B, for example) are stacked together as one.
+
+### Measuring the orientation
+
+**Measure orientation** finds the image north angle and whether the images are mirrored, so nothing has to be measured by hand. It takes the first and the last image in the list: the first is derotated to the last one's time with each pole angle and both mirrorings tried, and the one whose fine detail matches the last image best is kept. The planet must turn at least 3° between the two (5 minutes for Jupiter, 15 for Mars), and the more it turns the surer the result. **Image north angle (°)** and **Mirrored** are then filled in, and a notification gives them.
+
+Seen nearly from its equator a mirrored planet turns like an unmirrored one with its pole elsewhere, so the two cannot be told apart; derotating gives the same result either way, and Sidralune then keeps it unmirrored.
+
+### Moons, shadows and rings
+
+Jupiter's moons and their shadows move along the moons' orbits, not with the planet's rotation, so derotating would put each image's shadow in a different place: a smeared, doubled shadow and faint copies. With **Follow moons and shadows** (Jupiter only, on by default), Sidralune works out where each moon in transit and each shadow on the disc is in every image and at the target time. Each image is left out where its own moons and shadows are, and they are moved, as each image shows them, to where they are at the target time. The shadows are where the line from the Sun through each moon meets Jupiter, from the moons' positions in Meeus' *Astronomical Algorithms* (chapter 44).
+
+Saturn's rings look the same as the planet turns, so they are kept as they are wherever they are seen, beside the globe or in front of it, and only the globe is derotated. Saturn's disc is found from the rings' length (they always reach 2.27 equatorial radii along their long axis) rather than from its limb, which the rings hide.
 
 ## Solar & lunar
 

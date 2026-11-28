@@ -26,6 +26,37 @@ namespace Sidralune.Tests
         }
 
         [TestMethod]
+        public void TestGalileanShadows()
+        {
+            // Jupiter's opposition was on 2026 January 10. Before it a moon's shadow crosses the disc ahead of the moon
+            // (further west, as transiting moons move east to west), after it behind; at opposition they are together.
+            Func<double, double, int, List<GalileanMoon>> transits = (jd0, days, moon) =>
+            {
+                var list = new List<GalileanMoon>();
+                for (double jd = jd0; jd < jd0 + days; jd += 1.0 / 288)
+                {
+                    var p = GalileanMoons.Positions(jd)[moon];
+                    if (p.Transit && p.ShadowOnDisc) list.Add(p);
+                }
+                return list;
+            };
+            var before = transits(Core.Time.AstroTime.CalendarToJd(2025, 11, 20), 4, 0);
+            var after = transits(Core.Time.AstroTime.CalendarToJd(2026, 3, 1), 4, 0);
+            var at = transits(Core.Time.AstroTime.CalendarToJd(2026, 1, 9), 3, 0);
+            CheckTrue("Io and its shadow on the disc together on some nights", before.Count > 0 && after.Count > 0 && at.Count > 0, before.Count + ", " + after.Count + ", " + at.Count);
+            CheckTrue("Before opposition the shadow is ahead (west)", before.All(p => p.ShadowX > p.X + 0.2), string.Join(" ", before.Take(5).Select(p => (p.ShadowX - p.X).ToString("0.00"))));
+            CheckTrue("After opposition it is behind (east)", after.All(p => p.ShadowX < p.X - 0.2), string.Join(" ", after.Take(5).Select(p => (p.ShadowX - p.X).ToString("0.00"))));
+            CheckTrue("At opposition they are together", at.All(p => Math.Abs(p.ShadowX - p.X) < 0.15 && Math.Abs(p.ShadowY - p.Y) < 0.15), string.Join(" ", at.Take(5).Select(p => (p.ShadowX - p.X).ToString("0.00"))));
+            // the shadow is on the spheroid, and only reported on the disc while it is
+            bool onDisc = true;
+            for (double jd = Core.Time.AstroTime.CalendarToJd(2025, 11, 20); jd < Core.Time.AstroTime.CalendarToJd(2025, 12, 20); jd += 0.01)
+                foreach (var p in GalileanMoons.Positions(jd).Where(q => q.ShadowOnDisc))
+                    if (p.ShadowX * p.ShadowX + p.ShadowY * p.ShadowY / (0.935 * 0.935) > 1.0001) onDisc = false;
+            CheckTrue("Shadows on the disc lie within its outline", onDisc);
+            CheckTrue("Moon sizes", Math.Abs(GalileanMoons.Positions(2448972.50068)[2].Radius * 71492 - 2634) < 5);
+        }
+
+        [TestMethod]
         public void TestPlanetMoonsList()
         {
             // the moons of each planet (and Pluto)

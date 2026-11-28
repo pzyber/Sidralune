@@ -956,6 +956,18 @@ msgid "Analysing {0} frames"
 msgstr "{0} opnamen analyseren"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Niet gederoteerd: de beelden hebben geen tijdstempels"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Oriëntatie meten"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "gederoteerd naar {0:HH:mm:ss} UT, over {1:0.0}° rotatie"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Referentie maken van de {0} beste opnamen"
 
@@ -3196,6 +3208,10 @@ msgstr "AO-kalibratie mislukt: de ster bewoog niet mee met de Y-stappen van de A
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "De SX AO meldt firmware 000: de firmware moet opnieuw geflasht worden."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} is geen video van dezelfde grootte of soort als {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5902,6 +5918,10 @@ msgid "Stack %:"
 msgstr "Stapel %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Deroteren:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analyseren en stapelen"
 
@@ -6113,6 +6133,22 @@ msgid "Compensate"
 msgstr "Compenseren"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Weglaten voorbij (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Gewicht van de verste (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Manen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Manen en schaduwen volgen"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} afbeelding"
@@ -6147,6 +6183,44 @@ msgstr "Deroteren"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Schijfstraal {0:0.0} px · pool-PA {1:0.0}° · sub-aardse breedte {2:+0.0;-0.0}° · tijdspanne {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0} van {1} afbeelding gebruikt: de andere liggen meer dan {2}° rotatie van de doeltijd"
+msgstr[1] "{0} van {1} afbeeldingen gebruikt: de andere liggen meer dan {2}° rotatie van de doeltijd"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G en B gecombineerd tot kleur"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G en B gecombineerd tot kleur, met {0} als luminantie"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Kleurenbeelden met {0} als luminantie"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Kleur vraagt R, G en B: deze filters zijn samen gestapeld"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Oriëntatie meten"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "De planeet moet tussen de eerste en de laatste afbeelding minstens {0}° draaien om de oriëntatie te meten"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Noordhoek afbeelding {0:0.0}°, gespiegeld"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Noordhoek afbeelding {0:0.0}°, niet gespiegeld"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

@@ -956,6 +956,18 @@ msgid "Analysing {0} frames"
 msgstr "Analysoidaan {0} kuvaa"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Ei derotoitu: kuvilla ei ole aikaleimoja"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Mitataan suuntausta"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "derotoitu hetkeen {0:HH:mm:ss} UT, {1:0.0}° kierto"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Muodostetaan referenssi {0} parhaasta kuvasta"
 
@@ -3196,6 +3208,10 @@ msgstr "AO:n kalibrointi epäonnistui: tähti ei liikkunut AO:n Y-askelten mukan
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO ilmoittaa laiteohjelmiston 000: laiteohjelmisto on asennettava uudelleen."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} ei ole samankokoinen tai -tyyppinen video kuin {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5902,6 +5918,10 @@ msgid "Stack %:"
 msgstr "Pinoa %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotoi:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analysoi ja pinoa"
 
@@ -6113,6 +6133,22 @@ msgid "Compensate"
 msgstr "Korjaa"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Jätä pois yli (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Kaukaisimman paino (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Kuut"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Seuraa kuita ja varjoja"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} kuva"
@@ -6147,6 +6183,44 @@ msgstr "Derotoidaan"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Kiekon säde {0:0.0} px · navan PA {1:0.0}° · Maan alapisteen leveys {2:+0.0;-0.0}° · aikaväli {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0}/{1} kuva käytetty: muut ovat yli {2}° kierron päässä tavoiteajasta"
+msgstr[1] "{0}/{1} kuvaa käytetty: muut ovat yli {2}° kierron päässä tavoiteajasta"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G ja B yhdistetty väriksi"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G ja B yhdistetty väriksi, luminanssina {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Värikuvat, luminanssina {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Väri vaatii R:n, G:n ja B:n: nämä suodattimet pinottiin yhteen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Mittaa suuntaus"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planeetan on kierrettävä vähintään {0}° ensimmäisen ja viimeisen kuvan välillä, jotta suuntaus voidaan mitata"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Kuvan pohjoiskulma {0:0.0}°, peilikuva"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Kuvan pohjoiskulma {0:0.0}°, ei peilikuva"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

@@ -956,6 +956,18 @@ msgid "Analysing {0} frames"
 msgstr "Analyserar {0} bilder"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Inte deroterad: bilderna saknar tidsstämplar"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Mäter orienteringen"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "deroterad till {0:HH:mm:ss} UT, över {1:0.0}° rotation"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Bygger referens av de {0} bästa bilderna"
 
@@ -3196,6 +3208,10 @@ msgstr "AO-kalibreringen misslyckades: stjärnan rörde sig inte med AO:ns Y-ste
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO rapporterar firmware 000: dess firmware behöver flashas om."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} är inte en video av samma storlek eller sort som {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5902,6 +5918,10 @@ msgid "Stack %:"
 msgstr "Stacka %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotera:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analysera och stacka"
 
@@ -6113,6 +6133,22 @@ msgid "Compensate"
 msgstr "Kompensera"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Utelämna bortom (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Vikt för den längst bort (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Månar"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Följ månar och skuggor"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} bild"
@@ -6147,6 +6183,44 @@ msgstr "Deroterar"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Skivradie {0:0.0} px · polens PA {1:0.0}° · subjordisk latitud {2:+0.0;-0.0}° · spann {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0} av {1} bild använd: de andra är mer än {2}° rotation från måltiden"
+msgstr[1] "{0} av {1} bilder använda: de andra är mer än {2}° rotation från måltiden"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G och B kombinerade till färg"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G och B kombinerade till färg, med {0} som luminans"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Färgbilder med {0} som luminans"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Färg kräver R, G och B: dessa filter staplades tillsammans"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Mät orienteringen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planeten måste rotera minst {0}° mellan den första och den sista bilden för att orienteringen ska kunna mätas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Bildens nordvinkel {0:0.0}°, spegelvänd"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Bildens nordvinkel {0:0.0}°, inte spegelvänd"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

@@ -53,9 +53,28 @@ namespace Sidralune.Imaging.Planetary
     }
 
     /// <summary>Lucky-imaging stacker with global alignment, multi-point local alignment and per-AP frame selection.</summary>
+    /// <summary>
+    /// The planet's rotation, for derotating each frame of a long video (or of several in a row) to their middle time:
+    /// its period and its disc's orientation from the ephemeris. The disc's centre and size are found in the frames.
+    /// </summary>
+    public class PlanetRotation
+    {
+        public double PeriodHours, Flattening = 1, PoleAngleDeg, SubObserverLatDeg;
+        public bool Mirrored;
+        /// <summary>Rings (Saturn's), in equatorial radii; 0 for none.</summary>
+        public double RingInner, RingOuter;
+        /// <summary>Measure the pole angle and mirroring from the frames when the planet turns enough during them.</summary>
+        public bool MeasureOrientation = true;
+    }
+
     public class LuckyStacker
     {
         public LuckyOptions Options = new LuckyOptions();
+        /// <summary>When set, every frame is derotated to the middle time of the frames before it is used (planet alignment only).</summary>
+        public PlanetRotation Derotation;
+        /// <summary>The disc and time the frames were derotated to in the last run, or null.</summary>
+        public DiscGeometry DerotatedDisc { get; private set; }
+        public DateTime DerotatedTo { get; private set; }
 
         public LuckyResult Run(IFrameSource src, IProgress<string> status = null, IProgress<double> progress = null, CancellationToken ct = default(CancellationToken))
         {
@@ -113,13 +132,62 @@ namespace Sidralune.Imaging.Planetary
                     fr.Dx = dx; fr.Dy = dy;
                 });
             }
+            // derotation of each frame to the middle time, on the disc of the first frame
+            DerotatedDisc = null;
+            string rotNote = null;
+            DateTime?[] stamp = null;
+            var rot = Derotation;
+            if (rot != null && o.Align == GlobalAlignMode.Planet)
+            {
+                stamp = Enumerable.Range(0, n).Select(i => src.Timestamp(i)).ToArray();
+                if (stamp.Any(s => !s.HasValue)) rotNote = Lang.T("Not derotated: the frames have no time stamps");
+                else
+                {
+                    DateTime t0 = stamp.Min(s => s.Value), t1 = stamp.Max(s => s.Value);
+                    DerotatedTo = t0 + TimeSpan.FromTicks((t1 - t0).Ticks / 2);
+                    var circ = (rot.RingOuter > 0 ? SphereDerotation.RingedDisc(firstLum, w, h, obj0, rot.PoleAngleDeg, rot.Mirrored, rot.RingOuter) : ObjectDetection.FitLimb(firstLum, w, h, obj0))
+                        ?? new[] { obj0.Cx, obj0.Cy, obj0.Radius };
+                    var disc = new DiscGeometry { Cx = circ[0], Cy = circ[1], Radius = circ[2], Flattening = rot.Flattening, PoleAngleDeg = rot.PoleAngleDeg, SubObserverLatDeg = rot.SubObserverLatDeg, Mirrored = rot.Mirrored, RingInner = rot.RingInner, RingOuter = rot.RingOuter };
+                    double span = Math.Abs(SphereDerotation.RotationDeg((t1 - t0).TotalSeconds, rot.PeriodHours));
+                    if (rot.MeasureOrientation && span >= OrientationEstimator.MinRotationDeg * 1.5)
+                    {
+                        // the best frames of the first and of the last quarter, against each other
+                        status?.Report(Lang.T("Measuring the orientation"));
+                        Func<double, double, Tuple<AstroImage, DateTime>> part = (from, to) =>
+                        {
+                            var pick = frames.Where(f => { double q = (stamp[f.Index].Value - t0).TotalSeconds / Math.Max(1e-9, (t1 - t0).TotalSeconds); return q >= from && q <= to; })
+                                .OrderByDescending(f => f.Quality).ToList();
+                            pick = pick.Take(Math.Max(3, pick.Count / 10)).ToList();
+                            var avg = new AstroImage(w, h, ch);
+                            foreach (var f in pick)
+                            {
+                                var img = Shifted(read(f.Index), f.Dx, f.Dy, Rotation(f.Index));
+                                for (int c = 0; c < ch; c++) for (int i = 0; i < w * h; i++) avg.Data[c][i] += img.Data[Math.Min(c, img.Channels - 1)][i] / pick.Count;
+                            }
+                            return Tuple.Create(avg, new DateTime((long)pick.Average(f => (double)stamp[f.Index].Value.Ticks), DateTimeKind.Utc));
+                        };
+                        var early = part(0, 0.25); var late = part(0.75, 1);
+                        var est = OrientationEstimator.Estimate(early.Item1, disc, early.Item2, late.Item1, disc, late.Item2, rot.PeriodHours, ct);
+                        if (est != null) { disc.PoleAngleDeg = est.PoleAngleDeg; disc.Mirrored = est.Mirrored; }
+                    }
+                    DerotatedDisc = disc;
+                    rotNote = Lang.T("derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation", DerotatedTo, span);
+                }
+            }
+            // a frame globally aligned, then derotated when asked
+            Func<LuckyFrame, AstroImage> prepared = fr =>
+            {
+                var img = Shifted(read(fr.Index), fr.Dx, fr.Dy, Rotation(fr.Index));
+                if (DerotatedDisc == null) return img;
+                return SphereDerotation.Derotate(img, DerotatedDisc, (DerotatedTo - stamp[fr.Index].Value).TotalSeconds, rot.PeriodHours, true, false);
+            };
             // 2. reference: average of the best frames, globally aligned
             int nref = o.ReferenceFrames > 0 ? o.ReferenceFrames : Math.Max(3, Math.Min(50, n / 20));
             status?.Report(Lang.T("Building reference from {0} best frames", nref));
             var reference = new AstroImage(w, h, ch);
             foreach (var fr in ranked.Take(nref))
             {
-                var img = Shifted(read(fr.Index), fr.Dx, fr.Dy, Rotation(fr.Index));
+                var img = prepared(fr);
                 for (int c = 0; c < ch; c++) for (int i = 0; i < w * h; i++) reference.Data[c][i] += img.Data[Math.Min(c, img.Channels - 1)][i] / nref;
             }
             res.Reference = reference;
@@ -138,7 +206,7 @@ namespace Sidralune.Imaging.Planetary
             Parallel.For(0, candidates.Count, new ParallelOptions { CancellationToken = ct }, k =>
             {
                 var fr = candidates[k];
-                var lum = Shifted(read(fr.Index), fr.Dx, fr.Dy, Rotation(fr.Index)).Luminance();
+                var lum = prepared(fr).Luminance();
                 var sh = new double[aps.Count * 2];
                 var q = new double[aps.Count];
                 for (int a = 0; a < aps.Count; a++)
@@ -178,7 +246,7 @@ namespace Sidralune.Imaging.Planetary
                 Parallel.ForEach(used, Core.Util.StopRequest.Options, k =>
                 {
                     var fr = candidates[k];
-                    var img = Shifted(read(fr.Index), fr.Dx, fr.Dy, Rotation(fr.Index));
+                    var img = prepared(fr);
                     double bnorm = o.Normalize && fr.Brightness > 0 ? ranked[0].Brightness / fr.Brightness : 1;
                     var localAcc = new double[ch][];
                     for (int c = 0; c < ch; c++) localAcc[c] = new double[ow * oh];
@@ -229,7 +297,9 @@ namespace Sidralune.Imaging.Planetary
                 outImg.Header.Set("STACKPCT", pct);
                 outImg.Header.AddHistory(string.Format("Lucky stack: best {0}% of {1} frames, {2} APs (size {3}), drizzle {4}", pct, n, aps.Count, o.ApSize, scale));
                 var ts = src.Timestamp(ranked[0].Index);
-                if (ts.HasValue)
+                // derotated frames show the planet at the time they were derotated to
+                if (DerotatedDisc != null) outImg.DateObs = DerotatedTo;
+                else if (ts.HasValue)
                 {
                     // mid-time of the frames used (for WinJUPOS)
                     var times = candidates.Take(take).Select(c => src.Timestamp(c.Index)).Where(t => t.HasValue).Select(t => (double)t.Value.Ticks).ToList();
@@ -239,7 +309,7 @@ namespace Sidralune.Imaging.Planetary
                 res.Stacks.Add(outImg);
             }
             progress?.Report(1);
-            res.Report = Lang.T("{0} frames analysed, {1} APs, stacks: {2}", n, aps.Count, string.Join(", ", o.StackPercents.Select(p => p + "%")));
+            res.Report = Lang.T("{0} frames analysed, {1} APs, stacks: {2}", n, aps.Count, string.Join(", ", o.StackPercents.Select(p => p + "%"))) + (rotNote != null ? "; " + rotNote : "");
             return res;
         }
 

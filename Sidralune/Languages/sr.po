@@ -962,6 +962,18 @@ msgid "Analysing {0} frames"
 msgstr "Analiza {0} snimaka"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Bez derotacije: kadrovi nemaju vremenske oznake"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Meri se orijentacija"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "derotirano na {0:HH:mm:ss} UT, preko {1:0.0}° rotacije"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Pravljenje reference od {0} najboljih snimaka"
 
@@ -3208,6 +3220,10 @@ msgstr "Kalibracija AO nije uspela: zvezda se nije pomerila sa AO koracima po os
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO javlja firmver 000: firmver treba ponovo učitati."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} nije video iste veličine ili vrste kao {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5919,6 +5935,10 @@ msgid "Stack %:"
 msgstr "Složi %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotiraj:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analiziraj i složi"
 
@@ -6131,6 +6151,22 @@ msgid "Compensate"
 msgstr "Kompenzuj"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Izostavi preko (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Težina najudaljenije (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Meseci"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Prati mesece i senke"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} slika"
@@ -6167,6 +6203,45 @@ msgstr "Derotiranje"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Poluprečnik diska {0:0.0} px · PA pola {1:0.0}° · šir. tačke ka Zemlji {2:+0.0;-0.0}° · raspon {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "Upotrebljena {0} od {1} slike: ostale su više od {2}° rotacije od ciljnog vremena"
+msgstr[1] "Upotrebljene {0} od {1} slika: ostale su više od {2}° rotacije od ciljnog vremena"
+msgstr[2] "Upotrebljeno {0} od {1} slika: ostale su više od {2}° rotacije od ciljnog vremena"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G i B spojeni u boju"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G i B spojeni u boju, sa {0} kao luminansom"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Slike u boji sa {0} kao luminansom"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Boja traži R, G i B: ovi filteri su složeni zajedno"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Izmeri orijentaciju"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planeta mora da se okrene bar {0}° između prve i poslednje slike da bi se izmerila njena orijentacija"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Ugao severa slike {0:0.0}°, ogledalski okrenuta"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Ugao severa slike {0:0.0}°, nije ogledalski okrenuta"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

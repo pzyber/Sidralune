@@ -962,6 +962,18 @@ msgid "Analysing {0} frames"
 msgstr "Analizē {0} kadrus"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Nav derotēts: kadriem nav laika zīmogu"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Mēra orientāciju"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "derotēts uz {0:HH:mm:ss} UT, {1:0.0}° rotācijas robežās"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Veido atsauci no {0} labākajiem kadriem"
 
@@ -3208,6 +3220,10 @@ msgstr "AO kalibrēšana neizdevās: zvaigzne nekustējās līdz ar AO Y soļiem
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO ziņo programmaparatūru 000: tā jāieraksta no jauna."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} nav tāda paša izmēra vai veida video kā {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5919,6 +5935,10 @@ msgid "Stack %:"
 msgstr "Sakraut %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotēt:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analizēt un sakraut"
 
@@ -6131,6 +6151,22 @@ msgid "Compensate"
 msgstr "Kompensēt"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Izlaist pāri (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Tālākā svars (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Pavadoņi"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Sekot pavadoņiem un ēnām"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} attēls"
@@ -6167,6 +6203,45 @@ msgstr "Derotē"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Diska rādiuss {0:0.0} px · pola PA {1:0.0}° · Zemes punkta platums {2:+0.0;-0.0}° · aptvērums {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "Izmantots {0} no {1} attēla: citi ir vairāk nekā {2}° rotācijas no mērķa laika"
+msgstr[1] "Izmantoti {0} no {1} attēliem: citi ir vairāk nekā {2}° rotācijas no mērķa laika"
+msgstr[2] "Izmantoti {0} no {1} attēliem: citi ir vairāk nekā {2}° rotācijas no mērķa laika"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G un B apvienoti krāsā"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G un B apvienoti krāsā, ar {0} kā spožumu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Krāsainie attēli ar {0} kā spožumu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Krāsai vajag R, G un B: šie filtri tika saskaitīti kopā"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Izmērīt orientāciju"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planētai starp pirmo un pēdējo attēlu jāpagriežas vismaz par {0}°, lai izmērītu tās orientāciju"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Attēla ziemeļu leņķis {0:0.0}°, spoguļots"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Attēla ziemeļu leņķis {0:0.0}°, nav spoguļots"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

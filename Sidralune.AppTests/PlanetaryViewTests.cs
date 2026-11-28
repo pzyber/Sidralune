@@ -277,5 +277,93 @@ namespace Sidralune.AppTests
                 OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = savedApply);
             }
         }
+
+        [TestMethod]
+        public void TestDerotationFiltersAndOrientation()
+        {
+            var view = View<PlanetaryView>("planetary");
+            var tabs = (TabbedPanel)typeof(PlanetaryView).GetField("_tabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(view);
+            OnUi(() => tabs.Select(3));
+            Settle();
+            string dir = Path.Combine(Root, "derotfilters");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
+            // Jupiter through R, G and B three minutes apart and L later, its pole 25° from where the ephemeris puts it
+            var b = Core.Ephemeris.Body.Jupiter;
+            var t0 = new DateTime(2026, 11, 28, 21, 30, 0, DateTimeKind.Utc);
+            Func<DateTime, double[]> ephem = t =>
+            {
+                var ctx = new Core.SkyContext(AppState.Site, Core.Time.AstroTime.FromDateTime(t));
+                var pl = ctx.BodyPlace(b);
+                double cm, lat, pa;
+                Core.Ephemeris.PlanetPhysics.Orientation(b, ctx.JdTDB, pl.Astrometric.ToVector(), pl.LightTimeDays, out cm, out lat, out pa);
+                return new[] { pa, lat };
+            };
+            double period = SphereDerotation.PeriodHours(b);
+            var shots = new[] { Tuple.Create("R", 0, 1.0f), Tuple.Create("G", 3, 0.8f), Tuple.Create("B", 6, 0.6f), Tuple.Create("L", 15, 0.9f) };
+            var files = new List<string>();
+            foreach (var s in shots)
+            {
+                var at = t0.AddMinutes(s.Item2);
+                var e = ephem(at);
+                var g = new DiscGeometry { Cx = 120, Cy = 100, Radius = 70, Flattening = 0.935, PoleAngleDeg = e[0] + 25, SubObserverLatDeg = e[1] };
+                var img = PlanetRenderer.Render(240, 200, g, (at - t0).TotalSeconds, period);
+                for (int i = 0; i < img.Data[0].Length; i++) img.Data[0][i] *= s.Item3;
+                string f = Path.Combine(dir, string.Format("{0:yyyy-MM-dd-HHmm}_0-U-{1}-Jup.tif", at, s.Item1));
+                TiffIO.Write(f, img);
+                files.Add(f);
+            }
+            var job = Field<JobSlot>(view, "_deroJob");
+            var items = Field<System.Collections.IList>(view, "_deroItems");
+            Func<List<string>> rows = () => OnUi(() => All(view).OfType<ListBox>().First(l => l.Items.Count == 0 || l.Items[0].GetType().Name == "DeroItem").Items.Cast<object>().Select(o => o.ToString()).ToList());
+            try
+            {
+                OnUi(() => { items.Clear(); Field<Action>(view, "_deroRefresh")(); });
+                OnUi(() => Field<Action<string[]>>(view, "_deroLoad")(files.ToArray()));
+                CheckTrue("The images are loaded", WaitFor(() => !job.Busy && rows().Count == 4, 20000));
+                var shown = rows();
+                CheckTrue("Their filters are read from the names", shown[0].EndsWith("  R") && shown[1].EndsWith("  G") && shown[2].EndsWith("  B") && shown[3].EndsWith("  L"), string.Join(" | ", shown));
+
+                // the orientation, measured from the first and the last image
+                OnUi(() => { Field<NumericUpDown>(view, "_deroNorth").Value = 0; Field<CheckBox>(view, "_deroMirror").Checked = true; });
+                OnUi(() => Button(view, "Measure orientation").PerformClick());
+                CheckTrue("The north angle is measured", WaitFor(() => !job.Busy && Math.Abs(OnUi(() => (double)Field<NumericUpDown>(view, "_deroNorth").Value) - 25) < 2, 30000), OnUi(() => Field<NumericUpDown>(view, "_deroNorth").Value.ToString()));
+                CheckTrue("And that the images are not mirrored", !OnUi(() => Field<CheckBox>(view, "_deroMirror").Checked));
+                CheckTrue("It says so", WaitFor(() => Toasts().Any(x => x.StartsWith("Image north angle") && x.EndsWith("not mirror-reversed"))), string.Join(" | ", Toasts()));
+
+                // derotated by filter and combined: colour with L as its luminance
+                // the tab's own controls: those in the grid that holds its buttons
+                var grid = OnUi(() => Button(view, "Derotate & stack to target time").Parent.Parent);
+                var info = OnUi(() => All(grid).OfType<Label>().First(l => l.Tag as string == "dim" && l.MaximumSize.Width == 340));
+                OnUi(() => Button(view, "Derotate & stack to target time").PerformClick());
+                CheckTrue("Derotated and combined", WaitFor(() => !job.Busy && OnUi(() => info.Text).Contains("R, G and B combined into colour, with L as the luminance"), 60000), OnUi(() => info.Text));
+                var result = OnUi(() => All(view).OfType<ImageViewer>().First(v => v.EmptyText.StartsWith("Add stacked images")).Image);
+                CheckTrue("In colour", result != null && result.Channels == 3);
+
+                // the last image marked as IR instead: IR becomes the luminance
+                var list = OnUi(() => All(grid).OfType<ListBox>().First());
+                OnUi(() => { list.ClearSelected(); list.SetSelected(3, true); });
+                var filter = OnUi(() => All(grid).OfType<ComboBox>().First(c => c.Items.Count == PlanetaryFilters.All.Length));
+                CheckTrue("The filter list shows the selected image's filter", OnUi(() => filter.SelectedIndex) == Array.IndexOf(PlanetaryFilters.All, "L"));
+                OnUi(() => filter.SelectedIndex = Array.IndexOf(PlanetaryFilters.All, "IR"));
+                CheckTrue("The list shows the new filter, the image stays selected", rows()[3].EndsWith("  IR") && OnUi(() => list.SelectedIndex) == 3, rows()[3]);
+                OnUi(() => Button(view, "Derotate & stack to target time").PerformClick());
+                CheckTrue("IR as the luminance", WaitFor(() => !job.Busy && OnUi(() => info.Text).Contains("with IR as the luminance"), 60000), OnUi(() => info.Text));
+
+                // moons are followed for Jupiter only
+                var planet = OnUi(() => All(grid).OfType<ComboBox>().First(c => c.Items.Count == 4 && c.Items[0].ToString() == "Jupiter"));
+                var moons = OnUi(() => All(grid).OfType<CheckBox>().First(c => c.Text == "Follow moons and shadows"));
+                OnUi(() => planet.SelectedIndex = 1);
+                CheckTrue("Saturn: no moons to follow", !OnUi(() => moons.Enabled));
+                OnUi(() => planet.SelectedIndex = 0);
+                CheckTrue("Jupiter: its moons", OnUi(() => moons.Enabled));
+                // and Lucky stacking can derotate its frames
+                CheckTrue("Lucky stacking has Derotate", OnUi(() => All(view).OfType<Label>().Any(l => l.Text == "Derotate:")));
+            }
+            finally
+            {
+                OnUi(() => { items.Clear(); Field<Action>(view, "_deroRefresh")(); Field<NumericUpDown>(view, "_deroNorth").Value = 0; Field<CheckBox>(view, "_deroMirror").Checked = false; });
+            }
+        }
     }
 }

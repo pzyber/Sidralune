@@ -433,5 +433,210 @@ namespace Sidralune.Tests
             catch (FileNotFoundException ex) { missing = ex.Message.Contains("gone.fits"); }
             CheckTrue("A PSF file that is gone says which", missing);
         }
+
+        [TestMethod]
+        public void TestDerotationRingsWeightsAndShadows()
+        {
+            int w = 260, h = 200;
+            double period = 10.6562;
+            // Saturn: the rings stay as they are, beside the globe and in front of it; the globe turns
+            var sat = new DiscGeometry { Cx = 130, Cy = 100, Radius = 50, Flattening = 0.902, PoleAngleDeg = 8, SubObserverLatDeg = -22, RingInner = SphereDerotation.SaturnRingInner, RingOuter = SphereDerotation.SaturnRingOuter };
+            bool[] ring;
+            var s0 = PlanetRenderer.Render(w, h, sat, 0, period, out ring);
+            var s20 = PlanetRenderer.Render(w, h, sat, 1200, period);
+            var moved = SphereDerotation.Derotate(s0, sat, 1200, period, false);
+            var noRings = sat.Clone(); noRings.RingOuter = 0;
+            var old = SphereDerotation.Derotate(s0, noRings, 1200, period, false);
+            Func<int, bool> onGlobe = i => { double lon, lat; return SphereDerotation.SurfacePoint(sat, i % w, i / w, out lon, out lat); };
+            var beside = Enumerable.Range(0, w * h).Where(i => ring[i] && !onGlobe(i)).ToList();
+            var front = Enumerable.Range(0, w * h).Where(i => ring[i] && onGlobe(i)).ToList();
+            Func<AstroImage, List<int>, double> err = (im, px) => px.Average(i => Math.Abs(im.Data[0][i] - s20.Data[0][i]));
+            CheckTrue("Saturn's rings beside the globe are kept", beside.Count > 500 && err(moved, beside) < 1e-6 && err(old, beside) > 0.3, beside.Count + " px, " + err(moved, beside).ToString("E2") + " (without ring handling " + err(old, beside).ToString("0.00") + ")");
+            CheckTrue("The ring in front of the globe stays the ring", front.Count > 50 && err(moved, front) < 1e-6 && err(old, front) > 0.02, front.Count + " px, " + err(moved, front).ToString("E2") + " (without " + err(old, front).ToString("0.000") + ")");
+            // and the globe itself is derotated as before, away from its limb
+            var inner = Enumerable.Range(0, w * h).Where(i => { double lon, lat; return !ring[i] && SphereDerotation.SurfacePoint(sat, i % w, i / w, out lon, out lat) && Math.Abs(lon) < 0.9 && Math.Abs(lat) < 0.9; }).ToList();
+            double ge = inner.Average(i => Math.Abs(moved.Data[0][i] - s20.Data[0][i])), g0e = inner.Average(i => Math.Abs(s0.Data[0][i] - s20.Data[0][i]));
+            CheckTrue("Saturn's globe turns", inner.Count > 300 && ge < 0.25 * g0e, ge.ToString("0.0000") + " vs " + g0e.ToString("0.0000"));
+
+            // the disc of a ringed planet from its rings' length
+            var ob = ObjectDetection.Detect(s0.Data[0], w, h);
+            var disc = SphereDerotation.RingedDisc(s0.Data[0], w, h, ob, sat.PoleAngleDeg, false, SphereDerotation.SaturnRingOuter);
+            CheckTrue("Saturn's centre and radius from its rings", disc != null && Math.Abs(disc[0] - sat.Cx) < 1 && Math.Abs(disc[1] - sat.Cy) < 1 && Math.Abs(disc[2] / sat.Radius - 1) < 0.03, disc == null ? "none" : string.Format("{0:0.0}, {1:0.0}, {2:0.0}", disc[0], disc[1], disc[2]));
+
+            // Jupiter: weights by rotation from the target time, and images too far left out
+            double jp = 9.92492;
+            var jup = new DiscGeometry { Cx = 130, Cy = 100, Radius = 80, Flattening = 0.935, PoleAngleDeg = -12, SubObserverLatDeg = 3 };
+            Func<double, AstroImage> at = minutes => PlanetRenderer.Render(w, h, jup, minutes * 60, jp);
+            var t0 = new DateTime(2026, 11, 28, 21, 0, 0, DateTimeKind.Utc);
+            // 0, about 10 and about 30 degrees of rotation from the target time
+            double m10 = 10 / 360.0 * jp * 60, m30 = 30 / 360.0 * jp * 60;
+            var imgs = new[] { at(0), at(m10), at(m30) };
+            var times = new[] { t0, t0.AddMinutes(m10), t0.AddMinutes(m30) };
+            var geos = new[] { jup, jup, jup };
+            var res = SphereDerotation.Stack(imgs, geos, times, t0, jp, new DerotationOptions { MaxRotationDeg = 20, FarWeight = 0.5 });
+            CheckTrue("Weights fall with the rotation, the farthest is left out", Math.Abs(res.Weight[0] - 1) < 1e-9 && Math.Abs(res.Weight[1] - 0.75) < 0.01 && res.Weight[2] == 0 && res.Used == 2,
+                string.Join(", ", res.Weight.Select(x => x.ToString("0.00"))) + " at " + string.Join(", ", res.RotationDeg.Select(x => x.ToString("0.0"))));
+            var two = SphereDerotation.Stack(imgs.Take(2).ToList(), geos.Take(2).ToList(), times.Take(2).ToList(), t0, jp, new DerotationOptions { MaxRotationDeg = 20, FarWeight = 0.5 });
+            CheckTrue("An image left out changes nothing", res.Image.Data[0].SequenceEqual(two.Image.Data[0]));
+            var none = SphereDerotation.Stack(new[] { imgs[2] }, new[] { jup }, new[] { times[2] }, t0, jp, new DerotationOptions { MaxRotationDeg = 20 });
+            CheckTrue("The nearest is used even when all are too far", none.Used == 1);
+
+            // orientation: found from two images, mirrored or not
+            foreach (var trial in new[] { new { Pa = 37.0, Lat = 3.0, Mirror = false, F = 0.935 }, new { Pa = 205.0, Lat = -18.0, Mirror = true, F = 0.994 } })
+            {
+                var gt = new DiscGeometry { Cx = 130, Cy = 100, Radius = 80, Flattening = trial.F, PoleAngleDeg = trial.Pa, SubObserverLatDeg = trial.Lat, Mirrored = trial.Mirror };
+                double per = trial.F > 0.99 ? 24.6229 : jp, mins = 12 / 360.0 * per * 60; // 12 degrees apart
+                var a = PlanetRenderer.Render(w, h, gt, 0, per);
+                var b = PlanetRenderer.Render(w, h, gt, mins * 60, per);
+                var est = OrientationEstimator.Estimate(a, gt, t0, b, gt, t0.AddMinutes(mins), per);
+                double off = est == null ? 999 : Math.Abs(Math.IEEERemainder(est.PoleAngleDeg - trial.Pa, 360));
+                CheckTrue(string.Format("Orientation {0}° {1}: found", trial.Pa, trial.Mirror ? "mirrored" : "not mirrored"), est != null && off < 2 && est.Mirrored == trial.Mirror,
+                    est == null ? "none" : string.Format("{0:0.0}° {1} (score {2:0.000}, other {3:0.000})", est.PoleAngleDeg, est.Mirrored ? "mirrored" : "not mirrored", est.Score, est.OtherMirrorScore));
+            }
+            CheckTrue("Too little rotation: no measurement", OrientationEstimator.Estimate(at(0), jup, t0, at(1), jup, t0.AddMinutes(1), jp) == null);
+
+            // a moon's shadow follows its own orbit: left out where each image has it, put where it is at the target time
+            double shadowR = 7;
+            // moving east, against the turning surface, so derotation alone would put it in the wrong place
+            Func<double, double[]> shadowAt = minutes => new[] { -0.1 - 0.012 * minutes, -0.25 };
+            Func<double, AstroImage> withShadow = minutes => PlanetRenderer.Render(w, h, jup, minutes * 60, jp, shadowAt(minutes), shadowR);
+            var mins3 = new[] { -12.0, 0, 12.0 };
+            var shots = mins3.Select(withShadow).ToList();
+            var shotTimes = mins3.Select(m => t0.AddMinutes(m)).ToList();
+            var truth = withShadow(0);
+            Func<double[], MovingSpot> spot = p => { double x, y; SphereDerotation.ImagePoint(jup, p[0], p[1], out x, out y); return new MovingSpot { Id = 1, X = x, Y = y, Radius = shadowR }; };
+            var opt = new DerotationOptions { MaxRotationDeg = 0, Spots = mins3.Select(m => (IList<MovingSpot>)new List<MovingSpot> { spot(shadowAt(m)) }).ToList(), TargetSpots = new List<MovingSpot> { spot(shadowAt(0)) } };
+            var plainStack = SphereDerotation.Stack(shots, new[] { jup, jup, jup }, shotTimes, t0, jp, new DerotationOptions { MaxRotationDeg = 0 }).Image;
+            var followed = SphereDerotation.Stack(shots, new[] { jup, jup, jup }, shotTimes, t0, jp, opt).Image;
+            var target = spot(shadowAt(0));
+            Func<AstroImage, double, double, double, double> meanIn = (im, cx, cy, r) =>
+                Enumerable.Range(0, w * h).Where(i => Math.Pow(i % w - cx, 2) + Math.Pow(i / w - cy, 2) < r * r).Average(i => (double)im.Data[0][i]);
+            double truthDark = meanIn(truth, target.X, target.Y, shadowR * 0.7);
+            double plainDark = meanIn(plainStack, target.X, target.Y, shadowR * 0.7), followDark = meanIn(followed, target.X, target.Y, shadowR * 0.7);
+            CheckTrue("The shadow is as dark as it was at the target time", Math.Abs(followDark - truthDark) < 0.05 && plainDark > truthDark + 0.15, string.Format("truth {0:0.000}, followed {1:0.000}, without {2:0.000}", truthDark, followDark, plainDark));
+            // where the other images' shadows went when derotated: no ghosts
+            double ghosts = 0, ghostsBefore = 0;
+            foreach (int k in new[] { 0, 2 })
+            {
+                var only = SphereDerotation.Derotate(withShadow(mins3[k]), jup, (t0 - shotTimes[k]).TotalSeconds, jp, false);
+                // the derotated shadow: darkest pixels of the derotated image against its shadow-free twin
+                var clean = SphereDerotation.Derotate(PlanetRenderer.Render(w, h, jup, mins3[k] * 60, jp), jup, (t0 - shotTimes[k]).TotalSeconds, jp, false);
+                var ghostPx = Enumerable.Range(0, w * h).Where(i => clean.Data[0][i] - only.Data[0][i] > 0.2 && Math.Pow(i % w - target.X, 2) + Math.Pow(i / w - target.Y, 2) > 4 * shadowR * shadowR).ToList();
+                if (ghostPx.Count == 0) continue;
+                ghosts = Math.Max(ghosts, ghostPx.Average(i => truth.Data[0][i] - followed.Data[0][i]));
+                ghostsBefore = Math.Max(ghostsBefore, ghostPx.Average(i => truth.Data[0][i] - plainStack.Data[0][i]));
+            }
+            CheckTrue("No ghost shadows where the others were", ghosts < 0.03 && ghostsBefore > 0.1, string.Format("{0:0.000} (without {1:0.000})", ghosts, ghostsBefore));
+        }
+
+        [TestMethod]
+        public void TestPlanetaryFilters()
+        {
+            Func<string, string> f = name => PlanetaryFilters.FromImage(name, 1);
+            CheckTrue("FireCapture names: the filter after the observer's initial", f("2026-11-28-2130_4-U-R-Jup_lapl5.tif") == "R" && f("2026-11-28-2130_4-B-R-Jup.tif") == "R" && f("2026-11-28-2131_2-U-B-Jup.tif") == "B");
+            CheckTrue("Words and IR filters", f("jupiter_green_0001.tif") == "G" && f("Jup_IR685_213045.tif") == "IR" && f("sat-IR-pass.tif") == "IR" && f("jup_CH4.tif") == "CH4" && f("mars_red.png") == "R");
+            CheckTrue("A colour image is colour, a mono one without a filter name is L", PlanetaryFilters.FromImage("2026-11-28-2130_4-U-R-Jup.tif", 3) == "RGB" && f("jupiter.tif") == "L");
+
+            int w = 8, h = 8;
+            Func<float, AstroImage> flat = v => { var im = new AstroImage(w, h, 1); for (int i = 0; i < w * h; i++) im.Data[0][i] = v; return im; };
+            FilterCombination how; string lum;
+            var one = PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "R", flat(0.5f) } }, out how, out lum);
+            CheckTrue("One filter: that stack", how == FilterCombination.Single && one.Data[0][0] == 0.5f);
+            var rgb = PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "R", flat(0.6f) }, { "G", flat(0.4f) }, { "B", flat(0.2f) } }, out how, out lum);
+            CheckTrue("R, G and B: colour", how == FilterCombination.Rgb && rgb.Channels == 3 && rgb.Data[0][0] == 0.6f && rgb.Data[1][0] == 0.4f && rgb.Data[2][0] == 0.2f);
+            var lrgb = PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "R", flat(0.6f) }, { "G", flat(0.4f) }, { "B", flat(0.2f) }, { "L", flat(0.8f) }, { "IR", flat(0.1f) } }, out how, out lum);
+            var wts = lrgb.EffectiveProfile.LuminanceWeights;
+            double Y = wts[0] * lrgb.Data[0][0] + wts[1] * lrgb.Data[1][0] + wts[2] * lrgb.Data[2][0];
+            CheckTrue("With L: its brightness, the colour kept", how == FilterCombination.LRgb && lum == "L" && Math.Abs(Y - 0.8) < 1e-4 && Math.Abs(lrgb.Data[0][0] / lrgb.Data[2][0] - 3) < 1e-3);
+            PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "R", flat(0.6f) }, { "G", flat(0.4f) }, { "B", flat(0.2f) }, { "IR", flat(0.3f) } }, out how, out lum);
+            CheckTrue("IR is the luminance when there is no L", how == FilterCombination.LRgb && lum == "IR");
+            var col = new AstroImage(w, h, 3);
+            PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "RGB", col }, { "IR", flat(0.3f) } }, out how, out lum);
+            CheckTrue("Colour images with IR", how == FilterCombination.ColourWithLuminance && lum == "IR");
+            CheckTrue("R and G alone make no colour", PlanetaryFilters.Combine(new Dictionary<string, AstroImage> { { "R", flat(0.6f) }, { "G", flat(0.4f) } }, out how, out lum) == null && how == FilterCombination.Separate);
+        }
+
+        [TestMethod]
+        public void TestLuckyStackingDerotation()
+        {
+            // Jupiter turning over 35 minutes, in two SER videos: 21 degrees, more than the alignment points can follow
+            int w = 170, h = 150;
+            double period = 9.92492;
+            var truthDisc = new DiscGeometry { Cx = 85, Cy = 75, Radius = 55, Flattening = 0.935, PoleAngleDeg = 20, SubObserverLatDeg = 3 };
+            var start = new DateTime(2026, 11, 28, 21, 0, 0, DateTimeKind.Utc);
+            string dir = Path.Combine(Path.GetTempPath(), "SidraluneTests", "derotstack");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(dir);
+            var rng = new Random(5);
+            var files = new List<string>();
+            DiscGeometry firstDisc = null; // the stack sits where the first frame's disc was
+            int perVideo = 30;
+            for (int v = 0; v < 2; v++)
+            {
+                string file = Path.Combine(dir, "jupiter_" + v + ".ser");
+                files.Add(file);
+                using (var ser = new SerWriter(file, w, h, 16, 1))
+                    for (int k = 0; k < perVideo; k++)
+                    {
+                        // the second video starts 25 minutes after the first
+                        var at = start.AddSeconds(v * 1500 + k * 20);
+                        var g = truthDisc.Clone(); g.Cx += rng.NextDouble() * 4 - 2; g.Cy += rng.NextDouble() * 4 - 2;
+                        if (v == 0 && k == 0) firstDisc = g;
+                        var frame = PlanetRenderer.Render(w, h, g, (at - start).TotalSeconds, period);
+                        var blurred = Filters.GaussianBlur(frame.Data[0], w, h, 0.8 + rng.NextDouble() * 0.6);
+                        for (int i = 0; i < blurred.Length; i++) blurred[i] = (float)Math.Max(0, 0.03 + blurred[i] * 0.8 + (rng.NextDouble() - 0.5) * 0.01);
+                        ser.Write(new AstroImage(w, h, new[] { blurred }), at);
+                    }
+            }
+            using (var src = FrameSourceFactory.Open(files))
+            {
+                CheckTrue("Two videos read as one, with their own time stamps", src is ConcatFrameSource && src.FrameCount == 2 * perVideo
+                    && src.Timestamp(perVideo).Value == start.AddSeconds(1500) && src.Timestamp(2 * perVideo - 1).Value == start.AddSeconds(1500 + (perVideo - 1) * 20));
+                var mid = start.AddSeconds((1500 + (perVideo - 1) * 20) / 2.0);
+                // how well the stack's fine detail matches the planet's at the middle time (1: exactly), on the disc away
+                // from the limb; the stack sits where the first frame's disc was, so the truth is drawn there
+                var truth = PlanetRenderer.Render(w, h, firstDisc, (mid - start).TotalSeconds, period).Data[0];
+                Func<float[], float[]> detail = d => { var b = Filters.GaussianBlur(d, w, h, 6); var o = new float[d.Length]; for (int i = 0; i < d.Length; i++) o[i] = d[i] - b[i]; return o; };
+                var truthDetail = detail(Filters.GaussianBlur(truth, w, h, 1.0));
+                var inside = Enumerable.Range(0, w * h).Where(i => Math.Pow(i % w - firstDisc.Cx, 2) + Math.Pow((i / w - firstDisc.Cy) / 0.935, 2) < Math.Pow(0.8 * firstDisc.Radius, 2)).ToList();
+                Func<AstroImage, double> match = stack =>
+                {
+                    var d = detail(stack.Data[0]);
+                    double ab = 0, aa = 0, bb = 0;
+                    foreach (int i in inside) { ab += d[i] * truthDetail[i]; aa += d[i] * d[i]; bb += truthDetail[i] * truthDetail[i]; }
+                    return ab / Math.Sqrt(aa * bb);
+                };
+                var opt = new LuckyOptions { StackPercents = new[] { 60.0 }, ApSize = 32, ApSearchRadius = 4, LocalQuality = false };
+                var plain = new LuckyStacker { Options = opt.Clone() }.Run(src);
+                var rot = new PlanetRotation { PeriodHours = period, Flattening = 0.935, PoleAngleDeg = 20, SubObserverLatDeg = 3, MeasureOrientation = false };
+                var turned = new LuckyStacker { Options = opt.Clone(), Derotation = rot };
+                var derotated = turned.Run(src);
+                double m0 = match(plain.Stacks[0]), m1 = match(derotated.Stacks[0]);
+                // what is left unmatched (1 - match): a quarter or less of the plain stack's
+                CheckTrue("Derotated frames stack to the planet at the middle time", m1 > 0.995 && 1 - m1 < 0.25 * (1 - m0), m0.ToString("0.0000") + " → " + m1.ToString("0.0000"));
+                CheckTrue("The stack's time is that middle time", derotated.Stacks[0].DateObs.HasValue && Math.Abs((derotated.Stacks[0].DateObs.Value - mid).TotalSeconds) < 1 && derotated.Report.Contains("derotated to"), derotated.Report);
+                // a wrong pole angle is put right from the frames themselves
+                var guess = new PlanetRotation { PeriodHours = period, Flattening = 0.935, PoleAngleDeg = 60, SubObserverLatDeg = 3, MeasureOrientation = true };
+                var measuring = new LuckyStacker { Options = opt.Clone(), Derotation = guess };
+                var measured = measuring.Run(src);
+                double off = Math.Abs(Math.IEEERemainder(measuring.DerotatedDisc.PoleAngleDeg - 20, 360));
+                CheckTrue("The orientation is measured from the frames", off < 3 && !measuring.DerotatedDisc.Mirrored && 1 - match(measured.Stacks[0]) < 0.25 * (1 - m0), measuring.DerotatedDisc.PoleAngleDeg.ToString("0.0") + "°, " + match(measured.Stacks[0]).ToString("0.0000"));
+            }
+            // the videos must be alike
+            var first = FrameSourceFactory.Open(files[0]);
+            var other = new FileSequenceSource(new[] { WriteSmall(dir) });
+            bool refused = false;
+            try { new ConcatFrameSource(new List<IFrameSource> { first, other }); }
+            catch (InvalidDataException) { refused = true; }
+            finally { first.Dispose(); other.Dispose(); }
+            CheckTrue("Videos of different sizes are refused", refused);
+        }
+
+        private static string WriteSmall(string dir)
+        {
+            string p = Path.Combine(dir, "small.tif");
+            TiffIO.Write(p, new AstroImage(40, 30, 1));
+            return p;
+        }
     }
 }

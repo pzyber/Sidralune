@@ -956,6 +956,18 @@ msgid "Analysing {0} frames"
 msgstr "Greinir {0} myndir"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Ekki afsnúið: rammarnir hafa enga tímastimpla"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Mælir stefnuna"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "afsnúið til {0:HH:mm:ss} UT, yfir {1:0.0}° snúning"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Býr til viðmið úr {0} bestu myndunum"
 
@@ -3196,6 +3208,10 @@ msgstr "Kvörðun AO mistókst: stjarnan hreyfðist ekki með Y-skrefum AO."
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO gefur upp fastbúnað 000: það þarf að skrifa fastbúnaðinn aftur."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} er ekki myndband af sömu stærð eða gerð og {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5902,6 +5918,10 @@ msgid "Stack %:"
 msgstr "Stafla %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Afsnúa:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Greina og stafla"
 
@@ -6113,6 +6133,22 @@ msgid "Compensate"
 msgstr "Leiðrétta"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Sleppa umfram (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Vægi þeirrar fjarlægustu (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Tungl"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Fylgja tunglum og skuggum"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} mynd"
@@ -6147,6 +6183,44 @@ msgstr "Afsnýr"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Radíus skífu {0:0.0} px · PA póls {1:0.0}° · breidd undir jörðu {2:+0.0;-0.0}° · spönn {3:0.0} mín."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0} af {1} mynd notuð: hinar eru meira en {2}° snúning frá markatíma"
+msgstr[1] "{0} af {1} myndum notaðar: hinar eru meira en {2}° snúning frá markatíma"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G og B sameinuð í lit"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G og B sameinuð í lit, með {0} sem birtustig"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Litmyndir með {0} sem birtustig"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Litur krefst R, G og B: þessar síur voru staflaðar saman"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Mæla stefnu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Reikistjarnan þarf að snúast minnst {0}° milli fyrstu og síðustu myndar til að stefna hennar verði mæld"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Norðurhorn myndar {0:0.0}°, spegluð"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Norðurhorn myndar {0:0.0}°, ekki spegluð"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

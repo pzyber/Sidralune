@@ -962,6 +962,18 @@ msgid "Analysing {0} frames"
 msgstr "Analizuojama {0} kadrų"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Nederotuota: kadrai neturi laiko žymų"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Matuojama orientacija"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "derotuota į {0:HH:mm:ss} UT, per {1:0.0}° sukimosi"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Kuriamas etalonas iš {0} geriausių kadrų"
 
@@ -3208,6 +3220,10 @@ msgstr "AO kalibravimas nepavyko: žvaigždė nepajudėjo su AO Y žingsniais."
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO praneša programinę įrangą 000: ją reikia įrašyti iš naujo."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} nėra tokio paties dydžio ar rūšies vaizdo įrašas kaip {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5919,6 +5935,10 @@ msgid "Stack %:"
 msgstr "Sudėti %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotuoti:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analizuoti ir sudėti"
 
@@ -6131,6 +6151,22 @@ msgid "Compensate"
 msgstr "Kompensuoti"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Praleisti virš (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Toliausio svoris (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Palydovai"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Sekti palydovus ir šešėlius"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} vaizdas"
@@ -6167,6 +6203,45 @@ msgstr "Derotuojama"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Disko spindulys {0:0.0} px · poliaus PA {1:0.0}° · Žemės taško platuma {2:+0.0;-0.0}° · apimtis {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "Panaudotas {0} iš {1} vaizdo: kiti yra daugiau nei {2}° sukimosi nuo tikslinio laiko"
+msgstr[1] "Panaudoti {0} iš {1} vaizdų: kiti yra daugiau nei {2}° sukimosi nuo tikslinio laiko"
+msgstr[2] "Panaudota {0} iš {1} vaizdų: kiti yra daugiau nei {2}° sukimosi nuo tikslinio laiko"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G ir B sujungti į spalvą"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G ir B sujungti į spalvą, {0} kaip skaistis"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Spalvoti vaizdai, {0} kaip skaistis"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Spalvai reikia R, G ir B: šie filtrai sudėti kartu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Matuoti orientaciją"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planeta tarp pirmojo ir paskutinio vaizdo turi pasisukti bent {0}°, kad būtų galima išmatuoti jos orientaciją"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Vaizdo šiaurės kampas {0:0.0}°, veidrodiškai atspindėtas"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Vaizdo šiaurės kampas {0:0.0}°, neatspindėtas"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

@@ -956,6 +956,18 @@ msgid "Analysing {0} frames"
 msgstr "Greinir {0} myndir"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Ikki afturroterað: myndirnar hava ongar tíðarstemplar"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Mátir stevnuna"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "afturroterað til {0:HH:mm:ss} UT, yvir {1:0.0}° snúning"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Byggir viðmerking úr teimum {0} bestu myndunum"
 
@@ -3196,6 +3208,10 @@ msgstr "Kalibrering av AO miseydnaðist: stjørnan flutti seg ikki við Y-stigun
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO boðar frá fastbúnaði 000: fastbúnaðurin má skrivast aftur."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} er ikki eitt sjónband av somu stødd ella slag sum {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5902,6 +5918,10 @@ msgid "Stack %:"
 msgstr "Stabla %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Afturrotera:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Grein og stabla"
 
@@ -6113,6 +6133,22 @@ msgid "Compensate"
 msgstr "Javna út"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Slepp út omanfyri (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Vekt hjá tí fjarasta (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Mánar"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Fylg mánum og skuggum"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} mynd"
@@ -6147,6 +6183,44 @@ msgstr "Afturroterar"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Skívuradius {0:0.0} px · PA pólsins {1:0.0}° · breidd undir jørð {2:+0.0;-0.0}° · spenni {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0} av {1} mynd brúkt: hinar eru meira enn {2}° snúning frá málstíðini"
+msgstr[1] "{0} av {1} myndum brúktar: hinar eru meira enn {2}° snúning frá málstíðini"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G og B samansett til lit"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G og B samansett til lit, við {0} sum ljósstyrki"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Litmyndir við {0} sum ljósstyrki"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Litur krevur R, G og B: hesi filtur vórðu stablaði saman"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Mát stevnuna"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planetin má snúgva í minsta lagi {0}° millum fyrstu og síðstu myndina, fyri at stevnan kann mátast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Norðurvinkul myndarinnar {0:0.0}°, spegilvend"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Norðurvinkul myndarinnar {0:0.0}°, ikki spegilvend"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"

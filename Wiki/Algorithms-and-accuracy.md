@@ -185,7 +185,9 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Tone curve | Monotone cubic Hermite interpolation (Fritsch & Carlson 1980), with gamma and a smoothstep contrast curve in one lookup table |
 | Recorded PSF | The brightest point source above the median sky, out to the ring whose mean falls below 1% of its peak, normalised |
 | Channel alignment (dispersion) | Red and blue registered onto green by phase correlation over the whole image (up to 1024 pixels around the centre of light, so a planet's limb is included), with a window tapered only at its edges and a second pass for the sub-pixel remainder |
-| Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation |
+| Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation; images weighed linearly by rotation from the target time and cut off beyond a limit; ring pixels (Saturn, in the equatorial plane between 1.236 and 2.270 radii, where in front of the globe or beside it) kept unrotated; Saturn's disc from the length of its rings along the line of nodes |
+| Orientation from images | Pole angle and mirroring that make the first image, derotated to the last one's time, best match it: normalised correlation of the fine detail inside 0.75 of the radius, searched every 5°, then 1° and 0.25°, both mirrorings |
+| Galilean moons and shadows | Meeus (1998) chapter 44 low-accuracy theory; each shadow where the line from the Sun through the moon (at the Sun's jovicentric declination and the phase angle) meets the spheroid, projected with the Earth's jovicentric declination. Moons and shadows left out of each derotated image and moved, as imaged, to their target-time positions |
 
 ## Guiding
 

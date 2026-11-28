@@ -962,6 +962,18 @@ msgid "Analysing {0} frames"
 msgstr "Se analizează {0} cadre"
 
 #: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "Not derotated: the frames have no time stamps"
+msgstr "Nederotat: cadrele nu au marcaje de timp"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs Sidralune/Views/PlanetaryView.cs
+msgid "Measuring the orientation"
+msgstr "Se măsoară orientarea"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
+msgid "derotated to {0:HH:mm:ss} UT, over {1:0.0}° of rotation"
+msgstr "derotat la {0:HH:mm:ss} UT, pe {1:0.0}° de rotație"
+
+#: Sidralune.Imaging/Planetary/LuckyStacker.cs
 msgid "Building reference from {0} best frames"
 msgstr "Se construiește referința din cele mai bune {0} cadre"
 
@@ -3208,6 +3220,10 @@ msgstr "Calibrarea OA a eșuat: steaua nu s-a mișcat cu pașii Y ai OA."
 #: Sidralune.Devices/Serial/SxAo.cs
 msgid "The SX AO reports firmware 000: it needs its firmware flashed again."
 msgstr "SX AO raportează firmware 000: firmware-ul trebuie rescris."
+
+#: Sidralune.Imaging/IO/FrameSources.cs
+msgid "{0} is not the same size or kind of video as {1}"
+msgstr "{0} nu este un videoclip de aceeași mărime sau fel ca {1}"
 
 #: Sidralune/Views/ObservatoryView.Guiding.cs
 msgid "The AO is not calibrated yet: it is calibrated after the mount when guiding starts."
@@ -5919,6 +5935,10 @@ msgid "Stack %:"
 msgstr "Stivuiește %:"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Derotate:"
+msgstr "Derotează:"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Analyse & stack"
 msgstr "Analizează și stivuiește"
 
@@ -6131,6 +6151,22 @@ msgid "Compensate"
 msgstr "Compensează"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Leave out beyond (°)"
+msgstr "Omite peste (°)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Weight of the farthest (%)"
+msgstr "Ponderea celei mai depărtate (%)"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Moons"
+msgstr "Sateliți"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Follow moons and shadows"
+msgstr "Urmărește sateliții și umbrele"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "{0} image"
 msgid_plural "{0} images, in time order"
 msgstr[0] "{0} imagine"
@@ -6167,6 +6203,45 @@ msgstr "Se derotează"
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Disc radius {0:0.0} px · pole PA {1:0.0}° · sub-Earth lat {2:+0.0;-0.0}° · span {3:0.0} min"
 msgstr "Raza discului {0:0.0} px · PA pol {1:0.0}° · lat. sub-Pământ {2:+0.0;-0.0}° · interval {3:0.0} min"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} of {1} image used: the others are more than {2}° of rotation from the target time"
+msgid_plural "{0} of {1} images used: the others are more than {2}° of rotation from the target time"
+msgstr[0] "{0} din {1} imagine folosită: celelalte sunt la peste {2}° de rotație de timpul țintă"
+msgstr[1] "{0} din {1} imagini folosite: celelalte sunt la peste {2}° de rotație de timpul țintă"
+msgstr[2] "{0} din {1} de imagini folosite: celelalte sunt la peste {2}° de rotație de timpul țintă"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour"
+msgstr "R, G și B combinate în culoare"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "R, G and B combined into colour, with {0} as the luminance"
+msgstr "R, G și B combinate în culoare, cu {0} ca luminanță"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour images with {0} as the luminance"
+msgstr "Imagini color cu {0} ca luminanță"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Colour needs R, G and B: these filters were stacked together"
+msgstr "Culoarea cere R, G și B: aceste filtre au fost stivuite împreună"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Measure orientation"
+msgstr "Măsoară orientarea"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "The planet must turn at least {0}° between the first and the last image to measure its orientation"
+msgstr "Planeta trebuie să se rotească cel puțin {0}° între prima și ultima imagine pentru a-i măsura orientarea"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, mirror-reversed"
+msgstr "Unghiul nordului imaginii {0:0.0}°, oglindită"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Image north angle {0:0.0}°, not mirror-reversed"
+msgstr "Unghiul nordului imaginii {0:0.0}°, neoglindită"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Select the images to remove in the list"
