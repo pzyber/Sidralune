@@ -101,6 +101,19 @@ namespace Sidralune.Tests
             CheckTrue("Without a stop they still run", Enhance.NonLocalMeans(img.Data[0], w, h, 1.5, 3, 1).Length == w * h);
         }
 
+        // the centre of light of a channel above its sky level
+        private static double[] Centre(float[] d, int w, int h)
+        {
+            double sky = Core.Mathematics.Stats.Median(d), sx = 0, sy = 0, s = 0;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    double v = d[y * w + x] - sky;
+                    if (v > 0.02) { sx += v * x; sy += v * y; s += v; }
+                }
+            return new[] { sx / s, sy / s };
+        }
+
         [TestMethod]
         public void TestAlignChannels()
         {
@@ -108,9 +121,42 @@ namespace Sidralune.Tests
             int w = 256, h = 256;
             var green = Synthetic.Render(w, h, Synthetic.RandomStars(60, w, h, 5), Transform2D.Identity, 3, 0.1, 0.001, 5);
             var img = new AstroImage(w, h, new[] { Geometry.Shift(green, 2, 1).Data[0], green.Data[0], Geometry.Shift(green, -1.5, -0.5).Data[0] });
-            var shifts = ColorOps.AlignChannels(img.Clone());
+            var aligned = img.Clone();
+            var shifts = ColorOps.AlignChannels(aligned);
             CheckTrue("The red and blue shifts are found", Math.Abs(Math.Abs(shifts[0][0]) - 2) < 0.3 && Math.Abs(Math.Abs(shifts[0][1]) - 1) < 0.3
                 && Math.Abs(Math.Abs(shifts[2][0]) - 1.5) < 0.3 && Math.Abs(Math.Abs(shifts[2][1]) - 0.5) < 0.3, string.Join(" / ", shifts.Select(s => s[0].ToString("0.00") + "," + s[1].ToString("0.00"))));
+            Func<AstroImage, int, double> off = (im, c) => { var a = Centre(im.Data[c], im.Width, im.Height); var b = Centre(im.Data[1], im.Width, im.Height); return Math.Sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1])); };
+            // stars that a shift pushed over the edge are gone, so the pixels inside the border are compared, with green
+            // shifted there and back like the channel, which softens it as much
+            var back = new[] { Geometry.Shift(Geometry.Shift(green, 2, 1), -2, -1).Data[0], green.Data[0], Geometry.Shift(Geometry.Shift(green, -1.5, -0.5), 1.5, 0.5).Data[0] };
+            Func<AstroImage, int, double> rms = (im, c) =>
+            {
+                double s = 0; int n = 0;
+                for (int y = 12; y < h - 12; y++) for (int x = 12; x < w - 12; x++) { double d = im.Data[c][y * w + x] - back[c][y * w + x]; s += d * d; n++; }
+                return Math.Sqrt(s / n);
+            };
+            CheckTrue("Stars: red and blue end on green", rms(aligned, 0) < 0.1 * rms(img, 0) && rms(aligned, 2) < 0.1 * rms(img, 2),
+                rms(img, 0).ToString("E2") + " → " + rms(aligned, 0).ToString("E2") + ", " + rms(img, 2).ToString("E2") + " → " + rms(aligned, 2).ToString("E2"));
+
+            // a planet filling much of the frame, banded along x, in frames that are not square and with the planet
+            // off centre: the shift along the bands shows only at the limb
+            foreach (var f in new[] { new { W = 420, H = 420, Cx = 210.0, Cy = 210.0, R = 150.0 }, new { W = 420, H = 360, Cx = 150.0, Cy = 200.0, R = 120.0 }, new { W = 1400, H = 1100, Cx = 760.0, Cy = 520.0, R = 420.0 } })
+            {
+                Func<double, double, int, float[]> planet = (dx, dy, seed) =>
+                {
+                    var d = Synthetic.Planet(f.W, f.H, f.Cx + dx, f.Cy + dy, f.R, 0, 1.5, 0.01, seed).Data[0];
+                    for (int y = 0; y < f.H; y++)
+                        for (int x = 0; x < f.W; x++)
+                            d[y * f.W + x] *= (float)(0.75 + 0.25 * Math.Cos((y - f.Cy - dy) / f.R * 9.0));
+                    return d;
+                };
+                var disc = new AstroImage(f.W, f.H, new[] { planet(2, 0.6, 1), planet(0, 0, 2), planet(-1.8, -0.4, 3) });
+                var done = disc.Clone();
+                ColorOps.AlignChannels(done);
+                CheckTrue(string.Format("Banded {0}×{1} disc: red and blue end on green", f.W, f.H), off(done, 0) < 0.2 && off(done, 2) < 0.2,
+                    off(disc, 0).ToString("0.00") + " → " + off(done, 0).ToString("0.00") + ", " + off(disc, 2).ToString("0.00") + " → " + off(done, 2).ToString("0.00"));
+            }
+
             using (var cts = new System.Threading.CancellationTokenSource())
             {
                 cts.Cancel();

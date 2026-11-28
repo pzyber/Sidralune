@@ -5952,12 +5952,33 @@ msgid "Stacking options"
 msgstr "Možnosti zlaganja"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "Uporaba profila"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Dekonvolucija {0:0.0} px, ponovitve: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Odprite zloženo sliko planeta (TIFF/FITS/PNG) ali jo pošljite iz Zlaganja"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Valčki"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Ob odpiranju"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Uporabi profil"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5996,12 +6017,56 @@ msgid "Aligning colour channels"
 msgstr "Poravnavanje barvnih kanalov"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Nazaj na odprti posnetek"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Shrani rezultat…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Shranjeno. Te nastavitve so zdaj profil za {0}."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Izostri datoteke…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Spremljaj mapo…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Ostrenje posnetkov"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "Drsniki plasti ojačajo merila podrobnosti à trous (B3 spline) 1, 2, 4, 8, 16, 32 px. Odstranjevanje šuma mehko upraga najfinejše plasti glede na izmerjeni šum. Dekonvolucijo uporabite pred valčki."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "{0} ni bilo mogoče izostriti: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} posnetek izostren in shranjen poleg, s končnico _sharpened.tif"
+msgstr[1] "{0} posnetka izostrena in shranjena poleg, s končnico _sharpened.tif"
+msgstr[2] "{0} posnetki izostreni in shranjeni poleg, s končnico _sharpened.tif"
+msgstr[3] "{0} posnetkov izostrenih in shranjenih poleg, s končnico _sharpened.tif"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Ustavi spremljanje"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Spremlja se {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Izostreno: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6706,6 +6771,14 @@ msgstr "Odtenek"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "Poravnaj kanale RGB"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Koraki: brez"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Koraki: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

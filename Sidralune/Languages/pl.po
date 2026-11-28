@@ -5935,12 +5935,33 @@ msgid "Stacking options"
 msgstr "Opcje składania"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "Stosowanie profilu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Dekonwolucja {0:0.0} px, iteracje: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Otwórz złożony obraz planety (TIFF/FITS/PNG) lub wyślij go ze Składania"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Falki"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Przy otwieraniu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Zastosuj profil"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5979,12 +6000,55 @@ msgid "Aligning colour channels"
 msgstr "Wyrównywanie kanałów koloru"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Wróć do otwartego obrazu"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Zapisz wynik…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Zapisano. Te ustawienia są teraz profilem dla {0}."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Wyostrz pliki…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Obserwuj folder…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Wyostrzanie obrazów"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "Suwaki warstw wzmacniają skale szczegółów à trous (B3 spline) 1, 2, 4, 8, 16, 32 px. Odszumianie progowo tłumi najdrobniejsze warstwy względem zmierzonego szumu. Dekonwolucję wykonaj przed falkami."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "Nie udało się wyostrzyć {0}: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} obraz wyostrzony i zapisany obok, z końcówką _sharpened.tif"
+msgstr[1] "{0} obrazy wyostrzone i zapisane obok, z końcówką _sharpened.tif"
+msgstr[2] "{0} obrazów wyostrzonych i zapisanych obok, z końcówką _sharpened.tif"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Zatrzymaj obserwowanie"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Obserwowany: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Wyostrzono: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6683,6 +6747,14 @@ msgstr "Barwa"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "Wyrównaj kanały RGB"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Kroki: brak"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Kroki: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

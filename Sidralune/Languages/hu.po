@@ -5918,12 +5918,33 @@ msgid "Stacking options"
 msgstr "Összeadási beállítások"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "A profil alkalmazása folyamatban"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Dekonvolúció {0:0.0} px, {1} iteráció"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Nyisson meg egy összeadott bolygóképet (TIFF/FITS/PNG), vagy küldjön egyet az Összeadásból"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Waveletek"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Profil"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Megnyitáskor"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Profil alkalmazása"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5962,12 +5983,54 @@ msgid "Aligning colour channels"
 msgstr "Színcsatornák illesztése"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Vissza a megnyitott képhez"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Eredmény mentése…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Mentve. Ezek a beállítások mostantól a(z) {0} profilja."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Fájlok élesítése…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Mappa figyelése…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Képek élesítése"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "A rétegcsúszkák az à trous (B3 spline) részletskálákat erősítik: 1, 2, 4, 8, 16, 32 px. A zajcsökkentés a legfinomabb rétegeket lágy küszöböléssel kezeli a mért zajhoz képest. A dekonvolúciót a waveletek előtt végezze."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "Nem sikerült élesíteni: {0}: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} kép élesítve és mellé mentve, _sharpened.tif végződéssel"
+msgstr[1] "{0} kép élesítve és mellé mentve, _sharpened.tif végződéssel"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Figyelés leállítása"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Figyelt mappa: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Élesítve: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6660,6 +6723,14 @@ msgstr "Színárnyalat"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "RGB csatornák illesztése"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Lépések: nincsenek"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Lépések: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

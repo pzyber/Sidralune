@@ -5935,12 +5935,33 @@ msgid "Stacking options"
 msgstr "Sakraušanas opcijas"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "Lieto profilu"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Dekonvolūcija {0:0.0} px, iterācijas: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Atveriet sakrautu planētas attēlu (TIFF/FITS/PNG) vai nosūtiet to no Sakraušanas"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Viļņveidoles"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Profils"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Atverot"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Lietot profilu"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5979,12 +6000,55 @@ msgid "Aligning colour channels"
 msgstr "Izlīdzina krāsu kanālus"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Atgriezties pie atvērtā attēla"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Saglabāt rezultātu…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Saglabāts. Šie iestatījumi tagad ir objekta {0} profils."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Asināt failus…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Uzraudzīt mapi…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Attēlu asināšana"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "Slāņu slīdņi pastiprina à trous (B3 spline) detaļu mērogus 1, 2, 4, 8, 16, 32 px. Trokšņu mazināšana maigi sliekšņo smalkākos slāņus attiecībā pret izmērīto troksni. Dekonvolūciju veiciet pirms viļņveidolēm."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "Neizdevās asināt {0}: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} attēls asināts un saglabāts blakus ar nobeigumu _sharpened.tif"
+msgstr[1] "{0} attēli asināti un saglabāti blakus ar nobeigumu _sharpened.tif"
+msgstr[2] "{0} attēlu asināts un saglabāts blakus ar nobeigumu _sharpened.tif"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Pārtraukt uzraudzību"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Uzrauga {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Asināts: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6683,6 +6747,14 @@ msgstr "Tonis"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "Izlīdzināt RGB kanālus"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Soļi: nav"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Soļi: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

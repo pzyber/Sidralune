@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -97,6 +98,95 @@ namespace Sidralune.AppTests
                 CheckTrue("And comes back afterwards", WaitFor(() => OnUi(() => !lucky.Busy && Button(view, "Stacking →").Enabled), 30000));
             }
             finally { opt.OutputFolder = folder; }
+        }
+
+        [TestMethod]
+        public void TestSharpenProfilesAndBatch()
+        {
+            var view = View<PlanetaryView>("planetary");
+            OnUi(() => ((TabbedPanel)typeof(PlanetaryView).GetField("_tabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(view)).Select(2));
+            Settle();
+            string dir = Path.Combine(Root, "sharpen"), watched = Path.Combine(dir, "watched");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            Directory.CreateDirectory(Path.Combine(dir, "Saturn"));
+            Directory.CreateDirectory(watched);
+            // a colour disc with its red and blue channels off the green one
+            Func<int, AstroImage> disc = seed =>
+            {
+                var ch = Enumerable.Range(0, 3).Select(c => Synthetic.Planet(96, 96, 48 + 1.5 * (1 - c), 48, 30, 0, 1.5, 0.01, seed + c).Data[0]).ToArray();
+                return new AstroImage(96, 96, ch);
+            };
+            string jupiter = Path.Combine(dir, "2026-11-28-2130_4-J_0000.tif"), saturn = Path.Combine(dir, "Saturn", "stack.tif"), unknown = Path.Combine(dir, "planet.tif");
+            TiffIO.Write(jupiter, disc(1)); TiffIO.Write(saturn, disc(4)); TiffIO.Write(unknown, disc(7));
+            var settings = AppState.Settings;
+            var savedProfiles = settings.SharpenProfiles.ToList();
+            bool savedApply = settings.ApplySharpenProfile;
+            var jup = new SharpenProfile { Object = "Jupiter", Layers = new[] { 2.0, 0.3, 0, 0, 0, 0 }, Denoise = 0.1, DeconvFwhm = 2.5, DeconvIterations = 8, Steps = { new SharpenStep { Kind = SharpenStepKind.AlignChannels } } };
+            var box = Field<ComboBox>(view, "_profileBox");
+            var layers = Field<Slider[]>(view, "_layers");
+            var sharpJob = Field<JobSlot>(view, "_sharpJob");
+            Func<string, AstroImage> load = ImageFile.Load;
+            Func<AstroImage, AstroImage, double> diff = (a, b) => Enumerable.Range(0, 3).Max(c => Enumerable.Range(0, a.PixelCount).Max(i => Math.Abs(a.Data[c][i] - b.Data[c][i])));
+            Func<string> steps = () => OnUi(() => Field<Label>(view, "_stepsLabel").Text);
+            try
+            {
+                settings.SharpenProfiles.Clear();
+                settings.SharpenProfiles.Add(jup.Clone());
+                OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = true);
+                var img = load(jupiter);
+                OnUi(() => Call(view, "SetSharpenImage", img, jupiter));
+                CheckTrue("The profile's steps run on opening", WaitFor(() => !sharpJob.Busy && Field<List<SharpenStep>>(view, "_sharpSteps").Count == 1, 20000));
+                CheckTrue("The file name chooses Jupiter's profile", OnUi(() => box.Text) == "Jupiter", OnUi(() => box.Text));
+                CheckTrue("Its settings are shown", OnUi(() => layers[0].Value == 200 && layers[1].Value == 30 && Field<NumericUpDown>(view, "_decFwhm").Value == 2.5m && Field<NumericUpDown>(view, "_decIt").Value == 8));
+                CheckTrue("And its steps listed", steps() == "Steps: Align RGB channels", steps());
+                OnUi(() => Button(view, "Revert to the opened image").PerformClick());
+                CheckTrue("Revert goes back to the image as opened", OnUi(() => Field<List<SharpenStep>>(view, "_sharpSteps").Count == 0 && Field<AstroImage>(view, "_sharpSource") == Field<AstroImage>(view, "_sharpOriginal")) && steps() == "Steps: none", steps());
+                // choosing an object without a profile keeps the settings shown, to make one for it
+                OnUi(() => box.SelectedIndex = 0);
+                CheckTrue("Other has no profile yet: the settings stay", OnUi(() => box.Text == "Other" && layers[0].Value == 200));
+                OnUi(() => layers[0].Value = 150);
+
+                // Sharpen files: each image with its object's profile, the others with the settings shown
+                OnUi(() => Call(view, "SharpenFiles", new List<string> { jupiter, saturn, unknown, SharpenBatch.OutputPath(unknown) }));
+                CheckTrue("The images are sharpened", WaitFor(() => !sharpJob.Busy, 60000) && File.Exists(SharpenBatch.OutputPath(jupiter)) && File.Exists(SharpenBatch.OutputPath(saturn)) && File.Exists(SharpenBatch.OutputPath(unknown)));
+                CheckTrue("A result is not sharpened again", !File.Exists(SharpenBatch.OutputPath(SharpenBatch.OutputPath(unknown))));
+                var other = settings.SharpenProfiles.FirstOrDefault(x => x.Object == "");
+                CheckTrue("The settings shown became the Other profile", other != null && other.Layers[0] == 1.5 && other.Steps.Count == 0 && settings.SharpenProfiles.Count(x => x.Object == "Jupiter") == 1);
+                double dj = diff(load(SharpenBatch.OutputPath(jupiter)), jup.Apply(load(jupiter)));
+                double ds = diff(load(SharpenBatch.OutputPath(saturn)), other.Apply(load(saturn)));
+                double du = diff(load(SharpenBatch.OutputPath(unknown)), other.Apply(load(unknown)));
+                CheckTrue("Jupiter with its profile; Saturn, which has none, and the unknown image with the settings shown", dj <= 2e-5 && ds <= 2e-5 && du <= 2e-5, dj + ", " + ds + ", " + du);
+                CheckTrue("It says how many", WaitFor(() => Toasts().Any(x => x == "3 images sharpened and saved beside them, ending in _sharpened.tif")), string.Join(" | ", Toasts()));
+
+                // Watch folder: an image that appears there, also in a folder under it, is sharpened with its profile
+                OnUi(() => Call(view, "StartWatching", watched));
+                CheckTrue("Watching is shown", OnUi(() => Field<FlatButton>(view, "_watchButton").Text == "Stop watching" && Field<Label>(view, "_watchLabel").Visible && Field<FlatButton>(view, "_watchButton").Enabled));
+                string sub = Path.Combine(watched, "AS_P25");
+                Directory.CreateDirectory(sub);
+                string arriving = Path.Combine(sub, "Jupiter_213045_lapl5.tif");
+                // written under another name first, then renamed, as a stacker may
+                TiffIO.Write(arriving + ".part", disc(10));
+                File.Move(arriving + ".part", arriving);
+                CheckTrue("The new image is sharpened", WaitFor(() => File.Exists(SharpenBatch.OutputPath(arriving)) && !Field<JobSlot>(view, "_watchJob").Busy, 30000));
+                Settle(1500);
+                CheckTrue("With Jupiter's profile", diff(load(SharpenBatch.OutputPath(arriving)), jup.Apply(load(arriving))) <= 2e-5);
+                CheckTrue("Its result is not sharpened again", !File.Exists(SharpenBatch.OutputPath(SharpenBatch.OutputPath(arriving))));
+                CheckTrue("It says so", WaitFor(() => Toasts().Any(x => x == "Sharpened Jupiter_213045_lapl5.tif")), string.Join(" | ", Toasts()));
+                OnUi(() => Call(view, "StopWatching"));
+                CheckTrue("Watching stops", OnUi(() => Field<FlatButton>(view, "_watchButton").Text == "Watch folder…" && !Field<Label>(view, "_watchLabel").Visible && Field<FileSystemWatcher>(view, "_watcher") == null));
+                string late = Path.Combine(watched, "Jupiter_late.tif");
+                TiffIO.Write(late, disc(13));
+                Settle(2000);
+                CheckTrue("Nothing is sharpened after that", !File.Exists(SharpenBatch.OutputPath(late)));
+            }
+            finally
+            {
+                OnUi(() => Call(view, "StopWatching"));
+                settings.SharpenProfiles.Clear();
+                settings.SharpenProfiles.AddRange(savedProfiles);
+                settings.ApplySharpenProfile = savedApply;
+                OnUi(() => Field<CheckBox>(view, "_applyProfile").Checked = savedApply);
+            }
         }
     }
 }

@@ -5918,12 +5918,33 @@ msgid "Stacking options"
 msgstr "Επιλογές στοίβαξης"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "Εφαρμόζεται το προφίλ"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Αποσυνέλιξη {0:0.0} px, {1} επαναλήψεις"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Ανοίξτε στοιβαγμένη πλανητική εικόνα (TIFF/FITS/PNG) ή στείλτε μία από τη Στοίβαξη"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Κυματίδια"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Προφίλ"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Στο άνοιγμα"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Εφαρμογή του προφίλ"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5962,12 +5983,54 @@ msgid "Aligning colour channels"
 msgstr "Ευθυγράμμιση χρωματικών καναλιών"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Επαναφορά στην εικόνα που ανοίχτηκε"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Αποθήκευση αποτελέσματος…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Αποθηκεύτηκε. Αυτές οι ρυθμίσεις είναι πλέον το προφίλ για {0}."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Όξυνση αρχείων…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Παρακολούθηση φακέλου…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Όξυνση εικόνων"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "Οι ολισθητές στρώσεων ενισχύουν τις κλίμακες λεπτομέρειας à trous (B3 spline) 1, 2, 4, 8, 16, 32 px. Η αποθορυβοποίηση εφαρμόζει μαλακό κατώφλι στις λεπτότερες στρώσεις σε σχέση με τον μετρημένο θόρυβο. Εφαρμόστε την αποσυνέλιξη πριν από τα κυματίδια."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "Δεν ήταν δυνατή η όξυνση του {0}: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} εικόνα οξύνθηκε και αποθηκεύτηκε δίπλα της, με κατάληξη _sharpened.tif"
+msgstr[1] "{0} εικόνες οξύνθηκαν και αποθηκεύτηκαν δίπλα τους, με κατάληξη _sharpened.tif"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Διακοπή παρακολούθησης"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Παρακολουθείται: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Οξύνθηκε: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6660,6 +6723,14 @@ msgstr "Απόχρωση"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "Ευθυγράμμιση καναλιών RGB"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Βήματα: κανένα"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Βήματα: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

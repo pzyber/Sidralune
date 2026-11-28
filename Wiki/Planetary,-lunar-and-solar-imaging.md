@@ -4,7 +4,7 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 |---|---|
 | **Pre-process** | Centre, crop, debayer, sort and reject frames; correct field rotation |
 | **Lucky stacking** | Analyse frame quality, align with many alignment points, stack the best frames |
-| **Sharpen & deconvolve** | Wavelet sharpening and deconvolution |
+| **Sharpen & deconvolve** | Wavelet sharpening and deconvolution, with a profile for each object, for one image or a whole night's |
 | **Derotation** | Combine images taken minutes apart by undoing the planet's rotation |
 | **Solar & lunar** | Limb tools, prominences, colourising, mosaics |
 
@@ -16,6 +16,8 @@ The **Planetary** workspace processes high-frame-rate videos of the planets, the
 - [Pre-process](#pre-process)
 - [Lucky stacking](#lucky-stacking)
 - [Sharpen & deconvolve](#sharpen--deconvolve)
+  - [Profiles](#profiles)
+  - [Sharpening many images](#sharpening-many-images)
 - [Derotation](#derotation)
 - [Solar & lunar](#solar--lunar)
 - [Field rotation on alt-az mounts](#field-rotation-on-alt-az-mounts)
@@ -75,7 +77,7 @@ What happens:
 5. **Local frame selection**: with **Local quality** on, each alignment point uses the best frames for that area, not just the globally best frames, since seeing varies across the image.
 6. **Stacking**: the selected parts of the selected frames are combined with smooth blending between alignment points. **Drizzle scale** (1, 1.5, 2 or 3) can increase resolution for undersampled data. **Normalize** equalises brightness between frames.
 
-**Next stack** cycles through the stacks you made. **Save stacks…** writes them as 16-bit TIFF files, named with the WinJUPOS convention and the percentage (for example `2026-10-18-2215_3_0000_p25.tif`) when the video has time stamps. **Sharpen →** sends the current stack to the next tab.
+**Next stack** cycles through the stacks you made. **Save stacks…** writes them as 16-bit TIFF files, named with the WinJUPOS convention and the percentage (for example `2026-10-18-2215_3_0000_p25.tif`) when the video has time stamps. When the video's name or folder names the planet, its one-letter code follows the time (`2026-10-18-2215_3-J_0000_p25.tif`), so the Sharpen & deconvolve tab knows which profile to use. **Sharpen →** sends the current stack to the next tab.
 
 Other options: **Use field derotation** applies the per-frame rotation from pre-processing; **Max frames in memory** limits memory use for long videos; **Sharpen** applies a quick wavelet sharpening to the output.
 
@@ -83,19 +85,39 @@ Other options: **Use field derotation** applies the per-frame rotation from pre-
 
 Stacked planetary images look soft until they are sharpened. Open an image with **Open image…** or send one from Lucky stacking with **Sharpen →**.
 
-The tab works in two layers: the **source image** (the image you opened), and **wavelet sharpening** applied live on top of it. Deconvolution and channel alignment change the source; the sliders only change what is shown on top of it.
+The tab works in two layers: the **source image** (the image you opened, with the steps you applied to it), and **wavelet sharpening** applied live on top of it. Deconvolution and channel alignment are steps: they change the source, and the line under the buttons lists them in order ("Steps: Deconvolution 2.0 px, 15 iterations → Align RGB channels"). The sliders only change what is shown on top of it.
 
 **Wavelets**: six **Layer** sliders amplify detail at 1, 2, 4, 8, 16 and 32 pixel scales using the à trous (B3 spline) wavelet transform, and **Denoise** soft-thresholds the finest layers against the measured noise first. There is no button: a moment after you move a slider, the image is sharpened again from the source (the status bar shows a "Wavelets" task meanwhile). The sliders never pile up, so moving them back undoes the sharpening. Start from the defaults (layers 1–3 at 120, 60 and 20, the rest at 0, Denoise at 60) and adjust: layer 1 brings out the finest detail but also the noise, so for a noisy stack lower it or raise **Denoise**.
 
-**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It changes the source image, so it always sits underneath the wavelets, and the wavelets are applied again to the result. It cannot be undone: to start over, open the image again or send it again with **Sharpen →**. While it runs, **Open image…**, the other buttons and **Sharpen →** in Lucky stacking wait for it.
+**Deconvolution**: **Richardson-Lucy deconvolution (TV)** restores detail with a Gaussian PSF of **Deconv. FWHM** pixels over **Iterations**, with total-variation regularisation to limit noise. Use it gently (FWHM 1.5–3 px, 10–30 iterations). It is a step, so it always sits underneath the wavelets, and the wavelets are applied again to the result.
 
-**Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. Like deconvolution, it changes the source image, and the wavelets are applied again to the result.
+**Align RGB channels (ADC)** registers the red and blue channels onto green, removing the colour fringes of atmospheric dispersion. It is a step too.
 
-**Stop**, under these two buttons, ends a deconvolution part way, or a channel alignment between the red and the blue channel; the image is left as it was.
+**Stop**, under these two buttons, ends a deconvolution part way, or a channel alignment between the red and the blue channel; the image is left as it was. **Revert to the opened image** takes all the steps off again; the sliders stay where they are.
 
-**Save result…** saves the image as shown: the source with the wavelet sharpening.
+**Save result…** saves the image as shown: the source with the wavelet sharpening. It suggests the image's own name ending in `_sharpened`, in the image's folder.
 
 The **Solar & lunar** tab has a separate **Wavelet sharpen** button with fixed settings, for quick full-disc sharpening.
+
+### Profiles
+
+Jupiter, Saturn, Mars and the Moon each need their own sharpening, so the tab keeps a **profile** for each object: the steps, the six layers, **Denoise** and the deconvolution settings. **Profile** shows the object the settings are for: **Other** (images whose object is not known), the Sun, the Moon or a planet.
+
+- **The object comes from the file name.** When you open an image, Sidralune looks for the object in its name, then in the names of the folders above it:
+  - an English name, also at the start of a word (`Jupiter`, `JupiterRGB`), or a short name as a whole word (`Jup`, `Sat`, `Ven`, `Mer`, `Ura`, `Nep`), as FireCapture writes them;
+  - the one-letter code that Pre-process and **Save stacks…** put after a WinJUPOS time (`2026-11-28-2130_4-J_0000.tif`);
+  - the folder SharpCap files captures under (`Saturn\2026-11-28\21_30_45\`), or the video's folder above AutoStakkert's `AS_P25`.
+
+  **Profile** then switches to that object. When nothing names it, **Profile** stays as it was.
+- **When opening: Apply the profile** (on by default) applies the object's profile to the image: its settings are shown and its steps are run on the image, in order. Turn it off to open images as they are.
+- **Choosing an object in Profile** applies its profile to the image in the same way. An object without a profile keeps the settings shown, so you can make one for it.
+- **A profile is kept** when you click **Save result…**, **Sharpen files…** or **Watch folder…**: the settings shown become the profile of the object in **Profile**. A toast after **Save result…** says which profile was kept. Profiles are kept with the other settings, so they are there next time.
+
+### Sharpening many images
+
+**Sharpen files…** sharpens a whole night's stacks at once. Choose the files (the dialog opens in the folder of the image you have open; Ctrl+A selects them all). Each image gets its own object's profile, so stacks of Jupiter, Saturn and Mars can be done together. An image whose object is not known, or whose object has no profile yet, gets the settings shown. Each result is saved beside its image as a 16-bit TIFF, with `_sharpened` added to the name (`2026-11-28-2130_4-J_0000_sharpened.tif`), so WinJUPOS still reads the time. Results are never sharpened again. A toast says how many images were done, and names the first that could not be. **Stop** ends it after the image being sharpened.
+
+**Watch folder…** does the same with each new image that appears in a folder, or in a folder under it, while you go on stacking. Choose the folder your stacker saves into, or the folder of the videos (AutoStakkert puts its stacks in a folder such as `AS_P25` beside the video). Sidralune waits until a new image has been written completely, then sharpens it with its object's profile and says so in a toast. An image that is saved again later is sharpened again. Watching runs beside the tab's own work, and the line under the buttons says which folder is watched. Click **Stop watching** to end it.
 
 ## Derotation
 
@@ -137,7 +159,7 @@ Note that this field rotation is different from the planet's own rotation, which
 
 ## WinJUPOS file names
 
-WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM-DD-HHMM_T`, where `T` is the tenth of a minute (UTC) at the middle of the recording. Sidralune writes `YYYY-MM-DD-HHMM_T-Planet_NNNN` when pre-processing with **Win jupos naming** (the planet part comes from **Planet code** and is left out when empty; `NNNN` is a running number), and `YYYY-MM-DD-HHMM_T_NNNN_pXX` from **Save stacks…** (`XX` is the stack percentage). WinJUPOS reads the time from these names, and so does the Derotation tab.
+WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM-DD-HHMM_T`, where `T` is the tenth of a minute (UTC) at the middle of the recording. Sidralune writes `YYYY-MM-DD-HHMM_T-Planet_NNNN` when pre-processing with **Win jupos naming** (the planet part comes from **Planet code** and is left out when empty; `NNNN` is a running number), and `YYYY-MM-DD-HHMM_T-Planet_NNNN_pXX` from **Save stacks…** (`XX` is the stack percentage; the planet part is the one-letter code of the planet the video's name or folder names, and is left out when none does). WinJUPOS reads the time from these names, and so does the Derotation tab. **Sharpen files…** adds `_sharpened` at the end, which keeps the time readable.
 
 ## A complete Jupiter workflow
 
@@ -145,5 +167,6 @@ WinJUPOS identifies images by the time in their file names, in the form `YYYY-MM
 2. **Pre-process** each: Object mode Planetary, Centre object, Reject edge frames, Keep best percent 100, Format Ser, Win jupos naming on.
 3. **Lucky stacking**: Stack % `25`, Ap size 48, Local quality on. **Save stacks…**.
 4. **Derotation**: add the five stacks, planet Jupiter, target time in the middle, **Derotate & stack to target time**, **Save result…**.
-5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, **Save…**.
+5. **Sharpen & deconvolve**: open the derotated image, deconvolve gently, then wavelet sharpen with layer 2 strongest, **Align RGB channels (ADC)**, **Save result…**. These settings become the Jupiter profile.
 6. Optionally fine-tune colour and levels in [Process](Image-processing).
+7. On later nights, **Sharpen files…** sharpens all the Jupiter stacks with that profile in one go, or **Watch folder…** sharpens each stack as soon as it is saved.

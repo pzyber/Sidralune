@@ -38,6 +38,9 @@ namespace Sidralune
         public bool NightMode;
         public string LastView = "home";
         public string ImageFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Sidralune");
+        /// <summary>Planetary → Sharpen &amp; deconvolve: the settings kept for each object, and whether opening an image applies its object's.</summary>
+        public List<Imaging.Planetary.SharpenProfile> SharpenProfiles = new List<Imaging.Planetary.SharpenProfile>();
+        public bool ApplySharpenProfile = true;
         public string NovaApiKey = "";
         public string AavsoObserverCode = "";
         public string MpcStationCode = "500";
@@ -241,6 +244,7 @@ namespace Sidralune
                 Settings.Sites = new List<Observer> { new Observer { Name = "Home", LatitudeDeg = 52.0, LongitudeDeg = Math.Round(off * 15, 1), ElevationM = 20, SqmZenith = 20.8, Bortle = 5 } };
             }
             DeviceManager.Instance.Site = Site;
+            if (Settings.SharpenProfiles == null) Settings.SharpenProfiles = new List<Imaging.Planetary.SharpenProfile>();
             FirstProfile();
             ApplyProfile();
             Core.Catalogs.SkyNames.InLanguage = Settings.SkyNamesInLanguage;

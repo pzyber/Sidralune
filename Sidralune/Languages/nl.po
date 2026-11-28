@@ -5918,12 +5918,33 @@ msgid "Stacking options"
 msgstr "Stapelopties"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Applying the profile"
+msgstr "Profiel wordt toegepast"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Deconvolution {0:0.0} px, {1} iterations"
+msgstr "Deconvolutie {0:0.0} px, {1} iteraties"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"
 msgstr "Open een gestapelde planeetopname (TIFF/FITS/PNG) of stuur er een vanuit Stapelen"
 
 #: Sidralune/Views/PlanetaryView.cs Sidralune/Views/ProcessingView.cs
 msgid "Wavelets"
 msgstr "Wavelets"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgctxt "sharpening"
+msgid "Profile"
+msgstr "Profiel"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "When opening"
+msgstr "Bij openen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Apply the profile"
+msgstr "Profiel toepassen"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Layer {0}"
@@ -5962,12 +5983,54 @@ msgid "Aligning colour channels"
 msgstr "Kleurkanalen uitlijnen"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Revert to the opened image"
+msgstr "Terug naar de geopende afbeelding"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Save result…"
 msgstr "Resultaat opslaan…"
 
 #: Sidralune/Views/PlanetaryView.cs
+msgid "Saved. These settings are now the {0} profile."
+msgstr "Opgeslagen. Deze instellingen zijn nu het profiel voor {0}."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpen files…"
+msgstr "Bestanden verscherpen…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watch folder…"
+msgstr "Map bewaken…"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpening images"
+msgstr "Afbeeldingen verscherpen"
+
+#: Sidralune/Views/PlanetaryView.cs
 msgid "Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets."
 msgstr "De laagschuiven versterken de à-trous-detailschalen (B3-spline) 1, 2, 4, 8, 16, 32 px. Ruisonderdrukking zet een zachte drempel op de fijnste lagen ten opzichte van de gemeten ruis. Pas deconvolutie toe vóór wavelets."
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Could not sharpen {0}: {1}"
+msgstr "Kan {0} niet verscherpen: {1}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "{0} image sharpened and saved beside it, ending in _sharpened.tif"
+msgid_plural "{0} images sharpened and saved beside them, ending in _sharpened.tif"
+msgstr[0] "{0} afbeelding verscherpt en ernaast opgeslagen, eindigend op _sharpened.tif"
+msgstr[1] "{0} afbeeldingen verscherpt en ernaast opgeslagen, eindigend op _sharpened.tif"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Stop watching"
+msgstr "Bewaken stoppen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Watching {0}"
+msgstr "Bewaakt: {0}"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Sharpened {0}"
+msgstr "Verscherpt: {0}"
 
 #: Sidralune/Views/PlanetaryView.cs
 msgid "Add stacked images of the same planet (times from FITS DATE-OBS or WinJUPOS file names)"
@@ -6660,6 +6723,14 @@ msgstr "Tint"
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align RGB channels"
 msgstr "RGB-kanalen uitlijnen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: none"
+msgstr "Stappen: geen"
+
+#: Sidralune/Views/PlanetaryView.cs
+msgid "Steps: {0}"
+msgstr "Stappen: {0}"
 
 #: Sidralune/Views/ProcessingView.cs
 msgid "Align channels"

@@ -180,6 +180,7 @@ The model predicts typical detectability, not certainty: individual eyes and nig
 | Local alignment | Multi-point alignment boxes with sub-pixel cross-correlation, multi-scale, per-point frame selection, smooth blending |
 | Field rotation | Parallactic angle from site, time and target; or estimated from the images by polar cross-correlation |
 | Limb fitting | Radial gradient edges, RANSAC and Kåsa algebraic circle fit |
+| Channel alignment (dispersion) | Red and blue registered onto green by phase correlation over the whole image (up to 1024 pixels around the centre of light, so a planet's limb is included), with a window tapered only at its edges and a second pass for the sub-pixel remainder |
 | Sphere derotation | Re-projection on an oblate spheroid using the rotation period, sub-Earth latitude and pole angle from the ephemeris, with limb-darkening compensation |
 
 ## Guiding

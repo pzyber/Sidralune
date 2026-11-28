@@ -197,6 +197,7 @@ namespace Sidralune.Views
             var bar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 44 };
             LuckyResult result = null;
             LuckyOptions resultOptions = null; // the options the shown result was made with
+            string resultPath = null; // and the video it was made from, which names the object
             int shown = 0;
             Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k }; b.AutoSizeToText(); bar.Controls.Add(b); return b; };
             _openLucky = (open, done) => OpenSourceInBackground(_luckyJob, open, src => src.ReadFrame(0), (src, first) =>
@@ -220,6 +221,7 @@ namespace Sidralune.Views
                 {
                     result = res;
                     resultOptions = run.Options;
+                    resultPath = src.Path;
                     shown = 0;
                     _stacked = result.Stacks[0];
                     viewer.SetImage(_stacked);
@@ -242,12 +244,13 @@ namespace Sidralune.Views
                         for (int i = 0; i < result.Stacks.Count; i++)
                         {
                             var img = result.Stacks[i];
-                            string name = img.DateObs.HasValue ? Preprocessor.WinJuposName(img.DateObs.Value, "", i) : "stack_" + i;
+                            // the object's code after the time, so the Sharpen tab and WinJUPOS know which planet it is
+                            string name = img.DateObs.HasValue ? Preprocessor.WinJuposName(img.DateObs.Value, PlanetaryObject.Code(PlanetaryObject.FromPath(resultPath)), i) : "stack_" + i;
                             TiffIO.Write(Path.Combine(d.SelectedPath, name + "_p" + resultOptions.StackPercents[i] + ".tif"), img);
                         }
             }, ButtonKind.Normal);
             // the toolbar waits for the stack, this button for a deconvolution running in Sharpen & deconvolve as well
-            _sharpJob.Guard(btn(T("Sharpen →"), Icons.Right, () => { if (stacked()) { _tabs.Select(2); SetSharpenImage(result.Stacks[shown]); } }, ButtonKind.Subtle));
+            _sharpJob.Guard(btn(T("Sharpen →"), Icons.Right, () => { if (stacked()) { _tabs.Select(2); SetSharpenImage(result.Stacks[shown], resultPath); } }, ButtonKind.Subtle));
             viewer.PaintOverlay += (g, map) =>
             {
                 if (result == null || viewer.Image != result.Reference && viewer.Image != _stacked) return;
@@ -274,17 +277,96 @@ namespace Sidralune.Views
         // ================================================================== sharpening
 
         private ImageViewer _sharpViewer;
-        private AstroImage _sharpSource;
+        // the image as opened, the same with the steps applied so far, and its file (for its object and folder)
+        private AstroImage _sharpOriginal, _sharpSource;
+        private string _sharpPath;
+        private readonly List<SharpenStep> _sharpSteps = new List<SharpenStep>();
         private readonly Slider[] _layers = new Slider[6];
         private Slider _denoise;
+        private NumericUpDown _decFwhm, _decIt;
+        private ComboBox _profileBox;
+        private CheckBox _applyProfile;
+        private Label _stepsLabel, _watchLabel;
+        private FlatButton _watchButton;
+        private bool _loadingProfile; // the settings are being changed by the view, not by the user
         private System.Windows.Forms.Timer _sharpDebounce;
+        // Watch folder: the watcher, the images waiting, when each was written as it was sharpened, and the job that
+        // sharpens them one at a time beside the tab's own work
+        private FileSystemWatcher _watcher;
+        private readonly List<string> _watchQueue = new List<string>();
+        private readonly Dictionary<string, DateTime> _watchDone = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+        private readonly JobSlot _watchJob = new JobSlot();
 
-        private void SetSharpenImage(AstroImage img)
+        // the profile list: Other (objects not known), then the Sun, the Moon and the planets
+        private static string ProfileObject(int index) => index <= 0 ? "" : PlanetaryObject.Objects[index - 1].ToString();
+        private static int ProfileIndex(Body b) => Array.IndexOf(PlanetaryObject.Objects, b) + 1;
+        private static SharpenProfile SavedProfile(string obj) => AppState.Settings.SharpenProfiles.FirstOrDefault(p => p != null && p.Object == obj);
+
+        /// <summary>The settings shown, as a profile of the object chosen in the list.</summary>
+        private SharpenProfile CurrentProfile() => new SharpenProfile
+        {
+            Object = ProfileObject(_profileBox.SelectedIndex),
+            Layers = _layers.Select(l => l.Value / 100.0).ToArray(),
+            Denoise = _denoise.Value / 100.0,
+            DeconvFwhm = (double)_decFwhm.Value,
+            DeconvIterations = (int)_decIt.Value,
+            Steps = _sharpSteps.Select(s => s.Clone()).ToList()
+        };
+
+        /// <summary>Keeps the settings shown as the chosen object's profile, and returns them.</summary>
+        private SharpenProfile KeepProfile()
+        {
+            var p = CurrentProfile();
+            AppState.Settings.SharpenProfiles.RemoveAll(x => x == null || x.Object == p.Object);
+            AppState.Settings.SharpenProfiles.Add(p);
+            AppState.Save();
+            return p;
+        }
+
+        private void SetSharpenImage(AstroImage img, string path = null)
         {
             if (_sharpJob.Refuse()) return;
             ColorUi.Opened(img);
-            _sharpSource = img; _sharpViewer.SetImage(img); UpdateSharpen();
+            _sharpOriginal = _sharpSource = img; _sharpPath = path; _sharpSteps.Clear();
+            _sharpViewer.SetImage(img);
+            // the file name tells the object: its profile is chosen, and used when Apply the profile is ticked
+            var b = PlanetaryObject.FromPath(path);
+            if (b.HasValue) { _loadingProfile = true; _profileBox.SelectedIndex = ProfileIndex(b.Value); _loadingProfile = false; }
+            var saved = SavedProfile(ProfileObject(_profileBox.SelectedIndex));
+            if (_applyProfile.Checked && saved != null) UseProfile(saved);
+            else { ShowSteps(); UpdateSharpen(); }
         }
+
+        /// <summary>Shows a profile's settings and applies its steps to the image as opened.</summary>
+        private void UseProfile(SharpenProfile p)
+        {
+            Func<Slider, double, int> clamp = (s, v) => Math.Max(s.Minimum, Math.Min(s.Maximum, (int)Math.Round(v * 100)));
+            _loadingProfile = true;
+            for (int i = 0; i < _layers.Length; i++) _layers[i].Value = clamp(_layers[i], p.Layers != null && i < p.Layers.Length ? p.Layers[i] : 0);
+            _denoise.Value = clamp(_denoise, p.Denoise);
+            _decFwhm.Value = Math.Max(_decFwhm.Minimum, Math.Min(_decFwhm.Maximum, (decimal)p.DeconvFwhm));
+            _decIt.Value = Math.Max(_decIt.Minimum, Math.Min(_decIt.Maximum, p.DeconvIterations));
+            _loadingProfile = false;
+            _sharpDebounce.Stop();
+            _sharpSteps.Clear();
+            var steps = (p.Steps ?? new List<SharpenStep>()).Where(s => s != null).Select(s => s.Clone()).ToList();
+            if (_sharpOriginal == null || steps.Count == 0) { _sharpSource = _sharpOriginal; ShowSteps(); UpdateSharpen(); return; }
+            var orig = _sharpOriginal;
+            var prof = new SharpenProfile { Steps = steps };
+            AstroImage done = null;
+            _sharpSource = orig; ShowSteps(); UpdateSharpen(); // as opened until the steps are done; a stop leaves it so
+            _sharpJob.Run(T("Applying the profile"), t => done = prof.ApplySteps(orig, t.Cts.Token), () =>
+            {
+                if (_sharpOriginal != orig) return;
+                _sharpSource = done; _sharpSteps.AddRange(steps); ShowSteps(); UpdateSharpen();
+            });
+        }
+
+        private static string StepText(SharpenStep s) =>
+            s.Kind == SharpenStepKind.Deconvolution ? T("Deconvolution {0:0.0} px, {1} iterations", s.Fwhm, s.Iterations) : T("Align RGB channels");
+
+        private void ShowSteps() =>
+            _stepsLabel.Text = _sharpSteps.Count == 0 ? T("Steps: none") : T("Steps: {0}", string.Join(" → ", _sharpSteps.Select(StepText)));
 
         private Control BuildSharpen()
         {
@@ -292,21 +374,31 @@ namespace Sidralune.Views
             _sharpViewer = new ImageViewer { Dock = DockStyle.Fill, EmptyText = T("Open a stacked planetary image (TIFF/FITS/PNG) or send one from Stacking"), Stretch = DisplayStretch.None };
             var side = Side(T("Wavelets"), 360);
             var g = new FormGrid(100);
+            _profileBox = g.Row(Tc("sharpening", "Profile"), Ui.Combo(new object[] { T("Other") }.Concat(PlanetaryObject.Objects.Select(b => (object)BodyNames.Name(b))).ToArray()));
+            _profileBox.SelectedIndexChanged += (s, e) =>
+            {
+                if (_loadingProfile) return;
+                var saved = SavedProfile(ProfileObject(_profileBox.SelectedIndex));
+                if (saved != null) UseProfile(saved);
+            };
+            _applyProfile = g.Row(T("When opening"), new CheckBox { Text = T("Apply the profile"), Checked = AppState.Settings.ApplySharpenProfile });
+            _applyProfile.CheckedChanged += (s, e) => { AppState.Settings.ApplySharpenProfile = _applyProfile.Checked; AppState.Save(); };
+            EventHandler changed = (s, e) => { if (_loadingProfile) return; _sharpDebounce.Stop(); _sharpDebounce.Start(); };
             for (int i = 0; i < 6; i++)
             {
                 _layers[i] = new Slider { Minimum = -50, Maximum = 400, Value = i == 0 ? 120 : i == 1 ? 60 : i == 2 ? 20 : 0, TickStyle = TickStyle.None };
-                _layers[i].ValueChanged += (s, e) => { _sharpDebounce.Stop(); _sharpDebounce.Start(); };
+                _layers[i].ValueChanged += changed;
                 g.Row(T("Layer {0}", i + 1), _layers[i]);
             }
             _denoise = new Slider { Minimum = 0, Maximum = 300, Value = 60, TickStyle = TickStyle.None };
-            _denoise.ValueChanged += (s, e) => { _sharpDebounce.Stop(); _sharpDebounce.Start(); };
+            _denoise.ValueChanged += changed;
             g.Row(T("Denoise"), _denoise);
             _sharpDebounce = new System.Windows.Forms.Timer { Interval = 250 };
             _sharpDebounce.Tick += (s, e) => { _sharpDebounce.Stop(); UpdateSharpen(); };
-            var decFwhm = g.Row(T("Deconv. FWHM"), Ui.Num(2.0m, 0.5m, 15, 1, 0.1m));
-            var decIt = g.Row(T("Iterations"), Ui.Num(15, 1, 200));
+            _decFwhm = g.Row(T("Deconv. FWHM"), Ui.Num(2.0m, 0.5m, 15, 1, 0.1m));
+            _decIt = g.Row(T("Iterations"), Ui.Num(15, 1, 200));
             var buttons = new FlowLayoutPanel { Height = 160, FlowDirection = FlowDirection.TopDown };
-            Action<string, string, Action, ButtonKind> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; buttons.Controls.Add(b); };
+            Func<string, string, Action, ButtonKind, FlatButton> btn = (t, i, a, k) => { var b = new FlatButton(t, i, (s, e) => a()) { Kind = k, Width = 300 }; buttons.Controls.Add(b); return b; };
             btn(T("Open image…"), Icons.Open, () =>
             {
                 if (_sharpJob.Refuse()) return;
@@ -315,39 +407,77 @@ namespace Sidralune.Views
                     if (d.ShowDialog() != DialogResult.OK) return;
                     string path = d.FileName;
                     AstroImage loaded = null;
-                    _sharpJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () => SetSharpenImage(loaded));
+                    _sharpJob.Run(T("Opening {0}", Path.GetFileName(path)), t => loaded = ImageFile.Load(path), () => SetSharpenImage(loaded, path));
                 }
             }, ButtonKind.Normal);
             btn(T("Richardson-Lucy deconvolution (TV)"), Icons.Check, () =>
             {
                 if (_sharpSource == null) return;
-                var src = _sharpSource.Clone(); double fw = (double)decFwhm.Value; int it = (int)decIt.Value;
-                _sharpJob.Run(T("Deconvolution"), t => Deconvolution.Run(src, Psf.Gaussian(fw), new DeconvolutionOptions { Method = DeconvolutionMethod.RichardsonLucyTV, Iterations = it, TvLambda = 0.001, DeringingAmount = 0.3 }, null, t.Cts.Token), () => { _sharpSource = src; UpdateSharpen(); });
+                var src = _sharpSource.Clone(); var step = new SharpenStep { Kind = SharpenStepKind.Deconvolution, Fwhm = (double)_decFwhm.Value, Iterations = (int)_decIt.Value };
+                _sharpJob.Run(T("Deconvolution"), t => SharpenProfile.ApplyStep(src, step, t.Cts.Token), () => { _sharpSource = src; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
             }, ButtonKind.Normal);
             btn(T("Align RGB channels (ADC)"), Icons.Check, () =>
             {
                 if (_sharpSource == null) { MainForm.Instance.Toast(T("Open an image first"), Icons.Info); return; }
                 if (_sharpSource.Channels != 3) { MainForm.Instance.Toast(T("Aligning channels needs a colour image"), Icons.Info); return; }
-                var s = _sharpSource.Clone();
-                _sharpJob.Run(T("Aligning colour channels"), t => ColorOps.AlignChannels(s, t.Cts.Token), () => { _sharpSource = s; UpdateSharpen(); });
+                var s = _sharpSource.Clone(); var step = new SharpenStep { Kind = SharpenStepKind.AlignChannels };
+                _sharpJob.Run(T("Aligning colour channels"), t => SharpenProfile.ApplyStep(s, step, t.Cts.Token), () => { _sharpSource = s; _sharpSteps.Add(step); ShowSteps(); UpdateSharpen(); });
+            }, ButtonKind.Normal);
+            btn(T("Revert to the opened image"), Icons.Undo, () =>
+            {
+                if (_sharpOriginal == null) return;
+                _sharpSource = _sharpOriginal; _sharpSteps.Clear(); ShowSteps(); UpdateSharpen();
             }, ButtonKind.Normal);
             btn(T("Save result…"), Icons.Save, () =>
             {
                 var img = _sharpViewer.Image; if (img == null) return;
-                using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = "planet.tif", FilterIndex = 4 })
-                    if (d.ShowDialog() == DialogResult.OK) ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
+                using (var d = new SaveFileDialog { Filter = ImageFile.SaveFilter, FileName = _sharpPath != null ? Path.GetFileNameWithoutExtension(SharpenBatch.OutputPath(_sharpPath)) : "planet.tif", FilterIndex = 4 })
+                {
+                    if (_sharpPath != null) d.InitialDirectory = Path.GetDirectoryName(_sharpPath);
+                    if (d.ShowDialog() != DialogResult.OK) return;
+                    ImageFile.Save(d.FileName, img, ImageFile.FormatFromFilterIndex(d.FilterIndex));
+                }
+                // the settings of a result worth keeping become the object's profile
+                KeepProfile();
+                MainForm.Instance.Toast(T("Saved. These settings are now the {0} profile.", _profileBox.Text), Icons.Check, Theme.Current.Success);
             }, ButtonKind.Primary);
-            // Stop, under the two buttons that change the image, ends a deconvolution or a channel alignment; the other buttons wait
-            var sharpStop = _sharpJob.StopButton(n => n == T("Deconvolution") || n == T("Aligning colour channels"));
+            btn(T("Sharpen files…"), Icons.Layers, () =>
+            {
+                if (_sharpJob.Refuse()) return;
+                using (var d = new OpenFileDialog { Filter = ImageFile.OpenFilter, Multiselect = true })
+                {
+                    if (_sharpPath != null) d.InitialDirectory = Path.GetDirectoryName(_sharpPath);
+                    if (d.ShowDialog() == DialogResult.OK) SharpenFiles(d.FileNames);
+                }
+            }, ButtonKind.Normal);
+            _watchButton = btn(T("Watch folder…"), Icons.Eye, () =>
+            {
+                if (_watcher != null) { StopWatching(); return; }
+                using (var d = new FolderBrowserDialog())
+                {
+                    if (_sharpPath != null) d.SelectedPath = Path.GetDirectoryName(_sharpPath);
+                    if (d.ShowDialog() == DialogResult.OK) StartWatching(d.SelectedPath);
+                }
+            }, ButtonKind.Normal);
+            // Stop, under the two buttons that change the image, ends a deconvolution, a channel alignment, the steps of
+            // a profile or sharpening files; the other buttons wait
+            var sharpStop = _sharpJob.StopButton(n => n == T("Deconvolution") || n == T("Aligning colour channels") || n == T("Applying the profile") || n == T("Sharpening images"));
             sharpStop.Width = 300;
-            _sharpJob.Guard(buttons.Controls.Cast<Control>().ToArray());
+            // Watch folder stays available, so watching can be stopped at any time
+            _sharpJob.Guard(buttons.Controls.Cast<Control>().Where(c => c != _watchButton).Concat(new Control[] { _profileBox }).ToArray());
             Ui.InsertAfter(buttons, sharpStop, T("Align RGB channels (ADC)"));
-            buttons.Height = 200;
+            buttons.Height = buttons.Controls.Count * 36 + 4; // each button and its margins
             g.Full(buttons);
+            _stepsLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0) };
+            g.Full(_stepsLabel);
+            ShowSteps();
+            _watchLabel = new Label { Tag = "dim", AutoSize = true, MaximumSize = new Size(340, 0), Visible = false };
+            g.Full(_watchLabel);
             g.Full(Ui.Hint(T("Layer sliders amplify the à trous (B3 spline) detail scales 1, 2, 4, 8, 16, 32 px. Denoise soft-thresholds the finest layers against the measured noise. Apply deconvolution before wavelets.")));
             side.Controls.Add(g);
             panel.Controls.Add(_sharpViewer);
             panel.Controls.Add(side);
+            Disposed += (s, e) => { if (_watcher != null) _watcher.Dispose(); };
             return panel;
         }
 
@@ -357,12 +487,132 @@ namespace Sidralune.Views
             var src = _sharpSource;
             var amt = _layers.Select(l => l.Value / 100.0).ToArray();
             double dn = _denoise.Value / 100.0;
-            var o = src.Clone();
-            _waveletJob.Replace(T("Wavelets"), t =>
+            AstroImage o = null;
+            _waveletJob.Replace(T("Wavelets"), t => o = SharpenProfile.Wavelets(src, amt, dn, t.Cts.Token), () => _sharpViewer.SetImage(o, false));
+        }
+
+        /// <summary>
+        /// Sharpens the images with their objects' profiles (the settings shown for an image whose object is not known),
+        /// saving each beside it as a 16-bit TIFF ending in _sharpened. The settings shown become the chosen object's
+        /// profile first, as when a result is saved.
+        /// </summary>
+        private void SharpenFiles(IList<string> files)
+        {
+            if (_sharpJob.Refuse()) return;
+            var current = KeepProfile();
+            var saved = AppState.Settings.SharpenProfiles.Select(p => p.Clone()).ToList();
+            var todo = files.Where(f => !SharpenBatch.IsOutput(f)).ToList();
+            int ok = 0;
+            string failed = null;
+            _sharpJob.Run(T("Sharpening images"), t =>
             {
-                for (int c = 0; c < o.Channels; c++) o.Data[c] = Wavelets.Sharpen(src.Data[c], src.Width, src.Height, amt, new[] { dn, dn * 0.5, 0, 0, 0, 0 });
-                o.Clip(0, 1);
-            }, () => _sharpViewer.SetImage(o, false));
+                for (int i = 0; i < todo.Count; i++)
+                {
+                    t.Cts.Token.ThrowIfCancellationRequested();
+                    Tasks.Report(t, (double)i / todo.Count, Path.GetFileName(todo[i]));
+                    try { SharpenBatch.Run(todo[i], SharpenBatch.ProfileFor(todo[i], saved, current), t.Cts.Token); ok++; }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex) { if (failed == null) failed = T("Could not sharpen {0}: {1}", Path.GetFileName(todo[i]), ex.Message); }
+                }
+            }, () =>
+            {
+                MainForm.Instance.Toast(Tn("{0} image sharpened and saved beside it, ending in _sharpened.tif", "{0} images sharpened and saved beside them, ending in _sharpened.tif", ok), Icons.Check, Theme.Current.Success);
+                if (failed != null) MainForm.Instance.Toast(failed, Icons.Warning, Theme.Current.Danger);
+            });
+        }
+
+        /// <summary>
+        /// Sharpens each image that appears in the folder or a folder under it (AutoStakkert puts its stacks in a folder
+        /// beside the video), as Sharpen files does, until watching is stopped.
+        /// </summary>
+        private void StartWatching(string folder)
+        {
+            StopWatching();
+            KeepProfile();
+            var w = new FileSystemWatcher(folder) { IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size };
+            FileSystemEventHandler onFile = (s, e) => Tasks.Post(() => { if (_watcher == w) EnqueueWatched(e.FullPath); });
+            w.Created += onFile;
+            w.Changed += onFile;
+            w.Renamed += (s, e) => Tasks.Post(() => { if (_watcher == w) EnqueueWatched(e.FullPath); });
+            _watcher = w;
+            w.EnableRaisingEvents = true;
+            _watchButton.Text = T("Stop watching");
+            _watchLabel.Text = T("Watching {0}", folder);
+            _watchLabel.Visible = true;
+        }
+
+        private void StopWatching()
+        {
+            if (_watcher == null) return;
+            _watcher.EnableRaisingEvents = false;
+            _watcher.Dispose();
+            _watcher = null;
+            _watchQueue.Clear();
+            _watchJob.Cancel();
+            _watchButton.Text = T("Watch folder…");
+            _watchLabel.Visible = false;
+        }
+
+        private void EnqueueWatched(string path)
+        {
+            if (SharpenBatch.IsOutput(path) || !ImageFile.IsSupported(path) || new[] { ".ser", ".avi" }.Contains(Path.GetExtension(path).ToLowerInvariant())) return;
+            if (_watchQueue.Contains(path, StringComparer.OrdinalIgnoreCase)) return;
+            _watchQueue.Add(path);
+            PumpWatched();
+        }
+
+        private void PumpWatched()
+        {
+            if (_watcher == null || _watchJob.Busy || _watchQueue.Count == 0) return;
+            string path = _watchQueue[0];
+            _watchQueue.RemoveAt(0);
+            var current = CurrentProfile();
+            var saved = AppState.Settings.SharpenProfiles.Select(p => p.Clone()).ToList();
+            DateTime before;
+            bool seen = _watchDone.TryGetValue(path, out before);
+            DateTime? written = null;
+            bool sharpened = false;
+            _watchJob.Run(T("Sharpening images"), t =>
+            {
+                written = WaitUntilWritten(path, t.Cts.Token);
+                // gone (a file written under another name first), or sharpened already as it is now
+                if (!written.HasValue || seen && written.Value == before) return;
+                SharpenBatch.Run(path, SharpenBatch.ProfileFor(path, saved, current), t.Cts.Token);
+                sharpened = true;
+            }, () =>
+            {
+                if (written.HasValue) _watchDone[path] = written.Value;
+                if (sharpened) MainForm.Instance.Toast(T("Sharpened {0}", Path.GetFileName(path)), Icons.Check, Theme.Current.Success);
+                PumpWatched();
+            }, ex =>
+            {
+                MainForm.Instance.Toast(T("Could not sharpen {0}: {1}", Path.GetFileName(path), ex.Message), Icons.Warning, Theme.Current.Danger);
+                PumpWatched();
+            });
+        }
+
+        /// <summary>
+        /// Waits until a new file has been written: it can be opened on its own and its size stays the same. Returns when
+        /// it was last written, or null when it is gone.
+        /// </summary>
+        private static DateTime? WaitUntilWritten(string path, System.Threading.CancellationToken ct)
+        {
+            var until = DateTime.UtcNow.AddMinutes(2);
+            long last = -1;
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (!File.Exists(path)) return null;
+                try
+                {
+                    long len;
+                    using (var f = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None)) len = f.Length;
+                    if (len > 0 && len == last) return File.GetLastWriteTimeUtc(path);
+                    last = len;
+                }
+                catch (IOException) { if (DateTime.UtcNow > until) throw; last = -1; }
+                ct.WaitHandle.WaitOne(300);
+            }
         }
 
         // ================================================================== derotation

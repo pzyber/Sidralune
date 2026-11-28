@@ -271,19 +271,62 @@ namespace Sidralune.Imaging
         {
             if (img.Channels < 3) return null;
             int w = img.Width, h = img.Height;
-            int size = Math.Min(Core.Mathematics.Fft.NextPowerOfTwo(Math.Min(w, h)) / 2, 512);
-            int x0 = (w - size) / 2, y0 = (h - size) / 2;
-            Func<float[], float[]> crop = d => { var c = new float[size * size]; for (int y = 0; y < size; y++) Array.Copy(d, (y0 + y) * w + x0, c, y * size, size); return c; };
-            var g = crop(img.Data[1]);
-            var win = Core.Mathematics.Fft.Hann2D(size, size);
+            // the whole image, or as much of it as 1024 pixels hold, around the green channel's centre of light: a planet's
+            // limb must be in it, since the inside of a banded disc alone leaves a shift along the bands undetermined.
+            // What lies outside the image is filled with the channel's sky level
+            int size = Math.Min(Core.Mathematics.Fft.NextPowerOfTwo(Math.Max(w, h)), 1024);
+            var green = img.Data[1];
+            double sky = Core.Mathematics.Stats.Median(green), sx = 0, sy = 0, sw = 0;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    double v = green[y * w + x] - sky;
+                    if (v > 0) { sx += v * x; sy += v * y; sw += v; }
+                }
+            int x0 = (sw > 0 ? (int)Math.Round(sx / sw) : w / 2) - size / 2, y0 = (sw > 0 ? (int)Math.Round(sy / sw) : h / 2) - size / 2;
+            Func<float[], float[]> crop = d =>
+            {
+                float fill = (float)Core.Mathematics.Stats.Median(d);
+                var c = new float[size * size];
+                for (int y = 0; y < size; y++)
+                {
+                    int iy = y0 + y;
+                    for (int x = 0; x < size; x++)
+                    {
+                        int ix = x0 + x;
+                        c[y * size + x] = ix >= 0 && ix < w && iy >= 0 && iy < h ? d[iy * w + ix] : fill;
+                    }
+                }
+                return c;
+            };
+            var g = crop(green);
+            // flat in the middle and tapered only in the outer eighth of each side: a Hann window over the whole of it
+            // would leave a large planet's limb, which alone fixes a shift along its bands, with almost no weight
+            var taper = new double[size];
+            int edge = size / 8;
+            for (int i = 0; i < size; i++)
+            {
+                int d = Math.Min(i, size - 1 - i);
+                taper[i] = d >= edge ? 1.0 : 0.5 * (1 - Math.Cos(Math.PI * d / edge));
+            }
+            var win = new double[size * size];
+            for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) win[y * size + x] = taper[x] * taper[y];
             var shifts = new double[3][];
             for (int c = 0; c < 3; c += 2)
             {
                 ct.ThrowIfCancellationRequested(); // a stop takes effect between the channels
-                double dx, dy;
-                Core.Mathematics.Fft.PhaseCorrelate(g, crop(img.Data[c]), size, size, out dx, out dy, win);
-                shifts[c] = new[] { dx, dy };
+                // the peak's sub-pixel fit leans towards whole pixels, so a second look at what is left, near zero
+                // where the fit is true, finishes it; the channel is shifted once, by the sum
                 var plane = new AstroImage(w, h, new[] { img.Data[c] });
+                double dx = 0, dy = 0;
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    var moved = pass == 0 ? plane : Geometry.Shift(plane, dx, dy, Interpolation.Bicubic);
+                    double ex, ey;
+                    Core.Mathematics.Fft.PhaseCorrelate(g, crop(moved.Data[0]), size, size, out ex, out ey, win);
+                    dx += ex; dy += ey;
+                }
+                shifts[c] = new[] { dx, dy };
                 img.Data[c] = Geometry.Shift(plane, dx, dy, Interpolation.Bicubic).Data[0];
             }
             shifts[1] = new[] { 0.0, 0.0 };
