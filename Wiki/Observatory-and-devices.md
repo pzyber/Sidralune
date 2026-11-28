@@ -1,4 +1,4 @@
-The **Observatory** workspace connects and controls your equipment: mount, camera, guide camera, AO unit, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, switch box, flat panel and guider. It takes images, focuses automatically, centres targets by plate solving, guides (with its own guider or through PHD2), polar-aligns your mount and runs automated sequences.
+The **Observatory** workspace connects and controls your equipment: mount, camera, guide camera, AO unit, focuser, filter wheel, rotator, dome or roof, weather station, safety monitor, switch box and flat panel. It takes images, focuses automatically, centres targets by plate solving, guides (with its own guider or through PHD2), polar-aligns your mount and runs automated sequences.
 
 The sequencer has its own page: [Sequencer](Sequencer).
 
@@ -72,7 +72,8 @@ The sequencer has its own page: [Sequencer](Sequencer).
 | Safety monitor | Yes | Yes | | | Yes (from the simulated weather) |
 | Switch | Yes | | | | Yes, a power and dew-heater box |
 | Flat panel (ASCOM: cover calibrator) | Yes | | | | Yes |
-| Guider | | | | The Sidralune guider (built in), or PHD2 (connected on the Guiding tab) | The Sidralune guider guides the simulators |
+
+The guider is not a device you connect here. The Sidralune guider is part of Sidralune and guides as soon as a guide camera is connected, the simulated one too; to guide with PHD2 instead, click **Connect PHD2** on the [Guiding tab](#guiding-tab).
 
 ## Equipment tab
 
